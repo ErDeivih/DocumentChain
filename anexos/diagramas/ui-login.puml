@@ -1,0 +1,21 @@
+@startsalt
+{+
+  == DocumentChain ==
+  Boceto de inicio de sesion
+  .
+  {
+    Usuario o correo
+    "[credencial del usuario]      "
+  }
+  {
+    Contrasena
+    "[contrasena]                  "
+  }
+  .
+  [     Iniciar sesion     ]
+  .
+  [Acceso con credenciales]
+  .
+  [Recuperar contrasena] | [Ir al registro]
+}
+@endsalt

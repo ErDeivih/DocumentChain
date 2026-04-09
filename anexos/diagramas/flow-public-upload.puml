@@ -1,0 +1,42 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Biblioteca / Modal de subida" as ui
+control "Endpoints de documentos (/api/documents)" as api
+control "DocumentService" as srv
+entity "IPFS" as ipfs
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Activa "Publicar documento con enlace y QR"
+ui -> ui: Muestra advertencia sobre acceso publico
+user -> ui: Confirma y completa la subida
+ui -> api: Preparar alta publica
+api -> srv: Registrar visibilidad PUBLIC
+srv -> ipfs: Subir contenido sin cifrar
+ipfs --> srv: CID
+srv -> db: Guardar documento PREPARING con publicId
+db --> srv: documentId y publicId
+srv --> api: Datos para firma
+api --> ui: Alta publica preparada
+
+ui -> wallet: Firmar creacion
+wallet -> sc: createDocument(...)
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar alta
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar estado
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: DocumentCreated(...)
+listener -> db: Marcar documento SYNCED
+listener -> ui: Habilitar acciones publicas
+ui --> user: El documento ya dispone de enlace y QR
+@enduml
+

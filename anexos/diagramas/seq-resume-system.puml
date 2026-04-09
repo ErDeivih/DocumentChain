@@ -1,0 +1,21 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Administrador as admin
+boundary "Panel de administracion" as ui
+control "Endpoints de administracion (/api/admin)" as api
+control "SystemService" as srv
+entity "Smart Contract" as sc
+control "NotificationService" as notify
+
+admin -> ui: Solicita reanudar el sistema
+ui -> api: Confirmar reanudacion
+api -> srv: Preparar vuelta a operacion
+srv -> sc: Reanudar operacion normal
+sc --> srv: Transaccion confirmada
+srv -> notify: Difundir reanudacion
+notify --> srv: Aviso emitido
+srv --> api: Sistema activo
+api --> ui: Indicadores restablecidos
+ui --> admin: Operacion completada
+@enduml
+

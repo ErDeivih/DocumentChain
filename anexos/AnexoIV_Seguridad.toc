@@ -1,0 +1,22 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Introducción}{4}{section.1}%
+\contentsline {section}{\numberline {2}Metodologías de seguridad empleadas}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Análisis de riesgos y amenazas}{5}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Prevención y detección de vulnerabilidades}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Pruebas de seguridad y auditoría}{7}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Protección de datos y privacidad}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Gestión de datos sensibles}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Encriptación y almacenamiento seguro}{9}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Control de acceso y autenticación}{10}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Componentes críticos del software}{11}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Backend y API REST}{11}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Base de datos y almacenamiento}{12}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Frontend y gestión de sesiones}{13}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Aspectos legales y normativos}{14}{section.5}%
+\contentsline {subsection}{\numberline {5.1}RGPD y LOPDGDD}{14}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Normativas sectoriales aplicables}{15}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Consentimiento y derechos de los usuarios}{15}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Plan de mejora continua y monitorización}{16}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Actualización de dependencias y parches}{16}{subsection.6.1}%
+\contentsline {section}{\numberline {7}Conclusiones}{18}{section.7}%
+\contentsline {section}{Bibliografía}{19}{section*.12}%

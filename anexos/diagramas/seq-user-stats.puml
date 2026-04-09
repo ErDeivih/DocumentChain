@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Vista Estadisticas" as ui
+control "Endpoints de estadisticas (/api/stats/user)" as api
+control "StatsService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Solicita sus estadisticas de uso
+ui -> api: Recuperar resumen personal
+api -> srv: Calcular indicadores y actividad reciente
+srv -> db: Obtener agregados y documentos destacados
+db --> srv: Datos estadisticos
+srv --> api: Resumen listo para presentar
+api --> ui: Estadisticas cargadas
+ui --> user: Ve actividad, volumen y tendencias
+
+@enduml
+

@@ -1,0 +1,25 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / pestana Versiones" as ui
+control "Endpoints de versiones\n(/api/versions y /api/public-documents)" as versionApi
+control "Servicio de versiones" as srv
+entity "IPFS" as ipfs
+database "PostgreSQL" as db
+
+user -> ui: Pide descargar una version concreta
+ui -> versionApi: Solicitar la version seleccionada
+versionApi -> srv: Validar acceso y resolver la version
+srv -> db: Recuperar metadatos y politica de acceso
+db --> srv: Version autorizada
+srv -> ipfs: Obtener contenido asociado
+ipfs --> srv: Flujo del archivo
+srv --> versionApi: Contenido preparado para descarga
+versionApi --> ui: Entrega del archivo
+alt Documento privado
+	ui -> ui: Descifrar la version en cliente
+end
+ui --> user: Descarga completada
+
+@enduml
+

@@ -1,0 +1,38 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle de documento" as ui
+control "Endpoints de documentos (/api/documents)" as api
+control "DocumentService" as srv
+entity "IPFS" as ipfs
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Solicita eliminar el documento
+ui -> api: Preparar eliminacion
+api -> srv: Validar propiedad y recopilar recursos asociados
+srv -> db: Registrar eliminacion preparada
+db --> srv: Datos para firmar
+srv --> api: Payload blockchain
+api --> ui: Eliminacion preparada
+
+ui -> wallet: Solicitar firma de borrado
+wallet -> sc: Registrar eliminacion on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar eliminacion
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar estado transaccional
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de eliminacion confirmado
+listener -> ipfs: Unpin de CIDs asociados
+listener -> db: Marcar documento eliminado y registrar auditoria
+listener -> ui: Refrescar biblioteca
+ui --> user: Documento retirado de la aplicacion
+@enduml

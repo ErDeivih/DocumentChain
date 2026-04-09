@@ -1,0 +1,17 @@
+@startgantt
+skinparam backgroundColor White
+printscale daily zoom 2
+Project starts 2025-12-29
+
+-- Fase Elaboracion - Iteracion 2 --
+[T16: Diseno del smart contract Solidity] lasts 3 days
+then [T17: Diseno del cifrado hibrido de documentos] lasts 3 days
+then [T18: Elaboracion de diagramas UML] lasts 3 days
+[T19: Redaccion Anexo I - Especificaciones] lasts 4 days
+then [T22: Glosario y anexos complementarios] lasts 2 days
+[T20: Redaccion Anexo II - Analisis y Diseno] lasts 4 days
+[T20: Redaccion Anexo II - Analisis y Diseno] starts at [T18: Elaboracion de diagramas UML]'s end
+[T21: Redaccion Anexo III - Estimacion] lasts 2 days
+[M23: Fin Iteracion 2 - Elaboracion] happens at [T20: Redaccion Anexo II - Analisis y Diseno]'s end
+[M23: Fin Iteracion 2 - Elaboracion] is colored in Gold/DarkRed
+@endgantt

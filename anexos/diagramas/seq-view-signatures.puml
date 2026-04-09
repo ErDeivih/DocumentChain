@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Firmas" as ui
+control "Endpoints de firmas (/api/documents/:id/signatures)" as api
+control "SignatureService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Abre la pestaña de firmas
+ui -> api: Solicitar firmas del documento
+api -> srv: Resolver firmas visibles para el usuario
+srv -> db: Recuperar firmas ordenadas
+db --> srv: Firmas y metadatos
+srv --> api: Resultado de firmas
+api --> ui: Panel actualizado
+ui --> user: Ve firmante, fecha y referencia blockchain
+
+@enduml
+

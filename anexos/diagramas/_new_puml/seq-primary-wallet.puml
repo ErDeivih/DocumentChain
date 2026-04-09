@@ -1,0 +1,23 @@
+@startuml
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 5
+skinparam sequenceParticipant underline
+skinparam monochrome true
+
+actor "Usuario" as U
+boundary "Frontend" as FE
+control "WalletController" as WC
+entity "WalletService" as WS
+entity "UserRepository" as UR
+
+U -> FE: Clic "Establecer como principal"
+FE -> WC: PUT /api/wallets/:walletId/primary
+WC -> WS: setPrimaryWallet(userId, walletId)
+WS -> UR: clearPrimaryFlag(userId)
+UR --> WS: OK
+WS -> UR: setPrimary(walletId, true)
+UR --> WS: OK
+WS --> WC: {walletId, isPrimary: true}
+WC --> FE: 200 {walletId, isPrimary: true}
+FE --> U: Indicador visual de wallet principal actualizado
+@enduml

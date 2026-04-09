@@ -1,0 +1,24 @@
+@startgantt
+skinparam backgroundColor White
+printscale weekly
+Project starts 2026-03-10
+
+-- Fase Construccion - Iteracion 2 --
+[T47: Panel de administracion de usuarios] lasts 8 days
+then [T48: Auditor blockchain e integridad] lasts 7 days
+[T49: Modulo de notificaciones en tiempo real] lasts 6 days
+[T49: Modulo de notificaciones en tiempo real] starts at [T47: Panel de administracion de usuarios]'s end
+then [T50: Perfil de usuario y gestion de wallets] lasts 5 days
+then [T51: Estadisticas y panel de metricas] lasts 5 days
+[T52: Autenticacion con wallet de navegador y WalletConnect] lasts 6 days
+[T52: Autenticacion con wallet de navegador y WalletConnect] starts at [T48: Auditor blockchain e integridad]'s end
+then [T53: Soporte autenticacion de dos factores] lasts 5 days
+[T54: Optimizacion de rendimiento y cache] lasts 5 days
+[T54: Optimizacion de rendimiento y cache] starts at [T51: Estadisticas y panel de metricas]'s end
+then [T55: Revision de seguridad OWASP] lasts 7 days
+[M56: Feature Freeze - Construccion] happens at [T55: Revision de seguridad OWASP]'s end
+[M56: Feature Freeze - Construccion] is colored in Gold/DarkRed
+then [T57: Correccion de defectos y deuda tecnica] lasts 5 days
+[M57: Fin Iteracion 2 - Construccion] happens at [T57: Correccion de defectos y deuda tecnica]'s end
+[M57: Fin Iteracion 2 - Construccion] is colored in Gold/DarkRed
+@endgantt

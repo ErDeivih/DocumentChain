@@ -1,0 +1,220 @@
+% ============================================================
+%  PLANTILLA OFICIAL — Universidad de Salamanca
+%  Grado en Ingeniería Informática
+%  Compilar con: lualatex plantilla_USAL.tex
+% ============================================================
+
+\documentclass[11pt, a4paper]{article}
+
+% ============================================================
+% 1. PAQUETES Y CONFIGURACIÓN GENERAL
+% ============================================================
+
+% --- Codificación e idioma ---
+% inputenc NO es necesario con lualatex (UTF-8 nativo)
+\usepackage{fontspec}                    % Gestión de fuentes con lualatex
+\usepackage[spanish]{babel}              % Idioma español
+
+% --- Gráficos y figuras ---
+\usepackage{graphicx}                    % Inclusión de imágenes
+\usepackage{float}                       % Control de posición [H]
+
+% --- Matemáticas ---
+\usepackage{amsmath}
+
+% --- Color ---
+\usepackage{xcolor}
+
+% --- Tipografía ---
+\usepackage[protrusion=true,expansion=false]{microtype}
+
+% --- Hipervínculos (siempre el último o casi) ---
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+
+% --- Márgenes y geometría de página ---
+\usepackage{geometry}
+\geometry{
+    left       = 2.5cm,
+    right      = 2.5cm,
+    top        = 3cm,
+    bottom     = 2.5cm,
+    headheight = 55pt,   % Necesario para el logo en la cabecera
+    headsep    = 0.8cm
+}
+
+% --- Bloques de código (listings) ---
+\usepackage{listings}
+\definecolor{lightgray}{rgb}{0.96, 0.96, 0.96}
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.6}
+\definecolor{darkorange}{rgb}{0.8, 0.4, 0.0}
+
+\lstset{
+    basicstyle      = \ttfamily\scriptsize,
+    breaklines      = true,
+    frame           = single,
+    backgroundcolor = \color{lightgray},
+    keywordstyle    = \color{darkblue}\bfseries,
+    stringstyle     = \color{darkorange},
+    showstringspaces= false,
+}
+
+% ============================================================
+% 2. ENCABEZADO Y PIE DE PÁGINA
+% ============================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{\tituloInforme}\\[-1pt]\fontsize{10}{12}\selectfont\subtituloInforme}}
+
+% Línea superior de cabecera
+\renewcommand{\headrulewidth}{0pt}
+% Sin línea en el pie
+\renewcommand{\footrulewidth}{0pt}
+
+% Pie de página: líneas grises flanqueando el número de página
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+
+% ============================================================
+% 3. DATOS DEL INFORME  ← EDITAR AQUÍ CADA VEZ
+% ============================================================
+
+\newcommand{\tituloInforme}{Título del Informe}
+\newcommand{\subtituloInforme}{Sistema de Gestión Documental mediante Blockchain}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+\newcommand{\autorUno}{David Pérez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia González}
+\newcommand{\tutorDos}{Sergio García González}
+
+% ============================================================
+% 4. DOCUMENTO
+% ============================================================
+\begin{document}
+
+% ------------------------------------------------------------
+% PORTADA
+% ------------------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingeniería Informática \par}
+    \vspace{1.5cm}
+
+    {\huge\bfseries \tituloInforme \par}
+    \vspace{0.5cm}
+    {\Large\bfseries \subtituloInforme \par}
+    \vspace{1.8cm}
+
+    \includegraphics[width=0.34\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{1.8cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{2cm}
+    
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vfill
+
+    \asignatura
+
+    \vspace{1cm}
+\end{titlepage}
+
+% Página 2 en adelante lleva encabezado y pie
+\setcounter{page}{2}
+\pagestyle{fancy}
+
+% ------------------------------------------------------------
+% ÍNDICE
+% ------------------------------------------------------------
+\tableofcontents
+\newpage
+
+% ============================================================
+% 5. CONTENIDO DEL INFORME  ← ESCRIBIR AQUÍ
+% ============================================================
+
+\section{Introducción}
+
+Escribe aquí la introducción del informe.
+
+\section{Desarrollo}
+
+\subsection{Primera subsección}
+
+Texto de la subsección. Ejemplo de figura:
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{nombre_imagen.png}
+    \caption{Descripción de la figura.}
+    \label{fig:ejemplo}
+\end{figure}
+
+Ejemplo de tabla:
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \small
+    \begin{tabular}{|p{4cm}|p{4cm}|p{4cm}|}
+    \hline
+    \textbf{Columna 1} & \textbf{Columna 2} & \textbf{Columna 3} \\
+    \hline
+    Dato A & Dato B & Dato C \\
+    \hline
+    Dato D & Dato E & Dato F \\
+    \hline
+    \end{tabular}
+    \caption{Descripción de la tabla.}
+    \label{tab:ejemplo}
+\end{table}
+
+Ejemplo de bloque de código:
+
+\begin{lstlisting}
+{
+  "clave": "valor",
+  "número": 42
+}
+\end{lstlisting}
+
+\subsection{Segunda subsección}
+
+Texto adicional. Referencia a figura: véase la Figura~\ref{fig:ejemplo}.
+
+\section{Conclusiones}
+
+Escribe aquí las conclusiones.
+
+% ============================================================
+% 6. ANEXOS (opcional)
+% ============================================================
+% Descomenta las siguientes líneas si necesitas anexos:
+%
+% \newpage
+% \appendix
+% \section{Anexo A: Título del Anexo}
+% Contenido del anexo.
+
+\end{document}

@@ -1,0 +1,38 @@
+@startuml
+skinparam backgroundColor White
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam noteBorderColor black
+skinparam noteBackgroundColor white
+skinparam noteFontColor black
+skinparam noteFontSize 13
+
+note as result
+  <b><size:16>EZEstimate — Resultado de Estimación</size></b>
+  <b>Sistema:</b> DocumentChain
+  <b>Método:</b> Use Case Points (UCP)
+  ─────────────────────────────────────
+  <b>Cálculo de Puntos de Casos de Uso:</b>
+
+  UAW  (Unadjusted Actor Weight)       =   30
+  UUCW (Unadjusted Use Case Weight)    = +400
+  ─────────────────────────────────────
+  UUCP (UAW + UUCW)                    =  430
+
+  TCF  (Technical Complexity Factor)   = 1,195
+  ECF  (Environmental Complexity Factor) = 0,86
+  ─────────────────────────────────────
+  <b>UCP Ajustados = UUCP × TCF × ECF</b>
+  <b>UCP = 430 × 1,195 × 0,86 ≈ 442</b>
+  ─────────────────────────────────────
+  <b>Conversión a horas:</b>
+  Factor de productividad: 3,4 h / UCP
+  <b>Esfuerzo ≈ 442 × 3,4 ≈ 1.500 horas</b>
+
+  <b>Planificación resultante:</b>
+    · Días laborables:  250  (50 semanas)
+    · Duración total:   ~12 meses
+    · Periodo:          nov. 2024 — nov. 2025
+end note
+
+@enduml

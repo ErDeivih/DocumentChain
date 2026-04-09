@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / pestana Versiones" as ui
+control "Endpoints de versiones\n(/api/documents/:id/versions)" as versionApi
+control "Servicio de versiones" as srv
+database "PostgreSQL" as db
+
+user -> ui: Selecciona una version como operativa
+ui -> versionApi: Cambiar version operativa
+versionApi -> srv: Validar documento, version y permisos
+srv -> db: Actualizar referencia operativa y registrar evento
+db --> srv: OK
+srv --> versionApi: Cambio completado
+versionApi --> ui: Historial actualizado
+ui --> user: La version queda marcada como operativa
+
+@enduml
+

@@ -1,0 +1,19 @@
+@startgantt
+skinparam backgroundColor White
+printscale daily zoom 2
+Project starts 2026-04-20
+
+-- Fase Transicion - Iteracion 1 --
+[T58: Despliegue en entorno de produccion Docker] lasts 3 days
+then [T59: Configuracion Nginx y certificados SSL] lasts 2 days
+[T60: Configuracion del proveedor IPFS en produccion] lasts 2 days
+[T60: Configuracion del proveedor IPFS en produccion] starts at [T58: Despliegue en entorno de produccion Docker]'s end
+[T61: Validacion del smart contract en red real] lasts 2 days
+[T61: Validacion del smart contract en red real] starts at [T58: Despliegue en entorno de produccion Docker]'s end
+[T62: Pruebas de aceptacion de usuario UAT] lasts 2 days
+[T62: Pruebas de aceptacion de usuario UAT] starts at [T59: Configuracion Nginx y certificados SSL]'s end
+then [T63: Pruebas de carga y rendimiento] lasts 3 days
+then [T64: Correccion de errores en produccion] lasts 2 days
+[M65: Fin Iteracion 1 - Transicion] happens at [T64: Correccion de errores en produccion]'s end
+[M65: Fin Iteracion 1 - Transicion] is colored in Gold/DarkRed
+@endgantt

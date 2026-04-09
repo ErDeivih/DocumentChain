@@ -1,0 +1,36 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle de documento" as ui
+control "Endpoints de documentos (/api/documents)" as api
+control "DocumentService" as srv
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Solicita archivar el documento
+ui -> api: Preparar archivado
+api -> srv: Validar propiedad y estado activo
+srv -> db: Registrar operacion preparada
+db --> srv: Datos para firmar
+srv --> api: Payload blockchain
+api --> ui: Archivado preparado
+
+ui -> wallet: Solicitar firma
+wallet -> sc: Registrar archivado on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar archivado
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar estado transaccional
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de archivado confirmado
+listener -> db: Marcar documento archivado y SYNCED
+listener -> ui: Refrescar biblioteca
+ui --> user: Documento movido a Archivados
+@enduml

@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Configuracion / Notificaciones" as ui
+control "Endpoints de notificaciones (/api/notifications)" as api
+control "PreferenceService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Ajusta sus preferencias de aviso
+ui -> api: Guardar preferencias
+api -> srv: Validar y persistir configuracion
+srv -> db: Crear o actualizar preferencias del usuario
+db --> srv: OK
+srv --> api: Preferencias guardadas
+api --> ui: Confirmacion registrada
+ui --> user: Configuracion actualizada
+
+@enduml
+

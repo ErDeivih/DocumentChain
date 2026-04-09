@@ -1,0 +1,29 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Visitante as visitor
+boundary "Pagina Verificar" as ui
+control "Endpoints de verificacion documental (/api/documents/verify)" as api
+control "VerificationService" as srv
+entity "IPFS" as ipfs
+entity "BlockchainQueries" as chain
+
+visitor -> ui: Elige archivo, CID o blockchainId
+alt Verificacion por archivo
+  ui -> api: Verificar archivo
+  api -> srv: Calcular huella y localizar coincidencia
+else Verificacion por CID
+  ui -> api: Verificar CID
+  api -> ipfs: Resolver contenido o metadatos
+  ipfs --> api: CID resuelto
+  api -> srv: Buscar documento asociado
+else Verificacion por blockchainId
+  ui -> api: Verificar identificador blockchain
+  api -> srv: Localizar documento por ID
+end
+srv -> chain: Consultar registro on-chain
+chain --> srv: Propietario, versiones y estado
+srv --> api: Resultado de autenticidad
+api --> ui: Evidencias y trazabilidad
+ui --> visitor: Visualiza la validez del documento
+@enduml
+

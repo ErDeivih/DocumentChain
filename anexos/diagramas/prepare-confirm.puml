@@ -1,0 +1,31 @@
+﻿@startuml
+!include _structure-style.puml
+title Patron Prepare / Confirm
+
+[*] --> PREPARING : La aplicacion prepara la operacion
+
+state PREPARING {
+    PREPARING : Datos listos para firma
+}
+
+state TX_SUBMITTED {
+    TX_SUBMITTED : Transaccion enviada a la red
+}
+
+state SYNCED {
+    SYNCED : Estado consistente en aplicacion y blockchain
+}
+
+state FAILED {
+    FAILED : La operacion no se completa
+}
+
+PREPARING --> TX_SUBMITTED : La wallet del usuario firma y devuelve txHash
+PREPARING --> FAILED : El usuario cancela o la preparacion falla
+TX_SUBMITTED --> SYNCED : El sincronizador confirma el evento on-chain
+TX_SUBMITTED --> FAILED : La transaccion revierte o expira
+FAILED --> PREPARING : Se reintenta la operacion
+FAILED --> [*] : Se cancela definitivamente
+SYNCED --> [*]
+@enduml
+

@@ -1,0 +1,167 @@
+services:
+  # PostgreSQL - Base de datos principal
+  postgres:
+    image: postgres:16
+    container_name: documentchain-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=documentchain
+      - POSTGRES_PASSWORD=documentchain
+      - POSTGRES_DB=documentchain
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U documentchain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - documentchain
+
+  # Postfix - Servidor SMTP propio (MTA) para enviar emails reales sin proveedor externo
+  # Envía directamente a los servidores de destino (Gmail, Outlook, etc.)
+  # Puerto host 1587 → container 587 (evita restricciones de puerto 25 en Windows)
+  postfix:
+    image: boky/postfix:latest
+    container_name: documentchain-postfix
+    restart: unless-stopped
+    environment:
+      - HOSTNAME=${POSTFIX_HOSTNAME:-mail.documentchain.local}
+      - RELAYHOST=${SMTP_RELAYHOST:-}
+      - RELAYHOST_USERNAME=${SMTP_RELAYHOST_USERNAME:-}
+      - RELAYHOST_PASSWORD=${SMTP_RELAYHOST_PASSWORD:-}
+      - ALLOWED_SENDER_DOMAINS=${ALLOWED_SENDER_DOMAINS:-documentchain.local}
+      - MASQUERADED_DOMAINS=${MASQUERADED_DOMAINS:-documentchain.local}
+      - POSTFIX_myhostname=${POSTFIX_HOSTNAME:-mail.documentchain.local}
+      - POSTFIX_smtp_tls_security_level=${POSTFIX_SMTP_TLS_SECURITY_LEVEL:-may}
+      - MY_NETWORKS=127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+      - DKIM_AUTOGENERATE=${POSTFIX_DKIM_AUTOGENERATE:-true}
+    ports:
+      - "1587:587"     # Backend usa: SMTP_HOST=localhost SMTP_PORT=1587
+    networks:
+      - documentchain
+
+  # MailHog - SMTP para desarrollo (captura emails sin enviarlos)
+  # Ver emails capturados en: http://localhost:8025
+  # DESHABILITADO - Usando Postfix en su lugar
+  # mailhog:
+  #   image: mailhog/mailhog:latest
+  #   container_name: documentchain-mailhog
+  #   restart: unless-stopped
+  #   ports:
+  #     - "1025:1025"   # SMTP server
+  #     - "8025:8025"   # Web UI
+  #   networks:
+  #     - documentchain
+
+  # Hardhat Blockchain Node - Nodo local Ethereum para desarrollo
+  hardhat:
+    build:
+      context: .
+      dockerfile: Dockerfile.hardhat
+    container_name: documentchain-hardhat
+    restart: unless-stopped
+    ports:
+      - "8545:8545"  # JSON-RPC HTTP endpoint
+    environment:
+      - HARDHAT_NETWORK=hardhat
+      - CONTRACT_DOCUMENT_REGISTRY=${CONTRACT_DOCUMENT_REGISTRY:-0x5FbDB2315678afecb367f032d93F642f64180aa3}
+    volumes:
+      - hardhat-data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http=require('http');const body=JSON.stringify({jsonrpc:'2.0',method:'eth_blockNumber',params:[],id:1});const req=http.request({hostname:'localhost',port:8545,method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},(res)=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{const r=JSON.parse(d);process.exit(r.result!==undefined?0:1)}catch{process.exit(1)}})});req.on('error',()=>process.exit(1));req.write(body);req.end()"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    networks:
+      - documentchain
+    depends_on:
+      - postgres
+
+  # Backend Node.js - Servidor API principal
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: documentchain-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://documentchain:documentchain@postgres:5432/documentchain
+      - BLOCKCHAIN_RPC_URL=http://hardhat:8545
+      - CONTRACT_DOCUMENT_REGISTRY=${CONTRACT_DOCUMENT_REGISTRY:-0x5FbDB2315678afecb367f032d93F642f64180aa3}
+      - BLOCKCHAIN_PRIVATE_KEY=${BLOCKCHAIN_PRIVATE_KEY:-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}
+      - ADMIN_ROLE=${ADMIN_ROLE:-}
+      - PORT=3000
+      - SMTP_HOST=${SMTP_HOST:-postfix}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@documentchain.local}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-DocumentChain}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,https://localhost:5173}
+      - UPLOAD_RATE_LIMIT_MAX=${UPLOAD_RATE_LIMIT_MAX:-500}
+      - GENERAL_RATE_LIMIT_MAX=${GENERAL_RATE_LIMIT_MAX:-2000}
+      - PREPARE_RATE_LIMIT_MAX=${PREPARE_RATE_LIMIT_MAX:-100}
+      - CONFIRM_RATE_LIMIT_MAX=${CONFIRM_RATE_LIMIT_MAX:-150}
+    ports:
+      - "3000:3000"
+    volumes:
+      - backend-logs:/app/logs
+      - backend-shared:/app/shared
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>process.exit(r.statusCode===200?0:1)); }).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    networks:
+      - documentchain
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+      postfix:
+        condition: service_started
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: /api
+    container_name: documentchain-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - documentchain
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+    driver: local
+  hardhat-data:
+    driver: local
+  backend-logs:
+    driver: local
+  backend-shared:
+    driver: local
+
+networks:
+  documentchain:
+    driver: bridge

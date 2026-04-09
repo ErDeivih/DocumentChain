@@ -1,0 +1,33 @@
+@startuml
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 5
+skinparam sequenceParticipant underline
+skinparam monochrome true
+
+actor "Usuario" as U
+boundary "Frontend\n(MetaMask)" as FE
+control "DocumentController" as DC
+entity "DocumentService" as DS
+entity "BlockchainService" as BS
+entity "Smart Contract" as SC
+entity "PostgreSQL" as DB
+
+U -> FE: Selecciona documento archivado → "Desarchivar"
+FE -> DC: POST /api/documents/:id/archive/prepare
+DC -> DS: prepareArchiveToggle(docId, userId, archived=false)
+DS -> DB: findDocument(docId)
+DB --> DS: {docId, blockchainId, archived: true}
+DS -> BS: buildSetArchiveStatusTx(blockchainId, false)
+BS --> DS: {txData, gasEstimate}
+DS --> DC: {txData}
+DC --> FE: {txData}
+FE -> FE: MetaMask.sendTransaction(txData)
+FE -> DC: POST /api/documents/:id/archive/confirm {txHash}
+DC -> DS: updateStatus(docId, TX_SUBMITTED, txHash)
+DS -> DB: update(docId, {status: TX_SUBMITTED, txHash})
+SC --> BS: evento ArchiveStatusChanged(blockchainId, false)
+BS -> DS: onArchiveStatusChanged(blockchainId, false)
+DS -> DB: update(docId, {archived: false, status: SYNCED})
+DB --> DS: OK
+FE --> U: Documento visible en lista activa
+@enduml

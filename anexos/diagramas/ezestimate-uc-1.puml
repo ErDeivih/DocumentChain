@@ -1,0 +1,38 @@
+@startsalt
+{
+  <b><size:14>EZEstimate — Clasificación de Casos de Uso (UUCW)</size></b>
+  ==
+  {T
+   + <b>Paquete / Caso de Uso</b>                    | <b>Complejidad</b> | <b>Tx</b> | <b>Peso</b>
+   + <b>Autenticación y Perfil</b>                   | ──────────── | ─── | ─────
+   +   UC-0001 Registrar Usuario                 | Simple        |  3  |   5
+   +   UC-0002 Iniciar Sesión                    | Simple        |  3  |   5
+   +   UC-0003 Cerrar Sesión                     | Simple        |  1  |   5
+  +   UC-0004 Conectar Wallet                   | Complejo      | 10  |  15
+   +   UC-0005 Gestionar Perfil                  | Medio         |  5  |  10
+   +   UC-0006 Cambiar Contraseña                | Medio         |  4  |  10
+   +   UC-0007 Recuperar Contraseña              | Medio         |  5  |  10
+   +   UC-0008 Verificar Email                   | Simple        |  2  |   5
+   +   UC-0009 Configurar 2FA                    | Complejo      |  8  |  15
+   + <b>Gestión de Documentos</b>                    | ──────────── | ─── | ─────
+   +   UC-0010 Subir Documento                   | Complejo      | 12  |  15
+   +   UC-0011 Listar Documentos                 | Simple        |  3  |   5
+   +   UC-0012 Ver Detalle de Documento          | Medio         |  5  |  10
+   +   UC-0013 Descargar Documento               | Complejo      |  8  |  15
+   +   UC-0014 Archivar Documento                | Medio         |  4  |  10
+   +   UC-0015 Eliminar Documento                | Medio         |  5  |  10
+   +   UC-0016 Editar Metadatos                  | Medio         |  4  |  10
+   +   UC-0017 Buscar Documentos                 | Medio         |  5  |  10
+   + <b>Control de Versiones</b>                     | ──────────── | ─── | ─────
+   +   UC-0018 Crear Nueva Versión               | Complejo      | 11  |  15
+   +   UC-0019 Listar Versiones                  | Simple        |  3  |   5
+   +   UC-0020 Establecer Versión Operativa      | Medio         |  4  |  10
+   +   UC-0021 Restaurar Versión Anterior        | Complejo      |  8  |  15
+   +   UC-0022 Descargar Versión Específica      | Complejo      |  8  |  15
+   + ─────────────────────────────────────────── | ──────────── | ─── | ─────
+   + <sub>(continúa en siguiente tabla...)</sub>  |              |     |
+  }
+  ==
+  [  Anterior  ] | [  <b>Siguiente →</b>  ]
+}
+@endsalt

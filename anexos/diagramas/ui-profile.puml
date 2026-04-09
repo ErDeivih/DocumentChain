@@ -1,0 +1,33 @@
+@startsalt
+{+
+  Boceto de perfil y seguridad
+  ─────────────────────────────
+  {
+    [ Foto ] |
+    {
+      [Nombre del usuario]
+      [correo del usuario]
+      Rol: [rol] | Alta: [fecha]
+    }
+  }
+  ─────────────────────────────
+  Wallets vinculadas
+  {#
+    Red | Direccion | Verificada | Accion
+    [Red] | [direccion] | [si/no] | [Accion]
+    [Red] | [direccion] | [si/no] | [Accion]
+  }
+  [+ Vincular nueva wallet]
+  ─────────────────────────────
+  Seguridad
+  {
+    Segundo factor: | [estado]
+    Ultimo acceso: | [fecha y hora]
+    Sesiones activas: | [resumen]
+  }
+  .
+  [Cambiar contrasena] | [Configurar 2FA] | [Ver sesiones]
+  ─────────────────────────────
+  [Editar perfil] | [Eliminar cuenta]
+}
+@endsalt

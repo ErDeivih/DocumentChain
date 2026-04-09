@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Actividad" as ui
+control "Endpoints de eventos (/api/documents/:id/events)" as api
+control "EventService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Abre la cronologia del documento
+ui -> api: Solicitar eventos del documento
+api -> srv: Resolver timeline con paginacion
+srv -> db: Recuperar eventos ordenados y total
+db --> srv: Eventos disponibles
+srv --> api: Timeline listo
+api --> ui: Cronologia cargada
+ui --> user: Ve subidas, firmas, accesos y cambios
+
+@enduml
+

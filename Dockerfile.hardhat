@@ -1,0 +1,33 @@
+# Dockerfile para Hardhat Blockchain Node
+# Ejecuta un nodo local de Hardhat con soporte persistencia y RPC
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiar smart contracts y dependencias
+COPY smart-contracts/ .
+
+# Instalar dependencias
+RUN npm ci
+
+# Pre-compilar contratos
+RUN npm run compile || true
+
+# Expose puertos
+# 8545: JSON-RPC HTTP
+# 8546: JSON-RPC WebSocket (si se habilita)
+EXPOSE 8545
+
+# Health check - verifica que el RPC esté respondiendo via JSON-RPC (exec form, sin shell)
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD ["node", "-e", "const http=require('http');const body='{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}';const req=http.request({hostname:'localhost',port:8545,method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},(res)=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{const r=JSON.parse(d);process.exit(r.result!==undefined?0:1)}catch{process.exit(1)}})});req.on('error',()=>process.exit(1));req.write(body);req.end()"]
+
+# Volumen para persistencia de blockchain
+VOLUME ["/app/data"]
+
+# Arranque del nodo con despliegue automático del contrato consolidado
+COPY smart-contracts/scripts/start-hardhat-with-deploy.sh ./scripts/start-hardhat-with-deploy.sh
+RUN chmod +x ./scripts/start-hardhat-with-deploy.sh
+
+CMD ["./scripts/start-hardhat-with-deploy.sh"]

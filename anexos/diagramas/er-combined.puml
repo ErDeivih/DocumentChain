@@ -1,0 +1,112 @@
+﻿@startuml er-combined
+!include _structure-style.puml
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam padding 4
+
+package "Base de datos (PostgreSQL)" <<pg>> {
+  entity "users" as users {
+    * id : CUID <<PK>>
+    --
+    email : TEXT
+    password_hash : TEXT
+    created_at : TIMESTAMPTZ
+  }
+  entity "wallets" as wallets {
+    * id : CUID <<PK>>
+    --
+    user_id : CUID <<FK>>
+    address : VARCHAR(42) <<UK>>
+    is_primary : BOOLEAN
+  }
+  entity "documents" as docs {
+    * id : CUID <<PK>>
+    --
+    owner_id : CUID <<FK>>
+    title : TEXT
+    blockchain_id : TEXT
+    public_id : TEXT?
+    visibility : ENUM
+    blockchain_tx_hash : TEXT
+    blockchain_status : ENUM
+  }
+  entity "versions" as versions {
+    * id : CUID <<PK>>
+    --
+    document_id : CUID <<FK>>
+    version_number : INT
+    ipfs_cid : TEXT
+    user_id : CUID <<FK>>
+    is_operational : BOOLEAN
+  }
+  entity "document_signatures" as sigs {
+    * id : CUID <<PK>>
+    --
+    document_id : CUID <<FK>>
+    version_id : CUID <<FK>>
+    signer_wallet_id : CUID <<FK>>
+    blockchain_tx_hash : TEXT
+  }
+  entity "events" as events {
+    * id : CUID <<PK>>
+    --
+    document_id : CUID <<FK>>
+    event_type : TEXT
+    transaction_hash : TEXT?
+    metadata : JSON
+  }
+}
+
+package "Smart Contract (Blockchain Ethereum)" <<bc>> {
+  entity "Struct Document" as bcDoc {
+    * docId : bytes32 <<PK>>
+    --
+    owner : address
+    createdAt : uint256
+    currentVersion : uint256
+    latestVersion : uint256
+    isArchived : bool
+    isDeleted : bool
+  }
+  entity "Struct Version" as bcVersion {
+    * (docId, versionNumber) <<PK>>
+    --
+    ipfsCid : string
+    encryptedKeyHash : bytes32
+    createdBy : address
+    isOperational : bool
+    createdAt : uint256
+  }
+  entity "Struct Signature" as bcSig {
+    * (docId, versionNum, idx) <<PK>>
+    --
+    signer : address
+    signature : bytes
+    message : string
+    timestamp : uint256
+  }
+  entity "Mapping Permissions" as bcPerm {
+    * (docId, userAddress) <<PK>>
+    --
+    role : DocumentRole
+  }
+}
+
+' --- Relaciones internas PostgreSQL ---
+users ||--o{ wallets : "tiene"
+users ||--o{ docs : "posee"
+docs ||--o{ versions : "tiene"
+docs ||--o{ sigs : "recibe"
+docs ||--o{ events : "genera"
+users ||--o{ events : "ejecuta"
+wallets ||--o{ sigs : "firma con"
+
+' --- Correspondencias transversales (campos equivalentes) ---
+docs ..> bcDoc : "blockchain_id\n= docId"
+versions ..> bcVersion : "ipfs_cid\n= ipfsCid"
+sigs ..> bcSig : "wallets.address\n= signer"
+events ..> bcPerm : "evidencia de share/revoke\n(la verdad vigente esta on-chain)"
+wallets ..> bcDoc : "address\n= owner"
+
+@enduml
+

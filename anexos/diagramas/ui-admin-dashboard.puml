@@ -1,0 +1,38 @@
+@startsalt
+{+
+  Boceto del panel de administracion
+  ─────────────────────────────
+  {
+    {
+      Usuarios registrados
+      == [total] ==
+    } |
+    {
+      Documentos totales
+      == [total] ==
+    } |
+    {
+      Firmas totales
+      == [total] ==
+    } |
+    {
+      Sistema
+      == [estado] ==
+    }
+  }
+  ─────────────────────────────
+  Gestion de usuarios
+  "[criterio de busqueda]        "   [Buscar]
+  {#
+    ID | Email | Rol | Estado | Acciones
+    [id] | [email] | [rol] | [estado] | [acciones]
+    [id] | [email] | [rol] | [estado] | [acciones]
+    [id] | [email] | [rol] | [estado] | [acciones]
+  }
+  .
+  [Exportar usuarios]   [ < ] [ 1 ] [ 2 ] [ > ]
+  ─────────────────────────────
+  Control del sistema
+  [Pausar sistema] | [Ver auditoria blockchain] | [Ver registros]
+}
+@endsalt

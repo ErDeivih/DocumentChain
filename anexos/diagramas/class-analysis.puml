@@ -1,0 +1,126 @@
+﻿@startuml
+!include _structure-style.puml
+skinparam classAttributeIconSize 0
+
+class User {
+    - id: String
+    - username: String {unique}
+    - email: String {unique}
+    - passwordHash: String
+    - fullName: String?
+    - role: UserRole
+    - publicKey: String
+    - encryptedPrivateKey: String
+    - createdAt: DateTime
+    - updatedAt: DateTime
+}
+
+enum UserRole {
+    USER
+    ADMIN
+}
+
+class Wallet {
+    - id: String
+    - walletAddress: String
+    - isPrimary: Boolean
+    - isConnected: Boolean
+    - nickname: String?
+    - addedAt: DateTime
+}
+
+class Document {
+    - id: String
+    - blockchainId: String?
+    - name: String
+    - description: String?
+    - mimeType: String
+    - size: BigInt
+    - contentHash: String
+    - metadataHash: String
+    - encryptedSymmetricKey: String
+    - isArchived: Boolean
+    - createdAt: DateTime
+}
+
+class Version {
+    - id: String
+    - versionNumber: Int
+    - ipfsCid: String
+    - encryptedSymmetricKey: String
+    - comment: String?
+    - isOperational: Boolean
+    - createdAt: DateTime
+}
+
+class DocumentSignature {
+    - id: String
+    - signedAt: DateTime
+    - blockchainTxHash: String?
+}
+
+class Folder {
+    - id: String
+    - name: String
+    - description: String?
+    - color: String?
+    - isShared: Boolean
+}
+
+class Category {
+    - id: String
+    - name: String
+    - description: String?
+    - isPredefined: Boolean
+}
+
+class Event {
+    - id: String
+    - eventType: String
+    - metadata: JSON
+    - transactionHash: String?
+    - blockNumber: Int?
+    - createdAt: DateTime
+}
+
+class UserStats {
+    - totalDocuments: Int
+    - totalSize: BigInt
+    - totalShared: Int
+    - totalSignatures: Int
+}
+
+class Notification {
+    - id: String
+    - type: String
+    - title: String
+    - message: String
+    - isRead: Boolean
+    - createdAt: DateTime
+}
+
+User "1" -- "0..5" Wallet : owns >
+User "1" -- "*" Document : owns >
+User "1" -- "*" Folder : organizes >
+User "1" -- "0..1" UserStats : has >
+User "1" -- "*" Notification : receives >
+
+Document "*" -- "1" User : belongs to
+Document "*" -- "0..1" Folder : contained in
+Document "*" -- "0..1" Category : categorized by
+Document "1" -- "*" Version : has >
+Document "1" -- "*" DocumentSignature : signed by >
+Document "1" -- "*" Event : generates >
+
+Version "*" -- "1" Document : version of
+Version "1" -- "*" DocumentSignature : has signatures >
+Version "*" -- "1" User : created by
+
+DocumentSignature "*" -- "1" User : signed by
+DocumentSignature "*" -- "0..1" Wallet : from wallet
+
+Folder "*" -- "0..1" Folder : parent
+Category "*" -- "0..1" User : custom for
+
+@enduml
+

@@ -1,0 +1,247 @@
+% ============================================================
+%  Anexo IV - Plan de Seguridad
+%  Sistema de Gestión Documental mediante Blockchain
+%  Compilar con: lualatex AnexoIV_PlanSeguridad.tex
+% ============================================================
+
+% ============================================================
+% NOTA ENCODING (2026-03-27): Archivo corregido a UTF-8.
+% Los caracteres acentuados (tildes) habian sido danados por
+% una operacion de I/O con codificacion ISO-8859-1 en PS5.
+% Patron 1 (AnexoI): U+FFFD para a/e/i/n/u; '?' para 'o'.
+%   Solucion: diccionario de contexto + regex (fix_accents_v2.py, fix3.py).
+% Patron 2 (AnexoII-V): todos los acentos como '?' literal.
+%   Solucion: vacabulario de 462 entradas (fix_annexes_all.py, fix_final.py).
+% REGLA: Siempre usar Python 3 + io.open(path,'w',encoding='utf-8').
+%        NUNCA usar Set-Content de PowerShell 5 (anade BOM o rompe tildes).
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+
+\usepackage{geometry}
+\geometry{
+    left       = 2.5cm,
+    right      = 2.5cm,
+    top        = 3cm,
+    bottom     = 2.5cm,
+    headheight = 55pt,
+    headsep    = 0.8cm
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{\tituloInforme}\\[-1pt]\fontsize{10}{12}\selectfont\subtituloInforme}}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+
+\newcommand{\tituloInforme}{Anexo IV: Plan de seguridad}
+\newcommand{\subtituloInforme}{Sistema de Gestión Documental mediante Blockchain}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+\newcommand{\autorUno}{David Pérez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia González}
+\newcommand{\tutorDos}{Sergio García González}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingeniería Informática \par}
+    \vspace{1.5cm}
+
+    {\huge\bfseries \tituloInforme \par}
+    \vspace{0.5cm}
+    {\Large\bfseries \subtituloInforme \par}
+    \vspace{1.8cm}
+
+    \includegraphics[width=0.34\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{1.8cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{2cm}
+    
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vfill
+
+    \asignatura
+
+    \vspace{1cm}
+\end{titlepage}
+
+\setcounter{page}{2}
+\pagestyle{fancy}
+
+\tableofcontents
+\newpage
+
+\listoffigures
+\newpage
+
+\listoftables
+\newpage
+
+\section{Introducción}
+
+El sistema \textbf{DocumentChain} gestiona documentación privada, metadatos de usuario y evidencias de trazabilidad apoyadas en servicios web, almacenamiento distribuido y registro de operaciones en blockchain. Esa combinación amplía la superficie de exposición y obliga a plantear la seguridad desde varias capas: acceso a la cuenta, tratamiento del contenido documental, control de publicación pública, firma de operaciones y supervisión administrativa.
+
+En este anexo se presenta una síntesis del planteamiento de seguridad adoptado en el proyecto. Se recogen los riesgos más relevantes para la aplicación, las medidas aplicadas durante el desarrollo y las referencias normativas consideradas para el tratamiento de datos personales. El objetivo es describir un marco coherente con la solución implementada, sin convertir el documento en una especificación técnica exhaustiva.
+
+\section{Metodologías de seguridad empleadas}
+
+Durante el desarrollo se ha seguido un enfoque preventivo. La revisión de riesgos no se ha dejado para la fase final, sino que se ha incorporado al análisis funcional y a las decisiones de arquitectura. En términos prácticos, ello ha supuesto revisar qué componentes concentran más criticidad, qué operaciones requieren controles adicionales y qué datos no deben exponerse fuera del contexto estrictamente necesario.
+
+\subsection{Análisis de riesgos y amenazas}
+
+Los riesgos más evidentes en DocumentChain se concentran en el acceso no autorizado a documentos privados, la exposición de credenciales o tokens de sesión, la alteración de metadatos, el uso indebido de enlaces públicos y los fallos en operaciones firmadas con wallet. A esto se añaden amenazas comunes en aplicaciones web, como peticiones maliciosas a la API, intentos de escalado de privilegios o abuso de funcionalidades administrativas.
+
+También se ha tenido en cuenta la dualidad entre contenido privado y contenido publicado. Un documento privado debe mantenerse protegido durante el almacenamiento y la descarga; un documento público, por el contrario, queda accesible por decisión expresa del propietario y necesita controles distintos, más orientados a la trazabilidad y al uso correcto de los enlaces compartibles. La presencia de blockchain introduce además requisitos adicionales de verificación de autoría y de consistencia entre lo registrado on-chain y el estado operativo que conserva la aplicación.
+
+\subsection{Prevención y detección de vulnerabilidades}
+
+La prevención se apoya en varias medidas complementarias. La API valida entradas y permisos antes de ejecutar acciones sensibles. Las sesiones autenticadas se gestionan con credenciales tradicionales y pueden reforzarse mediante segundo factor. Las operaciones blockchain no sustituyen al inicio de sesión, sino que se reservan para acciones concretas como subir documentos, compartirlos, firmarlos o reactivar una cuenta suspendida.
+
+Esa separación entre autenticación y firma reduce dependencias innecesarias y evita trasladar a la wallet responsabilidades que pertenecen a la gestión ordinaria de la cuenta. En consecuencia, un acceso autenticado no basta para completar acciones con impacto registral si además no se confirma la operación con la dirección adecuada, y una wallet conectada tampoco otorga por sí sola acceso a información privada fuera del contexto autorizado por la aplicación.
+
+En la capa documental se diferencia entre documentos privados y documentos públicos. Los primeros se almacenan protegidos y su acceso queda restringido a usuarios autorizados; los segundos solo se publican cuando el usuario lo indica expresamente y la interfaz advierte de ese cambio de nivel de exposición. La detección de incidencias se apoya en logs, eventos de auditoría y comprobaciones de estado que permiten reconstruir qué operación se realizó, quién la inició y si llegó a confirmarse de forma correcta.
+
+\subsection{Pruebas de seguridad y auditoría}
+
+La verificación de seguridad se ha basado en revisiones del código, pruebas funcionales sobre autenticación y autorización, y comprobaciones sobre el comportamiento de la aplicación ante entradas no válidas o intentos de acceso indebido. En el ámbito blockchain se han considerado también pruebas específicas sobre permisos, firma de operaciones y trazabilidad de eventos.
+
+No se ha planteado este anexo como una memoria de auditoría externa, sino como un resumen de las medidas revisadas durante el proyecto. Aun así, el sistema queda preparado para una validación posterior más exigente si se plantease un despliegue institucional o un uso real con carga documental relevante.
+
+\section{Protección de datos y privacidad}
+
+La aplicación trata datos identificativos básicos del usuario, datos de sesión, direcciones de wallet y documentos que pueden contener información sensible según el uso que se haga de la plataforma. Por ello se ha seguido un criterio de minimización: se almacenan los datos necesarios para autenticar al usuario, gestionar sus documentos, aplicar preferencias de seguridad y mantener la trazabilidad operativa del sistema.
+
+\subsection{Gestión de datos sensibles}
+
+El contenido documental privado constituye el elemento más delicado del sistema. Su tratamiento no se equipara al de los documentos publicados con enlace compartible, ya que en ese segundo caso existe una decisión explícita de exposición por parte del usuario. También se consideran sensibles las credenciales de acceso, el material criptográfico asociado a la cuenta y los datos de auditoría cuando permiten reconstruir acciones sobre documentos concretos.
+
+Desde el punto de vista funcional, se procura que la aplicación no muestre ni intercambie más información de la necesaria en cada pantalla o en cada petición. La separación entre vistas públicas, vistas autenticadas y panel administrativo ayuda a limitar la exposición de datos a los contextos en los que realmente se necesitan.
+
+\subsection{Encriptación y almacenamiento seguro}
+
+DocumentChain combina PostgreSQL para la información operativa, IPFS para el almacenamiento documental y blockchain para la trazabilidad de determinadas operaciones. En los documentos privados se aplica un esquema de protección que evita que el contenido quede accesible en claro durante el almacenamiento ordinario. En los documentos públicos, en cambio, el sistema mantiene el contenido accesible porque ese es precisamente el objetivo del enlace compartible; por ello la advertencia al usuario forma parte de la propia medida de seguridad.
+
+Las comunicaciones entre cliente y servidor se realizan bajo canales seguros, mientras que el acceso a los servicios internos se limita a los componentes que realmente necesitan interactuar con ellos. En la parte persistente se conservan copias de trabajo, eventos y metadatos, pero se evita trasladar a blockchain información personal identificable que no sea necesaria para la verificación posterior.
+
+\subsection{Control de acceso y autenticación}
+
+El acceso a la cuenta se realiza mediante usuario o correo y contraseña. De forma adicional puede activarse autenticación en dos factores para reforzar la entrada al sistema. La wallet queda reservada para la firma de operaciones blockchain y no se utiliza como mecanismo principal de autenticación.
+
+La autorización se articula en dos niveles. Por un lado, existe una separación entre usuarios estándar y administradores dentro de la aplicación. Por otro, los documentos mantienen permisos de acceso y de operación que condicionan qué usuarios pueden visualizarlos, compartirlos, firmarlos o transferirlos. Esta combinación reduce el riesgo de que una sesión válida acabe otorgando más capacidades de las que le corresponden.
+
+Desde el punto de vista práctico, este modelo aplica un criterio de mínimo privilegio: cada operación exige el contexto preciso que la justifica. La consulta ordinaria de vistas autenticadas depende de la sesión del usuario; la modificación de permisos o el registro de evidencias exige además una firma blockchain; y las funciones administrativas quedan restringidas a cuentas con rol específico y supervisión reforzada.
+
+\section{Componentes críticos del software}
+
+La seguridad del sistema depende especialmente de unos pocos componentes cuya alteración tendría un impacto directo sobre la confidencialidad, la integridad o la disponibilidad del servicio. Por ello se han tratado como elementos críticos durante el diseño y la revisión de la aplicación.
+
+\subsection{Backend y API REST}
+
+El backend concentra la lógica de negocio, la validación de permisos, la preparación de operaciones blockchain y la coordinación entre base de datos, IPFS y servicios auxiliares. Un fallo en esta capa podría afectar simultáneamente al acceso a documentos, al control de usuarios y a la consistencia de los estados operativos. De ahí que se haya priorizado la validación de entradas, la separación de responsabilidades entre servicios y el registro de eventos relevantes.
+
+\subsection{Base de datos, IPFS y blockchain}
+
+PostgreSQL conserva usuarios, sesiones, metadatos, notificaciones y proyecciones operativas del sistema. IPFS aloja el contenido documental y blockchain registra las evidencias de determinadas operaciones críticas. Ninguno de estos elementos funciona de manera aislada: la aplicación necesita contrastar lo almacenado, lo publicado y lo firmado para mantener un estado coherente.
+
+La parte más delicada de esta integración reside en evitar contradicciones entre el mundo on-chain y el off-chain. Por ello se mantiene una capa de sincronización y auditoría que permite actualizar estados, detectar incidencias de confirmación y reconstruir el historial de un documento o de una acción administrativa.
+
+Esta coordinación también cumple una función defensiva. PostgreSQL ofrece capacidad de gestión y consulta rápida; IPFS desacopla el contenido documental del servidor principal; y blockchain aporta una referencia externa de trazabilidad que dificulta la manipulación silenciosa de determinadas acciones. El valor de la arquitectura no reside en que cada componente sea seguro por separado, sino en que el conjunto permite comprobar coherencia entre varias fuentes antes de dar una operación por consolidada.
+
+\subsection{Frontend y gestión de sesiones}
+
+El frontend es responsable de presentar información sensible, gestionar el estado de la sesión y guiar al usuario en operaciones que pueden modificar documentos o registrar evidencias en blockchain. Se ha procurado que las rutas protegidas no queden expuestas fuera del contexto autenticado y que las acciones de riesgo alto, como publicar contenido o firmar operaciones, se muestren de forma explícita y con confirmaciones adecuadas.
+
+La interfaz también participa en la seguridad al distinguir con claridad cuándo un documento es privado, cuándo ha sido archivado y cuándo ha pasado a ser público mediante enlace o código QR. Esa diferenciación reduce errores de uso y ayuda a que el comportamiento del sistema resulte previsible para el usuario.
+
+En un sistema como DocumentChain esta dimensión es especialmente relevante, porque una parte de los riesgos no deriva de un ataque técnico, sino de una publicación o una firma realizada sin comprender bien su alcance. Por ese motivo se ha dado importancia a mensajes de advertencia, confirmaciones visibles y separación clara entre acciones reversibles dentro de la aplicación y acciones que generan trazabilidad persistente.
+
+\section{Aspectos legales y normativos}
+
+El proyecto se ha planteado teniendo como referencia principal el Reglamento General de Protección de Datos y la Ley Orgánica de Protección de Datos y Garantía de los Derechos Digitales. No se presenta aquí una auditoría jurídica cerrada, pero sí una adaptación razonable de los principios de protección de datos al contexto técnico de DocumentChain.
+
+\subsection{RGPD y LOPDGDD}
+
+Se ha atendido a principios como la minimización de datos, la limitación de finalidad, la transparencia del tratamiento y la necesidad de aplicar medidas técnicas proporcionales al tipo de información gestionada. La existencia de documentos privados y de eventos de auditoría obliga a diferenciar entre datos operativos internos, contenido documental y evidencias de trazabilidad, porque no todos ellos deben tratarse igual ni conservarse con el mismo objetivo.
+
+\subsection{Blockchain, publicación pública y trazabilidad}
+
+La presencia de blockchain exige una consideración específica. La estrategia adoptada consiste en no trasladar a cadena datos personales identificables que no sean imprescindibles. La publicación pública de documentos tampoco se trata como una exposición accidental, sino como una operación deliberada del usuario, documentada y visible en la interfaz. Desde el punto de vista normativo, esa diferencia resulta relevante porque no equivale al acceso ordinario a documentación privada dentro de la plataforma.
+
+\subsection{Derechos de los usuarios}
+
+El sistema contempla mecanismos para que el usuario pueda gestionar su cuenta, corregir datos básicos, configurar preferencias y controlar el acceso a su documentación. En la medida en que la arquitectura combina almacenamiento tradicional, IPFS y blockchain, el ejercicio de algunos derechos debe interpretarse conforme a la naturaleza técnica de cada componente. El criterio seguido consiste en mantener los datos personales editables o eliminables en la parte gestionada por la aplicación y reservar blockchain para evidencias limitadas de trazabilidad.
+
+\section{Plan de mejora continua y monitorización}
+
+La seguridad se entiende como un proceso de revisión continua. Una vez estabilizado el desarrollo funcional, el mantenimiento debe centrarse en corregir vulnerabilidades conocidas, revisar dependencias, comprobar la salud de los servicios y evaluar si los controles descritos siguen siendo adecuados a la evolución del sistema.
+
+\subsection{Actualización de dependencias y parches}
+
+La actualización periódica de librerías y herramientas de desarrollo reduce la exposición a vulnerabilidades públicas en el backend, en el frontend y en el ecosistema asociado a blockchain. Del mismo modo, los servicios auxiliares deben mantenerse alineados con versiones soportadas, especialmente cuando afectan a autenticación, cifrado, correo o almacenamiento documental.
+
+\subsection{Seguimiento operativo}
+
+El seguimiento diario no necesita apoyarse en un catálogo excesivo de métricas para resultar útil. En este proyecto interesa vigilar el estado de la API, la base de datos, los procesos de sincronización, los errores de firma, las incidencias de acceso a IPFS y cualquier anomalía que afecte a la disponibilidad de documentos o a la validez de las evidencias registradas. A partir de esa observación puede decidirse si conviene reforzar controles, revisar permisos o introducir nuevas pruebas de seguridad.
+
+\section{Conclusiones}
+
+El plan de seguridad de \textbf{DocumentChain} se ha planteado de forma coherente con la naturaleza del sistema. La combinación de autenticación tradicional, wallet para firma de operaciones, almacenamiento documental distribuido y trazabilidad en blockchain obliga a repartir los controles entre varias capas, no a confiar toda la protección a un único mecanismo.
+
+La solución resultante mantiene una separación clara entre acceso a la cuenta, acceso a los documentos y publicación pública de contenido. También reserva un espacio específico para la supervisión administrativa y para la revisión continua de incidencias, dependencias y estados operativos. Sobre esa base puede continuarse la evolución del proyecto sin perder de vista los requisitos de confidencialidad, integridad, disponibilidad y trazabilidad que motivan este anexo.
+
+\section*{Bibliografía}
+\addcontentsline{toc}{section}{Bibliografía}
+
+\begin{enumerate}
+    \item OWASP Foundation. (2021). \textit{OWASP Top Ten: 2021}. \url{https://owasp.org/www-project-top-ten/}
+    \item Unión Europea. (2016). \textit{Reglamento (UE) 2016/679 del Parlamento Europeo y del Consejo (RGPD)}. \url{https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:32016R0679}
+    \item Agencia Española de Protección de Datos. (2025). \textit{Guías y herramientas de cumplimiento}. \url{https://www.aepd.es/}
+    \item OpenZeppelin. (2025). \textit{Security utilities for smart contracts}. \url{https://docs.openzeppelin.com/}
+    \item Protocol Labs. (2025). \textit{IPFS concepts and security considerations}. \url{https://docs.ipfs.tech/}
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,57 @@
+﻿@startuml
+!include _structure-style.puml
+package "Cliente web" {
+    [Pages]
+    [Components]
+    [Integracion API]
+    [Crypto Utils]
+    [Blockchain Utils]
+    [Context Providers]
+}
+
+package "Servidor de aplicacion" {
+    [Rutas]
+    [Controladores]
+    [Servicios]
+    [Middleware]
+}
+
+package "Persistencia" {
+    [Prisma ORM]
+    [PostgreSQL]
+}
+
+package "Infraestructura" {
+    [Cliente IPFS]
+    [Cliente blockchain]
+    [Sincronizador blockchain]
+    [Servicio de email]
+    [WebSocket]
+}
+
+package "Blockchain" {
+    [Contrato inteligente]
+    [Nodo blockchain]
+}
+
+package "Storage" {
+    [IPFS compatible]
+}
+
+[Pages] --> [Components]
+[Pages] --> [Integracion API]
+[Pages] --> [Blockchain Utils]
+[Integracion API] --> [Controladores]
+[Blockchain Utils] --> [Contrato inteligente]
+[Controladores] --> [Servicios]
+[Servicios] --> [Prisma ORM]
+[Servicios] --> [Cliente IPFS]
+[Servicios] --> [Cliente blockchain]
+[Prisma ORM] --> [PostgreSQL]
+[Cliente IPFS] --> [IPFS compatible]
+[Cliente blockchain] --> [Contrato inteligente]
+[Contrato inteligente] --> [Nodo blockchain]
+[Sincronizador blockchain] --> [Contrato inteligente]
+[Sincronizador blockchain] --> [Prisma ORM]
+@enduml
+

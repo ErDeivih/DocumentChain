@@ -1,0 +1,17 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Menu de usuario" as ui
+control "Endpoints de autenticacion (/api/auth)" as api
+database "PostgreSQL" as db
+
+user -> ui: Pulsa "Cerrar sesion"
+ui -> api: Solicitar cierre de sesion
+api -> db: Invalidar sesion actual
+db --> api: OK
+api --> ui: Sesion cerrada
+ui -> ui: Limpiar tokens y claves temporales
+ui --> user: Redirige a inicio de sesion
+
+@enduml
+

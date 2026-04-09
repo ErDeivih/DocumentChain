@@ -1,0 +1,24 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Propietario as user
+boundary "Detalle de documento publico" as ui
+control "PublicLinkActions" as actions
+control "Endpoints publicos (/api/public/documents)" as api
+database "PostgreSQL" as db
+boundary "Pagina PublicDocument" as publicPage
+
+user -> ui: Abre un documento publico ya sincronizado
+ui -> actions: Construir URL con publicId
+actions --> ui: Enlace compartible disponible
+user -> actions: Copiar enlace o abrir QR
+actions -> actions: Generar QR y preparar descarga
+actions --> user: Enlace copiado o QR mostrado
+
+user -> publicPage: Accede mediante enlace o escanea el QR
+publicPage -> api: Resolver publicId y version seleccionada
+api -> db: Consultar metadatos y contenido publico
+db --> api: Documento resoluble
+api --> publicPage: Datos publicos del documento
+publicPage --> user: Visualiza y descarga el documento
+@enduml
+

@@ -1,0 +1,30 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Pagina Login" as ui
+control "Endpoints de autenticacion (/api/auth)" as api
+control "AuthService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Introduce usuario o email y contrasena
+ui -> api: Solicitar inicio de sesion
+api -> srv: Validar credenciales
+srv -> db: Recuperar cuenta y hash de contrasena
+db --> srv: Datos de acceso
+alt Credenciales invalidas
+  srv --> api: Error de autenticacion
+  api --> ui: Mostrar credenciales invalidas
+else Credenciales validas con 2FA activo
+  srv --> api: tempToken y contexto de 2FA
+  api --> ui: Solicitar segundo factor
+else Credenciales validas sin 2FA
+  srv -> db: Crear sesion activa
+  db --> srv: Sesion registrada
+  srv --> api: Tokens y perfil
+  api --> ui: Acceso concedido
+  ui -> ui: Guardar sesion local
+  ui --> user: Redirige a la vista solicitada o a Biblioteca
+end
+
+@enduml
+

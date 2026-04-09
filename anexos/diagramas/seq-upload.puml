@@ -1,0 +1,55 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Biblioteca / Modal de subida" as ui
+control "Endpoints de documentos (/api/documents)" as api
+control "DocumentService" as srv
+entity "IPFS" as ipfs
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Selecciona archivo, metadatos y visibilidad
+alt Publicacion publica
+	ui -> ui: Advierte que el archivo quedara accesible por enlace y QR
+else Documento privado
+	ui -> ui: Mantiene la proteccion cifrada
+end
+
+ui -> api: Preparar alta
+api -> srv: Validar archivo y wallet
+alt Documento privado
+	srv -> srv: Cifrar contenido y clave de acceso
+else Documento publico
+	srv -> srv: Mantener contenido en claro y generar publicId
+end
+srv -> ipfs: Subir contenido
+ipfs --> srv: CID
+srv -> db: Guardar documento en PREPARING
+db --> srv: documentId, blockchainId, publicId
+srv --> api: Datos para firmar
+api --> ui: Alta preparada
+
+ui -> wallet: Solicitar firma de creacion
+wallet -> sc: Registrar alta on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar alta
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar estado y txHash
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de alta confirmado
+listener -> db: Marcar documento y version inicial como SYNCED
+listener -> ui: Refrescar biblioteca y detalle
+ui --> user: Documento disponible
+alt Publicacion publica
+	ui --> user: Enlace y QR listos en la vista de detalle
+end
+
+@enduml
+

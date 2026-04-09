@@ -1,0 +1,33 @@
+@startgantt
+<style>
+ganttDiagram {
+  task {
+    FontColor black
+    BackgroundColor #A9DFBF
+    LineColor #1E8449
+  }
+  milestone {
+    BackgroundColor #F9E79F
+    FontColor #7D6608
+    LineColor #B7950B
+  }
+}
+</style>
+printscale daily zoom 2
+Project starts 2025-01-03
+
+-- Fase Elaboración — Iteración 2 --
+[T16: Diseño del smart contract (Solidity)] lasts 3 days
+[T17: Diseño del cifrado extremo a extremo] lasts 3 days
+[T17] starts at [T16]'s end
+[T18: Elaboración de diagramas UML completos] lasts 3 days
+[T18] starts at [T17]'s end
+[T19: Redacción Anexo I (Especificaciones)] lasts 4 days
+[T20: Redacción Anexo II (Análisis y Diseño)] lasts 4 days
+[T20] starts at [T18]'s end
+[T21: Redacción Anexo III (Estimación)] lasts 2 days
+[T22: Glosario y anexos complementarios] lasts 2 days
+[T22] starts at [T19]'s end
+[M23: ♦ Fin Iteración 2 — Elaboración] happens at [T20]'s end
+[M23] is colored in Gold/DarkRed
+@endgantt

@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle de documento" as ui
+control "Endpoints de documentos\n(/api/documents)" as docApi
+control "Servicio de documentos" as srv
+database "PostgreSQL" as db
+
+user -> ui: Click sobre documento en el listado
+ui -> docApi: Solicitar detalle documental
+docApi -> srv: Recuperar documento y contexto asociado
+srv -> db: Cargar metadatos, versiones, firmas y actividad reciente
+db --> srv: Detalle consolidado
+srv --> docApi: Respuesta completa de detalle
+docApi --> ui: Vista de detalle preparada
+ui --> user: Consulta metadatos, versiones, firmas y auditoria
+
+@enduml
+

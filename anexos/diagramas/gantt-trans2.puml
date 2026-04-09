@@ -1,0 +1,14 @@
+@startgantt
+skinparam backgroundColor White
+printscale daily zoom 2
+Project starts 2026-05-01
+
+-- Fase Transicion - Iteracion 2 --
+[T66: Redaccion de la memoria del TFG] lasts 5 days
+then [T67: Revision y correcciones con el tutor] lasts 3 days
+then [T68: Preparacion de los anexos definitivos] lasts 2 days
+then [T69: Preparacion de la presentacion TFG] lasts 3 days
+then [T70: Ensayo y revision final] lasts 1 day
+[M71: Entrega y Defensa del TFG] happens at [T70: Ensayo y revision final]'s end
+[M71: Entrega y Defensa del TFG] is colored in Tomato/DarkRed
+@endgantt

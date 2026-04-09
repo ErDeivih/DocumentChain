@@ -1,0 +1,27 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Verificar firma" as ui
+control "Endpoints de firmas (/api/documents/:id/signatures/:sigId/verify)" as api
+control "SignatureService" as srv
+control "BlockchainService" as bc
+database "PostgreSQL" as db
+
+user -> ui: Solicita verificar una firma
+ui -> api: Pedir verificacion
+api -> srv: Recuperar firma y contexto documental
+srv -> db: Obtener firma almacenada y sus metadatos
+db --> srv: Datos de firma
+srv -> bc: Consultar la evidencia on-chain asociada
+bc --> srv: Estado, bloque y coincidencias
+alt La evidencia coincide
+  srv --> api: Firma valida
+  api --> ui: Mostrar verificacion positiva
+else La evidencia no coincide
+  srv --> api: Firma invalida o inconsistente
+  api --> ui: Mostrar incidencia de verificacion
+end
+ui --> user: Resultado de verificacion disponible
+
+@enduml
+

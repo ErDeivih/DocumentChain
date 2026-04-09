@@ -1,0 +1,12 @@
+@startgantt
+skinparam backgroundColor White
+printscale daily zoom 2
+Project starts 2025-12-01
+
+-- Fase Inicio - Iteracion 1 --
+[T1: Reunion inicial con tutores] lasts 1 day
+then [T2: Analisis del dominio del problema] lasts 2 days
+then [T3: Estudio de soluciones existentes] lasts 2 days
+[M4: Fin Iteracion 1 - Inicio] happens at [T3: Estudio de soluciones existentes]'s end
+[M4: Fin Iteracion 1 - Inicio] is colored in Gold/DarkRed
+@endgantt

@@ -1,0 +1,53 @@
+﻿@startuml
+!include _structure-style.puml
+title Arquitectura del sistema por paquetes funcionales
+
+package "Presentacion" {
+    [Aplicacion web] as React
+    [Wallet del usuario] as Wallet
+    [Canal tiempo real cliente] as SIOClient
+}
+
+package "Aplicacion" {
+    [Rutas] as Router
+    [Autenticacion y permisos] as Auth
+    [Servicios de dominio] as Svc
+    [Canal tiempo real servidor] as SIOServer
+    [Sincronizador blockchain] as EvtListener
+}
+
+package "Persistencia" {
+    [Repositorios] as Repo
+    database "PostgreSQL" as DB
+}
+
+package "Almacenamiento distribuido" {
+    [IPFS compatible] as IPFS
+}
+
+package "Blockchain" {
+    [Contrato inteligente] as SC
+    [Nodo blockchain de prueba] as ETH
+}
+
+package "Comunicacion asincrona" {
+    [Servicio de email] as Email
+    [Servicio de notificaciones] as Notif
+}
+
+React --> Router : HTTPS
+React --> Wallet : firma de operaciones
+React --> SIOClient
+SIOClient <--> SIOServer
+Router --> Auth
+Auth --> Svc
+Svc --> Repo
+Repo --> DB
+Svc --> IPFS
+Svc --> SC
+Svc --> Email
+EvtListener --> ETH
+EvtListener --> Repo
+EvtListener --> SIOServer
+@enduml
+

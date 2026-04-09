@@ -1,0 +1,76 @@
+# Dockerfile para backend de documentchain
+# Compila contratos y backend dentro del propio build para soportar clones limpios.
+
+FROM node:20-alpine AS contracts
+
+WORKDIR /contracts
+
+COPY smart-contracts/package*.json ./
+RUN npm ci
+
+COPY smart-contracts/ .
+RUN npm run compile
+
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copiar package files
+COPY backend/package*.json ./
+
+# Instalar dependencias
+RUN npm ci
+
+# Copiar código fuente
+COPY backend/ .
+
+# Copiar ABI del contrato compilado dentro del propio build Docker
+COPY --from=contracts /contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json \
+     ../smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json
+
+# Generar Prisma Client antes de compilar TypeScript en clones limpios
+RUN npx prisma generate
+
+# Construir TypeScript
+RUN npm run build
+
+# Stage 2: Runtime
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiar package files
+# Instalar OpenSSL 3 (requerido por Prisma en Alpine Linux 3.17+)
+RUN apk add --no-cache openssl
+
+COPY backend/package*.json ./
+
+# Instalar todas las dependencias (incluyendo swagger-ui-express que está en devDependencies)
+RUN npm ci
+
+# Copiar compiled code from builder
+COPY --from=builder /app/dist ./dist
+
+# Copiar plantillas de email requeridas en runtime
+COPY backend/src/templates ./dist/templates
+
+# Copiar archivos de configuración necesarios
+COPY backend/.env .env
+COPY backend/prisma ./prisma
+
+# Copiar ABI del contrato (necesario en runtime para ethers)
+COPY --from=contracts /contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json \
+     /smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json
+
+# Generar Prisma client
+RUN npx prisma generate
+
+# Expose puerto
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=50s --retries=3 \
+     CMD node -e "require('http').get('http://localhost:3000/health', (r) => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>process.exit(r.statusCode===200?0:1)); }).on('error',()=>process.exit(1))"
+
+# Ejecutar aplicación
+CMD ["node", "dist/index.js"]

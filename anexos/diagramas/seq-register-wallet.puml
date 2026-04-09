@@ -1,0 +1,33 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Pagina Registro y Perfil" as ui
+control "Endpoints de autenticacion\n(/api/auth)" as authApi
+control "Endpoints de wallets\n(/api/wallets)" as walletApi
+control "Servicio de autenticacion" as authSrv
+database "PostgreSQL" as db
+participant "Wallet del usuario\n(navegador o WalletConnect)" as wallet
+
+user -> ui: Completa el registro con credenciales
+ui -> authApi: Solicitar alta de cuenta
+authApi -> authSrv: Crear usuario y sesion inicial
+authSrv -> db: Guardar cuenta y claves asociadas
+db --> authSrv: Usuario creado
+authSrv --> authApi: Registro completado
+authApi --> ui: Cuenta activa
+
+alt El usuario decide enlazar wallet al finalizar
+  ui -> wallet: Solicitar conexion de la wallet
+  wallet --> user: Pide autorizacion
+  user -> wallet: Autoriza acceso
+  wallet --> ui: Direccion disponible
+  ui -> walletApi: Vincular wallet a la cuenta
+  walletApi -> db: Guardar wallet y marcar principal si procede
+  db --> walletApi: Wallet vinculada
+  walletApi --> ui: Perfil actualizado
+else El usuario pospone el enlace
+  ui --> user: Puede continuar sin wallet vinculada
+end
+
+ui --> user: Accede a la aplicacion con la cuenta creada
+@enduml

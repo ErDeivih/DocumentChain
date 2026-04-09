@@ -1,0 +1,20 @@
+@startuml
+!include _sequence-style.puml
+actor Administrador as admin
+boundary "Panel de administracion / Resumen" as ui
+control "Endpoints de administracion (/api/admin)" as api
+control "AdminStatsService" as srv
+database "PostgreSQL" as db
+entity "Servicios del sistema" as infra
+
+admin -> ui: Abre el resumen global del sistema
+ui -> api: Solicitar estadisticas globales
+api -> srv: Agregar metricas operativas
+srv -> db: Contar usuarios, documentos y almacenamiento
+db --> srv: Datos consolidados
+srv -> infra: Consultar estado de API, IPFS, blockchain y correo
+infra --> srv: Estados y disponibilidad
+srv --> api: Resumen listo para panel
+api --> ui: Tarjetas, distribuciones y estado general
+ui --> admin: Vista global actualizada
+@enduml

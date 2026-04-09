@@ -1,0 +1,354 @@
+Las matrices de rastreabilidad establecen relaciones entre los diferentes tipos de requisitos y objetivos, permitiendo verificar cobertura completa y trazabilidad bidireccional.
+
+\subsubsection{Matriz IRQ-OBJ}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\hline
+\textbf{ID} & \textbf{OBJ-0001} & \textbf{OBJ-0002} & \textbf{OBJ-0003} & \textbf{OBJ-0004} & \textbf{OBJ-0005} & \textbf{OBJ-0006} \\
+\hline
+\hline
+\textbf{IRQ-0001} & X & X & X & & & \\
+\hline
+\textbf{IRQ-0002} & & X & X & & & \\
+\hline
+\textbf{IRQ-0003} & & X & X & & & \\
+\hline
+\textbf{IRQ-0004} & & X & & X & & \\
+\hline
+\textbf{IRQ-0005} & & X & X & X & & \\
+\hline
+\textbf{IRQ-0006} & & & X & & & \\
+\hline
+\textbf{IRQ-0007} & X & X & X & X & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad IRQ-OBJ}
+\label{tab:matriz-irq-obj}
+\end{table}
+
+\subsubsection{Matriz NFR-IRQ}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|}
+\hline
+\textbf{ID} & \textbf{IRQ-0001} & \textbf{IRQ-0002} & \textbf{IRQ-0003} & \textbf{IRQ-0004} & \textbf{IRQ-0005} & \textbf{IRQ-0006} & \textbf{IRQ-0007} \\
+\hline
+\hline
+\textbf{NFR-0001} & X & X & X & X & X & & X \\
+\hline
+\textbf{NFR-0002} & & X & X & X & & & X \\
+\hline
+\textbf{NFR-0003} & X & X & X & & X & X & X \\
+\hline
+\textbf{NFR-0004} & & & & & & & \\
+\hline
+\textbf{NFR-0005} & & X & & & & & \\
+\hline
+\textbf{NFR-0006} & & & & & & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad NFR-IRQ}
+\label{tab:matriz-nfr-irq}
+\end{table}
+
+\subsubsection{Matriz UC-NFR}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\hline
+\textbf{ID} & \textbf{NFR-0001} & \textbf{NFR-0002} & \textbf{NFR-0003} & \textbf{NFR-0004} & \textbf{NFR-0005} & \textbf{NFR-0006} \\
+\hline
+\hline
+\textbf{UC-0001} & & & & & & \\
+\hline
+\textbf{UC-0002} & X & & X & & & \\
+\hline
+\textbf{UC-0003} & X & & & & & \\
+\hline
+\textbf{UC-0004} & X & & & & & \\
+\hline
+\textbf{UC-0005} & & & X & & & \\
+\hline
+\textbf{UC-0006} & X & & & & & \\
+\hline
+\textbf{UC-0007} & X & & & & & \\
+\hline
+\textbf{UC-0008} & X & & & & & \\
+\hline
+\textbf{UC-0009} & X & & & & & \\
+\hline
+\textbf{UC-0010} & & & & & & \\
+\hline
+\textbf{UC-0011} & & & X & & & \\
+\hline
+\textbf{UC-0012} & & & X & & & \\
+\hline
+\textbf{UC-0013} & X & X & & & & \\
+\hline
+\textbf{UC-0014} & & & X & & & \\
+\hline
+\textbf{UC-0015} & X & & & & X & \\
+\hline
+\textbf{UC-0016} & & & X & & & \\
+\hline
+\textbf{UC-0017} & & & X & & & \\
+\hline
+\textbf{UC-0018} & X & X & & & & \\
+\hline
+\textbf{UC-0019} & & & X & & & \\
+\hline
+\textbf{UC-0020} & & & & & & \\
+\hline
+\textbf{UC-0021} & & & & & & \\
+\hline
+\textbf{UC-0022} & X & & & & & \\
+\hline
+\textbf{UC-0023} & & & & & & \\
+\hline
+\textbf{UC-0024} & X & & & & & \\
+\hline
+\textbf{UC-0025} & X & X & & & & \\
+\hline
+\textbf{UC-0026} & & & & & & \\
+\hline
+\textbf{UC-0027} & X & & & & & \\
+\hline
+\textbf{UC-0028} & X & & & & & \\
+\hline
+\textbf{UC-0029} & & & X & & & \\
+\hline
+\textbf{UC-0030} & & & X & & & \\
+\hline
+\textbf{UC-0031} & & & X & & & \\
+\hline
+\textbf{UC-0032} & & & X & & & \\
+\hline
+\textbf{UC-0033} & X & & & & & \\
+\hline
+\textbf{UC-0034} & & & X & & & \\
+\hline
+\textbf{UC-0035} & X & & & & & \\
+\hline
+\textbf{UC-0036} & X & X & & & & \\
+\hline
+\textbf{UC-0037} & X & & & & & \\
+\hline
+\textbf{UC-0038} & X & & & & & \\
+\hline
+\textbf{UC-0039} & X & & & & & \\
+\hline
+\textbf{UC-0040} & X & X & & & & \\
+\hline
+\textbf{UC-0041} & & & X & & & \\
+\hline
+\textbf{UC-0042} & & & X & & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad UC-NFR}
+\label{tab:matriz-uc-nfr}
+\end{table}
+
+\subsubsection{Matriz UC-IRQ}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|}
+\hline
+\textbf{ID} & \textbf{IRQ-0001} & \textbf{IRQ-0002} & \textbf{IRQ-0003} & \textbf{IRQ-0004} & \textbf{IRQ-0005} & \textbf{IRQ-0006} & \textbf{IRQ-0007} \\
+\hline
+\hline
+\textbf{UC-0001} & & & & & & & \\
+\hline
+\textbf{UC-0002} & X & & & & & & \\
+\hline
+\textbf{UC-0003} & & & & & & & \\
+\hline
+\textbf{UC-0004} & X & & & & & & \\
+\hline
+\textbf{UC-0005} & X & & & & & & \\
+\hline
+\textbf{UC-0006} & X & & & & & & \\
+\hline
+\textbf{UC-0007} & X & & & & & & \\
+\hline
+\textbf{UC-0008} & X & & & & & & \\
+\hline
+\textbf{UC-0009} & X & & & & & & \\
+\hline
+\textbf{UC-0010} & & & & & & & \\
+\hline
+\textbf{UC-0011} & & X & & & & & \\
+\hline
+\textbf{UC-0012} & & X & X & & & & \\
+\hline
+\textbf{UC-0013} & & X & X & & & & \\
+\hline
+\textbf{UC-0014} & & X & & & & & \\
+\hline
+\textbf{UC-0015} & & X & & & & & \\
+\hline
+\textbf{UC-0016} & & X & & & & & \\
+\hline
+\textbf{UC-0017} & & X & & & & & \\
+\hline
+\textbf{UC-0018} & & X & X & & & & \\
+\hline
+\textbf{UC-0019} & & X & & & & & \\
+\hline
+\textbf{UC-0020} & & X & & & & & \\
+\hline
+\textbf{UC-0021} & & X & & & & & \\
+\hline
+\textbf{UC-0022} & & X & & & & & \\
+\hline
+\textbf{UC-0023} & & & & & & & \\
+\hline
+\textbf{UC-0024} & & & & X & & & \\
+\hline
+\textbf{UC-0025} & & & & X & & & \\
+\hline
+\textbf{UC-0026} & & & & & & & \\
+\hline
+\textbf{UC-0027} & & & & & X & & \\
+\hline
+\textbf{UC-0028} & & & & & X & & \\
+\hline
+\textbf{UC-0029} & & X & & & X & & \\
+\hline
+\textbf{UC-0030} & & & & & & X & \\
+\hline
+\textbf{UC-0031} & & & & & & X & \\
+\hline
+\textbf{UC-0032} & & X & & & & & \\
+\hline
+\textbf{UC-0033} & & & & & & & X \\
+\hline
+\textbf{UC-0034} & & & & & & & X \\
+\hline
+\textbf{UC-0035} & & & & & & & X \\
+\hline
+\textbf{UC-0036} & & & & & & & X \\
+\hline
+\textbf{UC-0037} & X & & & & & & \\
+\hline
+\textbf{UC-0038} & X & & & & & & \\
+\hline
+\textbf{UC-0039} & X & & & & & & \\
+\hline
+\textbf{UC-0040} & & & & & & & X \\
+\hline
+\textbf{UC-0041} & & & & & & X & \\
+\hline
+\textbf{UC-0042} & & & & & & X & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad UC-IRQ}
+\label{tab:matriz-uc-irq}
+\end{table}
+
+\subsubsection{Matriz UC-OBJ}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\hline
+\textbf{ID} & \textbf{OBJ-0001} & \textbf{OBJ-0002} & \textbf{OBJ-0003} & \textbf{OBJ-0004} & \textbf{OBJ-0005} & \textbf{OBJ-0006} \\
+\hline
+\hline
+\textbf{UC-0001} & & & & & & \\
+\hline
+\textbf{UC-0002} & X & & & & & \\
+\hline
+\textbf{UC-0003} & & & & & & \\
+\hline
+\textbf{UC-0004} & X & X & & & & \\
+\hline
+\textbf{UC-0005} & X & & & & & \\
+\hline
+\textbf{UC-0006} & X & & X & & & \\
+\hline
+\textbf{UC-0007} & X & & X & & & \\
+\hline
+\textbf{UC-0008} & X & & & & & \\
+\hline
+\textbf{UC-0009} & X & & & & & \\
+\hline
+\textbf{UC-0010} & & & & & & \\
+\hline
+\textbf{UC-0011} & & & X & & & \\
+\hline
+\textbf{UC-0012} & & X & X & & & \\
+\hline
+\textbf{UC-0013} & & X & X & & & \\
+\hline
+\textbf{UC-0014} & & & X & & & \\
+\hline
+\textbf{UC-0015} & & X & X & & & \\
+\hline
+\textbf{UC-0016} & & & X & & & \\
+\hline
+\textbf{UC-0017} & & & X & & & \\
+\hline
+\textbf{UC-0018} & & X & X & & & \\
+\hline
+\textbf{UC-0019} & & & X & & & \\
+\hline
+\textbf{UC-0020} & & & X & & & \\
+\hline
+\textbf{UC-0021} & & & X & & & \\
+\hline
+\textbf{UC-0022} & & X & X & & & \\
+\hline
+\textbf{UC-0023} & & & & & & \\
+\hline
+\textbf{UC-0024} & & X & & X & & \\
+\hline
+\textbf{UC-0025} & & X & & X & & \\
+\hline
+\textbf{UC-0026} & & & & & & \\
+\hline
+\textbf{UC-0027} & & X & & X & & \\
+\hline
+\textbf{UC-0028} & & X & & X & & \\
+\hline
+\textbf{UC-0029} & & & X & & & \\
+\hline
+\textbf{UC-0030} & & & X & & & \\
+\hline
+\textbf{UC-0031} & & & X & & & \\
+\hline
+\textbf{UC-0032} & & & X & & & \\
+\hline
+\textbf{UC-0033} & & & X & X & & \\
+\hline
+\textbf{UC-0034} & & & X & & & \\
+\hline
+\textbf{UC-0035} & X & & X & & & \\
+\hline
+\textbf{UC-0036} & & X & & X & & \\
+\hline
+\textbf{UC-0037} & X & & & & & \\
+\hline
+\textbf{UC-0038} & X & & & & & \\
+\hline
+\textbf{UC-0039} & X & & & & & \\
+\hline
+\textbf{UC-0040} & X & X & & & & \\
+\hline
+\textbf{UC-0041} & & & X & & & \\
+\hline
+\textbf{UC-0042} & & & X & & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad UC-OBJ}
+\label{tab:matriz-uc-obj}
+\end{table}

@@ -1,0 +1,334 @@
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Label } from '../components/ui/Label';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/Alert';
+import { Progress } from '../components/ui/Progress';
+import { RecoveryKeyDisplay } from '../components/auth/RecoveryKeyDisplay';
+import { UserPlus, AlertCircle, CheckCircle2, Shield, Wallet } from 'lucide-react';
+
+/**
+ * Register Page - Traditional authentication
+ * Users register with username, email, and password
+ * Password is used to encrypt the user's RSA private key (generated in frontend)
+ * Wallets are ONLY for signing blockchain transactions, NOT for registration/login
+ */
+export const Register: React.FC = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [connectWalletAfterRegister, setConnectWalletAfterRegister] = useState(false);
+
+  // Password strength calculator
+  const calculatePasswordStrength = (password: string): number => {
+    let strength = 0;
+    if (password.length >= 6) strength += 25;
+    if (password.length >= 10) strength += 25;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+    if (/\d/.test(password)) strength += 15;
+    if (/[^a-zA-Z\d]/.test(password)) strength += 10;
+    return Math.min(strength, 100);
+  };
+
+  const passwordStrength = calculatePasswordStrength(formData.password);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const validateForm = (): boolean => {
+    if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
+      setError('Todos los campos son obligatorios');
+      return false;
+    }
+
+    if (formData.username.length < 3) {
+      setError('El nombre de usuario debe tener al menos 3 caracteres');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Por favor, introduzca un email válido');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName
+      });
+
+      // Show recovery key if present
+      if (result.recoveryKey) {
+        setRecoveryKey(result.recoveryKey);
+        setShowRecoveryModal(true);
+      } else {
+        setSuccess(true);
+        setTimeout(() => {
+          if (connectWalletAfterRegister) {
+            navigate('/app/profile?connectWallet=1&next=/app/documents');
+          } else {
+            navigate('/app/documents');
+          }
+        }, 2000);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'No se pudo completar el registro. Inténtelo de nuevo.');
+      console.error('Error de registro:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRecoveryModalClose = () => {
+    setShowRecoveryModal(false);
+    setSuccess(true);
+    setTimeout(() => {
+      if (connectWalletAfterRegister) {
+        navigate('/app/profile?connectWallet=1&next=/app/documents');
+      } else {
+        navigate('/app/documents');
+      }
+    }, 1500);
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center py-8">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-success-500 p-3 rounded-full">
+                <CheckCircle2 className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              ¡Registro Exitoso!
+            </h2>
+            <p className="text-muted-foreground">
+              Redirigiendo a su cuenta...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-5xl">
+        <CardHeader>
+          <div className="flex items-center justify-center mb-4">
+            <div className="bg-primary p-3 rounded-full">
+              <UserPlus className="w-8 h-8 text-primary-foreground" />
+            </div>
+          </div>
+          <CardTitle className="text-center">
+            Crear Cuenta
+          </CardTitle>
+          <CardDescription className="text-center">
+            Únase a DecentralizedStore hoy
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <Alert variant="info" className="mb-4">
+                <Shield className="h-4 w-4" />
+                <AlertTitle>Su Contraseña Protege Sus Archivos</AlertTitle>
+                <AlertDescription className="text-xs">
+                  Su contraseña cifra su clave privada RSA, que se usa para proteger todos sus documentos.
+                  Elija una contraseña fuerte para proteger su información.
+                </AlertDescription>
+              </Alert>
+
+              <Alert variant="info" className="mb-4">
+                <Wallet className="h-4 w-4" />
+                <AlertTitle>Wallet opcional al finalizar</AlertTitle>
+                <AlertDescription className="text-xs">
+                  Puede completar el registro y enlazar una wallet justo después, con la sesión iniciada.
+                </AlertDescription>
+              </Alert>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Nombre de usuario</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Elija un nombre de usuario"
+                  required
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-muted-foreground">Al menos 3 caracteres</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="su@email.com"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nombre completo (opcional)</Label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Su nombre completo"
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Cree una contraseña"
+                  required
+                  disabled={isLoading}
+                />
+                {formData.password && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Fortaleza de la contraseña</span>
+                      <span className={`font-medium ${
+                        passwordStrength < 40 ? 'text-error-500' :
+                        passwordStrength < 70 ? 'text-warning-500' :
+                        'text-success-500'
+                      }`}>
+                        {passwordStrength < 40 ? 'Débil' : passwordStrength < 70 ? 'Media' : 'Fuerte'}
+                      </span>
+                    </div>
+                    <Progress value={passwordStrength} className="h-2" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Vuelva a introducir la contraseña"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <label className="flex items-start gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={connectWalletAfterRegister}
+                  onChange={(e) => setConnectWalletAfterRegister(e.target.checked)}
+                  className="mt-1"
+                  disabled={isLoading}
+                />
+                Tras crear mi cuenta, quiero enlazar una wallet inmediatamente.
+              </label>
+
+              <Button
+                type="submit"
+                variant="default"
+                className="w-full"
+                isLoading={isLoading}
+              >
+                {isLoading ? 'Creando cuenta...' : 'Registrarse'}
+              </Button>
+            </form>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              ¿Ya tiene una cuenta?{' '}
+              <Link to="/login" className="text-primary hover:underline font-medium">
+                Inicie sesión aquí
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+
+        {/* Recovery Key Modal */}
+        {recoveryKey && (
+          <RecoveryKeyDisplay
+            isOpen={showRecoveryModal}
+            recoveryKey={recoveryKey}
+            onClose={handleRecoveryModalClose}
+          />
+        )}
+      </Card>
+    </div>
+  );
+};

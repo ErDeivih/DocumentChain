@@ -1,0 +1,41 @@
+@startsalt
+{+
+  Boceto de estadisticas de uso
+  ─────────────────────────────
+  {
+    {
+      Documentos totales
+      == [total] ==
+    } |
+    {
+      Firmas realizadas
+      == [total] ==
+    } |
+    {
+      Espacio utilizado
+      == [tamano] ==
+    } |
+    {
+      Compartidos activos
+      == [total] ==
+    }
+  }
+  ─────────────────────────────
+  Actividad mensual
+  {
+    [Mes 1] | [barra] [valor]
+    [Mes 2] | [barra] [valor]
+    [Mes 3] | [barra] [valor]
+    [Mes 4] | [barra] [valor]
+  }
+  ─────────────────────────────
+  Ultima actividad
+  {#
+    Fecha | Accion | Documento
+    [fecha] | [accion] | [documento]
+    [fecha] | [accion] | [documento]
+    [fecha] | [accion] | [documento]
+    [fecha] | [accion] | [documento]
+  }
+}
+@endsalt

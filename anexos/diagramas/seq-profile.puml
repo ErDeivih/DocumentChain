@@ -1,0 +1,24 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Ajustes / Perfil" as ui
+control "Endpoints de usuarios (/api/users)" as api
+control "UserService" as srv
+database "PostgreSQL" as db
+control "EmailService" as email
+
+user -> ui: Modifica sus datos de perfil
+ui -> api: Guardar cambios
+api -> srv: Validar formato y permisos sobre la cuenta
+srv -> db: Actualizar nombre y correo
+db --> srv: Perfil persistido
+
+alt El correo ha cambiado
+	srv -> email: Enviar nueva verificacion
+	email --> srv: Aviso preparado
+end
+
+srv --> api: Perfil actualizado
+api --> ui: Cambios visibles en pantalla
+ui --> user: Perfil sincronizado
+@enduml

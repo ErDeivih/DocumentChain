@@ -1,0 +1,39 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Descargar" as ui
+control "Endpoints de documentos (/api/documents)" as api
+control "DocumentService" as srv
+control "PermissionService" as perm
+entity "PostgreSQL" as db
+entity "IPFS" as ipfs
+control "Criptografia local" as crypto
+
+user -> ui: Solicita descargar el documento
+ui -> ui: Pide credencial local si el documento es privado
+ui -> api: Solicitar descarga
+api -> srv: Validar acceso y resolver la version operativa
+srv -> perm: Comprobar permisos del usuario
+perm -> db: Consultar acceso disponible
+db --> perm: Acceso permitido
+perm --> srv: OK
+srv -> db: Recuperar metadatos y claves protegidas
+db --> srv: Datos de descarga
+srv -> ipfs: Obtener contenido asociado
+ipfs --> srv: Flujo de datos
+srv --> api: Entregar fichero y metadatos de integridad
+api --> ui: Respuesta de descarga
+
+alt Documento privado
+    ui -> crypto: Descifrar claves y contenido localmente
+    crypto --> ui: Archivo en claro
+    ui -> crypto: Verificar hash del contenido
+    crypto --> ui: Integridad validada
+else Documento publico
+    ui -> ui: Descarga directa del contenido
+end
+
+ui --> user: Archivo descargado
+
+@enduml
+

@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / pestana Versiones" as ui
+control "Endpoints de versiones\n(/api/documents/:id/versions)" as versionApi
+control "Servicio de versiones" as srv
+database "PostgreSQL" as db
+
+user -> ui: Abre el historial de versiones
+ui -> versionApi: Solicitar versiones del documento
+versionApi -> srv: Recuperar versiones disponibles
+srv -> db: Consultar versiones y estado operativo
+db --> srv: Historial de versiones
+srv --> versionApi: Versiones listas para la vista
+versionApi --> ui: Historial cargado
+ui --> user: Revisa numero, fecha, autor y estado
+
+@enduml
+

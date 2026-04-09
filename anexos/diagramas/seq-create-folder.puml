@@ -1,0 +1,33 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Biblioteca / Carpetas" as ui
+control "Endpoints de carpetas (/api/folders)" as api
+database "PostgreSQL" as db
+
+user -> ui: Gestiona sus carpetas
+alt Crear carpeta
+	ui -> api: Crear carpeta
+	api -> db: Guardar nueva carpeta
+	db --> api: Carpeta creada
+	api --> ui: Arbol actualizado
+else Renombrar carpeta
+	ui -> api: Renombrar carpeta
+	api -> db: Actualizar nombre
+	db --> api: Carpeta actualizada
+	api --> ui: Cambios aplicados
+else Mover documentos
+	ui -> api: Mover documentos a carpeta
+	api -> db: Reasignar carpeta destino
+	db --> api: Documentos movidos
+	api --> ui: Listado actualizado
+else Eliminar carpeta vacia
+	ui -> api: Eliminar carpeta
+	api -> db: Borrar carpeta
+	db --> api: Carpeta eliminada
+	api --> ui: Arbol actualizado
+end
+ui --> user: Organizacion actualizada
+
+@enduml
+

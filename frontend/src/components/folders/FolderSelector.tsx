@@ -1,0 +1,122 @@
+import React, { useState, useEffect } from 'react';
+import { Folder, ChevronDown } from 'lucide-react';
+import { Folder as FolderType } from '../../types';
+import { getFolders } from '../../api/folders';
+
+interface FolderSelectorProps {
+  value: string | null;
+  onChange: (folderId: string | null) => void;
+  label?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  excludeFolderIds?: string[];
+}
+
+export const FolderSelector: React.FC<FolderSelectorProps> = ({
+  value,
+  onChange,
+  label = 'Carpeta',
+  placeholder = 'Seleccione una carpeta',
+  disabled = false,
+  excludeFolderIds = [],
+}) => {
+  const [folders, setFolders] = useState<FolderType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFolders();
+  }, []);
+
+  const loadFolders = async () => {
+    try {
+      setLoading(true);
+      const data = await getFolders();
+      setFolders(data.folders);
+    } catch (err) {
+      console.error('Error al cargar carpetas:', err);
+      setFolders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Build hierarchical display names
+  const getFolderDisplayName = (folder: FolderType, allFolders: FolderType[]): string => {
+    const path: string[] = [folder.name];
+    let currentFolder = folder;
+
+    while (currentFolder.parentId) {
+      const parent = allFolders.find((f) => f.id === currentFolder.parentId);
+      if (!parent) break;
+      path.unshift(parent.name);
+      currentFolder = parent;
+    }
+
+    return path.join(' / ');
+  };
+
+  // Filter and sort folders
+  const availableFolders = folders
+    .filter((folder) => !excludeFolderIds.includes(folder.id))
+    .map((folder) => ({
+      ...folder,
+      displayName: getFolderDisplayName(folder, folders),
+    }))
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  const selectedFolder = folders.find((f) => f.id === value);
+
+  return (
+    <div className="space-y-1">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
+      
+      <div className="relative">
+        <select
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value || null)}
+          disabled={disabled || loading}
+          className={`
+            w-full px-3 py-2 pl-10 pr-8 
+            border border-gray-300 rounded-lg 
+            focus:outline-none focus:ring-2 focus:ring-blue-500
+            appearance-none bg-white
+            ${disabled || loading ? 'bg-gray-100 cursor-not-allowed' : ''}
+          `}
+        >
+          <option value="">
+            {loading ? 'Cargando carpetas...' : placeholder}
+          </option>
+          {availableFolders.map((folder) => (
+            <option key={folder.id} value={folder.id}>
+              {folder.displayName}
+            </option>
+          ))}
+        </select>
+
+        {/* Icono de carpeta */}
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+          <Folder 
+            className="w-5 h-5" 
+            style={{ color: selectedFolder?.color || '#6B7280' }}
+          />
+        </div>
+
+        {/* Icono de desplegable */}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        </div>
+      </div>
+
+      {selectedFolder && (
+        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+          <Folder className="w-3 h-3" style={{ color: selectedFolder.color || '#6B7280' }} />
+          {getFolderDisplayName(selectedFolder, folders)}
+        </p>
+      )}
+    </div>
+  );
+};

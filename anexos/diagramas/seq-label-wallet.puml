@@ -1,0 +1,18 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Ajustes / Wallets" as ui
+control "Endpoints de wallets (/api/users/wallets)" as api
+control "WalletService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Edita la etiqueta de una wallet
+ui -> api: Guardar nueva etiqueta
+api -> srv: Validar longitud y propiedad
+srv -> db: Actualizar etiqueta
+db --> srv: Wallet actualizada
+srv --> api: Cambio completado
+api --> ui: Etiqueta visible en pantalla
+ui --> user: Wallet renombrada
+@enduml
+

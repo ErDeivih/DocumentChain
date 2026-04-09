@@ -1,0 +1,41 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Historial de versiones" as ui
+control "Endpoints de versiones (/api/documents/:id/versions)" as api
+control "VersionService" as srv
+entity "IPFS" as ipfs
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Selecciona una version anterior para restaurarla
+ui -> api: Preparar restauracion
+api -> srv: Validar permisos y version origen
+srv -> db: Recuperar version seleccionada y crear restauracion en PREPARING
+db --> srv: Datos de version y nueva restauracion
+srv -> ipfs: Reutilizar el contenido asociado a la version origen
+ipfs --> srv: Referencia disponible
+srv --> api: Datos para firmar la restauracion
+api --> ui: Restauracion preparada
+
+ui -> wallet: Solicitar firma de nueva version restaurada
+wallet -> sc: Registrar restauracion on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar restauracion
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar nueva version restaurada
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de restauracion confirmado
+listener -> db: Marcar version restaurada como SYNCED y operativa
+listener -> ui: Refrescar historial de versiones
+ui --> user: Version restaurada correctamente
+
+@enduml
+

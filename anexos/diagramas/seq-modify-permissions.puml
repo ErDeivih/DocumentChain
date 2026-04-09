@@ -1,0 +1,39 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Compartir" as ui
+control "Endpoints de comparticion\n(/api/documents/:id/share y /api/shares)" as shareApi
+control "Servicio de comparticion" as srv
+entity "Contrato inteligente" as sc
+participant "Wallet del usuario\n(navegador o WalletConnect)" as wallet
+database "PostgreSQL" as db
+participant "Sincronizador blockchain" as listener
+
+== Fase PREPARE ==
+user -> ui: Cambia el permiso de un acceso existente
+ui -> shareApi: Preparar actualizacion de permisos
+shareApi -> srv: Validar propietario, destinatario y nuevo rol
+srv -> db: Recuperar acceso actual y wallet asociada
+db --> srv: Datos para la operacion
+srv --> shareApi: Payload para firmar
+shareApi --> ui: Cambio preparado
+
+== Fase CONFIRM ==
+ui -> wallet: Solicitar firma de actualizacion
+user -> wallet: Aprueba la operacion
+wallet --> ui: txHash
+ui -> shareApi: Confirmar actualizacion de permisos
+shareApi -> srv: Registrar txHash y estado transaccional
+srv -> db: Persistir cambio pendiente
+db --> srv: OK
+srv --> shareApi: Confirmacion registrada
+shareApi --> ui: Cambio enviado
+
+== Fase SYNC ==
+sc -> listener: Emite evento de rol actualizado
+listener -> db: Marcar acceso sincronizado y registrar auditoria
+listener -> ui: Refrescar permisos visibles
+ui --> user: Permisos actualizados en blockchain
+
+@enduml
+

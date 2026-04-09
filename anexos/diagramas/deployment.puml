@@ -1,0 +1,41 @@
+﻿@startuml
+!include _structure-style.puml
+node "Cliente" as cliente {
+    component "Aplicacion web" as frontend
+    component "Wallet del usuario" as wallet
+}
+
+node "Servidor de aplicacion" as backend_node {
+    component "API backend" as backend
+    component "Sincronizador blockchain" as listeners
+    component "Canal tiempo real" as ws
+}
+
+node "Persistencia" as db_node {
+    database "PostgreSQL" as postgres
+}
+
+node "Almacenamiento distribuido" as ipfs_cluster {
+    component "IPFS compatible" as ipfs
+}
+
+cloud "Red blockchain" as ethereum {
+    component "Contrato inteligente" as contract
+}
+
+cloud "Proveedor de correo" as email_cloud {
+    component "Servicio SMTP" as email
+}
+
+frontend --> backend : HTTPS
+frontend --> wallet : firma de operaciones
+wallet --> contract : JSON-RPC
+backend --> postgres
+backend --> ipfs
+backend --> email
+listeners --> contract
+listeners --> postgres
+ws --> frontend : notificaciones
+
+@enduml
+

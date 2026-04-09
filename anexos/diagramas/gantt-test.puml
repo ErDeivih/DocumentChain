@@ -1,0 +1,10 @@
+@startgantt
+printscale daily zoom 2
+Project starts 2024-11-27
+[T5: Alcance y objetivos] lasts 2 days
+then [T6: Actores y UC] lasts 2 days
+[T7: Stack tecnologico] lasts 2 days
+[T7: Stack tecnologico] starts at [T5: Alcance y objetivos]'s end
+then [T8: Planificacion] lasts 2 days
+[M9: Fin It2] happens at [T8: Planificacion]'s end
+@endgantt

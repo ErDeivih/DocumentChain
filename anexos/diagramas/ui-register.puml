@@ -1,0 +1,29 @@
+@startsalt
+{+
+  == DocumentChain ==
+  Boceto de registro
+  .
+  {
+    Nombre completo
+    "[nombre y apellidos]         "
+  }
+  {
+    Correo electronico
+    "[correo del usuario]         "
+  }
+  {
+    Contrasena
+    "[contrasena]                 "
+  }
+  {
+    Confirmar contrasena
+    "[confirmacion]               "
+  }
+  .
+  (X) Acepto las condiciones de uso
+  .
+  [       Crear cuenta       ]
+  .
+  [Ya tienes cuenta?] | [Ir a inicio de sesion]
+}
+@endsalt

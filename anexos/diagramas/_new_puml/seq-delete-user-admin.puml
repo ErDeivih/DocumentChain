@@ -1,0 +1,32 @@
+@startuml
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 5
+skinparam sequenceParticipant underline
+skinparam monochrome true
+
+actor "Administrador" as ADMIN
+boundary "Frontend\n(Admin)" as FE
+control "AdminController" as AC
+entity "AdminUserService" as AUS
+entity "UserRepository" as UR
+entity "BlockchainAdminService" as BAS
+
+ADMIN -> FE: Selecciona usuario → "Eliminar cuenta"
+FE -> FE: Muestra advertencia de irreversibilidad
+ADMIN -> FE: Confirma eliminación
+FE -> AC: DELETE /api/admin/users/:userId
+AC -> AUS: checkNotSelfDelete(adminId, userId)
+AUS --> AC: OK (no es auto-eliminación)
+AC -> AUS: deleteUser(userId)
+AUS -> UR: deleteUserCascade(userId)
+note right of UR: Elimina en cascada:
+sessions, tokens, wallets,
+firmas, comparticiones,
+documentos propios
+UR --> AUS: eliminado
+AUS -> BAS: revokeAllWallets(userId)
+BAS --> AUS: OK
+AUS --> AC: usuario eliminado
+AC --> FE: 200 {message: "Usuario eliminado"}
+FE --> ADMIN: Listado de usuarios actualizado
+@enduml

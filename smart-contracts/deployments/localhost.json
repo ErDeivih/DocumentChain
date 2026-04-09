@@ -1,0 +1,12 @@
+{
+  "network": "localhost",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2026-04-04T19:39:45.633Z",
+  "contracts": {
+    "DocumentRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  },
+  "roles": {
+    "ADMIN_ROLE": "0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  }
+}

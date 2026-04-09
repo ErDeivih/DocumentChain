@@ -1,0 +1,38 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Transferir" as ui
+control "Endpoints de transferencias (/api/documents/:id/transfer)" as api
+control "TransferService" as srv
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Elige nuevo propietario
+ui -> api: Preparar transferencia
+api -> srv: Validar propietario y destinatario
+srv -> db: Resolver blockchainId y wallet destino
+db --> srv: Datos de transferencia
+srv --> api: Payload para firmar
+api --> ui: Transferencia preparada
+
+ui -> wallet: Solicitar firma de transferencia
+wallet -> sc: Registrar transferencia on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar transferencia
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar documento y evento preliminar
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de cambio de propietario confirmado
+listener -> db: Cambiar propietario y marcar SYNCED
+listener -> ui: Refrescar detalle y listado
+ui --> user: Transferencia completada
+
+@enduml
+

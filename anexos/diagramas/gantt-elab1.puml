@@ -1,0 +1,14 @@
+@startgantt
+skinparam backgroundColor White
+printscale daily zoom 2
+Project starts 2025-12-15
+
+-- Fase Elaboracion - Iteracion 1 --
+[T10: Especificacion de requisitos funcionales] lasts 3 days
+then [T11: Especificacion de requisitos no funcionales] lasts 3 days
+then [T12: Especificacion completa de casos de uso] lasts 4 days
+then [T13: Diseno de la arquitectura general] lasts 3 days
+then [T14: Diseno del modelo de datos ER] lasts 2 days
+[M15: Fin Iteracion 1 - Elaboracion] happens at [T14: Diseno del modelo de datos ER]'s end
+[M15: Fin Iteracion 1 - Elaboracion] is colored in Gold/DarkRed
+@endgantt

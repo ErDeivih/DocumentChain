@@ -1,0 +1,24 @@
+@startsalt
+{+
+  Boceto de comparticion privada
+  [Documento seleccionado]
+  ─────────────────────────────
+  Buscar usuario
+  "[usuario destinatario]        "
+  .
+  Permisos a conceder:
+  (X) Lectura
+  () Lectura y escritura
+  .
+  [  Anadir destinatario  ]
+  ─────────────────────────────
+  Usuarios con acceso
+  {#
+    Usuario | Permiso | Desde | Accion
+    [Usuario A] | [permiso] | [fecha] | [Revocar]
+    [Usuario B] | [permiso] | [fecha] | [Revocar]
+  }
+  .
+  [  Cerrar  ] | [  Guardar cambios  ]
+}
+@endsalt

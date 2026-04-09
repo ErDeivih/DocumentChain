@@ -1,0 +1,39 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle de documento / Firmar" as ui
+control "Endpoints de firmas (/api/documents/:id/signatures)" as api
+control "SignatureService" as srv
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Abre la accion "Firmar documento"
+ui -> ui: Recoge comentario opcional
+ui -> api: Preparar firma
+api -> srv: Validar version operativa y permisos
+srv -> db: Registrar firma en PREPARING
+db --> srv: signatureId y datos de firma
+srv --> api: Payload para firmar
+api --> ui: Firma preparada
+
+ui -> wallet: Solicitar firma
+wallet -> sc: Registrar firma on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar firma
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar firma pendiente
+db --> srv: OK
+srv --> api: En espera de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de firma confirmado
+listener -> db: Marcar firma SYNCED y registrar evento
+listener -> ui: Refrescar panel de firmas
+ui --> user: Firma incorporada al documento
+
+@enduml
+

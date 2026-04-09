@@ -1,0 +1,26 @@
+@startsalt
+{
+  <b><size:14>EZEstimate — Registro de Actores (UAW)</size></b>
+  ==
+  {T
+   + <b>Tipo de Actor</b>       | <b>Complejidad</b> | <b>Peso</b> | <b>Nº</b> | <b>Subtotal</b>
+   + Actor Simple (GUI ext.) | Simple          | 1        | 0  | 0
+   + Actor Medio (protocolo) | Medio           | 2        | 1  | 2
+   + Actor Complejo (API)    | Complejo        | 3        | 3  | 9
+   + ──────────────────────  | ─────────────── | ──────── | ── | ─────────
+   + <b>TOTAL UAW</b>            |                 |          |    | <b>11</b>
+  }
+  ==
+  {
+    <b>Actores identificados:</b>
+    .
+    · Actor Simple — no aplica
+    · Actor Medio — Servicio de Email (SMTP)
+    · Actor Complejo — Usuario Web (navegador + wallet)
+    · Actor Complejo — Smart Contract (Ethereum / Sepolia)
+    · Actor Complejo — IPFS Cluster (API REST interna)
+  }
+  ==
+  [  Anterior  ] | [  <b>Siguiente →</b>  ]
+}
+@endsalt

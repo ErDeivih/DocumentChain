@@ -1,0 +1,10 @@
+skinparam backgroundColor white
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 12
+skinparam BoxPadding 8
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+hide footbox

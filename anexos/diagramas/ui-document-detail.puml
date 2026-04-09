@@ -1,0 +1,44 @@
+@startsalt
+{+
+  {
+    {
+      ^DocumentChain^
+      ─────────────
+      [Biblioteca]
+      [Compartidos]
+      [Carpetas]
+      [Estadisticas]
+      ─────────────
+      [Perfil]
+    } |
+    {
+      [Nombre del documento]
+      ─────────────────────────────────────────────────
+      {
+        Hash de contenido: | [hash]
+        Identificador IPFS: | [cid]
+        Fecha de subida: | [fecha y hora]
+        Propietario: | [usuario propietario]
+        Estado blockchain: | [estado]
+      }
+      ────────────────────────────
+      Versiones
+      {#
+        Version | Fecha | Resumen | Accion
+        [Actual] | [fecha] | [hash/version] | [Ver]
+        [Anterior] | [fecha] | [hash/version] | [Ver]
+        [Anterior] | [fecha] | [hash/version] | [Ver]
+      }
+      ────────────────────────────
+      Firmas digitales
+      {#
+        Firmante | Fecha | Wallet | Valida
+        [Firmante A] | [fecha] | [direccion] | [si/no]
+        [Firmante B] | [fecha] | [direccion] | [si/no]
+      }
+      .
+      [Descargar] | [Compartir] | [Firmar] | [Mas acciones]
+    }
+  }
+}
+@endsalt

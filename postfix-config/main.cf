@@ -1,0 +1,49 @@
+# Postfix custom configuration for development
+#
+# This file overrides default Postfix settings
+# Mounted to /etc/postfix/custom/ in the container
+
+# Permitir relay desde localhost y red Docker sin autenticación
+mynetworks = 127.0.0.0/8, 172.0.0.0/8, 192.168.0.0/16, 10.0.0.0/8
+
+# Dominio del servidor
+myhostname = mail.documentchain.local
+mydomain = documentchain.local
+myorigin = $mydomain
+
+# Destinos aceptados
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+# Relay abierto (SOLO PARA DESARROLLO)
+smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+
+# Deshabilitar autenticación (desarrollo local)
+smtpd_sasl_auth_enable = no
+
+# Timeouts aumentados para evitar "socket close"
+smtp_connect_timeout = 60s
+smtp_helo_timeout = 60s
+smtp_mail_timeout = 120s
+smtp_rcpt_timeout = 120s
+smtp_data_init_timeout = 120s
+smtp_data_xfer_timeout = 300s
+smtp_data_done_timeout = 120s
+
+# Log verboso para debugging
+debug_peer_level = 2
+debug_peer_list = 127.0.0.1
+
+# Deshabilitar verificaciones que pueden causar problemas
+smtpd_helo_required = no
+smtpd_client_restrictions =
+smtpd_sender_restrictions =
+smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
+
+# Tamaño máximo de mensaje (20MB)
+message_size_limit = 20971520
+
+# Modo compatibilidad
+compatibility_level = 2
+
+# No rechazar emails por problemas DNS
+soft_bounce = yes

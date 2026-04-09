@@ -1,0 +1,104 @@
+﻿@startuml
+!include _structure-style.puml
+!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define PK(x) <b>x</b>
+!define FK(x) <i>x</i>
+
+TABLE(users, "users") {
+  PK(id) : String CUID
+  email : String UNIQUE
+  username : String UNIQUE
+  passwordHash : String
+  role : Enum
+  createdAt : DateTime
+}
+
+TABLE(wallets, "wallets") {
+  PK(id) : String CUID
+  FK(userId) : String
+  address : String UNIQUE
+  isPrimary : Boolean
+}
+
+TABLE(documents, "documents") {
+  PK(id) : String CUID
+  FK(ownerId) : String
+  FK(folderId) : String
+  ipfsCid : String
+  blockchainId : String
+  blockchainStatus : Enum
+  encryptedKey : String
+}
+
+TABLE(versions, "versions") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  FK(createdById) : String
+  ipfsCid : String
+  versionNumber : Int
+}
+
+TABLE(document_signatures, "document_signatures") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  FK(userId) : String
+  blockchainTxHash : String
+  signedAt : DateTime
+}
+
+TABLE(folders, "folders") {
+  PK(id) : String CUID
+  FK(ownerId) : String
+  FK(parentId) : String
+  name : String
+}
+
+TABLE(events, "events") {
+  PK(id) : String CUID
+  FK(userId) : String
+  FK(documentId) : String
+  eventType : Enum
+  createdAt : DateTime
+}
+
+TABLE(sessions, "sessions") {
+  PK(id) : String CUID
+  FK(userId) : String
+  accessToken : String UNIQUE
+  expiresAt : DateTime
+}
+
+users "1" -- "0..*" wallets : owns
+users "1" -- "0..*" documents : owns
+users "1" -- "0..*" sessions : has
+documents "1" -- "0..*" versions : has
+documents "1" -- "0..*" document_signatures : has
+documents "0..*" -- "0..1" folders : in
+users "1" -- "0..*" events : generates
+users "1" -- "0..*" notifications : receives
+users "1" -- "0..1" user_stats : has
+documents "1" -- "0..1" document_stats : has
+documents "0..*" -- "0..*" categories : tagged with
+
+TABLE(blockchain, "Smart Contract\n(Ethereum)") {
+  documentId : bytes32 (hash)
+  ipfsCid : string
+  contentHash : bytes32
+  owner : address
+  roles : mapping
+  versions : array
+}
+
+TABLE(ipfs, "IPFS Cluster") {
+  cid : string (CIDv1)
+  content : bytes (encrypted)
+  size : uint
+}
+
+documents "1" ..> blockchain : registra en
+documents "1" ..> ipfs : almacena en
+versions "1" ..> ipfs : versiÃ³n en
+versions "1" ..> blockchain : hash en
+
+@enduml
+

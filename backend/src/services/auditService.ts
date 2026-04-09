@@ -1,0 +1,879 @@
+import { getContracts, provider } from '../config/blockchain';
+import prisma from '../config/database';
+import { BlockchainQueries } from '../lib/blockchain/queries';
+import logger from '../utils/logger';
+import { ethers } from 'ethers';
+
+/**
+ * AuditService - Servicio de auditoría PÚBLICO (sin autenticación)
+ * 
+ * Permite a cualquiera verificar:
+ * - Integridad de archivos
+ * - Propiedad criptográfica
+ * - Historial completo (audit trail)
+ * - Transparencia total de metadata
+ * 
+ * ⚠️ IMPORTANTE: Este servicio NO requiere autenticación
+ * para maximizar la transparencia y permitir auditorías externas.
+ */
+
+export interface AuditEvent {
+  id: string;
+  eventType: string;
+  blockchainId: string;
+  actor: string;
+  timestamp: Date;
+  blockNumber: number;
+  transactionHash: string;
+  details: Record<string, any>;
+}
+
+export interface IntegrityCheck {
+  valid: boolean;
+  blockchainData: {
+    exists: boolean;
+    owner: string;
+    fileHash: string;
+    isDeleted: boolean;
+  };
+  databaseData: {
+    exists: boolean;
+    name: string | null;
+    contentHash: string | null;
+  };
+  match: {
+    contentHash: boolean;
+    owner: boolean;
+  };
+}
+
+export interface OwnershipProof {
+  isOwner: boolean;
+  blockchainId: string;
+  walletAddress: string;
+  documentInfo: {
+    owner: string;
+    fileHash: string;
+    createdAt: string;
+  };
+}
+
+export interface PublicDocumentMetadata {
+  blockchainId: string;
+  fileHash: string;
+  owner: string;
+  uploadTimestamp: Date;
+  contentCid: string;
+  fileSize: number;
+  currentVersion: number;
+  isArchived: boolean;
+  isDeleted: boolean;
+  lastUpdated: Date;
+}
+
+export class AuditService {
+  private static async getDocumentDatabaseContextByBlockchainId(blockchainId: string) {
+    return prisma.document.findUnique({
+      where: { blockchainId },
+      include: {
+        owner: {
+          select: {
+            wallets: {
+              orderBy: {
+                isPrimary: 'desc',
+              },
+              select: {
+                walletAddress: true,
+                isPrimary: true,
+              },
+            },
+          },
+        },
+        versions: {
+          where: {
+            isOperational: true,
+          },
+          orderBy: {
+            versionNumber: 'desc',
+          },
+          take: 1,
+          select: {
+            ipfsCid: true,
+            versionNumber: true,
+          },
+        },
+      },
+    });
+  }
+
+  private static resolveOwnerWalletAddress(wallets: Array<{ walletAddress: string; isPrimary: boolean }>): string {
+    return wallets.find((wallet) => wallet.isPrimary)?.walletAddress || wallets[0]?.walletAddress || '';
+  }
+
+  private static buildAuditEvent(input: {
+    id: string;
+    blockchainId: string;
+    eventType: string;
+    actor?: string | null;
+    timestamp: Date;
+    blockNumber?: number | null;
+    transactionHash?: string | null;
+    details?: Record<string, any> | null;
+  }): AuditEvent {
+    return {
+      id: input.id,
+      blockchainId: input.blockchainId,
+      eventType: input.eventType,
+      actor: input.actor || '',
+      timestamp: input.timestamp,
+      blockNumber: input.blockNumber ?? 0,
+      transactionHash: input.transactionHash || '',
+      details: input.details || {},
+    };
+  }
+
+  private static normalizeDatabaseEventType(eventType: string, metadata: Record<string, any>): string {
+    switch (eventType) {
+      case 'DOCUMENT_CREATED':
+        return 'DocumentCreated';
+      case 'DOCUMENT_VERSION_CREATED':
+      case 'VERSION_CREATED':
+        return 'DocumentVersioned';
+      case 'SHARE_CONFIRMED':
+        return 'DocumentShared';
+      case 'DOCUMENT_ARCHIVED':
+        return metadata.archived === false ? 'DocumentUnarchived' : 'DocumentArchived';
+      case 'DOCUMENT_DELETED':
+        return 'DocumentDeleted';
+      case 'TRANSFER_CONFIRMED':
+        return 'DocumentTransferred';
+      default:
+        return eventType;
+    }
+  }
+
+  private static resolveDatabaseEventActor(metadata: Record<string, any>): string {
+    const candidateKeys = [
+      'owner',
+      'createdBy',
+      'by',
+      'from',
+      'signerWallet',
+      'newOwnerAddress',
+      'recipientWalletAddress',
+      'recipient',
+      'to',
+    ];
+
+    for (const key of candidateKeys) {
+      const value = metadata[key];
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
+  private static async getPersistedAuditTrail(blockchainId: string): Promise<AuditEvent[]> {
+    const document = await prisma.document.findUnique({
+      where: { blockchainId },
+      select: { id: true },
+    });
+
+    if (!document) {
+      return [];
+    }
+
+    const persistedEvents = await prisma.event.findMany({
+      where: {
+        documentId: document.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        eventType: true,
+        metadata: true,
+        transactionHash: true,
+        blockNumber: true,
+        blockTimestamp: true,
+        createdAt: true,
+      },
+    });
+
+    return persistedEvents.map((event) => {
+      const metadata = (event.metadata as Record<string, any> | null) || {};
+
+      return this.buildAuditEvent({
+        id: event.id,
+        blockchainId,
+        eventType: this.normalizeDatabaseEventType(event.eventType, metadata),
+        actor: this.resolveDatabaseEventActor(metadata),
+        timestamp: event.blockTimestamp || event.createdAt,
+        blockNumber: event.blockNumber,
+        transactionHash: event.transactionHash,
+        details: metadata,
+      });
+    });
+  }
+
+  /**
+   * Obtener historial completo de auditoría de un documento
+   * Consulta TODOS los eventos de blockchain relacionados con el documento
+   * 
+   * @param blockchainId - ID del documento en blockchain (bytes32)
+   * @returns Array de eventos cronológicos
+   */
+  static async getFileAuditTrail(blockchainId: string): Promise<AuditEvent[]> {
+    try {
+      const contracts = getContracts();
+      const events: AuditEvent[] = [];
+
+      // 1. DocumentCreated events
+      const createdFilter = contracts.documentRegistry.filters.DocumentCreated(blockchainId);
+      const createdEvents = await contracts.documentRegistry.queryFilter(createdFilter);
+
+      for (const event of createdEvents) {
+        const block = await event.getBlock();
+        // Type guard para EventLog
+        if (!('args' in event)) continue;
+        
+        events.push(this.buildAuditEvent({
+          id: `${event.transactionHash}:DocumentCreated`,
+          blockchainId,
+          eventType: 'DocumentCreated',
+          actor: event.args?.owner,
+          timestamp: new Date(block.timestamp * 1000),
+          blockNumber: event.blockNumber,
+          transactionHash: event.transactionHash,
+          details: {
+            docId: event.args?.docId,
+            owner: event.args?.owner,
+            ipfsCid: event.args?.ipfsCid,
+            currentVersion: event.args?.currentVersion?.toString()
+          }
+        }));
+      }
+
+      // 2. DocumentShared events
+      const sharedFilter = contracts.documentRegistry.filters.DocumentShared(blockchainId);
+      const sharedEvents = await contracts.documentRegistry.queryFilter(sharedFilter);
+
+      for (const event of sharedEvents) {
+        const block = await event.getBlock();
+        if (!('args' in event)) continue;
+        
+        events.push(this.buildAuditEvent({
+          id: `${event.transactionHash}:DocumentShared`,
+          blockchainId,
+          eventType: 'DocumentShared',
+          actor: event.args?.from,
+          timestamp: new Date(block.timestamp * 1000),
+          blockNumber: event.blockNumber,
+          transactionHash: event.transactionHash,
+          details: {
+            docId: event.args?.docId,
+            from: event.args?.from,
+            to: event.args?.to
+          }
+        }));
+      }
+
+      // 3. DocumentArchived events
+      const archivedFilter = contracts.documentRegistry.filters.DocumentArchived(blockchainId);
+      const archivedEvents = await contracts.documentRegistry.queryFilter(archivedFilter);
+
+      for (const event of archivedEvents) {
+        const block = await event.getBlock();
+        if (!('args' in event)) continue;
+        const isArchived = Boolean(event.args?.archived);
+        
+        events.push(this.buildAuditEvent({
+          id: `${event.transactionHash}:${isArchived ? 'DocumentArchived' : 'DocumentUnarchived'}`,
+          blockchainId,
+          eventType: isArchived ? 'DocumentArchived' : 'DocumentUnarchived',
+          actor: event.args?.by,
+          timestamp: new Date(block.timestamp * 1000),
+          blockNumber: event.blockNumber,
+          transactionHash: event.transactionHash,
+          details: {
+            docId: event.args?.docId,
+            by: event.args?.by,
+            archived: isArchived,
+          }
+        }));
+      }
+
+      // 4. DocumentDeleted events
+      const deletedFilter = contracts.documentRegistry.filters.DocumentDeleted(blockchainId);
+      const deletedEvents = await contracts.documentRegistry.queryFilter(deletedFilter);
+
+      for (const event of deletedEvents) {
+        const block = await event.getBlock();
+        if (!('args' in event)) continue;
+        
+        events.push(this.buildAuditEvent({
+          id: `${event.transactionHash}:DocumentDeleted`,
+          blockchainId,
+          eventType: 'DocumentDeleted',
+          actor: event.args?.by,
+          timestamp: new Date(block.timestamp * 1000),
+          blockNumber: event.blockNumber,
+          transactionHash: event.transactionHash,
+          details: {
+            docId: event.args?.docId,
+            by: event.args?.by
+          }
+        }));
+      }
+
+      // 5. OwnershipTransferred events
+      const transferredFilter = contracts.documentRegistry.filters['OwnershipTransferred(bytes32,address,address,uint256)'](blockchainId);
+      const transferredEvents = await contracts.documentRegistry.queryFilter(transferredFilter);
+
+      for (const event of transferredEvents) {
+        const block = await event.getBlock();
+        if (!('args' in event)) continue;
+        
+        events.push(this.buildAuditEvent({
+          id: `${event.transactionHash}:DocumentTransferred`,
+          blockchainId,
+          eventType: 'DocumentTransferred',
+          actor: event.args?.from,
+          timestamp: new Date(block.timestamp * 1000),
+          blockNumber: event.blockNumber,
+          transactionHash: event.transactionHash,
+          details: {
+            docId: event.args?.docId,
+            from: event.args?.from,
+            to: event.args?.to
+          }
+        }));
+      }
+
+      // 6. VersionCreated events (from DocumentRegistry — consolidated contract)
+      const versionFilter = contracts.documentRegistry.filters.VersionCreated(blockchainId);
+      const versionEvents = await contracts.documentRegistry.queryFilter(versionFilter);
+
+      for (const event of versionEvents) {
+        const block = await event.getBlock();
+        if (!('args' in event)) continue;
+        
+        events.push(this.buildAuditEvent({
+          id: `${event.transactionHash}:DocumentVersioned`,
+          blockchainId,
+          eventType: 'DocumentVersioned',
+          actor: event.args?.createdBy,
+          timestamp: new Date(block.timestamp * 1000),
+          blockNumber: event.blockNumber,
+          transactionHash: event.transactionHash,
+          details: {
+            docId: event.args?.docId,
+            versionNumber: event.args?.versionNumber?.toString(),
+            ipfsCid: event.args?.ipfsCid,
+            createdBy: event.args?.createdBy
+          }
+        }));
+      }
+
+      // 7. DocumentShared events (replaces old PermissionGranted from separate AccessControl contract)
+      // Event: DocumentShared(bytes32 indexed docId, address indexed from, address indexed to, DocumentRole role, uint256 timestamp)
+      try {
+        const documentSharedFilter = contracts.documentRegistry.filters.DocumentShared(blockchainId);
+        const documentSharedEvents = await contracts.documentRegistry.queryFilter(documentSharedFilter);
+
+        for (const event of documentSharedEvents) {
+          const block = await event.getBlock();
+          if (!('args' in event)) continue;
+          
+          events.push(this.buildAuditEvent({
+            id: `${event.transactionHash}:PermissionGranted`,
+            blockchainId,
+            eventType: 'PermissionGranted',
+            actor: event.args?.from,
+            timestamp: new Date(block.timestamp * 1000),
+            blockNumber: event.blockNumber,
+            transactionHash: event.transactionHash,
+            details: {
+              docId: event.args?.docId,
+              owner: event.args?.from,
+              recipient: event.args?.to,
+              accessLevel: event.args?.role?.toString()
+            }
+          }));
+        }
+      } catch (error) {
+        logger.warn('No se pudieron obtener eventos DocumentShared');
+      }
+
+      // 8. PermissionRevoked events
+      // Event: PermissionRevoked(bytes32 indexed docId, address indexed user, address indexed by, uint256 timestamp)
+      try {
+        const permissionRevokedFilter = contracts.documentRegistry.filters.PermissionRevoked(blockchainId);
+        const permissionRevokedEvents = await contracts.documentRegistry.queryFilter(permissionRevokedFilter);
+
+        for (const event of permissionRevokedEvents) {
+          const block = await event.getBlock();
+          if (!('args' in event)) continue;
+          
+          events.push(this.buildAuditEvent({
+            id: `${event.transactionHash}:PermissionRevoked`,
+            blockchainId,
+            eventType: 'PermissionRevoked',
+            actor: event.args?.by,
+            timestamp: new Date(block.timestamp * 1000),
+            blockNumber: event.blockNumber,
+            transactionHash: event.transactionHash,
+            details: {
+              docId: event.args?.docId,
+              owner: event.args?.by,
+              recipient: event.args?.user
+            }
+          }));
+        }
+      } catch (error) {
+        logger.warn('No se pudieron obtener eventos PermissionRevoked');
+      }
+
+      const persistedEvents = await this.getPersistedAuditTrail(blockchainId);
+      const mergedEvents = [...events];
+      const seenIds = new Set(mergedEvents.map((event) => event.id));
+
+      for (const persistedEvent of persistedEvents) {
+        if (!seenIds.has(persistedEvent.id)) {
+          mergedEvents.push(persistedEvent);
+        }
+      }
+
+      // Ordenar cronológicamente (más recientes primero)
+      mergedEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      logger.info(`Obtenidos ${mergedEvents.length} eventos de auditoría para documento ${blockchainId}`);
+      return mergedEvents;
+
+    } catch (error) {
+      logger.error('Error al obtener historial de auditoría:', error);
+      throw new Error(`Error al recuperar historial de auditoría: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Verificar integridad de un documento
+   * Compara datos de blockchain (fuente de verdad) vs base de datos (cache)
+   * 
+   * @param fileId - ID del documento en base de datos
+   * @returns Resultado de verificación de integridad
+   */
+  static async verifyFileIntegrity(fileId: string): Promise<IntegrityCheck> {
+    try {
+      // 1. Obtener documento de BD
+      const dbDocument = await prisma.document.findUnique({
+        where: { id: fileId },
+        include: {
+          owner: {
+            select: {
+              wallets: {
+                select: { walletAddress: true }
+              }
+            }
+          }
+        }
+      });
+
+      if (!dbDocument) {
+        throw new Error(`Documento ${fileId} no encontrado en base de datos`);
+      }
+
+      if (!dbDocument.blockchainId) {
+        throw new Error(`Documento ${fileId} no tiene blockchainId asociado`);
+      }
+
+      let blockchainDoc: {
+        owner: string;
+        docId: string;
+        isDeleted: boolean;
+      } | null = null;
+
+      try {
+        const contracts = getContracts();
+        const chainDoc = await contracts.documentRegistry.getDocument(dbDocument.blockchainId);
+
+        if (chainDoc.owner !== ethers.ZeroAddress) {
+          blockchainDoc = {
+            owner: chainDoc.owner,
+            docId: chainDoc.docId,
+            isDeleted: chainDoc.isDeleted,
+          };
+        }
+      } catch (error) {
+        logger.warn('Fallo al obtener documento on-chain para integridad, usando fallback de BD', {
+          fileId,
+          blockchainId: dbDocument.blockchainId,
+          error: error instanceof Error ? error.message : 'Error desconocido',
+        });
+      }
+
+      const dbHash = dbDocument.blockchainId;
+      const blockchainHash = blockchainDoc?.docId || dbDocument.blockchainId;
+      const hashMatch = dbHash === blockchainHash;
+
+      const ownerWallets = dbDocument.owner.wallets
+        .map((wallet) => wallet.walletAddress)
+        .filter(Boolean);
+      const blockchainOwner = blockchainDoc?.owner || ownerWallets[0] || '';
+      const ownerMatch = ownerWallets.length === 0
+        ? false
+        : ownerWallets.some((walletAddress) => walletAddress.toLowerCase() === blockchainOwner.toLowerCase());
+
+      return {
+        valid: hashMatch && ownerMatch,
+        blockchainData: {
+          exists: Boolean(dbDocument.blockchainId),
+          owner: blockchainOwner,
+          fileHash: blockchainHash,
+          isDeleted: blockchainDoc?.isDeleted ?? dbDocument.isDeleted,
+        },
+        databaseData: {
+          exists: true,
+          name: dbDocument.name,
+          contentHash: dbDocument.contentHash,
+        },
+        match: {
+          contentHash: hashMatch,
+          owner: ownerMatch,
+        },
+      };
+
+    } catch (error) {
+      logger.error('Error al verificar integridad del archivo:', error);
+      throw new Error(`Error al verificar integridad: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Verificar propiedad de un documento
+   * Proporciona prueba criptográfica de que una wallet es dueña de un documento
+   * 
+   * @param blockchainId - ID del documento en blockchain
+   * @param walletAddress - Dirección de wallet que afirma ser dueña
+   * @returns Prueba de propiedad
+   */
+  static async verifyOwnership(
+    blockchainId: string,
+    walletAddress: string
+  ): Promise<OwnershipProof> {
+    try {
+      const dbDoc = await this.getDocumentDatabaseContextByBlockchainId(blockchainId);
+
+      if (!dbDoc) {
+        throw new Error(`Documento ${blockchainId} no encontrado`);
+      }
+
+      const normalizedWalletAddress = walletAddress.toLowerCase();
+      let actualOwner = this.resolveOwnerWalletAddress(dbDoc.owner.wallets);
+      let isOwner = actualOwner.toLowerCase() === normalizedWalletAddress;
+
+      try {
+        const blockchainDoc = await BlockchainQueries.getDocument(blockchainId);
+        actualOwner = blockchainDoc.owner || actualOwner;
+        isOwner = actualOwner.toLowerCase() === normalizedWalletAddress;
+      } catch (error) {
+        logger.warn('Fallo al obtener propietario on-chain, usando fallback de BD', {
+          blockchainId,
+          walletAddress,
+          error: error instanceof Error ? error.message : 'Error desconocido',
+        });
+
+        if (!isOwner) {
+          try {
+            isOwner = await BlockchainQueries.isOwner(blockchainId, walletAddress);
+            if (isOwner) {
+              actualOwner = walletAddress;
+            }
+          } catch (ownershipError) {
+            logger.warn('Fallo adicional al verificar propiedad on-chain, se mantiene fallback local', {
+              blockchainId,
+              walletAddress,
+              error: ownershipError instanceof Error ? ownershipError.message : 'Error desconocido',
+            });
+          }
+        }
+      }
+
+      return {
+        isOwner,
+        blockchainId,
+        walletAddress,
+        documentInfo: {
+          owner: actualOwner,
+          fileHash: dbDoc.contentHash,
+          createdAt: dbDoc.createdAt.toISOString(),
+        },
+      };
+
+    } catch (error) {
+      logger.error('Error al verificar propiedad:', error);
+      throw new Error(`Error al verificar propiedad: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Obtener metadata PÚBLICA de un documento
+   * No requiere autenticación - cualquiera puede ver metadata almacenada en blockchain
+   * 
+   * @param blockchainId - ID del documento en blockchain
+   * @returns Metadata pública del documento
+   */
+  static async getPublicMetadata(blockchainId: string): Promise<PublicDocumentMetadata> {
+    try {
+      try {
+        const contracts = getContracts();
+        const doc = await contracts.documentRegistry.getDocument(blockchainId);
+
+        if (doc.owner === ethers.ZeroAddress) {
+          throw new Error(`Documento ${blockchainId} no encontrado en blockchain`);
+        }
+
+        const currentVersion = Number(doc.currentVersion);
+        const version = await contracts.documentRegistry.getVersion(blockchainId, currentVersion);
+
+        return {
+          blockchainId,
+          fileHash: doc.docId,
+          owner: doc.owner,
+          uploadTimestamp: new Date(Number(doc.createdAt) * 1000),
+          contentCid: version.ipfsCid,
+          fileSize: 0,
+          currentVersion,
+          isArchived: doc.isArchived,
+          isDeleted: doc.isDeleted,
+          lastUpdated: new Date(Number(doc.updatedAt) * 1000)
+        };
+      } catch (error) {
+        logger.warn('Fallo al obtener metadata on-chain, usando fallback de BD', {
+          blockchainId,
+          error: error instanceof Error ? error.message : 'Error desconocido',
+        });
+
+        const dbDoc = await this.getDocumentDatabaseContextByBlockchainId(blockchainId);
+
+        if (!dbDoc) {
+          throw error;
+        }
+
+        const owner = this.resolveOwnerWalletAddress(dbDoc.owner.wallets);
+        const operationalVersion = dbDoc.versions[0];
+
+        return {
+          blockchainId,
+          fileHash: dbDoc.contentHash,
+          owner,
+          uploadTimestamp: dbDoc.createdAt,
+          contentCid: operationalVersion?.ipfsCid || '',
+          fileSize: Number(dbDoc.size),
+          currentVersion: operationalVersion?.versionNumber || 1,
+          isArchived: dbDoc.isArchived,
+          isDeleted: dbDoc.isDeleted,
+          lastUpdated: dbDoc.createdAt,
+        };
+      }
+
+    } catch (error) {
+      logger.error('Error al obtener metadatos públicos:', error);
+      throw new Error(`Error al obtener metadatos públicos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Obtener estadísticas públicas de documentos
+   * Útil para dashboards públicos y análisis de transparencia
+   * 
+   * @returns Estadísticas agregadas
+   */
+  static async getPublicStats(): Promise<{
+    totalDocuments: number;
+    totalSignatures: number;
+    totalVersions: number;
+    totalShares: number;
+    activeUsers: number;
+    lastBlockSynced: number;
+  }> {
+    try {
+      const [
+        totalDocuments,
+        totalVersions,
+        totalSignatures,
+        totalShares,
+        activeUsers,
+        latestSystemStats,
+      ] = await Promise.all([
+        prisma.document.count(),
+        prisma.version.count(),
+        prisma.documentSignature.count(),
+        prisma.event.count({
+          where: {
+            eventType: 'SHARE_CONFIRMED',
+          },
+        }),
+        prisma.user.count(),
+        prisma.systemStats.findFirst({
+          orderBy: {
+            updatedAt: 'desc',
+          },
+          select: {
+            lastSyncedBlock: true,
+          },
+        }),
+      ]);
+
+      return {
+        totalDocuments,
+        totalVersions,
+        totalSignatures,
+        totalShares,
+        activeUsers,
+        lastBlockSynced: latestSystemStats?.lastSyncedBlock || 0,
+      };
+
+    } catch (error) {
+      logger.error('Error al obtener estadísticas públicas:', error);
+      throw new Error(`Error al obtener estadísticas públicas: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Consultar eventos de blockchain con filtros avanzados
+   * Permite auditoría completa del sistema
+   * 
+   * @param filters - Filtros de búsqueda
+   * @returns Lista de eventos filtrados
+   */
+  static async queryBlockchainEvents(filters: {
+    eventTypes?: string[];
+    userId?: string;
+    walletAddress?: string;
+    documentId?: string;
+    txHash?: string;
+    fromBlock?: number;
+    toBlock?: number;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+    offset?: number;
+  }): Promise<{
+    events: any[];
+    total: number;
+    hasMore: boolean;
+  }> {
+    try {
+      const {
+        eventTypes,
+        userId,
+        walletAddress,
+        documentId,
+        txHash,
+        fromBlock,
+        toBlock,
+        startDate,
+        endDate,
+        limit = 50,
+        offset = 0
+      } = filters;
+
+      // Construir query de Prisma
+      const where: any = {};
+
+      if (eventTypes && eventTypes.length > 0) {
+        where.eventType = { in: eventTypes };
+      } else {
+        // By default hide noisy admin bootstrap events from explorer
+        where.eventType = { notIn: ['AdminRoleGranted'] };
+      }
+
+      if (userId) {
+        where.userId = userId;
+      }
+
+      if (documentId) {
+        where.documentId = documentId;
+      }
+
+      if (txHash) {
+        where.transactionHash = txHash;
+      }
+
+      if (fromBlock !== undefined || toBlock !== undefined) {
+        where.blockNumber = {};
+        if (fromBlock !== undefined) where.blockNumber.gte = fromBlock;
+        if (toBlock !== undefined) where.blockNumber.lte = toBlock;
+      }
+
+      if (startDate || endDate) {
+        where.blockTimestamp = {};
+        if (startDate) where.blockTimestamp.gte = startDate;
+        if (endDate) where.blockTimestamp.lte = endDate;
+      }
+
+      // Si se proporciona walletAddress, buscar en metadata
+      if (walletAddress) {
+        where.OR = [
+          { metadata: { path: ['pausedBy'], equals: walletAddress } },
+          { metadata: { path: ['unpausedBy'], equals: walletAddress } },
+          { metadata: { path: ['admin'], equals: walletAddress } },
+          { metadata: { path: ['grantedBy'], equals: walletAddress } },
+          { metadata: { path: ['revokedBy'], equals: walletAddress } },
+          { metadata: { path: ['by'], equals: walletAddress } },
+          { metadata: { path: ['from'], equals: walletAddress } },
+          { metadata: { path: ['to'], equals: walletAddress } },
+        ];
+      }
+
+      // Contar total de eventos que coinciden
+      const total = await prisma.event.count({ where });
+
+      // Consultar eventos con paginación
+      const events = await prisma.event.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+          document: {
+            select: {
+              id: true,
+              name: true,
+              blockchainId: true,
+              owner: {
+                select: {
+                  id: true,
+                  username: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          blockTimestamp: 'desc',
+        },
+        skip: offset,
+        take: limit,
+      });
+
+      return {
+        events,
+        total,
+        hasMore: offset + events.length < total,
+      };
+
+    } catch (error) {
+      logger.error('Error al consultar eventos blockchain:', error);
+      throw new Error(`Error al consultar eventos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+}

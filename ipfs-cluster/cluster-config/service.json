@@ -1,0 +1,107 @@
+{
+  "cluster": {
+    "peername": "documentchain-cluster",
+    "secret": "1b07733842fbadb651ebcf4093af2db75b2ce207abec189aacb802466aff33d3",
+    "leave_on_shutdown": false,
+    "listen_multiaddress": [
+      "/ip4/0.0.0.0/tcp/9096",
+      "/ip4/0.0.0.0/udp/9096/quic"
+    ],
+    "connection_manager": {
+      "high_water": 400,
+      "low_water": 100,
+      "grace_period": "2m0s"
+    },
+    "state_sync_interval": "10m0s",
+    "ipfs_sync_interval": "2m10s",
+    "replication_factor_min": 2,
+    "replication_factor_max": 3,
+    "monitor_ping_interval": "15s",
+    "peer_watch_interval": "5s",
+    "mdns_interval": "10s",
+    "disable_repinning": false
+  },
+  "consensus": {
+    "crdt": {
+      "cluster_name": "documentchain",
+      "trusted_peers": ["*"]
+    }
+  },
+  "api": {
+    "ipfsproxy": {
+      "listen_multiaddress": "/ip4/0.0.0.0/tcp/9095",
+      "read_timeout": "10m0s",
+      "read_header_timeout": "5s",
+      "write_timeout": "10m0s",
+      "idle_timeout": "1m0s"
+    },
+    "restapi": {
+      "http_listen_multiaddress": "/ip4/0.0.0.0/tcp/9094",
+      "read_timeout": "30s",
+      "read_header_timeout": "5s",
+      "write_timeout": "1m0s",
+      "idle_timeout": "2m0s",
+      "cors_allowed_origins": ["*"],
+      "cors_allowed_methods": ["GET", "POST", "DELETE"],
+      "cors_allowed_headers": ["*"],
+      "cors_exposed_headers": [],
+      "cors_allow_credentials": false,
+      "cors_max_age": "0s"
+    }
+  },
+  "ipfs_connector": {
+    "ipfshttp": {
+      "node_multiaddress": "/dns4/ipfs-node-1/tcp/5001",
+      "connect_swarms_delay": "30s",
+      "ipfs_request_timeout": "5m0s",
+      "pin_timeout": "24h",
+      "unpin_timeout": "3h"
+    }
+  },
+  "pin_tracker": {
+    "stateless": {
+      "concurrent_pins": 10,
+      "priority_pin_max_age": "24h",
+      "priority_pin_max_retries": 5
+    }
+  },
+  "monitor": {
+    "pubsubmon": {
+      "check_interval": "15s"
+    }
+  },
+  "informer": {
+    "disk": {
+      "metric_ttl": "30s"
+    },
+    "pinqueue": {
+      "metric_ttl": "30s"
+    }
+  },
+  "observations": {
+    "metrics": {
+      "enable_stats": true,
+      "prometheus_endpoint": "/ip4/0.0.0.0/tcp/8888",
+      "reporting_interval": "2s"
+    },
+    "tracing": {
+      "enable_tracing": false
+    }
+  },
+  "datastore": {
+    "badger": {
+      "badger_options": {
+        "max_table_size": 67108864,
+        "level_size_multiplier": 10,
+        "max_levels": 7,
+        "value_threshold": 32768,
+        "num_memtables": 5,
+        "num_level_zero_tables": 5,
+        "num_level_zero_tables_stall": 10,
+        "num_compactors": 2,
+        "compression": 1,
+        "block_cache_size": 0
+      }
+    }
+  }
+}

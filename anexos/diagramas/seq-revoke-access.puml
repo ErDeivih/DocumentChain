@@ -1,0 +1,39 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Compartir" as ui
+control "Endpoints de comparticion\n(/api/documents/:id/share y /api/shares)" as shareApi
+control "Servicio de comparticion" as srv
+entity "Contrato inteligente" as sc
+participant "Wallet del usuario\n(navegador o WalletConnect)" as wallet
+database "PostgreSQL" as db
+participant "Sincronizador blockchain" as listener
+
+== Fase PREPARE ==
+user -> ui: Click en "Revocar acceso" para un usuario compartido
+ui -> shareApi: Preparar revocacion de acceso
+shareApi -> srv: Validar propietario y acceso a revocar
+srv -> db: Recuperar acceso y wallet destinataria
+db --> srv: Datos para la revocacion
+srv --> shareApi: Payload para firmar
+shareApi --> ui: Revocacion preparada
+
+== Fase CONFIRM ==
+ui -> wallet: Solicitar firma de revocacion
+user -> wallet: Aprueba la operacion
+wallet --> ui: txHash
+ui -> shareApi: Confirmar revocacion de acceso
+shareApi -> srv: Registrar txHash y estado transaccional
+srv -> db: Persistir revocacion pendiente
+db --> srv: OK
+srv --> shareApi: Confirmacion registrada
+shareApi --> ui: Revocacion enviada
+
+== Fase SYNC ==
+sc -> listener: Emite evento de acceso revocado
+listener -> db: Marcar acceso revocado y registrar auditoria
+listener -> ui: Refrescar lista de accesos
+ui --> user: Acceso revocado correctamente
+
+@enduml
+

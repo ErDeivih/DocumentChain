@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Nodo IPFS 1
+  ipfs-node-1:
+    image: ipfs/kubo:latest
+    container_name: documentchain-ipfs-1
+    ports:
+      - "4001:4001"  # Swarm
+      - "5001:5001"  # API
+      - "8080:8080"  # Gateway
+    volumes:
+      - ./ipfs-data-1:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    restart: unless-stopped
+    networks:
+      - documentchain-network
+    
+  # Nodo IPFS 2
+  ipfs-node-2:
+    image: ipfs/kubo:latest
+    container_name: documentchain-ipfs-2
+    ports:
+      - "4002:4001"
+      - "5002:5001"
+      - "8081:8080"
+    volumes:
+      - ./ipfs-data-2:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    restart: unless-stopped
+    networks:
+      - documentchain-network
+    
+  # Nodo IPFS 3
+  ipfs-node-3:
+    image: ipfs/kubo:latest
+    container_name: documentchain-ipfs-3
+    ports:
+      - "4003:4001"
+      - "5003:5001"
+      - "8082:8080"
+    volumes:
+      - ./ipfs-data-3:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    restart: unless-stopped
+    networks:
+      - documentchain-network
+    
+  # IPFS Cluster
+  ipfs-cluster:
+    image: ipfs/ipfs-cluster:latest
+    container_name: documentchain-ipfs-cluster
+    ports:
+      - "9094:9094"  # Cluster Swarm
+      - "9095:9095"  # Cluster API
+      - "9096:9096"  # Cluster Proxy
+    volumes:
+      - ./cluster-config:/data/ipfs-cluster
+    environment:
+      - CLUSTER_RESTAPI_CORS_ALLOWED_ORIGINS=*
+      - CLUSTER_RESTAPI_CORS_ALLOWED_HEADERS=*
+      - CLUSTER_RESTAPI_CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+    depends_on:
+      - ipfs-node-1
+      - ipfs-node-2
+      - ipfs-node-3
+    restart: unless-stopped
+    networks:
+      - documentchain-network
+
+networks:
+  documentchain-network:
+    driver: bridge
+
+volumes:
+  ipfs-data-1:
+  ipfs-data-2:
+  ipfs-data-3:

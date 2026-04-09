@@ -1,0 +1,18 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle de documento" as ui
+control "Endpoints de documentos (/api/documents)" as api
+control "DocumentService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Edita nombre, descripcion y etiquetas
+ui -> api: Guardar metadatos
+api -> srv: Validar propiedad y cambios
+srv -> db: Actualizar documento y registrar evento
+db --> srv: Documento actualizado
+srv --> api: Metadatos persistidos
+api --> ui: Vista actualizada
+ui --> user: Metadatos guardados
+@enduml
+

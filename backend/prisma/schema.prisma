@@ -1,0 +1,391 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BlockchainStatus {
+  PREPARING
+  TX_SUBMITTED
+  SYNCED
+  FAILED
+}
+
+enum DocumentVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+model User {
+  id                          String                  @id @default(cuid())
+  username                    String                  @unique
+  email                       String                  @unique
+  passwordHash                String
+  fullName                    String?
+  role                        UserRole                @default(USER)
+  publicKey                   String                  @unique
+  encryptedPrivateKey         String
+  createdAt                   DateTime                @default(now())
+  updatedAt                   DateTime                @updatedAt
+  encryptedPrivateKeyRecovery String?
+  recoveryKeyHash             String?
+  twoFactorBackupCodes        String?
+  twoFactorEnabled            Boolean                 @default(false)
+  twoFactorSecret             String?
+  isSuspended                 Boolean                 @default(false)
+  suspendedAt                 DateTime?
+  suspendReason               String?
+  categories                  Category[]
+  documents                   Document[]              @relation("UserDocuments")
+  signatures                  DocumentSignature[]
+  emailVerifications          EmailVerification[]
+  events                      Event[]
+  folders                     Folder[]
+  notifications               Notification[]
+  notificationPreference      NotificationPreference?
+  passwordResets              PasswordReset[]
+  sessions                    Session[]
+  stats                       UserStats?
+  versions                    Version[]
+  wallets                     Wallet[]
+
+  @@index([username])
+  @@index([email])
+}
+
+model Session {
+  id                    String   @id @default(cuid())
+  userId                String
+  refreshToken          String   @unique
+  createdAt             DateTime @default(now())
+  accessToken           String   @unique
+  accessTokenExpiresAt  DateTime
+  lastUsedAt            DateTime @default(now())
+  refreshTokenExpiresAt DateTime
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accessToken])
+  @@index([refreshToken])
+  @@index([userId])
+}
+
+model Wallet {
+  id            String   @id @default(cuid())
+  userId        String
+  walletAddress String
+  isPrimary     Boolean  @default(false)
+  isConnected   Boolean  @default(false)
+  nickname      String?
+  addedAt       DateTime @default(now())
+  lastUsedAt    DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdDocuments Document[] @relation("DocumentCreator")
+  signatures    DocumentSignature[] @relation("SignatureWallet")
+
+  @@unique([userId, walletAddress])
+  @@index([walletAddress])
+  @@index([userId])
+}
+
+model Folder {
+  id          String     @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  parentId    String?
+  color       String?
+  icon        String?
+  isShared    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  documents   Document[]
+  parent      Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Folder[]   @relation("FolderHierarchy")
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name, parentId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  userId       String?
+  name         String
+  description  String?
+  color        String?
+  icon         String?
+  isPredefined Boolean    @default(false)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  user         User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents    Document[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([isPredefined])
+}
+
+model Document {
+  id                    String              @id @default(cuid())
+  blockchainId          String?             @unique
+  publicId              String?             @unique
+  name                  String
+  description           String?
+  mimeType              String
+  size                  BigInt
+  contentHash           String
+  metadataHash          String
+  fileExtension         String?
+  folderId              String?
+  categoryId            String?
+  tags                  String[]            @default([])
+  ownerId               String
+  visibility            DocumentVisibility  @default(PRIVATE)
+  encryptedSymmetricKey String
+  encryptionIV          String?             // Base64-encoded initialization vector for AES-256-GCM
+  encryptionAuthTag     String?             // Base64-encoded auth tag for AES-256-GCM
+  blockchainStatus      BlockchainStatus    @default(PREPARING)
+  blockchainRetries     Int                 @default(0)
+  blockchainError       String?
+  blockchainTxHash      String?
+  creatorWalletId       String?
+  isArchived            Boolean             @default(false)
+  archivedAt            DateTime?
+  createdAt             DateTime            @default(now())
+    isDeleted             Boolean             @default(false)
+    deletedAt             DateTime?
+  category              Category?           @relation(fields: [categoryId], references: [id])
+  folder                Folder?             @relation(fields: [folderId], references: [id])
+  owner                 User                @relation("UserDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
+  creatorWallet         Wallet?             @relation("DocumentCreator", fields: [creatorWalletId], references: [id])
+  signatures            DocumentSignature[]
+  stats                 DocumentStats?
+  events                Event[]
+  versions              Version[]
+
+  @@index([ownerId])
+  @@index([blockchainId])
+  @@index([publicId])
+  @@index([visibility])
+  @@index([folderId])
+  @@index([categoryId])
+  @@index([fileExtension])
+  @@index([blockchainStatus])
+  @@index([isArchived])
+  @@index([createdAt])
+    @@index([isDeleted])
+}
+
+
+
+model Version {
+  id                    String              @id @default(cuid())
+  documentId            String
+  userId                String
+  encryptedSymmetricKey String
+  encryptionIV          String?             // Base64-encoded initialization vector for AES-256-GCM
+  encryptionAuthTag     String?             // Base64-encoded auth tag for AES-256-GCM
+  comment               String?
+  blockchainStatus      BlockchainStatus    @default(PREPARING)
+  blockchainRetries     Int                 @default(0)
+  blockchainError       String?
+  blockchainTxHash      String?
+  versionNumber         Int
+  isOperational         Boolean             @default(false)
+  createdAt             DateTime            @default(now())
+  ipfsCid               String?
+  signatures            DocumentSignature[]
+  document              Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([blockchainStatus])
+  @@index([createdAt])
+}
+
+model DocumentSignature {
+  id                String           @id @default(cuid())
+  documentId        String
+  versionId         String
+  userId            String?
+  signerWalletId    String?
+  signerUsernameSnapshot String?
+  signerFullNameSnapshot String?
+  signerWalletAddressSnapshot String?
+  signedAt          DateTime         @default(now())
+  blockchainStatus  BlockchainStatus @default(PREPARING)
+  blockchainRetries Int              @default(0)
+  blockchainError   String?
+  blockchainTxHash  String?
+  document          Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  version           Version          @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  signerWallet      Wallet?          @relation("SignatureWallet", fields: [signerWalletId], references: [id], onDelete: SetNull)
+
+  @@unique([versionId, userId])
+  @@index([documentId])
+  @@index([userId])
+  @@index([versionId])
+  @@index([blockchainStatus])
+}
+
+model Event {
+  id              String    @id @default(cuid())
+  eventType       String
+  userId          String?
+  documentId      String?
+  metadata        Json?
+  transactionHash String?
+  blockNumber     Int?
+  blockTimestamp  DateTime?
+  gasUsed         BigInt?
+  createdAt       DateTime  @default(now())
+  document        Document? @relation(fields: [documentId], references: [id])
+  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([transactionHash])
+  @@index([blockNumber])
+}
+
+model UserStats {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  totalDocuments  Int      @default(0)
+  totalSize       BigInt   @default(0)
+  totalShared     Int      @default(0)
+  totalDownloads  Int      @default(0)
+  totalSignatures Int      @default(0)
+  totalTransfers  Int      @default(0)
+  totalRestores   Int      @default(0)
+  totalUnpins     Int      @default(0)
+  lastActivityAt  DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model DocumentStats {
+  id              String   @id @default(cuid())
+  documentId      String   @unique
+  totalVersions   Int      @default(1)
+  totalSignatures Int      @default(0)
+  totalDownloads  Int      @default(0)
+  totalShares     Int      @default(0)
+  totalViews      Int      @default(0)
+  totalRestores   Int      @default(0)
+  lastActivityAt  DateTime @default(now())
+  document        Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+model SystemStats {
+  id              String   @id @default(cuid())
+  statType        String
+  periodStart     DateTime
+  periodEnd       DateTime
+  newUsers        Int      @default(0)
+  activeUsers     Int      @default(0)
+  totalUsers      Int      @default(0)
+  newDocuments    Int      @default(0)
+  totalDocuments  Int      @default(0)
+  totalStorage    BigInt   @default(0)
+  newStorage      BigInt   @default(0)
+  totalEvents     Int      @default(0)
+  totalShares     Int      @default(0)
+  totalSignatures Int      @default(0)
+  totalTransfers  Int      @default(0)
+  totalRestores   Int      @default(0)
+  totalUnpins     Int      @default(0)
+  createdAt       DateTime @default(now())
+  lastSyncedBlock Int      @default(0)
+  updatedAt       DateTime @updatedAt
+
+  @@unique([statType, periodStart])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  link      String?
+  data      Json?
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model NotificationPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  pushEnabled     Boolean  @default(true)
+  typePreferences Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerification {
+  id         String    @id @default(cuid())
+  userId     String
+  token      String    @unique
+  expiresAt  DateTime
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([used])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model SystemConfig {
+  id        String    @id @default(cuid())
+  key       String    @unique
+  value     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([key])
+}

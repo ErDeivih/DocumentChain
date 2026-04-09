@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Admin as admin
+boundary "Panel de administracion" as ui
+control "Endpoints de administracion (/api/admin)" as api
+control "AdminService" as srv
+database "PostgreSQL" as db
+
+admin -> ui: Abre gestion de usuarios y aplica filtros
+ui -> api: Solicitar usuarios paginados
+api -> srv: Resolver filtros y paginacion
+srv -> db: Consultar usuarios y total disponible
+db --> srv: Lista paginada
+srv --> api: Resultado consolidado
+api --> ui: Tabla lista
+ui --> admin: Ve roles, suspension, email verificado y ultimo acceso
+
+@enduml
+

@@ -1,0 +1,346 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   VARIABLES CSS SHADCN/UI
+   ======================================== */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 199.8 89% 48.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199.8 89% 48.2%;
+    --radius: 0.5rem;
+  }
+}
+
+/* ========================================
+   VARIABLES CSS GLOBALES
+   ======================================== */
+:root {
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Tipografía */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  
+  /* Transiciones */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-tooltip: 1050;
+}
+
+/* ========================================
+   ESTILOS BASE
+   ======================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  color: #0f172a;
+  line-height: 1.6;
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 0.9em;
+}
+
+/* ========================================
+   COMPONENTES REUTILIZABLES
+   ======================================== */
+@layer components {
+  /* Contenedores */
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+  
+  /* Tarjetas */
+  .card {
+    @apply bg-white rounded-card shadow-soft border border-secondary-100 
+           transition-all duration-200 hover:shadow-medium;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-secondary-100;
+  }
+  
+  .card-body {
+    @apply px-6 py-5;
+  }
+  
+  .card-footer {
+    @apply px-6 py-4 bg-secondary-50 border-t border-secondary-100 rounded-b-card;
+  }
+  
+  /* Botones */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-500 text-white hover:bg-primary-600
+           focus:ring-primary-500 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary-100 text-secondary-700 hover:bg-secondary-200
+           focus:ring-secondary-500;
+  }
+  
+  .btn-success {
+    @apply btn bg-success-500 text-white hover:bg-success-600
+           focus:ring-success-500;
+  }
+  
+  .btn-error {
+    @apply btn bg-error-500 text-white hover:bg-error-600
+           focus:ring-error-500;
+  }
+  
+  .btn-outline {
+    @apply btn border-2 border-primary-500 text-primary-600 hover:bg-primary-50
+           focus:ring-primary-500;
+  }
+  
+  .btn-ghost {
+    @apply btn text-secondary-600 hover:bg-secondary-100
+           focus:ring-secondary-500;
+  }
+  
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-2.5 border border-secondary-300 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition-all duration-200 bg-white;
+  }
+  
+  .input-error {
+    @apply input border-error-500 focus:ring-error-500;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-secondary-700 mb-2;
+  }
+  
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-700;
+  }
+  
+  .badge-success {
+    @apply badge bg-success-100 text-success-700;
+  }
+  
+  .badge-warning {
+    @apply badge bg-warning-100 text-warning-700;
+  }
+  
+  .badge-error {
+    @apply badge bg-error-100 text-error-700;
+  }
+  
+  .badge-blockchain {
+    @apply badge bg-blockchain-100 text-blockchain-700;
+  }
+  
+  .badge-secondary {
+    @apply badge bg-secondary-100 text-secondary-700;
+  }
+  
+  /* Estados de carga */
+  .skeleton {
+    @apply animate-pulse bg-secondary-200 rounded;
+  }
+  
+  .spinner {
+    @apply animate-spin rounded-full border-4 border-secondary-200 border-t-primary-500;
+  }
+  
+  /* Alertas */
+  .alert {
+    @apply p-4 rounded-lg border-l-4;
+  }
+  
+  .alert-info {
+    @apply alert bg-primary-50 border-primary-500 text-primary-900;
+  }
+  
+  .alert-success {
+    @apply alert bg-success-50 border-success-500 text-success-900;
+  }
+  
+  .alert-warning {
+    @apply alert bg-warning-50 border-warning-500 text-warning-900;
+  }
+  
+  .alert-error {
+    @apply alert bg-error-50 border-error-500 text-error-900;
+  }
+  
+  /* Tablas */
+  .table {
+    @apply w-full text-sm text-left;
+  }
+  
+  .table-header {
+    @apply bg-secondary-50 border-b border-secondary-200;
+  }
+  
+  .table-header-cell {
+    @apply px-6 py-3 text-xs font-medium text-secondary-500 uppercase tracking-wider;
+  }
+  
+  .table-row {
+    @apply border-b border-secondary-100 hover:bg-secondary-50 transition-colors;
+  }
+  
+  .table-cell {
+    @apply px-6 py-4 text-secondary-900;
+  }
+  
+  /* Títulos */
+  .heading-1 {
+    @apply text-3xl font-bold text-secondary-900 mb-2;
+  }
+  
+  .heading-2 {
+    @apply text-2xl font-semibold text-secondary-800 mb-2;
+  }
+  
+  .heading-3 {
+    @apply text-xl font-semibold text-secondary-800 mb-2;
+  }
+  
+  .heading-4 {
+    @apply text-lg font-medium text-secondary-700 mb-1;
+  }
+  
+  /* Divisores */
+  .divider {
+    @apply border-t border-secondary-200 my-6;
+  }
+  
+  /* Links */
+  .link {
+    @apply text-primary-600 hover:text-primary-700 underline transition-colors;
+  }
+  
+  /* Estados blockchain */
+  .status-pending {
+    @apply badge-warning;
+  }
+  
+  .status-synced {
+    @apply badge-success;
+  }
+  
+  .status-failed {
+    @apply badge-error;
+  }
+  
+  .status-blockchain {
+    @apply badge-blockchain;
+  }
+}
+
+/* ========================================
+   UTILIDADES PERSONALIZADAS
+   ======================================== */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background-color: #f1f5f9;
+  }
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .container-page {
+    @apply px-3 py-4;
+  }
+  
+  .card-body {
+    @apply px-4 py-4;
+  }
+}
+

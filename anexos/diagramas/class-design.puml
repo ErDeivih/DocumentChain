@@ -1,0 +1,145 @@
+﻿@startuml
+!include _structure-style.puml
+title Diagrama de Clases de DiseÃ±o - DocumentChain (Capa de Negocio)
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+hide empty members
+
+package "Controllers (Express.js)" #DDEEFF {
+    class AuthController {
+        +register(req, res): void
+        +login(req, res): void
+        +logout(req, res): void
+        +forgotPassword(req, res): void
+        +verifyEmail(req, res): void
+        +enable2FA(req, res): void
+    }
+    class DocumentController {
+        +upload(req, res): void
+        +list(req, res): void
+        +detail(req, res): void
+        +download(req, res): void
+        +archive(req, res): void
+        +delete(req, res): void
+        +transfer(req, res): void
+        +confirm(req, res): void
+    }
+    class SignatureController {
+        +prepare(req, res): void
+        +confirm(req, res): void
+        +list(req, res): void
+        +verify(req, res): void
+    }
+    class ShareController {
+        +share(req, res): void
+        +modifyPermissions(req, res): void
+        +revokeAccess(req, res): void
+    }
+    class AdminController {
+        +listUsers(req, res): void
+        +assignRole(req, res): void
+        +suspendUser(req, res): void
+        +pauseSystem(req, res): void
+    }
+}
+
+package "Services (LÃ³gica de Negocio)" #DFFFDF {
+    class AuthService {
+        -jwtSecret: string
+        +register(data): Promise<User>
+        +login(email, pwd): Promise<{token, user}>
+        +generateJWT(user): string
+        +verifyJWT(token): UserPayload
+        +sendPasswordReset(email): Promise<void>
+        +verify2FA(userId, code): boolean
+    }
+    class DocumentService {
+        +uploadDocument(file, meta, userId): Promise<Document>
+        +confirmDocument(docId, txHash): Promise<Document>
+        +listDocuments(userId, filters): Promise<Document[]>
+        +getDocument(id, userId): Promise<Document>
+        +downloadDocument(id, userId): Promise<Buffer>
+        +archiveDocument(id, userId): Promise<void>
+        +deleteDocument(id, userId): Promise<void>
+        +transferDocument(id, newOwner): Promise<void>
+    }
+    class IPFSService {
+        -gateway: string
+        +uploadFile(buffer, name): Promise<string>
+        +downloadFile(cid): Promise<Buffer>
+        +pinFile(cid): Promise<void>
+        +isAvailable(cid): Promise<boolean>
+    }
+    class BlockchainService {
+        -contract: ethers.Contract
+        +prepareDocument(hash, cid): Promise<TxData>
+        +prepareSignature(docId, signer): Promise<TxData>
+        +prepareTransfer(docId, newOwner): Promise<TxData>
+        +getDocumentOnChain(hash): Promise<DocInfo>
+    }
+    class SignatureService {
+        +prepareSignature(docId, userId): Promise<TxData>
+        +confirmSignature(txHash, docId, userId): Promise<Signature>
+        +listSignatures(docId): Promise<Signature[]>
+        +verifySignature(sigId): Promise<boolean>
+    }
+    class NotificationService {
+        +notify(userId, msg, type): Promise<void>
+        +sendEmail(to, subject, body): Promise<void>
+        +broadcastSocket(event, data): void
+    }
+}
+
+package "Repositories (Acceso a Datos)" #FFFDE7 {
+    class UserRepository {
+        +findById(id): Promise<User>
+        +findByEmail(email): Promise<User>
+        +create(data): Promise<User>
+        +update(id, data): Promise<User>
+    }
+    class DocumentRepository {
+        +findById(id): Promise<Document>
+        +findByOwner(userId): Promise<Document[]>
+        +create(data): Promise<Document>
+        +update(id, data): Promise<Document>
+        +delete(id): Promise<void>
+    }
+    class SignatureRepository {
+        +findByDocument(docId): Promise<Signature[]>
+        +findByTxHash(hash): Promise<Signature>
+        +create(data): Promise<Signature>
+        +update(id, data): Promise<Signature>
+    }
+}
+
+class EventListener {
+    +listenDocumentCreated(): void
+    +listenDocumentSigned(): void
+    +listenDocumentTransferred(): void
+    -handleDocumentCreated(event): void
+    -handleDocumentSigned(event): void
+}
+
+' Dependencias
+AuthController ..> AuthService
+DocumentController ..> DocumentService
+SignatureController ..> SignatureService
+ShareController ..> DocumentService
+AdminController ..> UserRepository
+
+AuthService ..> UserRepository
+AuthService ..> NotificationService
+DocumentService ..> IPFSService
+DocumentService ..> BlockchainService
+DocumentService ..> DocumentRepository
+DocumentService ..> NotificationService
+SignatureService ..> BlockchainService
+SignatureService ..> SignatureRepository
+SignatureService ..> DocumentRepository
+
+EventListener ..> DocumentRepository
+EventListener ..> SignatureRepository
+EventListener ..> NotificationService
+@enduml
+

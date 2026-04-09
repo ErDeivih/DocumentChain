@@ -1,0 +1,46 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Nueva version" as ui
+control "Endpoints de versiones (/api/documents/:id/versions)" as api
+control "VersionService" as srv
+entity "IPFS" as ipfs
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+
+user -> ui: Selecciona archivo y comentario
+ui -> api: Preparar nueva version
+api -> srv: Validar permisos y wallet
+alt Documento privado
+	srv -> srv: Cifrar contenido y clave de la version
+else Documento publico
+	srv -> srv: Mantener contenido en claro para acceso publico
+end
+srv -> ipfs: Subir nueva version
+ipfs --> srv: CID
+srv -> db: Guardar version en PREPARING
+db --> srv: versionId, versionNumber y blockchainId
+srv --> api: Datos para firmar
+api --> ui: Version preparada
+
+ui -> wallet: Solicitar firma de version
+wallet -> sc: Registrar nueva version on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar version
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar version pendiente
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de nueva version confirmado
+listener -> db: Marcar version SYNCED y registrar evento
+listener -> ui: Refrescar pestana Versiones
+ui --> user: Nueva version disponible
+
+@enduml
+

@@ -1,0 +1,45 @@
+﻿@startuml
+!include _sequence-style.puml
+title Flujo completo de subida documental
+
+actor ":Usuario" as U
+participant ":Biblioteca / Modal de subida" as FE
+participant ":Endpoints de documentos" as DC
+participant ":AuthMiddleware" as AM
+participant ":DocumentService" as DS
+participant ":IPFS" as IPFS
+participant ":BlockchainService" as BS
+participant ":DocumentRepository" as DR
+participant ":NotificationService" as NS
+
+U -> FE : selecciona archivo\ny configura la visibilidad
+FE -> DC : preparar alta documental
+DC -> AM : validar sesion
+AM --> DC : usuario autenticado
+
+DC -> DS : preparar documento
+DS -> IPFS : subir contenido preparado
+IPFS --> DS : CID
+DS -> BS : generar datos para firma
+BS --> DS : payload blockchain
+DS -> DR : guardar PREPARING
+DR --> DS : documento preparado
+DS --> DC : documentId y payload
+DC --> FE : alta preparada
+
+FE -> FE : solicita firma en la wallet del usuario
+FE -> DC : confirmar alta con txHash
+DC -> DS : registrar TX_SUBMITTED
+DS -> DR : actualizar estado transaccional
+DR --> DS : OK
+DS -> NS : notificar alta iniciada
+NS --> FE : aviso de seguimiento
+
+== Confirmacion asincrona ==
+
+BS -> DR : sincronizar documento y version inicial
+BS -> NS : publicar evento doc.synced
+NS --> FE : refresco de biblioteca
+FE --> U : documento disponible para uso
+@enduml
+

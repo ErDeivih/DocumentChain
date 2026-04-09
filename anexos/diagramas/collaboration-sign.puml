@@ -1,0 +1,49 @@
+﻿@startuml
+!include _sequence-style.puml
+title Flujo de firma documental
+
+actor ":Firmante" as U
+participant ":Detalle / Firmar" as FE
+participant ":Endpoints de firmas" as SC
+participant ":AuthMiddleware" as AM
+participant ":PermissionMiddleware" as PM
+participant ":SignatureService" as SS
+participant ":BlockchainService" as BS
+participant ":DocumentRepository" as DR
+participant ":SignatureRepository" as SR
+participant ":NotificationService" as NS
+
+U -> FE : inicia la firma de la version operativa
+FE -> SC : preparar firma
+SC -> AM : validar sesion
+AM --> SC : usuario autenticado
+SC -> PM : validar permiso de firma
+PM -> DR : recuperar documento
+DR --> PM : documento accesible
+PM --> SC : permiso concedido
+
+SC -> SS : preparar firma
+SS -> DR : obtener documento y version
+DR --> SS : datos documentales
+SS -> BS : generar payload blockchain
+BS --> SS : datos para la wallet del usuario
+SS --> SC : firma preparada
+SC --> FE : payload y contexto de firma
+
+FE -> FE : solicita aprobacion en la wallet del usuario
+FE -> SC : confirmar firma con txHash
+SC -> SS : registrar TX_SUBMITTED
+SS -> SR : guardar firma pendiente
+SR --> SS : firma registrada
+SS --> SC : confirmacion aceptada
+SC --> FE : firma enviada
+
+== Confirmacion asincrona ==
+
+BS -> SR : marcar firma SYNCED
+BS -> DR : refrescar resumen de firmas
+BS -> NS : avisar al propietario
+NS --> FE : refresco del panel de firmas
+FE --> U : firma visible en el documento
+@enduml
+

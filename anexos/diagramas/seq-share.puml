@@ -1,0 +1,52 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as owner
+boundary "Detalle / Compartir" as ui
+control "Endpoints de usuarios (/api/users)" as usersApi
+control "Endpoints de comparticion (/api/documents/:id/share y /api/shares)" as api
+control "Criptografia local" as crypto
+control "ShareService" as srv
+database "PostgreSQL" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+entity "Smart Contract" as sc
+control "Event Listener" as listener
+control "EmailService" as email
+
+owner -> ui: Busca destinatario y elige permiso
+ui -> usersApi: Buscar usuario
+usersApi -> db: Localizar usuario y wallet destino
+db --> usersApi: Coincidencia valida
+usersApi --> ui: Destinatario disponible
+
+owner -> ui: Introduce su contrasena
+ui -> crypto: Descifrar clave del documento
+crypto --> ui: Clave lista para compartir
+
+ui -> api: Preparar comparticion
+api -> srv: Validar propietario, destinatario y rol
+srv -> srv: Re-cifrar clave para el destinatario
+srv -> db: Registrar SHARE_PREPARED
+db --> srv: shareId, blockchainId y wallet destino
+srv --> api: Datos para firmar
+api --> ui: Comparticion preparada
+
+ui -> wallet: Solicitar firma de acceso
+wallet -> sc: Registrar comparticion on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> api: Confirmar comparticion
+api -> srv: Registrar TX_SUBMITTED
+srv -> db: Persistir confirmacion inicial
+db --> srv: OK
+srv --> api: Pendiente de sincronizacion
+api --> ui: Confirmacion registrada
+
+sc -> listener: Evento de comparticion confirmado
+listener -> db: Registrar SHARE_CONFIRMED y notificacion
+listener -> email: Avisar al destinatario
+listener -> ui: Refrescar accesos del documento
+ui --> owner: Destinatario anadido
+
+@enduml
+

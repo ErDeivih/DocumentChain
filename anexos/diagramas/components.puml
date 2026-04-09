@@ -1,0 +1,46 @@
+﻿@startuml
+!include _structure-style.puml
+title Diagrama de componentes y comunicacion
+
+node "Cliente web" {
+    [Aplicacion web] as Frontend
+    [Wallet del usuario\n(navegador o WalletConnect)] as Wallet
+    [Canal tiempo real] as SocketClient
+}
+
+node "Servidor de aplicacion" {
+    [Rutas y controladores] as Router
+    [Validacion y autenticacion] as AuthMW
+    [Servicios de dominio] as Svc
+    [Canal tiempo real] as SocketSrv
+    [Sincronizador blockchain] as EventListener
+}
+
+node "Persistencia" {
+    database "PostgreSQL" as DB
+}
+
+node "Almacenamiento distribuido" {
+    [IPFS compatible] as IPFS
+}
+
+node "Blockchain" {
+    [Contrato inteligente] as SC
+    [Nodo blockchain] as ETH
+}
+
+Frontend --> Wallet : solicita firma
+Frontend --> Router : HTTPS
+Frontend --> SocketClient : suscribe eventos
+Router --> AuthMW
+AuthMW --> Svc
+Svc --> DB
+Svc --> IPFS
+Svc --> SC
+EventListener --> ETH
+EventListener --> DB
+EventListener --> SocketSrv
+SocketSrv --> SocketClient
+SC --> ETH
+@enduml
+

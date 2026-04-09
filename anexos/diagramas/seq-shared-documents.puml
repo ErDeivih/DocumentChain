@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Seccion Compartidos" as ui
+control "Endpoints de compartidos (/api/documents/shared)" as api
+control "DocumentService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Accede a sus documentos compartidos
+ui -> api: Solicitar pagina de compartidos
+api -> srv: Resolver accesos activos del usuario
+srv -> db: Recuperar documentos compartidos y permisos
+db --> srv: Listado paginado
+srv --> api: Compartidos disponibles
+api --> ui: Listado listo para mostrar
+ui --> user: Ve propietario, permiso y fecha de acceso
+
+@enduml
+

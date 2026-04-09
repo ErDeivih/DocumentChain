@@ -1,0 +1,48 @@
+﻿@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "Administrador" as ADMIN
+actor "Blockchain" as SC
+actor "IPFS" as IPFS
+actor "Sistema de email" as EMAIL
+
+rectangle "DocumentChain" {
+  package "Acceso y cuenta" {
+    usecase "UC-0001 a UC-0018\nRegistro, acceso, wallet, perfil y seguridad" as UC_A
+  }
+
+  package "Gestion documental" {
+    usecase "UC-0019 a UC-0033\nDocumentos y versionado" as UC_B
+  }
+
+  package "Firmas y comparticion" {
+    usecase "UC-0034 a UC-0040\nFirmas, permisos y acceso compartido" as UC_C
+  }
+
+  package "Organizacion y auditoria" {
+    usecase "UC-0041 a UC-0048\nCarpetas, categorias, timeline y verificacion" as UC_D
+  }
+
+  package "Administracion y notificaciones" {
+    usecase "UC-0049 a UC-0057\nAdministracion, pausado y notificaciones" as UC_E
+  }
+}
+
+USER --> UC_A
+USER --> UC_B
+USER --> UC_C
+USER --> UC_D
+USER --> UC_E
+
+ADMIN --> UC_D
+ADMIN --> UC_E
+
+UC_A ..> EMAIL : verificaciones y avisos
+UC_B ..> IPFS : almacenamiento de contenido
+UC_B ..> SC : registro documental
+UC_C ..> SC : firmas y permisos
+UC_D ..> SC : verificacion y auditoria
+@enduml
+

@@ -1,0 +1,28 @@
+@startsalt
+{+
+  Boceto de notificaciones
+  [Marcar todas como leidas] | [Preferencias]
+  ─────────────────────────────
+  {
+    [Notificacion de firma completada]
+    [hace un tiempo] | [Ver documento]
+    ─────
+    [Notificacion de verificacion blockchain]
+    [hace un tiempo] | [Ver detalle]
+    ─────
+    [Notificacion de comparticion recibida]
+    [fecha y hora] | [Ver documento]
+    ─────
+    [Notificacion de version o caducidad]
+    [fecha y hora] | [Ver documento]
+    ─────
+    [Notificacion de firma pendiente]
+    [fecha y hora] | [Firmar ahora]
+    ─────
+    [Notificacion de cuenta o perfil]
+    [fecha y hora] | [Ver perfil]
+  }
+  ─────────────────────────────
+  [Paginacion de notificaciones] | [Cargar mas]
+}
+@endsalt

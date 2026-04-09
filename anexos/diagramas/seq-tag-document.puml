@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Detalle / Categorias" as ui
+control "Endpoints de documentos (/api/documents/:id/categories)" as api
+control "DocumentService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Cambia las categorias del documento
+ui -> api: Guardar categorias seleccionadas
+api -> srv: Validar permisos y sincronizar relaciones
+srv -> db: Sustituir categorias activas del documento
+db --> srv: OK
+srv --> api: Categorias actualizadas
+api --> ui: Vista refrescada
+ui --> user: Etiquetas visibles en el detalle
+
+@enduml
+

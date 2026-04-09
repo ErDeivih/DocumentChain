@@ -1,0 +1,510 @@
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getDocument, downloadDocument, archiveDocument, deleteDocument } from '../api/documents';
+import { documentsApi } from '../api/documents';
+import { listVersions } from '../api/versions';
+import { getMyRole, listShares } from '../api/shares';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Loading } from '../components/ui/Loading';
+import AlertMessage from '../components/ui/AlertMessage';
+import { Modal } from '../components/ui/Modal';
+import { Input } from '../components/ui/Input';
+import { ShareModal } from '../components/sharing/ShareModal';
+import { ShareList } from '../components/sharing/ShareList';
+import { DocumentTimeline } from '../components/documents/DocumentTimeline';
+import { OperationalVersionSelector } from '../components/documents/OperationalVersionSelector';
+import { UploadVersionModal } from '../components/versions/UploadVersionModal';
+import { SignDocumentModal } from '../components/signatures/SignDocumentModal';
+import { DocumentTransfer } from '../components/documents/DocumentTransfer';
+import { PublicLinkActions } from '../components/public/PublicLinkActions';
+import { DocumentTypeIcon, getDocumentTypeVisual } from '../components/documents/DocumentTypeIcon';
+import { FileCrypto } from '../lib/crypto/FileCrypto';
+import { KeyManager } from '../lib/crypto/KeyManager';
+import { downloadFile, formatBytes } from '../lib/utils';
+import { DocumentRole, type Version } from '../types';
+import {
+  FileText,
+  Download,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  Share2,
+  ArrowLeft,
+  Clock,
+  GitBranch,
+  ArrowRightLeft,
+  FileSignature,
+} from 'lucide-react';
+
+type TabType = 'details' | 'timeline' | 'versions' | 'transfer';
+
+export const DocumentDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [downloadPassword, setDownloadPassword] = useState('');
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isUploadVersionModalOpen, setIsUploadVersionModalOpen] = useState(false);
+  const [isSignModalOpen, setIsSignModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('details');
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: documentData, isLoading, refetch } = useQuery({
+    queryKey: ['document', id],
+    queryFn: () => getDocument(id!),
+    enabled: !!id,
+  });
+
+  const document = documentData?.document;
+  const currentUserId = user?.id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null);
+  const isOwner = document?.role === 'OWNER' || document?.ownerId === currentUserId;
+  const isPublicDocument = document?.visibility === 'PUBLIC';
+
+  const { data: roleData } = useQuery({
+    queryKey: ['document-role', id],
+    queryFn: () => getMyRole(id!),
+    enabled: !!id && !!document && !isOwner,
+  });
+
+  const effectiveRole = document?.role || roleData?.role || null;
+  const canCreateVersion = isOwner || effectiveRole === DocumentRole.SHARED_WRITE;
+
+  const { data: versions, isLoading: isLoadingVersions } = useQuery({
+    queryKey: ['versions', id],
+    queryFn: () => listVersions(id!),
+    enabled: !!id,
+  });
+
+  // Get operational version number
+  // Note: API returns versionNumber from blockchain, even though it's not in the Version type
+  const versionsArray: any[] = versions?.versions || [];
+  const operationalVersion = versionsArray.find((v: any) => v.isOperational);
+  const operationalVersionNumber: number = operationalVersion?.versionNumber || 1;
+
+  const { data: shares } = useQuery({
+    queryKey: ['shares', id],
+    queryFn: () => listShares(id!),
+    enabled: !!id,
+  });
+
+  const downloadMutation = useMutation({
+    mutationFn: async () => {
+      const download = await downloadDocument(id!);
+
+      if (!download.isEncrypted) {
+        return {
+          blob: download.blob,
+          filename: download.filename,
+        };
+      }
+
+      if (!downloadPassword) {
+        throw new Error('Se requiere la contraseña para descifrar el documento');
+      }
+
+      if (!user?.encryptedPrivateKey) {
+        throw new Error('El usuario autenticado no tiene clave privada cifrada disponible');
+      }
+
+      if (!download.encryptedSymmetricKey || !download.encryptionIV || !download.encryptionAuthTag) {
+        throw new Error('Faltan metadatos de cifrado para descargar este documento');
+      }
+
+      const privateKey = await KeyManager.decryptPrivateKey(
+        user.encryptedPrivateKey,
+        downloadPassword,
+        user.keySalt
+      );
+
+      const decrypted = await FileCrypto.decryptFile(
+        await download.blob.arrayBuffer(),
+        download.encryptedSymmetricKey,
+        privateKey,
+        download.encryptionIV,
+        download.encryptionAuthTag
+      );
+
+      return {
+        blob: new Blob([decrypted.data], { type: download.mimeType }),
+        filename: download.filename.replace(/\.encrypted$/i, ''),
+      };
+    },
+    onSuccess: ({ blob, filename }) => {
+      downloadFile(blob, filename);
+      setIsDownloadModalOpen(false);
+      setDownloadPassword('');
+    },
+    onError: (err: any) => {
+      setError(err.message || 'Error al descargar el documento');
+    },
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: () => archiveDocument(id!),
+    onSuccess: () => refetch(),
+    onError: (err: any) => {
+      setError(err.message || 'Error al archivar el documento');
+    },
+  });
+
+  const queryClient = useQueryClient();
+
+  const unarchiveMutation = useMutation({
+    mutationFn: () => documentsApi.unarchive(id!),
+    onSuccess: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+    },
+    onError: (err: any) => {
+      setError(err.message || 'Error al desarchivar el documento');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteDocument(id!),
+    onSuccess: () => navigate('/app/documents'),
+    onError: (err: any) => {
+      setError(err.message || 'Error al eliminar el documento');
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loading size="lg" text="Cargando documento..." />
+      </div>
+    );
+  }
+
+  if (!document) {
+    return <AlertMessage type="error" message="Documento no encontrado" />;
+  }
+
+  const typeVisual = getDocumentTypeVisual(document.fileExtension, document.mimeType);
+
+  const handleDownload = () => {
+    setError(null);
+    if (document?.isEncrypted && !downloadPassword) {
+      setError('Se requiere contraseña para desencriptar el documento');
+      return;
+    }
+    downloadMutation.mutate();
+  };
+
+  const publicDocumentUrl = document?.publicId
+    ? `${window.location.origin}/public/d/${document.publicId}`
+    : null;
+
+  const tabs = [
+    { id: 'details' as TabType, label: 'Detalles', icon: FileText },
+    { id: 'timeline' as TabType, label: 'Historial', icon: Clock },
+    { id: 'versions' as TabType, label: 'Versiones', icon: GitBranch },
+    ...(isOwner ? [{ id: 'transfer' as TabType, label: 'Transferir', icon: ArrowRightLeft }] : []),
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/documents')}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
+      </div>
+
+      {error && <AlertMessage type="error" message={error} onClose={() => setError(null)} />}
+
+      {/* Document Info */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className={`${typeVisual.backgroundClassName} p-3 rounded-lg`}>
+                <DocumentTypeIcon
+                  fileExtension={document.fileExtension}
+                  mimeType={document.mimeType}
+                  className="w-8 h-8"
+                />
+              </div>
+              <div>
+                <CardTitle className="text-2xl">{document.name}</CardTitle>
+                <p className="text-gray-600 mt-1">
+                  {formatBytes(Number(document.size))} • {document.mimeType}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Only show badge for non-SYNCED statuses */}
+              {document.blockchainStatus !== 'SYNCED' && (
+                <Badge variant={document.blockchainStatus === 'FAILED' ? 'destructive' : 'warning'}>
+                  {document.blockchainStatus}
+                </Badge>
+              )}
+              {document.isArchived && (
+                <Badge variant="secondary">
+                  Archivado
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <p className="text-sm text-gray-500">Blockchain ID</p>
+              <p className="font-mono text-sm truncate">{document.blockchainId}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Versiones</p>
+              <p className="font-medium">{versions?.versions.length || 0}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Compartidos</p>
+              <p className="font-medium">{shares?.shares.length || 0}</p>
+            </div>
+          </div>
+
+          {isPublicDocument ? (
+            <AlertMessage
+              type="info"
+              message="Documento público: el contenido se almacena sin cifrar y cualquier persona con el enlace o el QR puede verlo o descargarlo."
+            />
+          ) : null}
+
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="primary"
+              onClick={() => setIsDownloadModalOpen(true)}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Descargar
+            </Button>
+            {isOwner && !isPublicDocument && (
+              <Button
+                variant="outline"
+                onClick={() => setIsShareModalOpen(true)}
+                disabled={document.blockchainStatus !== 'SYNCED' || document.isArchived}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Compartir
+              </Button>
+            )}
+
+            {isPublicDocument && publicDocumentUrl ? (
+              <PublicLinkActions url={publicDocumentUrl} title={document.name} />
+            ) : null}
+            
+            {/* The detail route already enforces access, so any visible document can be signed. */}
+            <Button
+              variant="outline"
+              onClick={() => setIsSignModalOpen(true)}
+              disabled={document?.blockchainStatus !== 'SYNCED' || document?.isArchived}
+            >
+              <FileSignature className="w-4 h-4 mr-2" />
+              Firmar Documento
+            </Button>
+            
+            {isOwner && (
+              <>
+                {document.isArchived ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => unarchiveMutation.mutate()}
+                    isLoading={unarchiveMutation.isPending}
+                  >
+                    <ArchiveRestore className="w-4 h-4 mr-2" />
+                    Desarchivar
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    onClick={() => archiveMutation.mutate()}
+                    isLoading={archiveMutation.isPending}
+                  >
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archivar
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+                      deleteMutation.mutate();
+                    }
+                  }}
+                  isLoading={deleteMutation.isPending}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'details' && shares && shares.shares.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Compartido Con</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ShareList shares={shares.shares} documentId={id!} />
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'timeline' && (
+        <DocumentTimeline documentId={id!} />
+      )}
+
+      {activeTab === 'versions' && (
+        <div className="space-y-4">
+          {canCreateVersion && (
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                onClick={() => setIsUploadVersionModalOpen(true)}
+                disabled={document.blockchainStatus !== 'SYNCED' || document.isArchived}
+              >
+                <GitBranch className="w-4 h-4 mr-2" />
+                Subir Nueva Versión
+              </Button>
+            </div>
+          )}
+          <OperationalVersionSelector
+            documentId={id!}
+            isOwner={isOwner}
+            versions={versionsArray}
+            isPublic={isPublicDocument}
+            publicId={document.publicId}
+            isLoading={isLoadingVersions}
+            onVersionChange={() => refetch()}
+          />
+        </div>
+      )}
+
+      {activeTab === 'transfer' && isOwner && (
+        <DocumentTransfer
+          documentId={id!}
+          documentName={document.name}
+          isOwner={isOwner}
+          isPublic={isPublicDocument}
+          onTransferComplete={() => {
+            refetch();
+            navigate('/app/documents');
+          }}
+        />
+      )}
+
+      {/* Download Password Modal */}
+      <Modal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setIsDownloadModalOpen(false)}
+        title="Descargar Documento"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setIsDownloadModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDownload}
+              isLoading={downloadMutation.isPending}
+            >
+              Descargar
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <AlertMessage
+            type="info"
+            message={document?.isEncrypted
+              ? 'Ingrese su contraseña de cuenta para descifrar y descargar este documento.'
+              : 'Este documento es público y no está cifrado. La descarga se realizará directamente.'}
+          />
+          <Input
+            label="Su Contraseña de Cuenta"
+            type="password"
+            value={downloadPassword}
+            onChange={(e) => setDownloadPassword(e.target.value)}
+            placeholder="Ingrese su contraseña de cuenta"
+            required={Boolean(document?.isEncrypted)}
+          />
+        </div>
+      </Modal>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        documentId={id!}
+        documentName={document.name}
+      />
+
+      {/* Upload Version Modal */}
+      {document && (
+        <UploadVersionModal
+          isOpen={isUploadVersionModalOpen}
+          onClose={() => setIsUploadVersionModalOpen(false)}
+          onSuccess={(newVersion: Version) => {
+            setIsUploadVersionModalOpen(false);
+            queryClient.setQueryData<{ versions: Version[] } | undefined>(['versions', id], (current) => {
+              const previousVersions = current?.versions ?? [];
+              const mergedVersions = [newVersion, ...previousVersions.filter((version) => version.id !== newVersion.id)]
+                .sort((left, right) => right.versionNumber - left.versionNumber);
+
+              return { versions: mergedVersions };
+            });
+            refetch();
+          }}
+          document={document}
+        />
+      )}
+
+      {/* Sign Document Modal */}
+      {document && (
+        <SignDocumentModal
+          isOpen={isSignModalOpen}
+          onClose={() => setIsSignModalOpen(false)}
+          onSuccess={() => {
+            setIsSignModalOpen(false);
+            refetch();
+          }}
+          document={document}
+          operationalVersionNumber={operationalVersionNumber}
+        />
+      )}
+    </div>
+  );
+};
+
+export default DocumentDetails;

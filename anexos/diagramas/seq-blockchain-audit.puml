@@ -1,0 +1,19 @@
+﻿@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Vista Auditoria blockchain" as ui
+control "Endpoints blockchain (/api/blockchain/events/:docId)" as api
+control "BlockchainService" as srv
+entity "Smart Contract" as sc
+
+user -> ui: Abre la auditoria blockchain del documento
+ui -> api: Solicitar eventos on-chain
+api -> srv: Recuperar trazas del documento
+srv -> sc: Consultar eventos del contrato para el documento
+sc --> srv: Registro cronologico de eventos
+srv --> api: Eventos enriquecidos para presentacion
+api --> ui: Auditoria cargada
+ui --> user: Ve bloques, hashes y marcas temporales
+
+@enduml
+

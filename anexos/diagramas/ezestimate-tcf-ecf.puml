@@ -1,0 +1,51 @@
+@startsalt
+{
+  <b><size:14>EZEstimate — Factores Técnicos (TCF) y Entorno (ECF) · Resultado</size></b>
+  ==
+  {T
+   + <b>Factor Técnico (T)</b>             | <b>Peso</b> | <b>Val.</b> | <b>Contrib.</b>
+   + T1  Sistema distribuido           | 2,0  | 4    | 8,0
+   + T2  Rendimiento                   | 1,0  | 3    | 3,0
+   + T3  Eficiencia de usuario final   | 1,0  | 3    | 3,0
+   + T4  Procesamiento complejo intern. | 1,0  | 4    | 4,0
+   + T5  Reusabilidad del código       | 1,0  | 3    | 3,0
+   + T6  Facilidad de instalación      | 0,5  | 2    | 1,0
+   + T7  Facilidad de uso              | 0,5  | 3    | 1,5
+   + T8  Portabilidad                  | 2,0  | 2    | 4,0
+   + T9  Facilidad de cambio           | 1,0  | 3    | 3,0
+   + T10 Concurrencia                  | 1,0  | 4    | 4,0
+   + T11 Seguridad especial            | 1,0  | 5    | 5,0
+   + T12 Acceso a BD externas          | 1,0  | 1    | 1,0
+   + T13 Formación del usuario         | 1,0  | 2    | 2,0
+   + ────────────────────────────────  | ───  | ──── | ──────
+   + <b>TFactor = 47,5 → TCF = 0,6 + 0,01×47,5 = 1,075</b> | | |
+  }
+  ==
+  {T
+   + <b>Factor Entorno (E)</b>             | <b>Peso</b>  | <b>Val.</b> | <b>Contrib.</b>
+   + E1 Familiaridad con el modelo    | 1,5   | 2    | 3,0
+   + E2 Experiencia en la aplicación  | 0,5   | 3    | 1,5
+   + E3 Experiencia en OO             | 1,0   | 4    | 4,0
+   + E4 Capacidad del analista líder  | 0,5   | 4    | 2,0
+   + E5 Motivación del equipo         | 1,0   | 5    | 5,0
+   + E6 Estabilidad de requisitos     | 2,0   | 2    | 4,0
+   + E7 Personal a tiempo parcial     | -1,0  | 0    | 0,0
+   + E8 Lenguaje de programación      | -1,0  | 3    | -3,0
+   + ────────────────────────────────  | ────  | ──── | ──────
+   + <b>EFactor = 16,5 → ECF = 1,4 + (-0,03)×16,5 = 0,905</b> | | |
+  }
+  ==
+  {
+    <b>RESULTADO FINAL</b>
+    .
+    UUCP (UAW + UUCW) = 11 + 420 = 431
+    UCP = UUCP x TCF x ECF = 431 x 1,075 x 0,905 = <b>419,5 ≈ 420 UCP</b>
+    .
+    Factor de productividad: 3,57 h/UCP
+    <b>Esfuerzo estimado = 420 x 3,57 ≈ 1.500 horas efectivas</b>
+    Equivalente a 250 dias laborables (50 semanas / 12 meses)
+  }
+  ==
+  [ Exportar PDF ] | [ Nueva estimacion ] | [  <b>Cerrar</b>  ]
+}
+@endsalt
