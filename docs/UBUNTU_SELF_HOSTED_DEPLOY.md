@@ -42,10 +42,21 @@ Edita `/opt/documentchain/.env.server` y ajusta al menos:
 
 - `FRONTEND_URL`
 - `ALLOWED_ORIGINS`
+- `VITE_BLOCKCHAIN_RPC_URL`
 - `IPFS_PROVIDER`
 - `IPFS_API_URL`
 - `IPFS_CLUSTER_API_URL`
 - `IPFS_GATEWAY_URL`
+
+Si vas a abrir la aplicacion desde otro equipo de la misma red, usa la IP LAN fija del servidor en esas variables. No dejes `localhost` en `VITE_BLOCKCHAIN_RPC_URL`, porque el navegador del otro equipo intentaria conectarse a su propia maquina en lugar de al nodo Hardhat del servidor.
+
+Ejemplo para una LAN domestica:
+
+- `FRONTEND_URL=http://192.168.1.50:5173`
+- `ALLOWED_ORIGINS=http://192.168.1.50:5173`
+- `VITE_BLOCKCHAIN_RPC_URL=http://192.168.1.50:8545`
+
+La forma mas sencilla de mantener esa IP estable es reservarla en el router por DHCP o fijarla con Netplan en Ubuntu.
 
 Si no quieres IPFS Cluster en el servidor, cambia `IPFS_PROVIDER=pinata` y pon `ENABLE_IPFS_CLUSTER=0`.
 

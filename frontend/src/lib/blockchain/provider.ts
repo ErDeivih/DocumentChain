@@ -264,14 +264,10 @@ export class BlockchainProvider {
       await ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
-          chainId: '0x7A69', // 31337 in hex
-          chainName: 'Hardhat Local',
-          rpcUrls: ['http://127.0.0.1:8545'],
-          nativeCurrency: {
-              name: 'Ethereum',
-              symbol: 'ETH',
-              decimals: 18
-          },
+          chainId: CHAIN_CONFIG.chainIdHex,
+          chainName: CHAIN_CONFIG.name,
+          rpcUrls: [CHAIN_CONFIG.rpcUrl],
+          nativeCurrency: CHAIN_CONFIG.nativeCurrency,
         }],
       });
     } catch (error) {

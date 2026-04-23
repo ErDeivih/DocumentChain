@@ -123,11 +123,14 @@ export interface ChainConfig {
   };
 }
 
+const HARDHAT_RPC_URL = import.meta.env.VITE_BLOCKCHAIN_RPC_URL || 'http://localhost:8545';
+const HARDHAT_CHAIN_NAME = import.meta.env.VITE_CHAIN_NAME || 'Hardhat Localhost';
+
 export const CHAIN_CONFIG: ChainConfig = {
   chainId: parseInt(import.meta.env.VITE_CHAIN_ID || '31337'),
   chainIdHex: `0x${(parseInt(import.meta.env.VITE_CHAIN_ID || '31337')).toString(16)}`,
-  name: import.meta.env.VITE_CHAIN_NAME || 'Localhost',
-  rpcUrl: import.meta.env.VITE_BLOCKCHAIN_RPC_URL || 'http://localhost:8545',
+  name: HARDHAT_CHAIN_NAME,
+  rpcUrl: HARDHAT_RPC_URL,
   blockExplorer: import.meta.env.VITE_BLOCK_EXPLORER_URL,
   nativeCurrency: {
     name: 'ETH',
@@ -141,8 +144,8 @@ export const SUPPORTED_NETWORKS: Record<number, ChainConfig> = {
   31337: {
     chainId: 31337,
     chainIdHex: '0x7A69',
-    name: 'Hardhat Localhost',
-    rpcUrl: 'http://localhost:8545',
+    name: HARDHAT_CHAIN_NAME,
+    rpcUrl: HARDHAT_RPC_URL,
     nativeCurrency: {
       name: 'ETH',
       symbol: 'ETH',
@@ -152,8 +155,8 @@ export const SUPPORTED_NETWORKS: Record<number, ChainConfig> = {
   1337: {
     chainId: 1337,
     chainIdHex: '0x539',
-    name: 'Hardhat Localhost (Alt)',
-    rpcUrl: 'http://localhost:8545',
+    name: `${HARDHAT_CHAIN_NAME} (Alt)`,
+    rpcUrl: HARDHAT_RPC_URL,
     nativeCurrency: {
       name: 'ETH',
       symbol: 'ETH',
