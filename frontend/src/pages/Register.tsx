@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../co
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/Alert';
 import { Progress } from '../components/ui/Progress';
 import { RecoveryKeyDisplay } from '../components/auth/RecoveryKeyDisplay';
-import { UserPlus, AlertCircle, CheckCircle2, Shield, Wallet } from 'lucide-react';
+import { UserPlus, AlertCircle, CheckCircle2, Shield } from 'lucide-react';
 
 /**
  * Register Page - Traditional authentication
@@ -17,7 +17,6 @@ import { UserPlus, AlertCircle, CheckCircle2, Shield, Wallet } from 'lucide-reac
  * Wallets are ONLY for signing blockchain transactions, NOT for registration/login
  */
 export const Register: React.FC = () => {
-  const navigate = useNavigate();
   const { register } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -32,7 +31,6 @@ export const Register: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
-  const [connectWalletAfterRegister, setConnectWalletAfterRegister] = useState(false);
 
   // Password strength calculator
   const calculatePasswordStrength = (password: string): number => {
@@ -108,13 +106,6 @@ export const Register: React.FC = () => {
         setShowRecoveryModal(true);
       } else {
         setSuccess(true);
-        setTimeout(() => {
-          if (connectWalletAfterRegister) {
-            navigate('/app/profile?connectWallet=1&next=/app/documents');
-          } else {
-            navigate('/app/documents');
-          }
-        }, 2000);
       }
     } catch (err: any) {
       setError(err?.message || 'No se pudo completar el registro. Inténtelo de nuevo.');
@@ -127,31 +118,42 @@ export const Register: React.FC = () => {
   const handleRecoveryModalClose = () => {
     setShowRecoveryModal(false);
     setSuccess(true);
-    setTimeout(() => {
-      if (connectWalletAfterRegister) {
-        navigate('/app/profile?connectWallet=1&next=/app/documents');
-      } else {
-        navigate('/app/documents');
-      }
-    }, 1500);
   };
 
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
-          <CardContent className="text-center py-8">
-            <div className="flex items-center justify-center mb-4">
-              <div className="bg-success-500 p-3 rounded-full">
+          <CardContent className="text-center py-8 space-y-4">
+            <div className="flex items-center justify-center">
+              <div className="bg-green-500 p-3 rounded-full">
                 <CheckCircle2 className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">
-              ¡Registro Exitoso!
+            <h2 className="text-2xl font-bold text-foreground">
+              ¡Cuenta creada con éxito!
             </h2>
-            <p className="text-muted-foreground">
-              Redirigiendo a su cuenta...
+
+            {/* Prominent email verification notice */}
+            <Alert className="border-amber-400 bg-amber-50 text-left">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800 font-semibold">
+                Verifica tu correo electrónico
+              </AlertTitle>
+              <AlertDescription className="text-amber-700">
+                Hemos enviado un enlace de verificación a tu dirección de correo.
+                Debes verificarlo <strong>antes de iniciar sesión</strong> para poder
+                acceder a tus documentos.
+              </AlertDescription>
+            </Alert>
+
+            <p className="text-sm text-muted-foreground">
+              ¿No has recibido el correo? Revisa tu carpeta de spam.
             </p>
+
+            <Link to="/login">
+              <Button className="w-full mt-2">Ir a Iniciar Sesión</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -171,7 +173,7 @@ export const Register: React.FC = () => {
             Crear Cuenta
           </CardTitle>
           <CardDescription className="text-center">
-            Únase a DecentralizedStore hoy
+            Cree su cuenta en DocumentChain
           </CardDescription>
         </CardHeader>
 
@@ -194,10 +196,10 @@ export const Register: React.FC = () => {
               </Alert>
 
               <Alert variant="info" className="mb-4">
-                <Wallet className="h-4 w-4" />
-                <AlertTitle>Wallet opcional al finalizar</AlertTitle>
+                <Shield className="h-4 w-4" />
+                <AlertTitle>Wallet en un paso posterior</AlertTitle>
                 <AlertDescription className="text-xs">
-                  Puede completar el registro y enlazar una wallet justo después, con la sesión iniciada.
+                  La wallet se enlaza más adelante desde el perfil, una vez verificado el correo e iniciada la sesión.
                 </AlertDescription>
               </Alert>
             </div>
@@ -287,17 +289,6 @@ export const Register: React.FC = () => {
                   disabled={isLoading}
                 />
               </div>
-
-              <label className="flex items-start gap-2 text-sm text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={connectWalletAfterRegister}
-                  onChange={(e) => setConnectWalletAfterRegister(e.target.checked)}
-                  className="mt-1"
-                  disabled={isLoading}
-                />
-                Tras crear mi cuenta, quiero enlazar una wallet inmediatamente.
-              </label>
 
               <Button
                 type="submit"

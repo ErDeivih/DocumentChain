@@ -5,6 +5,7 @@
 # Configuración de ejecución
 $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
+Set-Location $PSScriptRoot
 
 # Variables globales
 $global:ipfsReady = $false
@@ -229,10 +230,10 @@ function Prepare-Database {
         npx prisma generate --schema=./prisma/schema.prisma
         if ($LASTEXITCODE -ne 0) { throw "prisma generate falló" }
 
-        npx prisma db seed --schema=./prisma/schema.prisma
-        if ($LASTEXITCODE -ne 0) { throw "prisma db seed falló" }
+        npm run data:seed:qa -- --skip-seed
+        if ($LASTEXITCODE -ne 0) { throw "data:seed:qa --skip-seed falló" }
 
-        Write-Host "  [OK] Base de datos preparada sin seed blockchain" -ForegroundColor Green
+        Write-Host "  [OK] Base de datos preparada con dataset QA sin seed blockchain" -ForegroundColor Green
         return $true
     } catch {
         Write-Host "  [ERROR] $_" -ForegroundColor Red
@@ -329,8 +330,7 @@ function Start-Hardhat {
     docker-compose build hardhat | Out-Null
 
     Write-Host "  --> Reiniciando contenedor Hardhat para tener blockchain limpia..." -ForegroundColor Cyan
-    docker rm -f documentchain-hardhat 2>$null | Out-Null
-    docker-compose up -d hardhat | Out-Null
+    docker-compose up -d --force-recreate --no-deps hardhat | Out-Null
 
     Write-Host "  --> Esperando que Hardhat este healthy..." -ForegroundColor Cyan
     $maxAttempts = 20
@@ -396,7 +396,7 @@ function Run-BlockchainSeed {
         }
         Write-Host "  --> Perfil de seed: $($env:SEED_PROFILE)" -ForegroundColor Gray
         Write-Host "  --> La seed hará reset completo de base de datos antes de regenerar datos" -ForegroundColor Gray
-        $output = npm run data:generate 2>&1
+        $output = npm run data:seed:qa 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Host "  [ERROR] Fallo al ejecutar seed" -ForegroundColor Red
             Write-Host "  $output" -ForegroundColor Gray
@@ -426,8 +426,7 @@ function Start-Backend {
     docker-compose build backend | Out-Null
 
     Write-Host "  --> Recreando contenedor backend con el contrato desplegado actual..." -ForegroundColor Cyan
-    docker rm -f documentchain-backend 2>$null | Out-Null
-    docker-compose up -d backend | Out-Null
+    docker-compose up -d --force-recreate --no-deps backend | Out-Null
 
     Write-Host "  --> Esperando que Backend este healthy..." -ForegroundColor Cyan
     $maxAttempts = 20

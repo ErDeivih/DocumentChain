@@ -11,6 +11,7 @@ export interface User {
   isSuspended?: boolean;
   suspendedAt?: string | null;
   suspendReason?: string | null;
+  emailVerified: boolean;
   
   // Encryption keys (Backend Encryption Architecture)
   encryptedPrivateKey?: string;  // AES-encrypted private key (password-based)

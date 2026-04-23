@@ -14,6 +14,7 @@ const SUSPENSION_ABI = ['function suspendMyself()', 'function unsuspendMyself()'
 export const seedUsers = {
   admin: {
     username: 'admin',
+    email: 'admin@documentchain.local',
     password: 'Admin123!',
   },
   owner: {
@@ -29,6 +30,86 @@ export const seedUsers = {
     walletIndex: 3,
   },
 } as const;
+
+const passwordLoginSeedUsers = [
+  seedUsers.admin,
+  seedUsers.owner,
+  seedUsers.recipient,
+  {
+    username: 'admin_operaciones',
+    email: 'admin.operaciones@documentchain.local',
+    password: 'Demo123!',
+  },
+] as const;
+
+function normalizeSeedIdentifier(identifier: string): string {
+  return identifier.trim().toLowerCase();
+}
+
+function isKnownPasswordLoginSeed(identifier: string): boolean {
+  const normalizedIdentifier = normalizeSeedIdentifier(identifier);
+  return passwordLoginSeedUsers.some((user) => {
+    return user.username === normalizedIdentifier || user.email === normalizedIdentifier;
+  });
+}
+
+function repairSeedUserForPasswordLogin(identifier: string): void {
+  const normalizedIdentifier = normalizeSeedIdentifier(identifier);
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const backendDir = path.resolve(currentDir, '../../backend');
+
+  const script = `
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    (async () => {
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: ${JSON.stringify(normalizedIdentifier)} },
+            { email: ${JSON.stringify(normalizedIdentifier)} },
+          ],
+        },
+      });
+
+      if (!user) {
+        throw new Error('Seed user not found for password-login repair');
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: true,
+          twoFactorEnabled: false,
+          twoFactorSecret: null,
+          twoFactorBackupCodes: null,
+        },
+      });
+
+      await prisma.emailVerification.updateMany({
+        where: { userId: user.id },
+        data: {
+          verified: true,
+          verifiedAt: new Date(),
+        },
+      });
+
+      await prisma.$disconnect();
+    })().catch(async (error) => {
+      console.error(error);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+  `;
+
+  execFileSync('node', ['-e', script], {
+    cwd: backendDir,
+    env: {
+      ...process.env,
+      DATABASE_URL: E2E_DATABASE_URL,
+    },
+    stdio: 'pipe',
+  });
+}
 
 function deriveHardhatWallet(index: number): ethers.HDNodeWallet {
   return ethers.HDNodeWallet.fromPhrase(
@@ -50,9 +131,16 @@ async function createApiSession(
     ? { email: credentials.username, password: credentials.password }
     : { username: credentials.username, password: credentials.password };
 
-  const response = await request.post(`${API_BASE_URL}/auth/login`, {
+  let response = await request.post(`${API_BASE_URL}/auth/login`, {
     data: payload,
   });
+
+  if (!response.ok() && isKnownPasswordLoginSeed(credentials.username)) {
+    repairSeedUserForPasswordLogin(credentials.username);
+    response = await request.post(`${API_BASE_URL}/auth/login`, {
+      data: payload,
+    });
+  }
 
   expect(response.ok()).toBeTruthy();
 
@@ -365,6 +453,47 @@ export function provisionPasswordResetToken(email: string): string {
   });
 
   return rawToken;
+}
+
+export function setUserEmailVerified(email: string, emailVerified = true): void {
+  const normalizedEmail = email.toLowerCase().trim();
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const backendDir = path.resolve(currentDir, '../../backend');
+
+  const script = `
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    (async () => {
+      const user = await prisma.user.findUnique({ where: { email: ${JSON.stringify(normalizedEmail)} } });
+      if (!user) {
+        throw new Error('User not found for email verification update');
+      }
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: ${emailVerified ? 'true' : 'false'} }
+      });
+      if (${emailVerified ? 'true' : 'false'}) {
+        await prisma.emailVerification.updateMany({
+          where: { userId: user.id, verified: false },
+          data: { verified: true, verifiedAt: new Date() }
+        });
+      }
+      await prisma.$disconnect();
+    })().catch(async (error) => {
+      console.error(error);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+  `;
+
+  execFileSync('node', ['-e', script], {
+    cwd: backendDir,
+    env: {
+      ...process.env,
+      DATABASE_URL: E2E_DATABASE_URL,
+    },
+    stdio: 'pipe',
+  });
 }
 
 function abbreviateAddress(address: string): string {

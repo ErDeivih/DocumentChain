@@ -76,6 +76,17 @@ export interface PrepareRevokeShareResult {
 // ============================================
 
 export class ShareService {
+  private static buildInsensitiveWalletWhere(addresses: string[]) {
+    return {
+      OR: addresses.map((address) => ({
+        walletAddress: {
+          equals: address,
+          mode: 'insensitive' as const,
+        },
+      })),
+    };
+  }
+
   private static async getConfirmedShareEntries(documentId?: string, recipientUserId?: string): Promise<Array<{
     shareId: string;
     documentId: string;
@@ -436,7 +447,9 @@ export class ShareService {
     }
 
     const usersWithRoles = await DocumentPermissionService.getDocumentUsersWithRoles(document.blockchainId);
-    const sharedUsers = usersWithRoles.filter((entry) => entry.role !== DocumentRole.OWNER);
+    const sharedUsers = usersWithRoles.filter(
+      (entry) => entry.role !== DocumentRole.OWNER && entry.role !== DocumentRole.NONE
+    );
 
     if (sharedUsers.length === 0) {
       const eventEntries = await this.getConfirmedShareEntries(documentId);
@@ -448,11 +461,7 @@ export class ShareService {
       .filter((address): address is string => Boolean(address));
 
     const wallets = await prisma.wallet.findMany({
-      where: {
-        walletAddress: {
-          in: walletAddresses,
-        },
-      },
+      where: this.buildInsensitiveWalletWhere(walletAddresses),
       include: {
         user: {
           select: {
@@ -549,7 +558,7 @@ export class ShareService {
    */
   static async prepareRevokeShare(
     documentId: string,
-    recipientUserId: string,
+    recipientIdentifier: string,
     ownerId: string,
     sharerWalletId: string
   ): Promise<PrepareRevokeShareResult> {
@@ -576,29 +585,55 @@ export class ShareService {
       throw new Error('Wallet no encontrada o no pertenece al usuario');
     }
 
-    const recipient = await prisma.user.findUnique({
-      where: { id: recipientUserId },
-      select: {
-        id: true,
-        wallets: {
+    const normalizedRecipientAddress = normalizeEthereumAddress(recipientIdentifier);
+
+    const recipientWalletRecord = normalizedRecipientAddress
+      ? await prisma.wallet.findFirst({
+          where: {
+            walletAddress: {
+              equals: normalizedRecipientAddress,
+              mode: 'insensitive',
+            },
+          },
           select: {
             walletAddress: true,
+            userId: true,
             isPrimary: true,
           },
-        },
-      },
-    });
+        })
+      : null;
 
-    if (!recipient) {
-      throw new Error('Usuario destinatario no encontrado');
-    }
+    const resolvedRecipientId = recipientWalletRecord?.userId || (!normalizedRecipientAddress ? recipientIdentifier : null);
 
-    const recipientWallet = recipient.wallets.find((wallet) => wallet.isPrimary) || recipient.wallets[0];
+    const recipient = resolvedRecipientId
+      ? await prisma.user.findUnique({
+          where: { id: resolvedRecipientId },
+          select: {
+            id: true,
+            wallets: {
+              select: {
+                walletAddress: true,
+                isPrimary: true,
+              },
+            },
+          },
+        })
+      : null;
+
+    const recipientWallet = normalizedRecipientAddress
+      ? {
+          walletAddress: normalizedRecipientAddress,
+          isPrimary: recipientWalletRecord?.isPrimary ?? true,
+        }
+      : recipient?.wallets.find((wallet) => wallet.isPrimary) || recipient?.wallets[0];
+
     if (!recipientWallet?.walletAddress) {
       throw new Error('El destinatario no tiene wallet configurada');
     }
 
-    const activeEventShare = (await this.getConfirmedShareEntries(documentId, recipientUserId))[0];
+    const activeEventShare = resolvedRecipientId
+      ? (await this.getConfirmedShareEntries(documentId, resolvedRecipientId))[0]
+      : null;
     const onChainUsers = await DocumentPermissionService.getDocumentUsersWithRoles(document.blockchainId);
     const hasOnChainAccess = onChainUsers.some(
       (entry) =>
@@ -611,7 +646,7 @@ export class ShareService {
       throw new Error('El usuario no tiene acceso activo a este documento');
     }
 
-    const shareId = activeEventShare?.shareId || `${documentId}:${recipientUserId}`;
+    const shareId = activeEventShare?.shareId || `${documentId}:${resolvedRecipientId || recipientWallet.walletAddress}`;
 
     await prisma.event.create({
       data: {
@@ -621,7 +656,7 @@ export class ShareService {
         documentId: document.id,
         metadata: {
           shareId,
-          recipientId: recipientUserId,
+          recipientId: resolvedRecipientId,
           recipientWalletAddress: recipientWallet.walletAddress,
         },
       },

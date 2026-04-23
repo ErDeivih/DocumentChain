@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Locator, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +9,7 @@ import {
   getHardhatAddress,
   installHardhatWallet,
   loginWithStoredSession,
+  setUserEmailVerified,
   seedUsers,
   selectFirstSavedWallet,
   waitForDocumentStatus,
@@ -25,13 +26,104 @@ async function capture(target: Page | Locator, fileName: string) {
   });
 }
 
-async function captureModalByTitle(page: Page, title: string, fileName: string) {
-  const titleLocator = page.getByRole('heading', { name: title, exact: true });
+async function captureModalByTitle(page: Page, title: string | RegExp, fileName: string) {
+  const titleLocator = typeof title === 'string'
+    ? page.getByRole('heading', { name: title, exact: true })
+    : page.getByRole('heading', { name: title });
   await expect(titleLocator).toBeVisible({ timeout: 15000 });
   const modal = titleLocator.locator(
     'xpath=ancestor::div[contains(@class,"relative") and contains(@class,"w-full")][1]'
   );
   await capture(modal, fileName);
+}
+
+async function getAnnexDocument(
+  request: APIRequestContext,
+  accessToken: string
+): Promise<{ id: string; name: string; signedVersionNumber: number; latestVersionNumber: number }> {
+  const listResponse = await request.get(`${API_BASE_URL}/documents?limit=100`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  expect(listResponse.ok()).toBeTruthy();
+
+  const listBody = (await listResponse.json()) as {
+    documents?: Array<{ id: string; name: string; isArchived?: boolean }>;
+  };
+
+  let fallbackDocument: { id: string; name: string; signedVersionNumber: number; latestVersionNumber: number } | null = null;
+
+  for (const document of listBody.documents ?? []) {
+    if (document.isArchived) {
+      continue;
+    }
+
+    const versionsResponse = await request.get(`${API_BASE_URL}/documents/${document.id}/versions`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!versionsResponse.ok()) {
+      continue;
+    }
+
+    const versionsBody = (await versionsResponse.json()) as {
+      versions?: Array<{ versionNumber: number }>;
+    };
+    const versions = versionsBody.versions ?? [];
+    if (versions.length < 2) {
+      continue;
+    }
+
+    const latestVersionNumber = Math.max(...versions.map(({ versionNumber }) => versionNumber));
+    fallbackDocument ??= {
+      id: document.id,
+      name: document.name,
+      signedVersionNumber: latestVersionNumber,
+      latestVersionNumber,
+    };
+
+    for (const version of versions) {
+      const signaturesResponse = await request.get(
+        `${API_BASE_URL}/documents/${document.id}/versions/${version.versionNumber}/signatures`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!signaturesResponse.ok()) {
+        continue;
+      }
+
+      const signaturesBody = (await signaturesResponse.json()) as {
+        signatures?: Array<unknown>;
+      };
+
+      if ((signaturesBody.signatures ?? []).length > 0) {
+        return {
+          id: document.id,
+          name: document.name,
+          signedVersionNumber: version.versionNumber,
+          latestVersionNumber,
+        };
+      }
+    }
+  }
+
+  if (fallbackDocument) {
+    return fallbackDocument;
+  }
+
+  throw new Error('No se encontro un documento sembrado con varias versiones y firmantes para el anexo.');
+}
+
+async function waitForLogsViewerReady(page: Page) {
+  await expect(page.getByText('Visor de Logs del Sistema')).toBeVisible({ timeout: 20000 });
+  await expect(page.getByText(/Mostrando\s+\d+\s+de\s+\d+\s+líneas solicitadas/i)).toBeVisible({ timeout: 30000 });
 }
 
 test.describe('Annex UI screenshots', () => {
@@ -53,6 +145,13 @@ test.describe('Annex UI screenshots', () => {
 
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: /iniciar sesi[oó]n/i })).toBeVisible();
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: /almacenamiento seguro/i })).toBeVisible();
+  await capture(page, 'landing-public.png');
+
+  await page.goto('/login');
+  await expect(page.getByRole('heading', { name: /iniciar sesi[oó]n/i })).toBeVisible();
     await capture(page, 'login-page.png');
 
     await page.goto('/register');
@@ -69,8 +168,9 @@ test.describe('Annex UI screenshots', () => {
     await expect(page.getByText(/guarde su clave de recuperaci[oó]n/i)).toBeVisible({ timeout: 20000 });
     await capture(page, 'recovery-key-modal.png');
     await page.getByRole('checkbox', { name: /confirmo que he guardado/i }).check();
-    await page.getByRole('button', { name: /continuar al panel/i }).click();
-    await expect(page).toHaveURL(/\/app\/documents$/);
+    await page.getByRole('button', { name: /continuar/i }).click();
+    await expect(page.getByText(/¡Cuenta creada con éxito!/i)).toBeVisible({ timeout: 15000 });
+    await capture(page, 'register-success.png');
 
     await clearStoredSession(page);
 
@@ -79,9 +179,11 @@ test.describe('Annex UI screenshots', () => {
       password: seedUsers.owner.password,
     });
     await installHardhatWallet(page, seedUsers.owner.walletIndex);
+    const annexDocument = await getAnnexDocument(request, ownerSession.accessToken);
 
     await page.goto('/app/documents');
     await expect(page.getByRole('heading', { name: 'Mis Documentos' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Subir Documento' })).toBeVisible();
     await capture(page, 'documents-page.png');
 
     await page.getByRole('button', { name: 'Nueva Carpeta' }).click();
@@ -92,33 +194,10 @@ test.describe('Annex UI screenshots', () => {
     await page.getByRole('button', { name: 'Subir Documento' }).click();
     await expect(page.getByRole('heading', { name: 'Subir Documento' })).toBeVisible();
     await capture(page, 'upload-modal.png');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
 
-    const documentName = `acta_junta_vecinal_${uniqueSuffix}.txt`;
-    const confirmCreateResponsePromise = page.waitForResponse(
-      (response) => response.url().includes('/api/documents/confirm') && response.request().method() === 'POST'
-    );
-
-    await page.locator('input[type="file"]').first().setInputFiles({
-      name: documentName,
-      mimeType: 'text/plain',
-      buffer: Buffer.from('Documento de prueba para capturas del anexo.'),
-    });
-    await page.getByRole('button', { name: 'Subir y Firmar' }).click();
-    await expect(page.getByTestId('wallet-selector-modal')).toBeVisible();
-    await capture(page.getByTestId('wallet-selector-modal'), 'wallet-selector-modal.png');
-    await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
-
-    const confirmCreateResponse = await confirmCreateResponsePromise;
-    expect(confirmCreateResponse.ok()).toBeTruthy();
-    const confirmCreateBody = await confirmCreateResponse.json();
-    const documentId = confirmCreateBody.document.id as string;
-
-    await waitForDocumentStatus(request, ownerSession.accessToken, documentId, 'SYNCED', {
-      timeoutMs: 120000,
-    });
-
-    await page.goto(`/app/documents/${documentId}`);
-    await expect(page.getByText(documentName, { exact: true })).toBeVisible({ timeout: 30000 });
+    await page.goto(`/app/documents/${annexDocument.id}`);
+    await expect(page.getByText(annexDocument.name, { exact: true })).toBeVisible({ timeout: 30000 });
     await capture(page, 'document-detail.png');
 
     await page.getByRole('button', { name: 'Descargar' }).click();
@@ -128,40 +207,39 @@ test.describe('Annex UI screenshots', () => {
 
     await page.getByRole('button', { name: 'Firmar Documento' }).click();
     await expect(page.getByText(/versi[oó]n a firmar/i)).toBeVisible();
-    await expect(page.getByLabel('Comentario (opcional)')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText('Verificando estado de firma...')).not.toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('button', { name: /^Firmar Documento$/ }).last()).toBeEnabled({ timeout: 15000 });
+    const commentField = page.getByLabel('Comentario (opcional)');
+    const alreadySignedAlert = page.getByRole('alert').filter({ hasText: /ya has firmado esta versi[oó]n/i });
+    await expect(commentField.or(alreadySignedAlert)).toBeVisible({ timeout: 15000 });
     await captureModalByTitle(page, 'Firmar Documento', 'sign-modal.png');
-    await page.getByRole('button', { name: 'Cancelar' }).click();
+    if (await alreadySignedAlert.isVisible()) {
+      await page.getByRole('button', { name: 'Cancelar' }).click();
+    } else {
+      await expect(page.getByText('Verificando estado de firma...')).not.toBeVisible({ timeout: 15000 });
+      await expect(page.getByRole('button', { name: /^Firmar Documento$/ }).last()).toBeEnabled({ timeout: 15000 });
+      await commentField.fill('Firma de validación para las capturas del anexo');
+      await page.getByRole('button', { name: /^Firmar Documento$/ }).last().click();
+      await expect(page.getByTestId('wallet-selector-modal')).toBeVisible({ timeout: 15000 });
+      await capture(page.getByTestId('wallet-selector-modal'), 'wallet-selector-modal.png');
+      await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
+      await expect(page.getByText('¡Documento firmado!')).toBeVisible({ timeout: 45000 });
+      await waitForDocumentStatus(request, ownerSession.accessToken, annexDocument.id, 'SYNCED', {
+        timeoutMs: 120000,
+      });
+    }
 
     await page.getByRole('button', { name: 'Compartir' }).click();
     await expect(page.getByText('Compartir Documento')).toBeVisible();
     await capture(page, 'share-modal.png');
-    await page.getByLabel('Nombre de Usuario').fill(seedUsers.recipient.username);
-    await page.getByLabel('Su Contraseña de Cuenta').fill(seedUsers.owner.password);
-    await page.getByRole('button', { name: 'Compartir y Firmar' }).click();
-    await expect(page.getByTestId('wallet-selector-modal')).toBeVisible();
-    await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
-    await expect(page.getByText(/documento compartido exitosamente/i)).toBeVisible({ timeout: 30000 });
+    await page.getByRole('button', { name: 'Cancelar' }).click();
 
     await page.getByRole('button', { name: 'Versiones' }).click();
     await expect(page.getByText(/versiones del documento/i)).toBeVisible();
-    await capture(page, 'versions-tab-empty.png');
-
-    await page.getByRole('button', { name: 'Firmar Documento' }).click();
-    await expect(page.getByLabel('Comentario (opcional)')).toBeVisible({ timeout: 15000 });
-    await page.getByLabel('Comentario (opcional)').fill('Firma para capturas del anexo');
-    await page.getByRole('button', { name: /^Firmar Documento$/ }).last().click();
-    await expect(page.getByTestId('wallet-selector-modal')).toBeVisible({ timeout: 15000 });
-    await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
-    await expect(page.getByText('¡Documento firmado!')).toBeVisible({ timeout: 45000 });
-    await expect(page.getByRole('button', { name: 'Versiones' })).toBeVisible({ timeout: 15000 });
-    await page.getByRole('button', { name: 'Versiones' }).click();
-    await expect(page.getByTestId('view-signers-v1')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Versión 1')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(`Versión ${annexDocument.latestVersionNumber}`)).toBeVisible({ timeout: 15000 });
     await capture(page, 'versions-tab.png');
-    await page.getByTestId('view-signers-v1').click();
+    await page.getByTestId(`view-signers-v${annexDocument.signedVersionNumber}`).click();
     await expect(page.getByText('Perfil del firmante')).toBeVisible({ timeout: 15000 });
-    await captureModalByTitle(page, 'Firmantes de la versión 1', 'signers-modal.png');
+    await captureModalByTitle(page, /Firmantes de la versión \d+/, 'signers-modal.png');
     await page.getByRole('button', { name: 'Cerrar' }).click();
 
     await page.getByRole('button', { name: 'Subir Nueva Versión' }).click();
@@ -201,6 +279,7 @@ test.describe('Annex UI screenshots', () => {
 
     await page.locator('a[href="/app/settings"]').first().click();
     await expect(page.getByRole('heading', { name: 'Configuración' })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('5/5 Wallets')).toBeVisible({ timeout: 20000 });
     await capture(page, 'settings-page.png');
 
     await page.evaluate(() => {
@@ -238,7 +317,7 @@ test.describe('Annex UI screenshots', () => {
     await capture(page, 'admin-users-tab.png');
 
     await page.getByRole('tab', { name: /logs del sistema/i }).click();
-    await expect(page.getByText('Visor de Logs del Sistema')).toBeVisible();
+    await waitForLogsViewerReady(page);
     await capture(page, 'admin-logs-tab.png');
 
     await page.goto('/app/blockchain');
@@ -274,6 +353,7 @@ test.describe('Annex UI screenshots', () => {
       data: twoFactorUser,
     });
     expect(registerResponse.ok()).toBeTruthy();
+    setUserEmailVerified(twoFactorUser.email);
 
     await page.goto('/login');
     await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);

@@ -1,11 +1,39 @@
 import { z } from 'zod';
 
+const loginIdentifierSchema = z.string().trim().min(3).max(255).superRefine((value, ctx) => {
+  if (value.includes('@')) {
+    const parsedEmail = z.string().email('Formato de email inválido').safeParse(value);
+    if (!parsedEmail.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Formato de email inválido',
+      });
+    }
+    return;
+  }
+
+  if (value.length > 50) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.too_big,
+      type: 'string',
+      maximum: 50,
+      inclusive: true,
+      message: 'El nombre de usuario debe tener como máximo 50 caracteres',
+    });
+  }
+});
+
 /**
  * Schema para login
  */
 export const loginSchema = z.object({
-  username: z.string().min(3).max(50).trim(),
+  username: loginIdentifierSchema.optional(),
+  email: z.string().email('Formato de email inválido').max(255).toLowerCase().trim().optional(),
+  identifier: loginIdentifierSchema.optional(),
   password: z.string().min(8).max(128)
+}).refine((data) => Boolean(data.username || data.email || data.identifier), {
+  message: 'El identificador de acceso es obligatorio',
+  path: ['username'],
 });
 
 /**

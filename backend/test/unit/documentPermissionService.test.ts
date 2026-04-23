@@ -319,11 +319,13 @@ describe('DocumentPermissionService', () => {
     it('should return array of document IDs', async () => {
       const docs = ['0xDoc1', '0xDoc2', '0xDoc3'];
       mockContract.getUserDocuments.mockResolvedValue(docs);
+      mockContract.canView.mockResolvedValue(true);
 
       const result = await DocumentPermissionService.getUserDocuments(VALID_ADDRESS_1);
 
       expect(result).toEqual(docs);
       expect(mockContract.getUserDocuments).toHaveBeenCalledWith(VALID_ADDRESS_1);
+      expect(mockContract.canView).toHaveBeenCalledTimes(docs.length);
     });
 
     it('should return empty array for invalid address', async () => {
@@ -352,7 +354,8 @@ describe('DocumentPermissionService', () => {
 
   describe('getUserDocumentCount', () => {
     it('should return number of documents', async () => {
-      mockContract.getUserDocumentCount.mockResolvedValue(BigInt(5));
+      mockContract.getUserDocuments.mockResolvedValue(['0xDoc1', '0xDoc2', '0xDoc3', '0xDoc4', '0xDoc5']);
+      mockContract.canView.mockResolvedValue(true);
 
       const result = await DocumentPermissionService.getUserDocumentCount(VALID_ADDRESS_1);
 
@@ -366,7 +369,7 @@ describe('DocumentPermissionService', () => {
     });
 
     it('should return 0 on error', async () => {
-      mockContract.getUserDocumentCount.mockRejectedValue(new Error('Error'));
+      mockContract.getUserDocuments.mockRejectedValue(new Error('Error'));
 
       const result = await DocumentPermissionService.getUserDocumentCount(VALID_ADDRESS_1);
 
@@ -374,7 +377,9 @@ describe('DocumentPermissionService', () => {
     });
 
     it('should convert BigInt to number', async () => {
-      mockContract.getUserDocumentCount.mockResolvedValue(BigInt(999));
+      const docs = Array.from({ length: 999 }, (_, index) => `0xDoc${index + 1}`);
+      mockContract.getUserDocuments.mockResolvedValue(docs);
+      mockContract.canView.mockResolvedValue(true);
 
       const result = await DocumentPermissionService.getUserDocumentCount(VALID_ADDRESS_1);
 

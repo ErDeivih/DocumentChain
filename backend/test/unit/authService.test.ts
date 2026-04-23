@@ -89,6 +89,7 @@ function makeUser(overrides: Record<string, unknown> = {}) {
     id: 'user-123',
     username: 'testuser',
     email: 'test@example.com',
+    emailVerified: true,
     passwordHash: '$hashed$',
     role: 'USER',
     fullName: 'Test User',

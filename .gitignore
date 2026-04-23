@@ -32,6 +32,11 @@ postgres-data/
 # IPFS
 ipfs-data-*/
 .ipfs/
+ipfs-cluster/cluster-config/identity.json
+ipfs-cluster/cluster-config/cluster.lock
+ipfs-cluster/cluster-config/peerstore
+ipfs-cluster/cluster-config/pebble/
+ipfs-cluster/tmp-default-config/
 
 # Hardhat
 cache/
@@ -55,5 +60,21 @@ backend/build-output.txt
 backend/test-results.txt
 backend/logs/
 anexos/*.pdf
+anexos/*.aux
+anexos/*.out
+anexos/*.toc
+anexos/*.lof
+anexos/*.lot
 anexos/diagramas/*.png
 anexos/diagramas/diagram_*.puml
+anexos/temp_anexo*.md
+/matrices_data.json
+/matrices_latex_code.tex
+/new_matrices_section.tex
+backend/token.txt
+backend/get_last_share.js
+backend/query_event.js
+/get_last_share.js
+/get_last_share.ts
+frontend/api-repro.txt
+/test_upload_v2.txt

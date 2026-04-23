@@ -23,6 +23,16 @@ URLs:
 - PostgreSQL: localhost:5433
 - SMTP: localhost:1587
 
+## Entorno QA limpio
+
+Para regenerar blockchain local, redeployar contratos y recrear el dataset QA que usan las suites automatizadas:
+
+```powershell
+.\reseed-dev.ps1
+```
+
+Este script queda anclado a la raiz del repositorio y evita problemas por ejecutar comandos desde un directorio incorrecto.
+
 ## Opcion secundaria
 
 `start-dev.ps1` sigue siendo util para desarrollo hibrido, pero el flujo preferente para entrega y GitHub es Docker Compose completo.

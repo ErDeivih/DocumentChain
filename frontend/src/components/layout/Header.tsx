@@ -20,13 +20,12 @@ export const Header: React.FC = () => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Get unread notifications count from API
   const { data: unreadData } = useQuery({
     queryKey: ['unreadNotifications'],
     queryFn: getUnreadCount,
     enabled: !isLoading && isAuthenticated,
     retry: false,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
   const unreadNotifications = unreadData?.count || 0;
@@ -78,8 +77,8 @@ export const Header: React.FC = () => {
                 <Button variant="ghost" size="sm" className="relative">
                   <Bell className="w-4 h-4" />
                   {unreadNotifications > 0 && (
-                    <Badge 
-                      variant="destructive" 
+                    <Badge
+                      variant="destructive"
                       className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
                     >
                       {unreadNotifications}
@@ -87,7 +86,7 @@ export const Header: React.FC = () => {
                   )}
                 </Button>
               </Link>
-              
+
               {/* Ajustes */}
               <Link to="/app/settings">
                 <Button variant="ghost" size="sm">
@@ -132,7 +131,7 @@ export const Header: React.FC = () => {
                   </Badge>
                 )}
               </div>
-              
+
               {/* Notificaciones Móvil */}
               <Link to="/app/notifications" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="ghost" size="sm" className="w-full justify-start relative">
@@ -145,7 +144,7 @@ export const Header: React.FC = () => {
                   )}
                 </Button>
               </Link>
-              
+
               {/* Ajustes Móvil */}
               <Link to="/app/settings" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="ghost" size="sm" className="w-full justify-start">

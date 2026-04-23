@@ -26,6 +26,8 @@ export const Login: React.FC = () => {
   const [notice, setNotice] = useState<string | null>(null);
 
   const from = (location.state as any)?.from?.pathname || '/app/documents';
+  const attemptedIdentifier = username.trim();
+  const loginNeedsEmailVerification = !!error && /verificar tu email/i.test(error);
 
   useEffect(() => {
     const storedNotice = sessionStorage.getItem('loginNotice');
@@ -114,7 +116,7 @@ export const Login: React.FC = () => {
             </div>
           </div>
           <CardTitle className="text-center">
-            {isTwoFactorStep ? 'Verificación 2FA' : 'Iniciar Sesión - DecentralizedStore'}
+            {isTwoFactorStep ? 'Verificación 2FA' : 'Iniciar Sesión - DocumentChain'}
           </CardTitle>
           <CardDescription className="text-center">
             {isTwoFactorStep
@@ -127,7 +129,23 @@ export const Login: React.FC = () => {
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p>{error}</p>
+                  {loginNeedsEmailVerification ? (
+                    <Link
+                      to="/verify-email"
+                      state={{
+                        emailNotVerified: true,
+                        email: attemptedIdentifier.includes('@') ? attemptedIdentifier : '',
+                      }}
+                      className="inline-flex text-sm font-medium text-primary hover:underline"
+                    >
+                      Reenviar verificación
+                    </Link>
+                  ) : null}
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 

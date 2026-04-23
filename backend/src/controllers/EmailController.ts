@@ -64,11 +64,11 @@ export class EmailController {
         }
       });
 
-      // Opcional: Marcar usuario como verificado (si tienes ese campo)
-      // await prisma.user.update({
-      //   where: { id: verification.userId },
-      //   data: { emailVerified: true }
-      // });
+      // Marcar el campo emailVerified del usuario
+      await prisma.user.update({
+        where: { id: verification.userId },
+        data: { emailVerified: true }
+      });
 
       logger.info(`Email verificado para usuario: ${verification.user.username}`);
 
@@ -273,15 +273,8 @@ export class EmailController {
         return;
       }
 
-      // Verificar si ya está verificado
-      const existingVerification = await prisma.emailVerification.findFirst({
-        where: {
-          userId: user.id,
-          verified: true
-        }
-      });
-
-      if (existingVerification) {
+      // Verificar si ya está verificado (campo canónico en User)
+      if (user.emailVerified) {
         res.json({
           success: true,
           message: 'Tu email ya está verificado'

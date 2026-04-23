@@ -1,0 +1,33 @@
+name: deploy-local-server
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-local-server
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Docker runtime
+        run: |
+          docker version
+          docker compose version
+
+      - name: Deploy DocumentChain on local Ubuntu server
+        env:
+          SERVER_ENV_FILE: /opt/documentchain/.env.server
+          ENABLE_IPFS_CLUSTER: "1"
+        run: bash scripts/deploy-ubuntu-server.sh

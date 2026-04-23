@@ -57,6 +57,7 @@ export interface AuthResponse {
     role: string;
     publicKey: string;
     encryptedPrivateKey?: string;
+    emailVerified: boolean;
     createdAt: Date;
     lastLogin: null;
   };
@@ -188,6 +189,7 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
         publicKey: user.publicKey,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         lastLogin: null
       }
@@ -270,6 +272,7 @@ export class AuthService {
           fullName: user.fullName,
           role: user.role,
           publicKey: user.publicKey,
+          emailVerified: user.emailVerified,
           createdAt: user.createdAt,
           lastLogin: null
         }
@@ -292,6 +295,7 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role,
         publicKey: user.publicKey,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         lastLogin: null
       }
@@ -432,6 +436,7 @@ export class AuthService {
         role: user.role,
         publicKey: user.publicKey,
         encryptedPrivateKey: user.encryptedPrivateKey,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         lastLogin: null
       }
@@ -439,15 +444,11 @@ export class AuthService {
   }
 
   /**
-   * @deprecated Use loginWithWallet instead
    * Login existing user
    * Includes automatic migration from bcrypt -> Argon2id
    * Supports 2FA verification
    */
   static async login(input: LoginInput): Promise<AuthResponse> {
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('AuthService.login is deprecated. Use loginWithWallet instead.');
-    }
     const { identifier, password } = input;
     const trimmed = identifier.trim();
 
@@ -504,6 +505,11 @@ export class AuthService {
       throw new Error('Nombre de usuario o contraseña inválidos');
     }
 
+    // Verificar que el email esté confirmado antes de permitir el acceso
+    if (!finalUser.emailVerified) {
+      throw new Error('Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.');
+    }
+
     if (needsMigration) {
       try {
         const newHash = await Argon2Service.hash(password);
@@ -539,6 +545,7 @@ export class AuthService {
           role: finalUser.role,
           publicKey: finalUser.publicKey,
           encryptedPrivateKey: finalUser.encryptedPrivateKey,
+          emailVerified: finalUser.emailVerified,
           createdAt: finalUser.createdAt,
           lastLogin: null
         }
@@ -562,6 +569,7 @@ export class AuthService {
         role: finalUser.role,
         publicKey: finalUser.publicKey,
         encryptedPrivateKey: finalUser.encryptedPrivateKey,
+        emailVerified: finalUser.emailVerified,
         createdAt: finalUser.createdAt,
         lastLogin: null
       }

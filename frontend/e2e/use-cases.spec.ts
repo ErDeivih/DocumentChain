@@ -9,6 +9,7 @@ import {
   loginWithStoredSession,
   provisionPasswordResetToken,
   seedUsers,
+  setUserEmailVerified,
   selectFirstSavedWallet,
   waitForDocumentStatus,
 } from './helpers';
@@ -37,6 +38,7 @@ test.describe('Expanded frontend use cases', () => {
     });
 
     expect(registerResponse.ok()).toBeTruthy();
+    setUserEmailVerified(passwordUser.email);
 
     await page.goto('/login');
     await page.getByLabel('Nombre de usuario o Email').fill(passwordUser.username);
@@ -86,6 +88,7 @@ test.describe('Expanded frontend use cases', () => {
     });
 
     expect(registerResponse.ok()).toBeTruthy();
+    setUserEmailVerified(twoFactorUser.email);
 
     await page.goto('/login');
     await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
@@ -152,6 +155,24 @@ test.describe('Expanded frontend use cases', () => {
 
     await expect(page).toHaveURL(/\/app\/documents$/);
 
+    const backupCodeUserSnapshot = JSON.parse(
+      (await page.evaluate(() => localStorage.getItem('user'))) || '{}'
+    ) as { emailVerified?: boolean };
+    expect(backupCodeUserSnapshot.emailVerified).toBe(true);
+
+    const accessTokenAfterBackupCode = await page.evaluate(() => localStorage.getItem('accessToken'));
+    expect(accessTokenAfterBackupCode).toBeTruthy();
+
+    const meAfterBackupCodeResponse = await request.get(`${API_BASE_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${accessTokenAfterBackupCode}`,
+      },
+    });
+    expect(meAfterBackupCodeResponse.ok()).toBeTruthy();
+
+    const meAfterBackupCodeBody = await meAfterBackupCodeResponse.json();
+    expect(meAfterBackupCodeBody.user?.emailVerified).toBe(true);
+
     await clearStoredSession(page);
     await page.goto('/login');
     await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
@@ -174,6 +195,11 @@ test.describe('Expanded frontend use cases', () => {
     await page.getByRole('button', { name: 'Verificar' }).click();
 
     await expect(page).toHaveURL(/\/app\/documents$/);
+
+    const totpUserSnapshot = JSON.parse(
+      (await page.evaluate(() => localStorage.getItem('user'))) || '{}'
+    ) as { emailVerified?: boolean };
+    expect(totpUserSnapshot.emailVerified).toBe(true);
 
     await page.goto('/app/settings');
     await page.getByRole('tab', { name: 'Seguridad' }).click();
@@ -220,8 +246,10 @@ test.describe('Expanded frontend use cases', () => {
     expect(recoveryKey).not.toMatch(/•/);
 
     await page.getByRole('checkbox', { name: /Confirmo que he guardado mi clave de recuperación/i }).check();
-    await page.getByRole('button', { name: /Continuar al Panel/i }).click();
-    await expect(page).toHaveURL(/\/app\/documents$/, { timeout: 10000 });
+    await page.getByRole('button', { name: /Continuar/i }).click();
+    await expect(page.getByText(/¡Cuenta creada con éxito!/i)).toBeVisible({ timeout: 10000 });
+
+    setUserEmailVerified(recoveryUser.email);
 
     await clearStoredSession(page);
 
@@ -328,11 +356,43 @@ test.describe('Expanded frontend use cases', () => {
     await page.getByRole('button', { name: 'Compartir y Firmar' }).click();
     await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
 
-    await expect(
-      page.getByRole('heading', {
-        name: new RegExp(`^@?${seedUsers.recipient.username}$`, 'i'),
+    await expect(page.getByText(/¡Documento compartido exitosamente!/i)).toBeVisible({ timeout: 30000 });
+    await expect(page.getByTestId('wallet-selector-modal')).not.toBeVisible({ timeout: 30000 });
+
+    const recipientLogin = await request.post(`${API_BASE_URL}/auth/login`, {
+      data: {
+        username: seedUsers.recipient.username,
+        password: seedUsers.recipient.password,
+      },
+    });
+    expect(recipientLogin.ok()).toBeTruthy();
+    const recipientSession = await recipientLogin.json();
+
+    await expect
+      .poll(async () => {
+        const sharesResponse = await request.get(`${API_BASE_URL}/shares/with-me`, {
+          headers: {
+            Authorization: `Bearer ${recipientSession.accessToken}`,
+          },
+          params: {
+            limit: 20,
+            search: uploadedDocumentName,
+          },
+        });
+
+        if (!sharesResponse.ok()) {
+          return false;
+        }
+
+        const sharesBody = await sharesResponse.json();
+        return (sharesBody.documents || []).some((document: { id: string }) => {
+          return document.id === uploadedDocumentId;
+        });
+      }, {
+        timeout: 45000,
+        intervals: [1000, 2000, 3000],
       })
-    ).toBeVisible({ timeout: 30000 });
+      .toBeTruthy();
   });
 
   test('recipient sees the share notification and public audit pages expose trail, integrity, and ownership', async ({ page, request, browserName }) => {
@@ -354,7 +414,10 @@ test.describe('Expanded frontend use cases', () => {
     await page.getByPlaceholder(/66 caracteres hexadecimales/i).fill(uploadedBlockchainId);
     await page.getByRole('button', { name: 'Buscar en Blockchain' }).click();
     await expect(page.getByText('Historial de Eventos')).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('Documento Creado')).toBeVisible();
+    const auditTrailResults = page.locator('div.space-y-3').filter({
+      has: page.getByText('Documento Creado'),
+    }).first();
+    await expect(auditTrailResults.getByText('Documento Creado').first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Verificar Integridad' }).click();
     await page.getByPlaceholder(/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/i).fill(uploadedDocumentId);
@@ -372,6 +435,11 @@ test.describe('Expanded frontend use cases', () => {
     test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
+    const revokeAccessLabel = new RegExp(
+      `Revocar acceso a (${seedUsers.recipient.username}|${getHardhatAddress(seedUsers.recipient.walletIndex)})`,
+      'i'
+    );
+
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -379,14 +447,12 @@ test.describe('Expanded frontend use cases', () => {
     await installHardhatWallet(page, seedUsers.owner.walletIndex);
 
     await page.goto(`/app/documents/${uploadedDocumentId}`);
-    await expect(
-      page.getByRole('button', { name: new RegExp(`Revocar acceso a ${seedUsers.recipient.username}`, 'i') })
-    ).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('button', { name: revokeAccessLabel })).toBeVisible({ timeout: 30000 });
 
     page.once('dialog', (dialog) => {
       void dialog.accept();
     });
-    await page.getByRole('button', { name: new RegExp(`Revocar acceso a ${seedUsers.recipient.username}`, 'i') }).click();
+    await page.getByRole('button', { name: revokeAccessLabel }).click();
     await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
 
     const recipientLogin = await request.post(`${API_BASE_URL}/auth/login`, {

@@ -91,6 +91,12 @@ El sistema soporta estos correos:
 - Alerta de seguridad
 - Bienvenida
 
+## Regla funcional de acceso
+
+- El registro puede completarse aunque el usuario todavía no haya confirmado su correo.
+- El inicio de sesión con contraseña queda bloqueado hasta que `User.emailVerified` pasa a `true`.
+- Si un usuario autenticado intenta entrar en una ruta protegida sin haber verificado el correo, el frontend lo redirige a `/verify-email` y desde esa pantalla puede reenviar el enlace.
+
 Las plantillas HTML se encuentran en `backend/src/templates/emails/`.
 
 ## Advertencias operativas

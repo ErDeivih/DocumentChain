@@ -417,7 +417,28 @@ export class BlockchainQueries {
     try {
       const contracts = getContracts();
       const documentIds = await contracts.documentRegistry.getUserDocuments(userAddress);
-      return documentIds.map((id: string) => id);
+
+      if (!Array.isArray(documentIds) || documentIds.length === 0) {
+        return [];
+      }
+
+      const activeDocumentIds = await Promise.all(
+        documentIds.map(async (id: string) => {
+          try {
+            const canView = await contracts.documentRegistry.canView(id, userAddress);
+            return canView ? id : null;
+          } catch (permissionError) {
+            logger.warn('No se pudo validar acceso activo del usuario al documento', {
+              userAddress,
+              blockchainId: id,
+              error: permissionError instanceof Error ? permissionError.message : 'Error desconocido',
+            });
+            return null;
+          }
+        })
+      );
+
+      return activeDocumentIds.filter((id): id is string => Boolean(id));
     } catch (error) {
       logger.error('Error al obtener documentos del usuario', {
         userAddress,

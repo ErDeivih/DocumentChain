@@ -244,7 +244,23 @@ export class DocumentPermissionService {
       const contract = getDocumentRegistryContract();
       const documents = await contract.getUserDocuments(userAddress);
 
-      return documents;
+      if (!Array.isArray(documents) || documents.length === 0) {
+        return [];
+      }
+
+      const activeFlags = await Promise.all(
+        documents.map(async (docId: string) => {
+          try {
+            const canView = await contract.canView(docId, userAddress);
+            return canView ? docId : null;
+          } catch (permissionError) {
+            logger.warn(`[PERMISSIONS] No se pudo validar acceso activo a ${docId} para ${userAddress}:`, permissionError);
+            return null;
+          }
+        })
+      );
+
+      return activeFlags.filter((docId): docId is string => Boolean(docId));
 
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al obtener documentos del usuario ${userAddress}:`, error);
@@ -260,14 +276,8 @@ export class DocumentPermissionService {
    */
   static async getUserDocumentCount(userAddress: string): Promise<number> {
     try {
-      if (!ethers.isAddress(userAddress)) {
-        return 0;
-      }
-
-      const contract = getDocumentRegistryContract();
-      const count = await contract.getUserDocumentCount(userAddress);
-
-      return Number(count);
+      const documents = await this.getUserDocuments(userAddress);
+      return documents.length;
 
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al obtener count de documentos del usuario ${userAddress}:`, error);

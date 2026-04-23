@@ -4,8 +4,8 @@ import { seedUsers } from './helpers';
 test.describe('Login Flow', () => {
   test('should display login page', async ({ page }) => {
     await page.goto('/login');
-    await expect(page).toHaveTitle(/DecentralizedStore/);
-    await expect(page.getByText('Iniciar Sesión - DecentralizedStore')).toBeVisible();
+    await expect(page).toHaveTitle(/DocumentChain/);
+    await expect(page.getByText('Iniciar Sesión - DocumentChain')).toBeVisible();
     await expect(page.getByLabel('Nombre de usuario o Email')).toBeVisible();
     await expect(page.getByLabel('Contraseña')).toBeVisible();
   });

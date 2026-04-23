@@ -48,7 +48,7 @@ export const env = cleanEnv(process.env, {
   }),
   IPFS_CLUSTER_API_URL: url({
     desc: 'IPFS Cluster API endpoint',
-    default: 'http://localhost:9095'
+    default: 'http://localhost:9094'
   }),
   IPFS_GATEWAY_URL: url({
     desc: 'IPFS Gateway for retrieving files',

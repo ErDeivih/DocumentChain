@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
+import { resolveDocumentRegistryAddress } from '../config/contractAddress';
 
 const router = Router();
 
@@ -8,7 +9,7 @@ const REGISTRY_ABI = DocumentRegistry.abi;
 
 router.get('/contracts', authenticate, async (req: Request, res: Response) => {
   try {
-    const registryAddress = process.env.CONTRACT_DOCUMENT_REGISTRY || null;
+    const registryAddress = resolveDocumentRegistryAddress() || null;
     if (!registryAddress) {
       return res.status(503).json({ error: 'Contract address not configured' });
     }
@@ -45,7 +46,7 @@ router.get('/abis', authenticate, async (req: Request, res: Response) => {
 
 router.get('/blockchain', authenticate, async (req: Request, res: Response) => {
   try {
-    const registryAddress = process.env.CONTRACT_DOCUMENT_REGISTRY || null;
+    const registryAddress = resolveDocumentRegistryAddress() || null;
     res.json({
       chainId: parseInt(process.env.BLOCKCHAIN_CHAIN_ID || '31337'),
       rpcUrl: process.env.BLOCKCHAIN_RPC_URL || 'http://localhost:8545',

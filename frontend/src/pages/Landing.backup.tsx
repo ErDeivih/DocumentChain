@@ -12,7 +12,7 @@ export const Landing: React.FC = () => {
                         <div className="bg-blue-600 p-2 rounded-lg">
                             <Shield className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900">DecentralizedStore</span>
+                        <span className="text-xl font-bold text-gray-900">DocumentChain</span>
                     </div>
                     <div className="flex items-center space-x-4">
                         <Link to="/login">
@@ -35,7 +35,7 @@ export const Landing: React.FC = () => {
                                     <span className="block text-blue-600">de Documentos en Blockchain</span>
                                 </h1>
                                 <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                                    Almacene, verifique y comparta sus documentos importantes con la seguridad de la tecnología blockchain y almacenamiento IPFS. Completamente descentralizado, permanentemente seguro.
+                                    Gestione, verifique y comparta documentos con trazabilidad blockchain, control de versiones y almacenamiento distribuido basado en IPFS.
                                 </p>
                                 <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
                                     <div className="space-y-4 sm:space-y-0 sm:flex sm:space-x-4">

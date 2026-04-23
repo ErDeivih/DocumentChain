@@ -17,6 +17,11 @@ export const emailApi = {
     const response = await api.get<VerifyEmailResponse>(`/email/verify/${encodeURIComponent(token)}`);
     return response.data;
   },
+
+  resendVerification: async (email: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post<{ success: boolean; message: string }>('/email/resend-verification', { email });
+    return response.data;
+  },
 };
 
 export function getEmailVerificationErrorMessage(error: unknown): string {

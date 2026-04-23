@@ -1,20 +1,56 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Loader2, MailCheck, XCircle } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { CheckCircle2, Loader2, MailCheck, MailOpen, XCircle } from 'lucide-react';
 import { emailApi, getEmailVerificationErrorMessage } from '../api/email';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Label } from '../components/ui/Label';
 import AlertMessage from '../components/ui/AlertMessage';
 
-type VerificationStatus = 'loading' | 'success' | 'error';
+type VerificationStatus = 'loading' | 'success' | 'error' | 'pending';
 
 export const VerifyEmail: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const { user, patchUserSession } = useAuth();
   const token = searchParams.get('token')?.trim() || '';
+  const locationState = (location.state as { emailNotVerified?: boolean; email?: string } | null) ?? null;
+  const redirectedAsUnverified = locationState?.emailNotVerified === true;
+  const shouldPatchSessionRef = useRef(Boolean(user && !user.emailVerified));
 
   const [status, setStatus] = useState<VerificationStatus>('loading');
   const [message, setMessage] = useState('Verificando tu email...');
   const [username, setUsername] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [resendEmail, setResendEmail] = useState((user?.email || locationState?.email || '').trim());
+
+  const canResendVerification = status === 'pending' || status === 'error';
+
+  const handleResend = async () => {
+    const email = resendEmail.trim() || user?.email?.trim() || '';
+    if (!email) {
+      setResendError('Introduce el correo de la cuenta para reenviar la verificación.');
+      setResendMessage(null);
+      return;
+    }
+
+    setResendLoading(true);
+    setResendMessage(null);
+    setResendError(null);
+
+    try {
+      const res = await emailApi.resendVerification(email);
+      setResendMessage(res.message);
+    } catch (error) {
+      setResendError(getEmailVerificationErrorMessage(error));
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -25,8 +61,13 @@ export const VerifyEmail: React.FC = () => {
           return;
         }
 
-        setStatus('error');
-        setMessage('El enlace de verificación no es válido o no incluye token. Solicita un nuevo correo desde la aplicación.');
+        if (redirectedAsUnverified) {
+          setStatus('pending');
+          setMessage('Debes verificar tu email para acceder. Revisa tu bandeja de entrada y pulsa el enlace que te hemos enviado.');
+        } else {
+          setStatus('error');
+          setMessage('El enlace de verificación no es válido o no incluye token. Solicita un nuevo correo desde la aplicación.');
+        }
         return;
       }
 
@@ -35,6 +76,11 @@ export const VerifyEmail: React.FC = () => {
 
         if (!isActive) {
           return;
+        }
+
+        if (shouldPatchSessionRef.current) {
+          patchUserSession({ emailVerified: true });
+          shouldPatchSessionRef.current = false;
         }
 
         setStatus('success');
@@ -55,7 +101,7 @@ export const VerifyEmail: React.FC = () => {
     return () => {
       isActive = false;
     };
-  }, [token]);
+  }, [redirectedAsUnverified, token]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 flex items-center justify-center p-4">
@@ -66,12 +112,14 @@ export const VerifyEmail: React.FC = () => {
               {status === 'loading' && <Loader2 className="w-8 h-8 text-white animate-spin" />}
               {status === 'success' && <MailCheck className="w-8 h-8 text-white" />}
               {status === 'error' && <XCircle className="w-8 h-8 text-white" />}
+              {status === 'pending' && <MailOpen className="w-8 h-8 text-white" />}
             </div>
           </div>
           <CardTitle>
             {status === 'loading' && 'Verificando email'}
             {status === 'success' && 'Email verificado'}
             {status === 'error' && 'No se pudo verificar el email'}
+            {status === 'pending' && 'Confirma tu email'}
           </CardTitle>
           <CardDescription>
             {status === 'success' && username ? `Cuenta confirmada para ${username}.` : 'DocumentChain'}
@@ -87,6 +135,10 @@ export const VerifyEmail: React.FC = () => {
             <AlertMessage type="error" message={message} />
           ) : null}
 
+          {status === 'pending' ? (
+            <AlertMessage type="warning" message={message} />
+          ) : null}
+
           {status === 'loading' ? (
             <div className="text-center text-sm text-gray-600 flex items-center justify-center gap-2 py-2">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -100,6 +152,44 @@ export const VerifyEmail: React.FC = () => {
                 <CheckCircle2 className="w-4 h-4" />
                 Ya puedes iniciar sesión con normalidad.
               </div>
+            </div>
+          ) : null}
+
+          {canResendVerification ? (
+            <div className="space-y-2">
+              <div className="space-y-2">
+                <Label htmlFor="resendEmail">Correo para reenviar la verificación</Label>
+                <Input
+                  id="resendEmail"
+                  type="email"
+                  value={resendEmail}
+                  onChange={(event) => setResendEmail(event.target.value)}
+                  placeholder="usuario@dominio.com"
+                  disabled={resendLoading}
+                  autoComplete="email"
+                />
+              </div>
+              {resendMessage ? (
+                <AlertMessage type="info" message={resendMessage} />
+              ) : null}
+              {resendError ? (
+                <AlertMessage type="error" message={resendError} />
+              ) : null}
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => void handleResend()}
+                disabled={resendLoading}
+              >
+                {resendLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Enviando...
+                  </span>
+                ) : (
+                  'Reenviar enlace de verificación'
+                )}
+              </Button>
             </div>
           ) : null}
 

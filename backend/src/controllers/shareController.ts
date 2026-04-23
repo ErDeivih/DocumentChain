@@ -283,6 +283,13 @@ export class ShareController {
       const fileType = normalizeFileExtensionFilter(req.query.fileType as string | undefined);
       const walletId = req.query.walletId as string | undefined;
 
+      const confirmedShares = await ShareService.getSharedWithUser(req.user.userId);
+      const confirmedDocumentIds = new Set(
+        confirmedShares
+          .map((share) => share.documentId)
+          .filter((documentId): documentId is string => Boolean(documentId))
+      );
+
       // Get user's wallet (specific or primary)
       const wallet = walletId
         ? await prisma.wallet.findUnique({
@@ -298,24 +305,17 @@ export class ShareController {
             },
           });
 
-      if (!wallet) {
+      if (!wallet && confirmedDocumentIds.size === 0) {
         res.status(404).json({ error: 'Wallet no encontrada' });
         return;
       }
 
-      // Get documents from blockchain. Some deployed contract revisions do not expose
-      // the permission getters used here, so fall back to backend-confirmed share events.
-      const blockchainDocs = await BlockchainQueries.getUserDocuments(wallet.walletAddress);
-      const fallbackShares = blockchainDocs.length === 0
-        ? await ShareService.getSharedWithUser(req.user.userId)
-        : [];
-
       const whereClause: any = {
         ownerId: { not: req.user.userId }, // Only shared documents, not owned
         isArchived: false,
-        ...(blockchainDocs.length > 0
-          ? { blockchainId: { in: blockchainDocs } }
-          : { id: { in: fallbackShares.map((share) => share.documentId) } }),
+        blockchainId: {
+          not: null,
+        },
       };
 
       // Apply filters
@@ -330,14 +330,8 @@ export class ShareController {
         whereClause.fileExtension = fileType;
       }
 
-      // Get total count
-      const total = await prisma.document.count({ where: whereClause });
-
-      // Get paginated documents
-      const documents = await prisma.document.findMany({
+      const candidateDocuments = await prisma.document.findMany({
         where: whereClause,
-        skip: (page - 1) * limit,
-        take: limit,
         include: {
           owner: {
             select: {
@@ -353,6 +347,27 @@ export class ShareController {
           id: 'desc',
         },
       });
+
+      const sharedDocuments: typeof candidateDocuments = [];
+
+      for (const document of candidateDocuments) {
+        if (confirmedDocumentIds.has(document.id)) {
+          sharedDocuments.push(document);
+          continue;
+        }
+
+        if (!wallet || !document.blockchainId) {
+          continue;
+        }
+
+        const canView = await DocumentPermissionService.canView(document.blockchainId, wallet.walletAddress);
+        if (canView) {
+          sharedDocuments.push(document);
+        }
+      }
+
+      const total = sharedDocuments.length;
+      const documents = sharedDocuments.slice((page - 1) * limit, page * limit);
 
       const totalPages = Math.ceil(total / limit);
 
@@ -398,43 +413,36 @@ export class ShareController {
         return;
       }
 
-      // Get user's primary wallet
       const wallet = await prisma.wallet.findFirst({
         where: { userId: req.user.userId, isPrimary: true },
       }) ?? await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
 
-      if (!wallet) {
+      if (!wallet || !document.blockchainId) {
         res.status(200).json({ role: null });
         return;
       }
 
-      if (document.blockchainId) {
-        const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
+      const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
 
-        if (role === DocumentRole.EDITOR) {
-          res.status(200).json({ role: 'SHARED_WRITE' });
-          return;
-        }
-
-        if (role === DocumentRole.VIEWER) {
-          res.status(200).json({ role: 'SHARED_READ' });
-          return;
-        }
+      if (role === DocumentRole.EDITOR) {
+        res.status(200).json({ role: 'SHARED_WRITE' });
+        return;
       }
 
-      const fallbackShare = (await ShareService.getSharedWithUser(req.user.userId)).find(
-        (share) => share.documentId === documentId
-      );
+      if (role === DocumentRole.VIEWER) {
+        res.status(200).json({ role: 'SHARED_READ' });
+        return;
+      }
 
-      res.status(200).json({ role: fallbackShare?.role ?? null });
+      res.status(200).json({ role: null });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
   }
 
   /**
-   * Check if user has specific permission
-   * GET /api/documents/:documentId/check-permission?role=SHARED_WRITE
+   * Check permissions
+   * GET /api/documents/:documentId/permissions/check?role=OWNER
    */
   static async checkPermission(req: Request, res: Response): Promise<void> {
     try {
@@ -482,17 +490,11 @@ export class ShareController {
         return;
       }
 
-      // Get user's primary wallet
       const wallet = await prisma.wallet.findFirst({
         where: { userId: req.user.userId, isPrimary: true },
       }) ?? await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
 
-      if (!wallet) {
-        res.status(200).json({ hasPermission: false });
-        return;
-      }
-
-      if (!document.blockchainId) {
+      if (!wallet || !document.blockchainId) {
         res.status(200).json({ hasPermission: false });
         return;
       }

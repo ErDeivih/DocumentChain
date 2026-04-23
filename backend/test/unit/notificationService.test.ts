@@ -114,6 +114,43 @@ describe('NotificationService', () => {
     );
   });
 
+  it('sends signed-document emails with a document action link', async () => {
+    const { prisma, emailService, NotificationService, NotificationType } = await loadService();
+
+    prisma.notificationPreference.findUnique.mockResolvedValue({
+      userId: 'user-1',
+      emailEnabled: true,
+      pushEnabled: false,
+      typePreferences: {
+        FILE_SIGNED: true,
+      },
+    });
+    prisma.notification.create.mockResolvedValue({ id: 'notification-3' });
+    prisma.user.findUnique.mockResolvedValue({
+      email: 'owner@example.com',
+      username: 'owner',
+    });
+
+    const service = new NotificationService();
+
+    await service.createNotification({
+      userId: 'user-1',
+      type: NotificationType.FILE_SIGNED,
+      title: 'Documento firmado',
+      message: 'diego_ortega firmó la versión 3 de "contrato_marco.pdf"',
+      data: { documentId: 'doc-signed-1', versionNumber: 3 },
+    });
+
+    expect(emailService.sendNotification).toHaveBeenCalledWith(
+      'owner@example.com',
+      'owner',
+      'Documento firmado',
+      'diego_ortega firmó la versión 3 de "contrato_marco.pdf"',
+      'http://localhost:5173/app/documents/doc-signed-1',
+      'Ver firma registrada'
+    );
+  });
+
   it('keeps the notification flow working even if the email send fails', async () => {
     const { prisma, emailService, NotificationService, NotificationType } = await loadService();
 

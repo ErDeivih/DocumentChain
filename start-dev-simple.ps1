@@ -3,6 +3,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "DocumentChain - Inicio Desarrollo" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
+Set-Location $PSScriptRoot
 
 # Verificar Node.js
 Write-Host "[1/3] Verificando Node.js..." -ForegroundColor Yellow

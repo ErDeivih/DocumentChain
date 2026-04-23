@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { blockchainProvider, WalletType } from '../lib/blockchain/provider';
 import { walletsApi } from '../api/wallets';
 import { useAuth } from './AuthContext';
@@ -109,6 +109,11 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Keep a ref to the latest user so loadSavedWallets can read it without
+  // being recreated on every user-object change (which would re-trigger effects).
+  const userRef = useRef(user);
+  userRef.current = user;
+
   const syncUserWallets = useCallback((nextSavedWallets: SavedWallet[]) => {
     const primaryWallet = nextSavedWallets.find((wallet) => wallet.isPrimary);
     patchUserSession({
@@ -117,21 +122,26 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     });
   }, [patchUserSession]);
 
-  // Load saved wallets when user authenticates
+  // Load saved wallets when the authenticated identity changes.
+  // Depend only on user?.id (not the full user object) so that
+  // patchUserSession → wallet list update does NOT re-trigger this effect
+  // and cause an infinite request loop.
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.wallets && user.wallets.length > 0) {
-        setSavedWallets(sortSavedWallets(user.wallets.map(walletToSavedWallet)));
+    if (isAuthenticated && userRef.current) {
+      const currentUser = userRef.current;
+      if (currentUser.wallets && currentUser.wallets.length > 0) {
+        setSavedWallets(sortSavedWallets(currentUser.wallets.map(walletToSavedWallet)));
       }
 
-      if (!user.isSuspended) {
+      if (!currentUser.isSuspended) {
         loadSavedWallets();
       }
     } else {
       setSavedWallets([]);
       setConnectedWallet(null);
     }
-  }, [isAuthenticated, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id]);
 
   // Listen for wallet disconnection events
   useEffect(() => {
@@ -171,15 +181,17 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       console.error('Error loading wallets:', err);
 
-      if (user?.wallets && user.wallets.length > 0) {
-        setSavedWallets(user.wallets.map(walletToSavedWallet));
+      // Use the ref so this callback is not recreated on every user change
+      const currentUser = userRef.current;
+      if (currentUser?.wallets && currentUser.wallets.length > 0) {
+        setSavedWallets(currentUser.wallets.map(walletToSavedWallet));
       } else {
         setError(err.message || 'Error al cargar wallets');
       }
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, syncUserWallets, user]);
+  }, [isAuthenticated, syncUserWallets]);
 
   /**
    * Connect a wallet (MetaMask, WalletConnect, etc.)

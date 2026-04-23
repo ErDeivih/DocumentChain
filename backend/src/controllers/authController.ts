@@ -232,15 +232,15 @@ export class AuthController {
    */
   static async login(req: Request, res: Response): Promise<void> {
     try {
-      const { username, email, password } = req.body;
-      const identifier = (username || email || '').trim();
+      const { username, email, identifier, password } = req.body;
+      const normalizedIdentifier = (identifier || username || email || '').trim();
 
-      if (!identifier || !password) {
+      if (!normalizedIdentifier || !password) {
         res.status(400).json({ error: 'El nombre de usuario/email y contraseña son obligatorios' });
         return;
       }
 
-      const result = await AuthService.login({ identifier, password });
+      const result = await AuthService.login({ identifier: normalizedIdentifier, password });
 
       res.status(200).json(result);
     } catch (error: any) {
@@ -307,6 +307,7 @@ export class AuthController {
           id: true,
           username: true,
           email: true,
+          emailVerified: true,
           fullName: true,
           role: true,
           publicKey: true,
@@ -811,6 +812,7 @@ export class AuthController {
           id: true,
           username: true,
           email: true,
+          emailVerified: true,
           fullName: true,
           role: true,
           publicKey: true,
@@ -870,6 +872,7 @@ export class AuthController {
           id: user.id,
           username: user.username,
           email: user.email,
+          emailVerified: user.emailVerified,
           fullName: user.fullName,
           role: user.role,
           publicKey: user.publicKey,

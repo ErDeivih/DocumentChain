@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+const isUuidOrCuid = (value: string) => {
+  return z.string().uuid().safeParse(value).success || z.string().cuid().safeParse(value).success;
+};
+
+const isCuidOrEthereumAddress = (value: string) => {
+  return z.string().cuid().safeParse(value).success || /^0x[a-fA-F0-9]{40}$/.test(value);
+};
+
+const documentIdParamSchema = z.string().refine(isUuidOrCuid, 'ID de documento inválido');
+
 /**
  * Schema para creación de documento
  */
@@ -30,22 +40,22 @@ export const createDocumentSchema = z.object({
  * Schema para ID de documento
  */
 export const documentIdSchema = z.object({
-  documentId: z.string().uuid('ID de documento inválido')
+  documentId: documentIdParamSchema
 });
 
 /**
  * Schema para rutas que requieren documentId y userId en params
  */
 export const documentUserParamsSchema = z.object({
-  documentId: z.string().uuid('ID de documento inválido'),
-  userId: z.string().cuid('ID de usuario inválido'),
+  documentId: documentIdParamSchema,
+  userId: z.string().refine(isCuidOrEthereumAddress, 'ID de usuario o wallet inválido'),
 });
 
 /**
  * Schema para rutas que requieren documentId y versionId en params
  */
 export const documentVersionParamsSchema = z.object({
-  documentId: z.string().uuid('ID de documento inválido'),
+  documentId: documentIdParamSchema,
   versionId: z.string().uuid('ID de versión inválido'),
 });
 
@@ -53,7 +63,7 @@ export const documentVersionParamsSchema = z.object({
  * Schema para rutas que requieren documentId y versionNumber en params
  */
 export const documentVersionNumberParamsSchema = z.object({
-  documentId: z.string().uuid('ID de documento inválido'),
+  documentId: documentIdParamSchema,
   versionNumber: z.string().regex(/^\d+$/, 'Número de versión inválido'),
 });
 

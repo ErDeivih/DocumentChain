@@ -1,8 +1,13 @@
 import { z } from 'zod';
 
+const documentIdParamSchema = z.string().refine(
+  (value) => z.string().uuid().safeParse(value).success || z.string().cuid().safeParse(value).success,
+  'ID de documento inválido'
+);
+
 /**
  * Schema para validar documentId en params
  */
 export const documentIdSchema = z.object({
-  documentId: z.string().uuid('ID de documento inválido')
+  documentId: documentIdParamSchema
 });

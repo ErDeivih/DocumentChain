@@ -48,6 +48,10 @@ dotenv.config();
 
 const app: Express = express();
 
+// The app is served behind nginx in Docker and demo environments.
+// Trust the first proxy so req.ip and rate limiting work with X-Forwarded-* headers.
+app.set('trust proxy', 1);
+
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
 const isDev = process.env.NODE_ENV !== 'production';

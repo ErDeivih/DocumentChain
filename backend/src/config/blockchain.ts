@@ -2,14 +2,16 @@ import { ethers } from 'ethers';
 
 // Contract ABI (consolidated DocumentRegistry)
 import DocumentRegistryABI from '../../../smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json';
+import { resolveDocumentRegistryAddress } from './contractAddress';
 
 // Environment variables for contract addresses
 const {
   BLOCKCHAIN_RPC_URL,
-  CONTRACT_DOCUMENT_REGISTRY,
   BLOCKCHAIN_PRIVATE_KEY,
   ADMIN_ROLE
 } = process.env;
+
+const resolvedDocumentRegistryAddress = resolveDocumentRegistryAddress();
 
 if (!BLOCKCHAIN_RPC_URL) {
   throw new Error('BLOCKCHAIN_RPC_URL no está configurado en las variables de entorno');
@@ -18,7 +20,7 @@ if (!BLOCKCHAIN_RPC_URL) {
 // Create provider
 export const provider = new ethers.JsonRpcProvider(BLOCKCHAIN_RPC_URL);
 
-export const DOCUMENT_REGISTRY_ADDRESS = CONTRACT_DOCUMENT_REGISTRY;
+export const DOCUMENT_REGISTRY_ADDRESS = resolvedDocumentRegistryAddress;
 export const documentRegistryInterface = new ethers.Interface(DocumentRegistryABI.abi);
 
 // Create signer (backend wallet for gas payments and admin operations)
@@ -34,7 +36,7 @@ export const ADMIN_ROLE_HASH = ADMIN_ROLE || ethers.keccak256(ethers.toUtf8Bytes
  * This is the consolidated contract that handles all document operations
  */
 export function getDocumentRegistryContract() {
-  if (!CONTRACT_DOCUMENT_REGISTRY) {
+  if (!resolvedDocumentRegistryAddress) {
     throw new Error('CONTRACT_DOCUMENT_REGISTRY no configurada en variables de entorno');
   }
 
@@ -43,19 +45,19 @@ export function getDocumentRegistryContract() {
   }
 
   return new ethers.Contract(
-    CONTRACT_DOCUMENT_REGISTRY,
+    resolvedDocumentRegistryAddress,
     DocumentRegistryABI.abi,
     signer
   );
 }
 
 export function getDocumentRegistryReadContract() {
-  if (!CONTRACT_DOCUMENT_REGISTRY) {
+  if (!resolvedDocumentRegistryAddress) {
     throw new Error('CONTRACT_DOCUMENT_REGISTRY no configurada en variables de entorno');
   }
 
   return new ethers.Contract(
-    CONTRACT_DOCUMENT_REGISTRY,
+    resolvedDocumentRegistryAddress,
     DocumentRegistryABI.abi,
     provider
   );
@@ -66,12 +68,12 @@ export function getDocumentRegistryReadContract() {
  * Used when we need to execute transactions on behalf of a user
  */
 export function getDocumentRegistryContractWithSigner(userSigner: ethers.Wallet) {
-  if (!CONTRACT_DOCUMENT_REGISTRY) {
+  if (!resolvedDocumentRegistryAddress) {
     throw new Error('CONTRACT_DOCUMENT_REGISTRY no configurada en variables de entorno');
   }
 
   return new ethers.Contract(
-    CONTRACT_DOCUMENT_REGISTRY,
+    resolvedDocumentRegistryAddress,
     DocumentRegistryABI.abi,
     userSigner
   );

@@ -81,6 +81,83 @@ services:
     depends_on:
       - postgres
 
+  # IPFS Kubo node 1 - persistent content store for self-hosted mode
+  ipfs-node-1:
+    profiles: ["ipfs-cluster"]
+    image: ipfs/kubo:latest
+    container_name: documentchain-ipfs-1
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ./ipfs-cluster/ipfs-data-1:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    networks:
+      - documentchain
+
+  # IPFS Kubo node 2 - extra replica for self-hosted mode
+  ipfs-node-2:
+    profiles: ["ipfs-cluster"]
+    image: ipfs/kubo:latest
+    container_name: documentchain-ipfs-2
+    restart: unless-stopped
+    ports:
+      - "4002:4001"
+      - "5002:5001"
+      - "8081:8080"
+    volumes:
+      - ./ipfs-cluster/ipfs-data-2:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    networks:
+      - documentchain
+
+  # IPFS Kubo node 3 - extra replica for self-hosted mode
+  ipfs-node-3:
+    profiles: ["ipfs-cluster"]
+    image: ipfs/kubo:latest
+    container_name: documentchain-ipfs-3
+    restart: unless-stopped
+    ports:
+      - "4003:4001"
+      - "5003:5001"
+      - "8082:8080"
+    volumes:
+      - ./ipfs-cluster/ipfs-data-3:/data/ipfs
+    environment:
+      - IPFS_PROFILE=server
+    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    networks:
+      - documentchain
+
+  # IPFS Cluster service exposing REST API and IPFS proxy for self-hosted mode
+  ipfs-cluster:
+    profiles: ["ipfs-cluster"]
+    image: ipfs/ipfs-cluster:latest
+    container_name: documentchain-ipfs-cluster
+    restart: unless-stopped
+    ports:
+      - "9094:9094"
+      - "9095:9095"
+      - "9096:9096"
+    volumes:
+      - ./ipfs-cluster/cluster-config:/data/ipfs-cluster
+    environment:
+      - CLUSTER_RESTAPI_CORS_ALLOWED_ORIGINS=*
+      - CLUSTER_RESTAPI_CORS_ALLOWED_HEADERS=*
+      - CLUSTER_RESTAPI_CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+    depends_on:
+      - ipfs-node-1
+      - ipfs-node-2
+      - ipfs-node-3
+    networks:
+      - documentchain
+
   # Backend Node.js - Servidor API principal
   backend:
     build:
@@ -105,6 +182,10 @@ services:
       - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-DocumentChain}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,https://localhost:5173}
+      - IPFS_PROVIDER=${IPFS_PROVIDER:-pinata}
+      - IPFS_API_URL=${IPFS_API_URL:-http://ipfs-node-1:5001}
+      - IPFS_CLUSTER_API_URL=${IPFS_CLUSTER_API_URL:-http://ipfs-cluster:9094}
+      - IPFS_GATEWAY_URL=${IPFS_GATEWAY_URL:-http://ipfs-node-1:8080}
       - UPLOAD_RATE_LIMIT_MAX=${UPLOAD_RATE_LIMIT_MAX:-500}
       - GENERAL_RATE_LIMIT_MAX=${GENERAL_RATE_LIMIT_MAX:-2000}
       - PREPARE_RATE_LIMIT_MAX=${PREPARE_RATE_LIMIT_MAX:-100}

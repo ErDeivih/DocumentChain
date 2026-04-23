@@ -33,7 +33,7 @@ export class WalletConnectHelper {
         events: ['chainChanged', 'accountsChanged'],
         metadata: {
           name: 'DocumentChain',
-          description: 'Sistema descentralizado de gestión de documentos',
+          description: 'Gestión documental con trazabilidad blockchain para DocumentChain',
           url: window.location.origin,
           icons: [`${window.location.origin}/logo.png`],
         },

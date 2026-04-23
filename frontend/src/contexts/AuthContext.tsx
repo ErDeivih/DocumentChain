@@ -135,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: RegisterRequest) => {
     try {
       const response = await authApi.register(data);
-      finalizeAuthenticatedSession(response);
 
       // Return recovery key if present
       return { recoveryKey: response.recoveryKey };

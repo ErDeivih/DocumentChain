@@ -29,7 +29,7 @@ interface BlockchainEvent {
   metadata: Record<string, unknown> | null;
   transactionHash: string | null;
   blockNumber: number | null;
-  blockTimestamp: string;
+  blockTimestamp: string | null;
   createdAt: string;
   user: {
     id: string;
@@ -64,6 +64,7 @@ const EVENT_TYPES = [
   { value: 'SystemUnpaused', label: 'Sistema Reanudado', icon: '▶️', color: 'bg-green-600' },
   { value: 'AdminRoleRevoked', label: 'Admin Revocado', icon: '🔓', color: 'bg-gray-500' },
 ];
+
 
 export const BlockchainAuditor: React.FC = () => {
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
@@ -160,7 +161,7 @@ export const BlockchainAuditor: React.FC = () => {
     return EVENT_TYPES.find(e => e.value === type) || {
       value: type,
       label: type,
-      icon: '📌',
+      icon: '📋',
       color: 'bg-gray-500'
     };
   };
@@ -178,7 +179,7 @@ export const BlockchainAuditor: React.FC = () => {
         e.document?.name || e.documentId || '-',
         e.transactionHash || '-',
         e.blockNumber || '-',
-        formatDate(e.blockTimestamp)
+        formatDate(e.blockTimestamp ?? e.createdAt)
       ].join(','))
     ].join('\n');
 
@@ -325,7 +326,7 @@ export const BlockchainAuditor: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {formatDate(event.blockTimestamp)}
+                            {formatDate(event.blockTimestamp ?? event.createdAt)}
                           </div>
                           <div className="flex items-center gap-1 min-w-0">
                             <Hash className="w-3 h-3" />
@@ -346,7 +347,7 @@ export const BlockchainAuditor: React.FC = () => {
                             <p className="font-semibold mb-1">Transacción</p>
                             <p><strong>Hash:</strong> {event.transactionHash || '-'}</p>
                             <p><strong>Bloque:</strong> {event.blockNumber ?? '-'}</p>
-                            <p><strong>Timestamp:</strong> {formatDate(event.blockTimestamp)}</p>
+                            <p><strong>Timestamp:</strong> {formatDate(event.blockTimestamp ?? event.createdAt)}</p>
                           </div>
                           <div className="p-2 bg-gray-100 rounded">
                             <p className="font-semibold mb-1">Entidades</p>

@@ -62,7 +62,6 @@ export const Sidebar: React.FC = () => {
 
   const handleFolderSelect = (folderId: string | null) => {
     setSelectedFolder(folderId);
-    // Despachar evento para que Documents.tsx lo escuche
     window.dispatchEvent(new CustomEvent('folderSelected', { detail: folderId }));
   };
 

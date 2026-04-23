@@ -438,6 +438,8 @@ export class NotificationService {
         return 'Abrir documento compartido';
       case NotificationType.NEW_VERSION:
         return 'Ver nueva versión';
+      case NotificationType.FILE_SIGNED:
+        return 'Ver firma registrada';
       case NotificationType.BLOCKCHAIN_CONFIRMED:
         return 'Ver documento';
       case NotificationType.SHARE_REVOKED:

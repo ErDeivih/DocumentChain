@@ -2,6 +2,8 @@
 # DocumentChain - Script para detener desarrollo
 # ============================================
 
+Set-Location $PSScriptRoot
+
 Write-Host "Deteniendo DocumentChain..." -ForegroundColor Yellow
 Write-Host ""
 

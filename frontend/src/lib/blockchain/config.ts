@@ -3,6 +3,29 @@
  * Contains contract addresses and chain configuration
  */
 
+const DOCUMENT_REGISTRY_STORAGE_KEY = 'documentchain.contract.documentRegistry';
+
+function isEthereumAddress(value: string | null | undefined): value is string {
+  return typeof value === 'string' && /^0x[a-fA-F0-9]{40}$/.test(value);
+}
+
+function getPersistedDocumentRegistryAddress(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const value = window.localStorage.getItem(DOCUMENT_REGISTRY_STORAGE_KEY);
+  return isEthereumAddress(value) ? value : null;
+}
+
+function persistDocumentRegistryAddress(address: string): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(DOCUMENT_REGISTRY_STORAGE_KEY, address);
+}
+
 // Contract ABIs — single DocumentRegistry consolidates all functionality
 export const DocumentRegistryABI = [
   // Events
@@ -64,10 +87,27 @@ export interface ContractConfig {
 
 export const CONTRACTS: Record<string, ContractConfig> = {
   DocumentRegistry: {
-    address: import.meta.env.VITE_CONTRACT_REGISTRY || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    address: getPersistedDocumentRegistryAddress() || import.meta.env.VITE_CONTRACT_REGISTRY || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
     abi: DocumentRegistryABI,
   },
 };
+
+export function setContractAddress(name: string, address: string): void {
+  const contract = CONTRACTS[name];
+  if (!contract) {
+    throw new Error(`Contract ${name} not found in configuration`);
+  }
+
+  if (!isEthereumAddress(address)) {
+    throw new Error(`Invalid Ethereum address for ${name}`);
+  }
+
+  contract.address = address;
+
+  if (name === 'DocumentRegistry') {
+    persistDocumentRegistryAddress(address);
+  }
+}
 
 // Chain configuration
 export interface ChainConfig {

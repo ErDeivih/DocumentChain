@@ -46,6 +46,8 @@ export const DocumentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const storedUser = localStorage.getItem('user');
+  const currentUserId = user?.id || (storedUser ? JSON.parse(storedUser).id : null);
   const [downloadPassword, setDownloadPassword] = useState('');
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -55,13 +57,12 @@ export const DocumentDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { data: documentData, isLoading, refetch } = useQuery({
-    queryKey: ['document', id],
+    queryKey: ['document', currentUserId, id],
     queryFn: () => getDocument(id!),
     enabled: !!id,
   });
 
   const document = documentData?.document;
-  const currentUserId = user?.id || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null);
   const isOwner = document?.role === 'OWNER' || document?.ownerId === currentUserId;
   const isPublicDocument = document?.visibility === 'PUBLIC';
 

@@ -14,6 +14,12 @@ El proyecto ya puede enviar correos desde el backend. Lo que cambia según el en
 - Alertas de seguridad
 - Bienvenida
 
+## Regla funcional actual
+
+- El alta de usuario no exige haber verificado el correo en ese mismo momento.
+- El acceso con usuario y contraseña sí queda bloqueado hasta confirmar el correo.
+- La vista `/verify-email` permite confirmar el token y, si el usuario ya tiene sesión abierta pero sigue sin verificar, solicitar un nuevo enlace desde la propia interfaz.
+
 Las plantillas HTML están en `backend/src/templates/emails/` y el servicio responsable es `backend/src/services/emailService.ts`.
 
 ## Configuracion recomendada

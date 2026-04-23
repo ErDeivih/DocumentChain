@@ -17,7 +17,7 @@ export type IPFSAdapter = IPFSAdapterInterface;
 const {
   IPFS_PROVIDER = 'pinata', // Default to Pinata for easy development
   IPFS_API_URL = 'http://localhost:5001',
-  IPFS_CLUSTER_API_URL = 'http://localhost:9095',
+  IPFS_CLUSTER_API_URL = 'http://localhost:9094',
   IPFS_GATEWAY_URL = 'http://localhost:8080'
 } = process.env;
 

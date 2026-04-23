@@ -1160,7 +1160,7 @@ class EventListenerService {
         },
       }) : null;
       
-      const notificationMessage = `${signerUser?.username || 'Un usuario'} firmó "${document.name}"`;
+      const notificationMessage = `${signerUser?.username || 'Un usuario'} firmó la versión ${data.versionNumber} de "${document.name}"`;
       const existingNotification = await prisma.notification.findFirst({
         where: {
           userId: document.ownerId,

@@ -26,9 +26,9 @@ Cluster de IPFS con múltiples nodos para almacenamiento descentralizado y repli
 - `8082`: Gateway HTTP
 
 #### IPFS Cluster
-- `9094`: Cluster Swarm
-- `9095`: Cluster API (usado por el backend)
-- `9096`: Cluster Proxy
+- `9094`: Cluster REST API (usado por el backend)
+- `9095`: Cluster IPFS Proxy
+- `9096`: Cluster Swarm
 
 ## Uso
 

@@ -24,6 +24,37 @@ export interface IPFSAdapter {
   listPins(): Promise<any[]>;
 }
 
+function stringifyProviderError(value: unknown): string | null {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'object') {
+    const candidate = value as Record<string, unknown>;
+    const nestedMessage =
+      candidate.error ||
+      candidate.message ||
+      candidate.details ||
+      candidate.reason;
+
+    if (typeof nestedMessage === 'string' && nestedMessage.trim()) {
+      return nestedMessage;
+    }
+
+    try {
+      return JSON.stringify(candidate);
+    } catch {
+      return null;
+    }
+  }
+
+  return String(value);
+}
+
 /**
  * Pinata Cloud IPFS Adapter
  * Uses Pinata API for all IPFS operations
@@ -85,7 +116,8 @@ export class PinataAdapter implements IPFSAdapter {
 
     } catch (error: any) {
       logger.error('❌ Error uploading to Pinata:', error.response?.data || error.message);
-      throw new Error(`Pinata upload failed: ${error.response?.data?.error || error.message}`);
+      const providerMessage = stringifyProviderError(error.response?.data);
+      throw new Error(`Pinata upload failed: ${providerMessage || error.message}`);
     }
   }
 

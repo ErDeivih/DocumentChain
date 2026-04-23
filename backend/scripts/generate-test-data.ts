@@ -5,6 +5,7 @@ import { PrismaClient, BlockchainStatus } from '@prisma/client';
 import { ethers } from 'ethers';
 import { Argon2Service } from '../src/services/argon2Service';
 import { KeyManager } from '../src/lib/crypto/KeyManager';
+import { resolveDocumentRegistryAddressOrDefault } from '../src/config/contractAddress';
 
 type ProfileName = 'qa-fast' | 'qa-max';
 
@@ -15,6 +16,8 @@ interface ProfileConfig {
   signaturesPerDoc: number;
   walletsPerUser: number;
 }
+
+const MAX_WALLETS_PER_USER = 5;
 
 interface CliOptions {
   profile: ProfileName;
@@ -39,14 +42,21 @@ interface DemoIdentity {
   fullName: string;
 }
 
+const QA_SEED_LOCK_ID = 90421421;
+
+interface SeedWalletRecord {
+  id: string;
+  walletAddress: string;
+  isPrimary: boolean;
+}
+
 // ── Blockchain setup ────────────────────────────────────────────────────────
 
 const HARDHAT_RPC_URL = process.env.BLOCKCHAIN_RPC_URL ?? 'http://localhost:8545';
 const HARDHAT_DEPLOYER_KEY =
   process.env.BLOCKCHAIN_PRIVATE_KEY ??
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-const CONTRACT_ADDRESS =
-  process.env.CONTRACT_DOCUMENT_REGISTRY ?? '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+const CONTRACT_ADDRESS = resolveDocumentRegistryAddressOrDefault();
 // Standard Hardhat / Anvil deterministic mnemonic
 const HARDHAT_MNEMONIC = 'test test test test test test test test test test test junk';
 const HARDHAT_FUNDED_ACCOUNT_COUNT = 20;
@@ -110,8 +120,15 @@ async function setupBlockchain(): Promise<BlockchainContext | null> {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-const prisma = new PrismaClient();
+let prisma = new PrismaClient();
 const DEMO_PASSWORD = 'Demo123!';
+const DEFAULT_ADMIN_PASSWORD = 'Admin123!';
+
+const DEFAULT_ADMIN_IDENTITY: DemoIdentity = {
+  username: 'admin',
+  email: 'admin@documentchain.local',
+  fullName: 'System Administrator',
+};
 
 const DEMO_IDENTITIES: DemoIdentity[] = [
   { username: 'laura_garcia', email: 'laura.garcia@documentchain.local', fullName: 'Laura Garcia' },
@@ -136,6 +153,20 @@ const DEMO_IDENTITIES: DemoIdentity[] = [
   { username: 'miguel_pena', email: 'miguel.pena@documentchain.local', fullName: 'Miguel Pena' },
 ];
 
+const QA_ADMIN_IDENTITIES: DemoIdentity[] = [
+  {
+    username: 'admin_operaciones',
+    email: 'admin.operaciones@documentchain.local',
+    fullName: 'Admin Operaciones',
+  },
+];
+
+const DOCUMENT_TITLE_PARTS = {
+  prefixes: ['contrato', 'expediente', 'informe', 'propuesta', 'acta', 'resumen', 'memoria', 'plan'],
+  subjects: ['clientes', 'licitacion', 'seguridad', 'implantacion', 'facturacion', 'auditoria', 'obra', 'cumplimiento'],
+  suffixes: ['2026', 'revision', 'definitivo', 'firmado', 'interno', 'publicable', 'operativo', 'anexo'],
+};
+
 function getDemoIdentity(index: number): DemoIdentity {
   const predefined = DEMO_IDENTITIES[index];
   if (predefined) {
@@ -152,11 +183,11 @@ function getDemoIdentity(index: number): DemoIdentity {
 
 const PROFILES: Record<ProfileName, ProfileConfig> = {
   'qa-fast': {
-    users: 6,
-    docsPerUser: 3,
-    maxVersionsPerDoc: 2,
-    signaturesPerDoc: 2,
-    walletsPerUser: 2,
+    users: 8,
+    docsPerUser: 5,
+    maxVersionsPerDoc: 4,
+    signaturesPerDoc: 3,
+    walletsPerUser: 3,
   },
   'qa-max': {
     users: 20,
@@ -178,17 +209,45 @@ function parseArgs(): CliOptions {
   return {
     profile,
     reset: true,
-    includeSeed: !args.includes('--skip-seed'),
+    includeSeed: args.includes('--include-minimal-seed'),
   };
 }
 
-function runReset(includeSeed: boolean): void {
+async function reconnectPrismaClient(): Promise<void> {
+  await prisma.$disconnect();
+  prisma = new PrismaClient();
+  await prisma.$connect();
+  await prisma.$queryRaw`SELECT 1`;
+}
+
+async function acquireSeedLock(): Promise<void> {
+  const rows = await prisma.$queryRaw<Array<{ locked: boolean }>>`
+    SELECT pg_try_advisory_lock(${QA_SEED_LOCK_ID}) AS locked
+  `;
+
+  if (!rows[0]?.locked) {
+    throw new Error('Ya hay otra seed QA en ejecución sobre esta base de datos. Espera a que termine antes de relanzar reseed-dev.ps1.');
+  }
+}
+
+async function releaseSeedLock(): Promise<void> {
+  try {
+    await prisma.$queryRaw`
+      SELECT pg_advisory_unlock(${QA_SEED_LOCK_ID})
+    `;
+  } catch {
+  }
+}
+
+async function runReset(includeSeed: boolean): Promise<void> {
   console.log('\n[1/6] Reseteando base de datos...');
   const seedFlag = includeSeed ? '' : ' --skip-seed';
   execSync(`npx prisma migrate reset --force${seedFlag}`, {
     stdio: 'inherit',
     cwd: process.cwd(),
   });
+
+  await reconnectPrismaClient();
 }
 
 function randomHash(prefix: string, n: number): string {
@@ -197,6 +256,22 @@ function randomHash(prefix: string, n: number): string {
 
 function txHash(n: number): string {
   return ethers.keccak256(ethers.toUtf8Bytes(`tx-${n}-${Date.now()}-${Math.random()}`));
+}
+
+function getWalletCountForUser(index: number, config: ProfileConfig): number {
+  if (index === 1) {
+    return MAX_WALLETS_PER_USER;
+  }
+
+  return config.walletsPerUser;
+}
+
+function buildDocumentName(owner: GeneratedUser, docIndex: number, extension: string): string {
+  const prefix = DOCUMENT_TITLE_PARTS.prefixes[docIndex % DOCUMENT_TITLE_PARTS.prefixes.length];
+  const subject = DOCUMENT_TITLE_PARTS.subjects[(docIndex + owner.username.length) % DOCUMENT_TITLE_PARTS.subjects.length];
+  const suffix = DOCUMENT_TITLE_PARTS.suffixes[(docIndex + Math.max(owner.ethWalletIndex, 0)) % DOCUMENT_TITLE_PARTS.suffixes.length];
+
+  return `${prefix}_${subject}_${suffix}_${owner.username}.${extension}`;
 }
 
 async function createUser(
@@ -230,6 +305,7 @@ async function createUser(
       isSuspended: index > 0 && index % 9 === 0,
       suspendedAt: index > 0 && index % 9 === 0 ? new Date(Date.now() - index * 3600 * 1000) : null,
       suspendReason: index > 0 && index % 9 === 0 ? 'Cuenta suspendida para pruebas QA' : null,
+      emailVerified: true,
     },
   });
 
@@ -253,9 +329,10 @@ async function createUser(
       emailEnabled: true,
       pushEnabled: index % 2 === 0,
       typePreferences: {
-        documentShared: true,
-        documentSigned: true,
-        transferReceived: true,
+        FILE_SHARED: true,
+        FILE_SIGNED: true,
+        NEW_VERSION: true,
+        BLOCKCHAIN_CONFIRMED: true,
       },
     },
   });
@@ -265,8 +342,8 @@ async function createUser(
       userId: user.id,
       token: `email-token-${index}-${Date.now()}`,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      verified: index % 3 === 0,
-      verifiedAt: index % 3 === 0 ? new Date() : null,
+      verified: true,
+      verifiedAt: new Date(),
     },
   });
 
@@ -318,6 +395,332 @@ async function createUser(
   };
 }
 
+async function ensureDefaultAdmin(bc: BlockchainContext | null): Promise<GeneratedUser> {
+  const existingAdmin = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { username: DEFAULT_ADMIN_IDENTITY.username },
+        { email: DEFAULT_ADMIN_IDENTITY.email },
+      ],
+    },
+    include: {
+      wallets: {
+        select: {
+          id: true,
+          walletAddress: true,
+          isPrimary: true,
+        },
+      },
+    },
+  });
+
+  const buildAdminWallet = () =>
+    bc ? bc.getWallet(0).address.toLowerCase() : ethers.Wallet.createRandom().address.toLowerCase();
+
+  if (!existingAdmin) {
+    const { publicKey, privateKey } = KeyManager.generateKeyPair();
+    const recoveryKey = KeyManager.generateRecoveryKey();
+    const recoveryKeyHash = KeyManager.hashRecoveryKey(recoveryKey);
+    const encryptedPrivateKey = KeyManager.encryptPrivateKey(privateKey, DEFAULT_ADMIN_PASSWORD);
+    const encryptedPrivateKeyRecovery = KeyManager.encryptPrivateKeyWithRecovery(privateKey, recoveryKey);
+    const passwordHash = await Argon2Service.hash(DEFAULT_ADMIN_PASSWORD);
+
+    const admin = await prisma.user.create({
+      data: {
+        username: DEFAULT_ADMIN_IDENTITY.username,
+        email: DEFAULT_ADMIN_IDENTITY.email,
+        fullName: DEFAULT_ADMIN_IDENTITY.fullName,
+        role: 'ADMIN',
+        passwordHash,
+        publicKey,
+        encryptedPrivateKey,
+        recoveryKeyHash,
+        encryptedPrivateKeyRecovery,
+        emailVerified: true,
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        twoFactorBackupCodes: null,
+      },
+    });
+
+    await prisma.userStats.create({
+      data: {
+        userId: admin.id,
+        totalDocuments: 0,
+        totalSize: BigInt(0),
+        totalShared: 0,
+        totalDownloads: 0,
+        totalSignatures: 0,
+        totalTransfers: 0,
+        totalRestores: 0,
+        totalUnpins: 0,
+      },
+    });
+
+    await prisma.notificationPreference.create({
+      data: {
+        userId: admin.id,
+        emailEnabled: true,
+        pushEnabled: true,
+        typePreferences: {
+          FILE_SHARED: true,
+          FILE_SIGNED: true,
+          NEW_VERSION: true,
+          BLOCKCHAIN_CONFIRMED: true,
+        },
+      },
+    });
+
+    await prisma.emailVerification.create({
+      data: {
+        userId: admin.id,
+        token: `seed-admin-email-token-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        verified: true,
+        verifiedAt: new Date(),
+      },
+    });
+
+    const walletAddress = buildAdminWallet();
+    const wallet = await prisma.wallet.create({
+      data: {
+        userId: admin.id,
+        walletAddress,
+        nickname: 'Principal',
+        isPrimary: true,
+        isConnected: true,
+      },
+    });
+
+    return {
+      id: admin.id,
+      username: DEFAULT_ADMIN_IDENTITY.username,
+      email: DEFAULT_ADMIN_IDENTITY.email,
+      password: DEFAULT_ADMIN_PASSWORD,
+      walletIds: [wallet.id],
+      walletAddresses: [wallet.walletAddress],
+      ethWalletIndex: -1,
+    };
+  }
+
+  await prisma.user.update({
+    where: { id: existingAdmin.id },
+    data: {
+      role: 'ADMIN',
+      emailVerified: true,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      twoFactorBackupCodes: null,
+    },
+  });
+
+  await prisma.userStats.upsert({
+    where: { userId: existingAdmin.id },
+    create: {
+      userId: existingAdmin.id,
+      totalDocuments: 0,
+      totalSize: BigInt(0),
+      totalShared: 0,
+      totalDownloads: 0,
+      totalSignatures: 0,
+      totalTransfers: 0,
+      totalRestores: 0,
+      totalUnpins: 0,
+    },
+    update: {},
+  });
+
+  await prisma.notificationPreference.upsert({
+    where: { userId: existingAdmin.id },
+    create: {
+      userId: existingAdmin.id,
+      emailEnabled: true,
+      pushEnabled: true,
+      typePreferences: {
+        FILE_SHARED: true,
+        FILE_SIGNED: true,
+        NEW_VERSION: true,
+        BLOCKCHAIN_CONFIRMED: true,
+      },
+    },
+    update: {
+      emailEnabled: true,
+      pushEnabled: true,
+    },
+  });
+
+  const existingVerification = await prisma.emailVerification.findFirst({
+    where: { userId: existingAdmin.id },
+    select: { id: true },
+  });
+
+  if (existingVerification) {
+    await prisma.emailVerification.updateMany({
+      where: { userId: existingAdmin.id },
+      data: {
+        verified: true,
+        verifiedAt: new Date(),
+      },
+    });
+  } else {
+    await prisma.emailVerification.create({
+      data: {
+        userId: existingAdmin.id,
+        token: `seed-admin-email-token-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        verified: true,
+        verifiedAt: new Date(),
+      },
+    });
+  }
+
+  const existingWallets = existingAdmin.wallets as SeedWalletRecord[];
+  let primaryWallet = existingWallets.find((wallet) => wallet.isPrimary) ?? null;
+
+  if (!primaryWallet) {
+    if (existingWallets.length > 0) {
+      primaryWallet = await prisma.wallet.update({
+        where: { id: existingWallets[0].id },
+        data: { isPrimary: true },
+        select: {
+          id: true,
+          walletAddress: true,
+          isPrimary: true,
+        },
+      });
+    } else {
+      const walletAddress = buildAdminWallet();
+      primaryWallet = await prisma.wallet.create({
+        data: {
+          userId: existingAdmin.id,
+          walletAddress,
+          nickname: 'Principal',
+          isPrimary: true,
+          isConnected: true,
+        },
+        select: {
+          id: true,
+          walletAddress: true,
+          isPrimary: true,
+        },
+      });
+    }
+  }
+
+  const walletAddresses = primaryWallet
+    ? [primaryWallet.walletAddress, ...existingWallets.filter((wallet) => wallet.id !== primaryWallet?.id).map((wallet) => wallet.walletAddress)]
+    : existingWallets.map((wallet) => wallet.walletAddress);
+  const walletIds = primaryWallet
+    ? [primaryWallet.id, ...existingWallets.filter((wallet) => wallet.id !== primaryWallet?.id).map((wallet) => wallet.id)]
+    : existingWallets.map((wallet) => wallet.id);
+
+  return {
+    id: existingAdmin.id,
+    username: DEFAULT_ADMIN_IDENTITY.username,
+    email: DEFAULT_ADMIN_IDENTITY.email,
+    password: DEFAULT_ADMIN_PASSWORD,
+    walletIds,
+    walletAddresses,
+    ethWalletIndex: -1,
+  };
+}
+
+async function createAdminUser(index: number): Promise<GeneratedUser> {
+  const identity = QA_ADMIN_IDENTITIES[index];
+  const { username, email, fullName } = identity;
+
+  const { publicKey, privateKey } = KeyManager.generateKeyPair();
+  const recoveryKey = KeyManager.generateRecoveryKey();
+  const recoveryKeyHash = KeyManager.hashRecoveryKey(recoveryKey);
+  const encryptedPrivateKey = KeyManager.encryptPrivateKey(privateKey, DEMO_PASSWORD);
+  const encryptedPrivateKeyRecovery = KeyManager.encryptPrivateKeyWithRecovery(privateKey, recoveryKey);
+  const passwordHash = await Argon2Service.hash(DEMO_PASSWORD);
+
+  const user = await prisma.user.create({
+    data: {
+      username,
+      email,
+      fullName,
+      role: 'ADMIN',
+      passwordHash,
+      publicKey,
+      encryptedPrivateKey,
+      recoveryKeyHash,
+      encryptedPrivateKeyRecovery,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      twoFactorBackupCodes: null,
+      emailVerified: true,
+    },
+  });
+
+  await prisma.userStats.create({
+    data: {
+      userId: user.id,
+      totalDocuments: 0,
+      totalSize: BigInt(0),
+      totalShared: 0,
+      totalDownloads: 0,
+      totalSignatures: 0,
+      totalTransfers: 0,
+      totalRestores: 0,
+      totalUnpins: 0,
+    },
+  });
+
+  await prisma.notificationPreference.create({
+    data: {
+      userId: user.id,
+      emailEnabled: true,
+      pushEnabled: true,
+      typePreferences: {
+        FILE_SHARED: true,
+        FILE_SIGNED: true,
+        NEW_VERSION: true,
+      },
+    },
+  });
+
+  await prisma.emailVerification.create({
+    data: {
+      userId: user.id,
+      token: `admin-email-token-${index}-${Date.now()}`,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      verified: true,
+      verifiedAt: new Date(),
+    },
+  });
+
+  const walletIds: string[] = [];
+  const walletAddresses: string[] = [];
+
+  for (let i = 0; i < 2; i += 1) {
+    const wallet = ethers.Wallet.createRandom();
+    const created = await prisma.wallet.create({
+      data: {
+        userId: user.id,
+        walletAddress: wallet.address.toLowerCase(),
+        nickname: i === 0 ? 'Principal' : `Secundaria ${i}`,
+        isPrimary: i === 0,
+        isConnected: true,
+      },
+    });
+
+    walletIds.push(created.id);
+    walletAddresses.push(created.walletAddress);
+  }
+
+  return {
+    id: user.id,
+    username,
+    email,
+    password: DEMO_PASSWORD,
+    walletIds,
+    walletAddresses,
+    ethWalletIndex: -1,
+  };
+}
+
 async function createDocumentsAndEvents(
   users: GeneratedUser[],
   config: ProfileConfig,
@@ -356,7 +759,7 @@ async function createDocumentsAndEvents(
       },
     });
 
-    const folder = await prisma.folder.create({
+    const rootFolder = await prisma.folder.create({
       data: {
         userId: owner.id,
         name: `${folderNames[u % folderNames.length]} ${u + 1}`,
@@ -366,10 +769,35 @@ async function createDocumentsAndEvents(
       },
     });
 
+    const childFolders = await Promise.all([
+      prisma.folder.create({
+        data: {
+          userId: owner.id,
+          parentId: rootFolder.id,
+          name: `Contratos ${u + 1}`,
+          description: 'Versiones contractuales y anexos',
+          color: '#1D4ED8',
+          icon: 'folder-open',
+        },
+      }),
+      prisma.folder.create({
+        data: {
+          userId: owner.id,
+          parentId: rootFolder.id,
+          name: `Evidencias ${u + 1}`,
+          description: 'Soportes, capturas y documentos complementarios',
+          color: '#0F766E',
+          icon: 'images',
+        },
+      }),
+    ]);
+    const availableFolders = [rootFolder, ...childFolders];
+
     for (let d = 0; d < config.docsPerUser; d += 1) {
       const docCreatedAt = new Date(baseDate + (u * 100 + d) * 60 * 60 * 1000);
       const docKind = docKinds[(u + d) % docKinds.length];
       const isArchived = d % 4 === 0;
+      const targetFolder = availableFolders[d % availableFolders.length];
 
       // Build a deterministic docId bytes32 so the seed is repeatable
       const docSeedKey = `doc-user${u}-doc${d}-${Date.now()}`;
@@ -407,17 +835,17 @@ async function createDocumentsAndEvents(
 
       const document = await prisma.document.create({
         data: {
-          name: `${docKind.name}_${owner.username}_${d + 1}.${docKind.ext}`,
-          description: 'Documento generado para pruebas E2E',
+          name: buildDocumentName(owner, d, docKind.ext),
+          description: `Documento de prueba para ${targetFolder.name.toLowerCase()} con historial de versiones y firmas cruzadas.`,
           mimeType: docKind.mime,
           size: BigInt(60000 + d * 1500),
           contentHash: randomHash('content', blockchainCounter),
           metadataHash: randomHash('metadata', blockchainCounter),
           fileExtension: docKind.ext,
           ownerId: owner.id,
-          folderId: folder.id,
+          folderId: targetFolder.id,
           categoryId: category.id,
-          tags: ['demo', 'qa', d % 2 === 0 ? 'legal' : 'finanzas', docKind.ext],
+          tags: ['demo', 'qa', targetFolder.name.toLowerCase(), d % 2 === 0 ? 'legal' : 'finanzas', docKind.ext],
           encryptedSymmetricKey: randomHash('sym', blockchainCounter),
           encryptionIV: Buffer.from(`iv-${blockchainCounter}`).toString('base64'),
           encryptionAuthTag: Buffer.from(`tag-${blockchainCounter}`).toString('base64'),
@@ -434,7 +862,7 @@ async function createDocumentsAndEvents(
 
       await prisma.event.create({
         data: {
-          eventType: 'DOCUMENT_CREATED',
+          eventType: 'DocumentCreated',
           userId: owner.id,
           documentId: document.id,
           metadata: {
@@ -450,7 +878,7 @@ async function createDocumentsAndEvents(
       });
 
       const versionCount = 1 + (d % config.maxVersionsPerDoc);
-      let latestVersionId = '';
+  const versionEntries: Array<{ id: string; versionNumber: number }> = [];
       // Version 1 was created inside createDocument on-chain; extra versions need createVersion txs
       let latestOnchainVersionNum = 1;
 
@@ -497,12 +925,14 @@ async function createDocumentsAndEvents(
             createdAt: new Date(docCreatedAt.getTime() + (v + 1) * 20 * 60 * 1000),
           },
         });
-
-        latestVersionId = version.id;
+        versionEntries.push({
+          id: version.id,
+          versionNumber: v + 1,
+        });
 
         await prisma.event.create({
           data: {
-            eventType: 'DOCUMENT_VERSION_CREATED',
+            eventType: 'VersionCreated',
             userId: owner.id,
             documentId: document.id,
             metadata: {
@@ -520,6 +950,9 @@ async function createDocumentsAndEvents(
       const signers = users.filter((candidate) => candidate.id !== owner.id).slice(0, config.signaturesPerDoc);
       for (let s = 0; s < signers.length; s += 1) {
         const signer = signers[s];
+        const selectedVersion = versionEntries[(s + d) % versionEntries.length] ?? versionEntries[versionEntries.length - 1];
+        const versionNumberToSign = Math.max(1, Math.min(selectedVersion.versionNumber, latestOnchainVersionNum));
+        const signedAt = new Date(docCreatedAt.getTime() + (s + 1) * 50 * 60 * 1000);
 
         let sigTxHash = txHash(blockchainCounter + s + 99);
         let sigBlockNumber = 9800 + blockchainCounter + s;
@@ -537,7 +970,7 @@ async function createDocumentsAndEvents(
               .then((tx: ethers.ContractTransactionResponse) => tx.wait(1));
 
             const onchainDoc = await (bc.contract.connect(ownerSigner) as ethers.Contract).getDocument(docBytes32);
-            const versionToSign = Number(onchainDoc.latestVersion ?? 0n);
+            const versionToSign = Math.min(Number(onchainDoc.latestVersion ?? 0n), versionNumberToSign);
             if (versionToSign <= 0) {
               throw new Error('No valid on-chain version to sign');
             }
@@ -564,35 +997,36 @@ async function createDocumentsAndEvents(
         const signature = await prisma.documentSignature.create({
           data: {
             documentId: document.id,
-            versionId: latestVersionId,
+            versionId: selectedVersion.id,
             userId: signer.id,
             signerWalletId: signer.walletIds[0],
             blockchainStatus: BlockchainStatus.SYNCED,
             blockchainTxHash: sigTxHash,
-            signedAt: new Date(docCreatedAt.getTime() + (s + 1) * 50 * 60 * 1000),
+            signedAt,
           },
         });
 
         await prisma.event.create({
           data: {
-            eventType: 'DOCUMENT_SIGNED',
+            eventType: 'DocumentSigned',
             userId: signer.id,
             documentId: document.id,
             metadata: {
               signatureId: signature.id,
               signerWallet: signer.walletAddresses[0],
+              versionNumber: selectedVersion.versionNumber,
             },
             transactionHash: signature.blockchainTxHash,
-              blockNumber: sigBlockNumber,
-              blockTimestamp: new Date(docCreatedAt.getTime() + (s + 1) * 50 * 60 * 1000),
-              gasUsed: sigGasUsed,
-            createdAt: new Date(docCreatedAt.getTime() + (s + 1) * 50 * 60 * 1000),
+            blockNumber: sigBlockNumber,
+            blockTimestamp: signedAt,
+            gasUsed: sigGasUsed,
+            createdAt: signedAt,
           },
         });
 
         await prisma.event.create({
           data: {
-            eventType: 'SHARE_CONFIRMED',
+            eventType: 'DocumentShared',
             userId: owner.id,
             documentId: document.id,
             metadata: {
@@ -601,6 +1035,7 @@ async function createDocumentsAndEvents(
             },
             transactionHash: txHash(blockchainCounter + s + 199),
             blockNumber: 9900 + blockchainCounter + s,
+            blockTimestamp: new Date(docCreatedAt.getTime() + (s + 1) * 55 * 60 * 1000),
             createdAt: new Date(docCreatedAt.getTime() + (s + 1) * 55 * 60 * 1000),
           },
         });
@@ -608,7 +1043,7 @@ async function createDocumentsAndEvents(
         await prisma.notification.create({
           data: {
             userId: signer.id,
-            type: 'DOCUMENT_SHARED',
+            type: 'FILE_SHARED',
             title: 'Nuevo documento compartido',
             message: `${owner.username} compartio ${document.name} contigo`,
             link: `/app/documents/${document.id}`,
@@ -620,13 +1055,31 @@ async function createDocumentsAndEvents(
             readAt: s % 2 === 0 ? new Date(docCreatedAt.getTime() + 65 * 60 * 1000) : null,
           },
         });
+
+        await prisma.notification.create({
+          data: {
+            userId: owner.id,
+            type: 'FILE_SIGNED',
+            title: 'Documento firmado',
+            message: `${signer.username} firmo la version ${selectedVersion.versionNumber} de ${document.name}`,
+            link: `/app/documents/${document.id}`,
+            data: {
+              documentId: document.id,
+              signerId: signer.id,
+              versionId: selectedVersion.id,
+              versionNumber: selectedVersion.versionNumber,
+            },
+            isRead: s === 0 && d % 2 === 0,
+            readAt: s === 0 && d % 2 === 0 ? new Date(signedAt.getTime() + 10 * 60 * 1000) : null,
+          },
+        });
       }
 
       if (d % 3 === 0) {
         const recipient = users[(u + 1) % users.length];
         await prisma.event.create({
           data: {
-            eventType: 'DOCUMENT_TRANSFERRED',
+            eventType: 'DocumentTransferred',
             userId: owner.id,
             documentId: document.id,
             metadata: {
@@ -635,6 +1088,7 @@ async function createDocumentsAndEvents(
             },
             transactionHash: txHash(blockchainCounter + 300),
             blockNumber: 10000 + blockchainCounter,
+            blockTimestamp: new Date(docCreatedAt.getTime() + 90 * 60 * 1000),
             createdAt: new Date(docCreatedAt.getTime() + 90 * 60 * 1000),
           },
         });
@@ -643,7 +1097,7 @@ async function createDocumentsAndEvents(
       if (d % 2 === 0) {
         await prisma.event.create({
           data: {
-            eventType: 'DOCUMENT_RESTORED',
+            eventType: 'VersionRestored',
             userId: owner.id,
             documentId: document.id,
             metadata: {
@@ -651,6 +1105,7 @@ async function createDocumentsAndEvents(
             },
             transactionHash: txHash(blockchainCounter + 400),
             blockNumber: 10100 + blockchainCounter,
+            blockTimestamp: new Date(docCreatedAt.getTime() + 100 * 60 * 1000),
             createdAt: new Date(docCreatedAt.getTime() + 100 * 60 * 1000),
           },
         });
@@ -659,7 +1114,7 @@ async function createDocumentsAndEvents(
       if (document.isArchived) {
         await prisma.event.create({
           data: {
-            eventType: 'DOCUMENT_ARCHIVED',
+            eventType: 'DocumentArchived',
             userId: owner.id,
             documentId: document.id,
             metadata: {
@@ -667,6 +1122,7 @@ async function createDocumentsAndEvents(
             },
             transactionHash: txHash(blockchainCounter + 500),
             blockNumber: 10200 + blockchainCounter,
+            blockTimestamp: new Date(docCreatedAt.getTime() + 110 * 60 * 1000),
             createdAt: new Date(docCreatedAt.getTime() + 110 * 60 * 1000),
           },
         });
@@ -701,14 +1157,14 @@ async function recomputeStats(users: GeneratedUser[]): Promise<void> {
         totalShares: await prisma.event.count({
           where: {
             documentId: doc.id,
-            eventType: 'SHARE_CONFIRMED',
+            eventType: 'DocumentShared',
           },
         }),
         totalViews,
         totalRestores: await prisma.event.count({
           where: {
             documentId: doc.id,
-            eventType: 'DOCUMENT_RESTORED',
+            eventType: 'VersionRestored',
           },
         }),
       },
@@ -719,14 +1175,14 @@ async function recomputeStats(users: GeneratedUser[]): Promise<void> {
         totalShares: await prisma.event.count({
           where: {
             documentId: doc.id,
-            eventType: 'SHARE_CONFIRMED',
+            eventType: 'DocumentShared',
           },
         }),
         totalViews,
         totalRestores: await prisma.event.count({
           where: {
             documentId: doc.id,
-            eventType: 'DOCUMENT_RESTORED',
+            eventType: 'VersionRestored',
           },
         }),
       },
@@ -747,19 +1203,19 @@ async function recomputeStats(users: GeneratedUser[]): Promise<void> {
         totalDocuments: ownedDocs.length,
         totalSize,
         totalShared: await prisma.event.count({
-          where: { userId: user.id, eventType: 'SHARE_CONFIRMED' },
+          where: { userId: user.id, eventType: 'DocumentShared' },
         }),
         totalDownloads: await prisma.notification.count({
-          where: { userId: user.id, type: 'DOCUMENT_SHARED' },
+          where: { userId: user.id, type: 'FILE_SHARED' },
         }),
         totalSignatures: await prisma.documentSignature.count({
           where: { userId: user.id },
         }),
         totalTransfers: await prisma.event.count({
-          where: { userId: user.id, eventType: 'DOCUMENT_TRANSFERRED' },
+          where: { userId: user.id, eventType: 'DocumentTransferred' },
         }),
         totalRestores: await prisma.event.count({
-          where: { userId: user.id, eventType: 'DOCUMENT_RESTORED' },
+          where: { userId: user.id, eventType: 'VersionRestored' },
         }),
         totalUnpins: 0,
         lastActivityAt: new Date(),
@@ -782,10 +1238,10 @@ async function recomputeStats(users: GeneratedUser[]): Promise<void> {
       }))._sum.size || BigInt(0),
       newStorage: BigInt(0),
       totalEvents: await prisma.event.count(),
-      totalShares: await prisma.event.count({ where: { eventType: 'SHARE_CONFIRMED' } }),
+      totalShares: await prisma.event.count({ where: { eventType: 'DocumentShared' } }),
       totalSignatures: await prisma.documentSignature.count(),
-      totalTransfers: await prisma.event.count({ where: { eventType: 'DOCUMENT_TRANSFERRED' } }),
-      totalRestores: await prisma.event.count({ where: { eventType: 'DOCUMENT_RESTORED' } }),
+      totalTransfers: await prisma.event.count({ where: { eventType: 'DocumentTransferred' } }),
+      totalRestores: await prisma.event.count({ where: { eventType: 'VersionRestored' } }),
       totalUnpins: 0,
       lastSyncedBlock: 11000,
     },
@@ -826,6 +1282,7 @@ async function printSummary(profile: ProfileName, generatedUsers: GeneratedUser[
   };
 
   const demo = generatedUsers[0];
+  const captureUser = generatedUsers[1];
 
   console.log('\n============================================');
   console.log(`Perfil ejecutado: ${profile}`);
@@ -845,9 +1302,19 @@ async function printSummary(profile: ProfileName, generatedUsers: GeneratedUser[
   console.log(`Email:   ${demo.email}`);
   console.log(`Clave:   ${demo.password}`);
   console.log(`Wallet principal: ${demo.walletAddresses[0]}`);
+  if (captureUser) {
+    console.log('--------------------------------------------');
+    console.log('Usuario preparado para capturas/manual QA:');
+    console.log(`Usuario: ${captureUser.username}`);
+    console.log(`Email:   ${captureUser.email}`);
+    console.log(`Wallets creadas: ${captureUser.walletAddresses.length}/${MAX_WALLETS_PER_USER}`);
+  }
   console.log('============================================\n');
 
   console.log('Credenciales admin por seed: admin / Admin123!');
+  QA_ADMIN_IDENTITIES.forEach((admin) => {
+    console.log(`Admin adicional QA: ${admin.username} / ${DEMO_PASSWORD}`);
+  });
 }
 
 async function main(): Promise<void> {
@@ -860,19 +1327,33 @@ async function main(): Promise<void> {
   console.log(`Incluye seed: ${options.includeSeed ? 'si' : 'no'}`);
 
   if (options.reset) {
-    runReset(options.includeSeed);
+    await runReset(options.includeSeed);
   }
+
+  await acquireSeedLock();
 
   console.log('[2/6] Creando usuarios demo, wallets y preferencias...');
 
   const generatedUsers: GeneratedUser[] = [];
   const bc = await setupBlockchain();
+  const defaultAdmin = await ensureDefaultAdmin(bc);
+  generatedUsers.push(defaultAdmin);
+
   for (let i = 0; i < profileConfig.users; i += 1) {
-    const generated = await createUser(i, profileConfig.walletsPerUser, bc);
+    const generated = await createUser(i, getWalletCountForUser(i, profileConfig), bc);
     generatedUsers.push(generated);
   }
 
-  await createDocumentsAndEvents(generatedUsers, profileConfig, bc);
+  for (let i = 0; i < QA_ADMIN_IDENTITIES.length; i += 1) {
+    const admin = await createAdminUser(i);
+    generatedUsers.push(admin);
+  }
+
+  await createDocumentsAndEvents(
+    generatedUsers.filter((user) => user.ethWalletIndex >= 0),
+    profileConfig,
+    bc,
+  );
   await recomputeStats(generatedUsers);
 
   console.log('[5/6] Generando sesiones de login de prueba...');
@@ -897,5 +1378,6 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
+    await releaseSeedLock();
     await prisma.$disconnect();
   });

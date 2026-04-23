@@ -623,11 +623,13 @@ describe('BlockchainQueries', () => {
     it('should return array of document IDs', async () => {
       const mockDocs = ['0xDoc1', '0xDoc2', '0xDoc3'];
       mockContracts.documentRegistry.getUserDocuments.mockResolvedValue(mockDocs);
+      mockContracts.documentRegistry.canView.mockResolvedValue(true);
 
       const result = await BlockchainQueries.getUserDocuments('0xUser1');
 
       expect(result).toEqual(mockDocs);
       expect(mockContracts.documentRegistry.getUserDocuments).toHaveBeenCalledWith('0xUser1');
+      expect(mockContracts.documentRegistry.canView).toHaveBeenCalledTimes(mockDocs.length);
     });
 
     it('should return empty array if user has no documents', async () => {

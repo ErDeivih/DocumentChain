@@ -8,6 +8,7 @@ DocumentChain es un sistema de gestion documental con trazabilidad blockchain, v
 - Backend: Express + TypeScript + Prisma
 - Base de datos: PostgreSQL
 - Blockchain local: Hardhat
+- Persistencia de binarios: IPFS con proveedor configurable (Pinata o cluster propio)
 - Correo saliente: Postfix en Docker
 - Documentacion academica: anexos LaTeX
 
@@ -25,6 +26,7 @@ Servicios expuestos:
 - Backend API: http://localhost:3000
 - PostgreSQL: localhost:5433
 - Hardhat RPC: http://localhost:8545
+- IPFS Kubo y cluster: opcionales con perfil `ipfs-cluster`
 - SMTP Postfix: localhost:1587
 
 Comprobaciones rapidas:
@@ -33,6 +35,16 @@ Comprobaciones rapidas:
 docker compose ps
 Invoke-WebRequest -UseBasicParsing http://localhost:3000/health
 ```
+
+Para dejar el entorno local en un estado QA reproducible, con Hardhat redeployado y datos coherentes para Playwright, el flujo canonico es:
+
+```powershell
+.\reseed-dev.ps1
+```
+
+Ese flujo sincroniza automaticamente la direccion desplegada del contrato en backend y frontend antes de regenerar la seed QA.
+
+Los scripts PowerShell del repositorio ya fijan internamente la raiz del proyecto, por lo que no dependen del directorio activo desde el que se invoquen.
 
 ## Variables de entorno
 
@@ -49,6 +61,26 @@ Para trabajo local fuera de Docker, `backend/.env` debe apuntar a PostgreSQL en 
 ```dotenv
 DATABASE_URL="postgresql://documentchain:documentchain@localhost:5433/documentchain?schema=public"
 ```
+
+## IPFS: proveedor gestionado o infraestructura propia
+
+El backend ya soporta dos modos reales de almacenamiento IPFS:
+
+- `IPFS_PROVIDER=pinata`: arranque rapido, pero sujeto a cuotas del proveedor.
+- `IPFS_PROVIDER=cluster`: soberania operativa sobre nodos propios, sin dependencia funcional de terceros.
+
+Si quieres usar el clúster IPFS propio incluido en el repositorio con el compose principal, activa el perfil `ipfs-cluster` y fuerza el proveedor en el entorno de Docker:
+
+```powershell
+$env:IPFS_PROVIDER = "cluster"
+$env:IPFS_API_URL = "http://ipfs-node-1:5001"
+$env:IPFS_CLUSTER_API_URL = "http://ipfs-cluster:9094"
+$env:IPFS_GATEWAY_URL = "http://ipfs-node-1:8080"
+
+docker compose --profile ipfs-cluster up -d postgres hardhat postfix ipfs-node-1 ipfs-node-2 ipfs-node-3 ipfs-cluster backend frontend
+```
+
+Ese modo reutiliza la configuracion de `ipfs-cluster/`, levanta tres nodos Kubo y publica una API de `ipfs-cluster` accesible por el backend. Para desarrollo puntual Pinata sigue siendo valido; para despliegue autonomo y para evitar limites de cuota, el camino recomendado es el clúster propio con volúmenes persistentes.
 
 ## Correo con Postfix del proyecto
 
@@ -193,8 +225,14 @@ npm test -- --run
 E2E principales:
 
 ```powershell
-Set-Location frontend
-npx playwright test e2e/shared-routes.spec.ts --project=chromium --reporter=line
+.\scripts\run-playwright.ps1 -Project chromium -Arguments @('e2e/shared-routes.spec.ts','--reporter=line')
+```
+
+Validacion multi-navegador disponible:
+
+```powershell
+.\scripts\run-playwright.ps1 -Project firefox
+.\scripts\run-playwright.ps1 -Project webkit
 ```
 
 Anexos:
@@ -203,6 +241,17 @@ Anexos:
 Set-Location anexos
 .\build.ps1
 ```
+
+## Autodespliegue en Ubuntu
+
+Si quieres que un servidor Ubuntu local actualice el stack automaticamente tras cada push en GitHub, el repositorio ya incluye:
+
+- [/.github/workflows/deploy-local-server.yml](.github/workflows/deploy-local-server.yml) para runner self-hosted.
+- [/scripts/deploy-ubuntu-server.sh](scripts/deploy-ubuntu-server.sh) para reconstruir y relanzar el stack Docker.
+- [/.env.server.example](.env.server.example) como plantilla de configuracion del servidor.
+- [/docs/UBUNTU_SELF_HOSTED_DEPLOY.md](docs/UBUNTU_SELF_HOSTED_DEPLOY.md) con la puesta en marcha completa.
+
+Ese flujo esta pensado para entorno de pruebas sobre Ubuntu + Docker, no para produccion publica.
 
 ## Contenedores
 

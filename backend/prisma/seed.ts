@@ -50,7 +50,8 @@ async function main() {
       publicKey,
       encryptedPrivateKey,
       recoveryKeyHash,
-      encryptedPrivateKeyRecovery
+      encryptedPrivateKeyRecovery,
+      emailVerified: true,
     }
   });
 
@@ -84,6 +85,16 @@ async function main() {
       totalTransfers: 0,
       totalRestores: 0,
       totalUnpins: 0
+    }
+  });
+
+  await prisma.emailVerification.create({
+    data: {
+      userId: admin.id,
+      token: `seed-admin-email-token-${Date.now()}`,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      verified: true,
+      verifiedAt: new Date(),
     }
   });
 

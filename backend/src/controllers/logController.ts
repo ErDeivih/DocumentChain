@@ -3,6 +3,52 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../utils/logger';
 
+function parseLogLine(line: string) {
+  try {
+    const parsed = JSON.parse(line) as Record<string, unknown>;
+
+    if (parsed && typeof parsed === 'object') {
+      const { timestamp, level, message, ...metadata } = parsed;
+
+      return {
+        timestamp: typeof timestamp === 'string' ? timestamp : '',
+        level: typeof level === 'string' ? level.toUpperCase() : 'INFO',
+        message: typeof message === 'string' ? message : line,
+        metadata: Object.keys(metadata).length > 0 ? metadata : null,
+      };
+    }
+  } catch {
+    // Fallback to legacy text parsing below.
+  }
+
+  const legacyMatch = line.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(\w+)\]: (.+)$/);
+
+  if (legacyMatch) {
+    const [, timestamp, level, rest] = legacyMatch;
+    const jsonMatch = rest.match(/^(.+?)(\{.+\})$/);
+
+    if (jsonMatch) {
+      const [, message, jsonStr] = jsonMatch;
+
+      try {
+        const metadata = JSON.parse(jsonStr);
+        return {
+          timestamp,
+          level,
+          message: message.trim(),
+          metadata,
+        };
+      } catch {
+        return { timestamp, level, message: rest, metadata: null };
+      }
+    }
+
+    return { timestamp, level, message: rest, metadata: null };
+  }
+
+  return { timestamp: '', level: 'UNKNOWN', message: line, metadata: null };
+}
+
 /**
  * Obtener logs recientes
  */
@@ -28,41 +74,7 @@ export async function getLogs(req: Request, res: Response): Promise<void> {
     const maxLines = Math.min(parseInt(lines as string) || 100, 1000);
     const recentLines = allLines.slice(-maxLines);
     
-    // Parse JSON si es posible (para metadata)
-    const parsedLogs = recentLines.map(line => {
-      try {
-        // Formato: "2024-01-14 12:30:45 [INFO]: message {json}"
-        const match = line.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(\w+)\]: (.+)$/);
-        
-        if (match) {
-          const [, timestamp, level, rest] = match;
-          
-          // Intentar extraer JSON al final
-          const jsonMatch = rest.match(/^(.+?)(\{.+\})$/);
-          
-          if (jsonMatch) {
-            const [, message, jsonStr] = jsonMatch;
-            try {
-              const metadata = JSON.parse(jsonStr);
-              return {
-                timestamp,
-                level,
-                message: message.trim(),
-                metadata
-              };
-            } catch {
-              return { timestamp, level, message: rest, metadata: null };
-            }
-          }
-          
-          return { timestamp, level, message: rest, metadata: null };
-        }
-        
-        return { timestamp: '', level: 'UNKNOWN', message: line, metadata: null };
-      } catch {
-        return { timestamp: '', level: 'UNKNOWN', message: line, metadata: null };
-      }
-    });
+    const parsedLogs = recentLines.map(parseLogLine);
     
     res.json({
       logs: parsedLogs,

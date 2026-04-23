@@ -4,6 +4,7 @@ import {
   getHardhatAddress,
   installHardhatWallet,
   loginWithStoredSession,
+  setUserEmailVerified,
 } from './helpers';
 
 test.describe('Wallet management flows', () => {
@@ -24,11 +25,13 @@ test.describe('Wallet management flows', () => {
     const firstWalletAddress = getHardhatAddress(firstWalletIndex);
     const secondWalletAddress = getHardhatAddress(secondWalletIndex);
     const secondWalletLabel = 'Wallet secundaria E2E';
+    const walletManagerHeading = page.getByRole('heading', { name: 'Gestión de Wallets' });
 
     const registerResponse = await request.post(`${API_BASE_URL}/auth/register`, {
       data: walletUser,
     });
     expect(registerResponse.ok()).toBeTruthy();
+    setUserEmailVerified(walletUser.email);
 
     const session = await loginWithStoredSession(page, request, {
       username: walletUser.username,
@@ -39,7 +42,7 @@ test.describe('Wallet management flows', () => {
     await page.goto('/app/profile');
 
     await expect(page.getByRole('heading', { name: 'Perfil', exact: true })).toBeVisible();
-    await expect(page.getByText('Gestión de Wallets')).toBeVisible();
+    await expect(walletManagerHeading).toBeVisible();
 
     await page.getByRole('button', { name: 'Conectar Wallet' }).click();
     await page.getByRole('button', { name: 'Navegador' }).click();
@@ -57,7 +60,8 @@ test.describe('Wallet management flows', () => {
 
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Perfil', exact: true })).toBeVisible();
-    await page.getByText('Gestión de Wallets').scrollIntoViewIfNeeded();
+    await expect(walletManagerHeading).toBeVisible();
+    await walletManagerHeading.scrollIntoViewIfNeeded();
     await expect(page.getByText(new RegExp(secondWalletAddress, 'i'))).toBeVisible({ timeout: 30000 });
 
     const walletRowSelector = 'div.flex.items-center.justify-between.p-3.border.rounded-lg';
@@ -107,7 +111,8 @@ test.describe('Wallet management flows', () => {
     expect(setPrimaryResponse.ok()).toBeTruthy();
 
     await page.reload();
-    await page.getByText('Gestión de Wallets').scrollIntoViewIfNeeded();
+    await expect(walletManagerHeading).toBeVisible();
+    await walletManagerHeading.scrollIntoViewIfNeeded();
 
     const renamedPrimaryWalletCard = page.locator(walletRowSelector).filter({
       hasText: secondWalletLabel,
@@ -127,7 +132,8 @@ test.describe('Wallet management flows', () => {
     expect(deleteResponse.ok()).toBeTruthy();
 
     await page.reload();
-    await page.getByText('Gestión de Wallets').scrollIntoViewIfNeeded();
+    await expect(walletManagerHeading).toBeVisible();
+    await walletManagerHeading.scrollIntoViewIfNeeded();
     const renamedWalletAfterDelete = page.locator(walletRowSelector).filter({
       hasText: secondWalletLabel,
     }).first();

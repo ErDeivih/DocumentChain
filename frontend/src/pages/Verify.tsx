@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { Header } from '../components/layout/Header';
 import AlertMessage from '../components/ui/AlertMessage';
 import { Badge } from '../components/ui/Badge';
 import { verifyByFile, verifyByIPFS, verifyByBlockchain } from '../api/verification';
@@ -25,6 +27,7 @@ import {
 type VerificationMethod = 'file' | 'ipfs' | 'blockchain';
 
 export const Verify: React.FC = () => {
+  const location = useLocation();
   const [method, setMethod] = useState<VerificationMethod>('file');
   const [file, setFile] = useState<File | null>(null);
   const [ipfsHash, setIpfsHash] = useState('');
@@ -87,7 +90,7 @@ export const Verify: React.FC = () => {
     }
   };
 
-  return (
+  const content = (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Verificar Documento</h1>
@@ -453,6 +456,21 @@ export const Verify: React.FC = () => {
           )}
         </div>
       )}
+    </div>
+  );
+
+  if (location.pathname.startsWith('/app')) {
+    return content;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="px-4 py-8 sm:px-6 lg:px-8">
+        <div className="pt-2 sm:pt-4">
+          {content}
+        </div>
+      </main>
     </div>
   );
 };
