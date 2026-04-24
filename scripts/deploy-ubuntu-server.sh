@@ -206,7 +206,7 @@ done
 
 base_services=(postgres postfix hardhat)
 if [[ "$ENABLE_IPFS_CLUSTER" == "1" ]]; then
-  base_services+=(ipfs-node-1 ipfs-node-2 ipfs-node-3 ipfs-cluster)
+  base_services+=(ipfs-node-1 ipfs-cluster)
 fi
 
 log_step "2/7" "Starting base infrastructure services"
