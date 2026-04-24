@@ -15,15 +15,22 @@ function Wait-ForContainerHealth {
     )
 
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
-        $status = docker inspect $ContainerName --format "{{.State.Health.Status}}" 2>$null
+        $status = docker inspect $ContainerName --format "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" 2>$null
         if ($status -eq 'healthy') {
             return
+        }
+
+        if ($status -eq 'unhealthy' -or $status -eq 'exited' -or $status -eq 'dead') {
+            $recentLogs = docker logs $ContainerName --tail 120 2>&1
+            throw "El contenedor $ContainerName entro en estado '$status'. Logs recientes:`n$recentLogs"
         }
 
         Start-Sleep -Seconds $DelaySeconds
     }
 
-    throw "El contenedor $ContainerName no alcanzo estado healthy"
+    $finalStatus = docker inspect $ContainerName --format "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" 2>$null
+    $recentLogs = docker logs $ContainerName --tail 120 2>&1
+    throw "El contenedor $ContainerName no alcanzo estado healthy (estado final: '$finalStatus'). Logs recientes:`n$recentLogs"
 }
 
 function Wait-ForHttpRpc {
@@ -163,7 +170,7 @@ docker compose up -d --force-recreate --no-deps backend | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw 'No se pudo recrear el servicio backend'
 }
-Wait-ForContainerHealth -ContainerName 'documentchain-backend' -Attempts 30 -DelaySeconds 4
+Wait-ForContainerHealth -ContainerName 'documentchain-backend' -Attempts 50 -DelaySeconds 4
 
 Write-Host '[8/8] Verificando API y blockchain...' -ForegroundColor Yellow
 $health = Invoke-RestMethod -Uri 'http://localhost:3000/api/health/detailed' -Method Get -TimeoutSec 15
