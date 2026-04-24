@@ -76,11 +76,12 @@ $env:IPFS_PROVIDER = "cluster"
 $env:IPFS_API_URL = "http://ipfs-node-1:5001"
 $env:IPFS_CLUSTER_API_URL = "http://ipfs-cluster:9094"
 $env:IPFS_GATEWAY_URL = "http://ipfs-node-1:8080"
+$env:IPFS_DATA_ROOT = "/opt/documentchain/ipfs"
 
-docker compose --profile ipfs-cluster up -d postgres hardhat postfix ipfs-node-1 ipfs-node-2 ipfs-node-3 ipfs-cluster backend frontend
+docker compose --profile ipfs-cluster up -d postgres hardhat postfix ipfs-node-1 ipfs-cluster backend frontend
 ```
 
-Ese modo reutiliza la configuracion de `ipfs-cluster/`, levanta tres nodos Kubo y publica una API de `ipfs-cluster` accesible por el backend. Para desarrollo puntual Pinata sigue siendo valido; para despliegue autonomo y para evitar limites de cuota, el camino recomendado es el clúster propio con volúmenes persistentes.
+Ese modo reutiliza la configuracion de `ipfs-cluster/`, levanta un nodo Kubo persistente mas un peer de `ipfs-cluster` accesible por el backend y deja los datos fuera del checkout si defines `IPFS_DATA_ROOT`. Para desarrollo puntual Pinata sigue siendo valido; para despliegue autonomo y para evitar limites de cuota, el camino recomendado en una sola maquina es este modo self-hosted persistente.
 
 ## Correo con Postfix del proyecto
 

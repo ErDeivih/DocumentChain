@@ -10,6 +10,7 @@ AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
 COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
 BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
 BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
+IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-}"
 
 log_step() {
   printf '\n[%s] %s\n' "$1" "$2"
@@ -37,6 +38,16 @@ ensure_env_file() {
   fi
 
   cp "$example_file" "$target_file"
+}
+
+ensure_directory() {
+  local dir_path="$1"
+
+  if [[ -z "$dir_path" ]]; then
+    return
+  fi
+
+  mkdir -p "$dir_path"
 }
 
 upsert_env_value() {
@@ -125,10 +136,13 @@ AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
 COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
 BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
 BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
+IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-$ROOT_DIR/ipfs-cluster/runtime}"
 
 profile_args=()
 if [[ "$ENABLE_IPFS_CLUSTER" == "1" ]]; then
   profile_args+=(--profile ipfs-cluster)
+  ensure_directory "$IPFS_DATA_ROOT/node-1"
+  ensure_directory "$IPFS_DATA_ROOT/cluster-1"
 fi
 
 require_command docker

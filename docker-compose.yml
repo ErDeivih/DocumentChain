@@ -92,50 +92,18 @@ services:
       - "5001:5001"
       - "8080:8080"
     volumes:
-      - ./ipfs-cluster/ipfs-data-1:/data/ipfs
+      - type: bind
+        source: ${IPFS_DATA_ROOT:-./ipfs-cluster/runtime}/node-1
+        target: /data/ipfs
     environment:
       - IPFS_PROFILE=server
     command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
     networks:
       - documentchain
 
-  # IPFS Kubo node 2 - extra replica for self-hosted mode
-  ipfs-node-2:
-    profiles: ["ipfs-cluster"]
-    image: ipfs/kubo:latest
-    container_name: documentchain-ipfs-2
-    restart: unless-stopped
-    ports:
-      - "4002:4001"
-      - "5002:5001"
-      - "8081:8080"
-    volumes:
-      - ./ipfs-cluster/ipfs-data-2:/data/ipfs
-    environment:
-      - IPFS_PROFILE=server
-    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
-    networks:
-      - documentchain
-
-  # IPFS Kubo node 3 - extra replica for self-hosted mode
-  ipfs-node-3:
-    profiles: ["ipfs-cluster"]
-    image: ipfs/kubo:latest
-    container_name: documentchain-ipfs-3
-    restart: unless-stopped
-    ports:
-      - "4003:4001"
-      - "5003:5001"
-      - "8082:8080"
-    volumes:
-      - ./ipfs-cluster/ipfs-data-3:/data/ipfs
-    environment:
-      - IPFS_PROFILE=server
-    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
-    networks:
-      - documentchain
-
-  # IPFS Cluster service exposing REST API and IPFS proxy for self-hosted mode
+  # IPFS Cluster peer exposing REST API and IPFS proxy for self-hosted mode.
+  # On a single Ubuntu host this keeps the pinning API and persistence without
+  # paying the cost of extra local peers that do not add a separate failure domain.
   ipfs-cluster:
     profiles: ["ipfs-cluster"]
     image: ipfs/ipfs-cluster:latest
@@ -146,15 +114,25 @@ services:
       - "9095:9095"
       - "9096:9096"
     volumes:
-      - ./ipfs-cluster/cluster-config:/data/ipfs-cluster
+      - type: bind
+        source: ${IPFS_DATA_ROOT:-./ipfs-cluster/runtime}/cluster-1
+        target: /data/ipfs-cluster
     environment:
+      - CLUSTER_PEERNAME=documentchain-cluster-1
+      - CLUSTER_SECRET=${IPFS_CLUSTER_SECRET:-1b07733842fbadb651ebcf4093af2db75b2ce207abec189aacb802466aff33d3}
+      - CLUSTER_LEAVEONSHUTDOWN=false
+      - CLUSTER_IPFSHTTP_NODEMULTIADDRESS=/dns4/ipfs-node-1/tcp/5001
+      - CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS=/ip4/0.0.0.0/tcp/9094
+      - CLUSTER_IPFSPROXY_LISTENMULTIADDRESS=/ip4/0.0.0.0/tcp/9095
+      - CLUSTER_CLUSTER_LISTEN_MULTIADDRESS=/ip4/0.0.0.0/tcp/9096
+      - CLUSTER_CONSENSUS_CRDT_CLUSTERNAME=documentchain
+      - CLUSTER_CONSENSUS_CRDT_TRUSTEDPEERS=*
+      - CLUSTER_MONITORPINGINTERVAL=15s
       - CLUSTER_RESTAPI_CORS_ALLOWED_ORIGINS=*
       - CLUSTER_RESTAPI_CORS_ALLOWED_HEADERS=*
       - CLUSTER_RESTAPI_CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
     depends_on:
       - ipfs-node-1
-      - ipfs-node-2
-      - ipfs-node-3
     networks:
       - documentchain
 

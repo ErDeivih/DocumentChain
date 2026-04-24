@@ -47,6 +47,7 @@ Edita `/opt/documentchain/.env.server` y ajusta al menos:
 - `IPFS_API_URL`
 - `IPFS_CLUSTER_API_URL`
 - `IPFS_GATEWAY_URL`
+- `IPFS_DATA_ROOT`
 
 Si vas a abrir la aplicacion desde otro equipo de la misma red, usa la IP LAN fija del servidor en esas variables. No dejes `localhost` en `VITE_BLOCKCHAIN_RPC_URL`, porque el navegador del otro equipo intentaria conectarse a su propia maquina en lugar de al nodo Hardhat del servidor.
 
@@ -57,6 +58,12 @@ Ejemplo para una LAN domestica:
 - `VITE_BLOCKCHAIN_RPC_URL=http://192.168.1.50:8545`
 
 La forma mas sencilla de mantener esa IP estable es reservarla en el router por DHCP o fijarla con Netplan en Ubuntu.
+
+Para el modo self-hosted con IPFS propio, la configuracion recomendada en un solo Ubuntu es un nodo Kubo persistente mas un peer de `ipfs-cluster` persistente. La persistencia debe vivir fuera del checkout del repositorio para que `actions/checkout` no toque los datos. Por eso conviene fijar:
+
+- `IPFS_DATA_ROOT=/opt/documentchain/ipfs`
+
+Ese directorio guardara el datastore de Kubo y el estado del peer de `ipfs-cluster` entre redeploys.
 
 Si no quieres IPFS Cluster en el servidor, cambia `IPFS_PROVIDER=pinata` y pon `ENABLE_IPFS_CLUSTER=0`.
 
@@ -75,7 +82,7 @@ Cuando llegue un push a `main` o `master`, GitHub Actions ejecutara este proceso
 3. Generacion de `backend/.env` y `frontend/.env` si no existen.
 4. Carga de `/opt/documentchain/.env.server`.
 5. Construccion de imagenes Docker.
-6. Arranque de PostgreSQL, Postfix, Hardhat y, opcionalmente, IPFS Cluster.
+6. Arranque de PostgreSQL, Postfix, Hardhat y, opcionalmente, el nodo IPFS local con `ipfs-cluster`.
 7. Aplicacion de migraciones Prisma con la imagen del backend.
 8. Arranque o recreacion de backend y frontend.
 9. Espera activa hasta que los health checks queden en verde.

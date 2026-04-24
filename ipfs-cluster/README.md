@@ -1,12 +1,19 @@
 # IPFS Cluster - DocumentChain
 
-Cluster de IPFS con múltiples nodos para almacenamiento descentralizado y replicado de documentos.
+Configuracion de IPFS self-hosted para DocumentChain.
+
+En un unico servidor Ubuntu, la opcion recomendada es ejecutar:
+
+- 1 nodo Kubo persistente para almacenar el contenido.
+- 1 peer de `ipfs-cluster` persistente para exponer la API de pinning usada por el backend.
+
+Levantar varios nodos Kubo dentro de la misma maquina no aporta una segunda zona de fallo real y solo aumenta el tiempo de despliegue, el consumo de disco y la complejidad operativa. Si en el futuro se quiere redundancia real, la ampliacion correcta es anadir peers de `ipfs-cluster` y nodos Kubo en maquinas distintas.
 
 ## Configuración
 
-### Estructura
-- **3 Nodos IPFS** (ipfs-node-1, ipfs-node-2, ipfs-node-3)
-- **1 IPFS Cluster** (coordinador de replicación y pinning)
+### Estructura recomendada
+- **1 nodo IPFS** (`ipfs-node-1`)
+- **1 peer de IPFS Cluster** (`ipfs-cluster`)
 
 ### Puertos
 
@@ -15,20 +22,10 @@ Cluster de IPFS con múltiples nodos para almacenamiento descentralizado y repli
 - `5001`: API
 - `8080`: Gateway HTTP
 
-#### IPFS Node 2
-- `4002`: Swarm
-- `5002`: API
-- `8081`: Gateway HTTP
-
-#### IPFS Node 3
-- `4003`: Swarm
-- `5003`: API
-- `8082`: Gateway HTTP
-
 #### IPFS Cluster
 - `9094`: Cluster REST API (usado por el backend)
 - `9095`: Cluster IPFS Proxy
-- `9096`: Cluster Swarm
+- `9096`: Cluster Swarm del peer
 
 ## Uso
 
@@ -65,21 +62,12 @@ docker-compose down -v
 
 ## Pinning
 
-Los archivos subidos a través del backend se pinnean automáticamente en todos los nodos del cluster, asegurando:
-- **Redundancia**: Los archivos están replicados en 3 nodos
-- **Disponibilidad**: Si un nodo falla, los demás mantienen los archivos
-- **Persistencia**: Los archivos no se eliminan del cluster hasta que se haga unpin explícitamente
+Los archivos subidos a traves del backend se pinnean automaticamente en el nodo local gestionado por `ipfs-cluster`, asegurando:
+- **Persistencia**: El contenido queda en el datastore local hasta que se haga `unpin` explicito.
+- **Soberania operativa**: No depende de Pinata ni de otro proveedor externo.
+- **Base limpia para crecer**: Si mas adelante se necesitan replicas reales, se anaden peers en otras maquinas sin cambiar el backend.
 
 ## Troubleshooting
-
-### Los nodos no se conectan entre sí
-
-```bash
-# Ver peers de cada nodo
-docker-compose exec ipfs-node-1 ipfs swarm peers
-docker-compose exec ipfs-node-2 ipfs swarm peers
-docker-compose exec ipfs-node-3 ipfs swarm peers
-```
 
 ### Ver archivos pinneados
 
