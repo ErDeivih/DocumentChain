@@ -160,8 +160,25 @@ function getIPFSAdapter(): IPFSAdapterInterface {
   }
 }
 
-// Singleton instance - automatically selects provider based on env
-export const ipfsClient = getIPFSAdapter();
+let ipfsClientInstance: IPFSAdapterInterface | null = null;
+
+function getOrCreateIPFSClient(): IPFSAdapterInterface {
+  if (!ipfsClientInstance) {
+    ipfsClientInstance = getIPFSAdapter();
+  }
+
+  return ipfsClientInstance;
+}
+
+// Lazy client proxy: avoids crashing application startup when provider credentials
+// are missing, and defers provider validation until an IPFS operation is invoked.
+export const ipfsClient = new Proxy({} as IPFSAdapterInterface, {
+  get(_target, prop, receiver) {
+    const activeClient = getOrCreateIPFSClient();
+    const value = Reflect.get(activeClient as unknown as object, prop, receiver);
+    return typeof value === 'function' ? value.bind(activeClient) : value;
+  },
+}) as IPFSAdapterInterface;
 
 // Legacy export for backward compatibility
 export const ipfsClusterClient = ipfsClient;
