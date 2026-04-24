@@ -142,7 +142,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/health', healthRoutes);
+app.use('/health', healthRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
