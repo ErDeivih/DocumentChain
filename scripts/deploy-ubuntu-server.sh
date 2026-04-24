@@ -7,6 +7,9 @@ SERVER_ENV_FILE="${SERVER_ENV_FILE:-$ROOT_DIR/.env.server}"
 ENABLE_IPFS_CLUSTER="${ENABLE_IPFS_CLUSTER:-0}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
 AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
+COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
+BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
+BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
 
 log_step() {
   printf '\n[%s] %s\n' "$1" "$2"
@@ -71,6 +74,30 @@ wait_for_health() {
   exit 1
 }
 
+build_service_with_retries() {
+  local service_name="$1"
+  local max_attempts="$2"
+  local delay_seconds="$3"
+  local attempt
+
+  for ((attempt=1; attempt<=max_attempts; attempt++)); do
+    printf 'Building %s (attempt %d/%d)\n' "$service_name" "$attempt" "$max_attempts"
+
+    if COMPOSE_PARALLEL_LIMIT="$COMPOSE_BUILD_PARALLEL_LIMIT" \
+      "${compose_cmd[@]}" "${profile_args[@]}" build "$service_name"; then
+      return
+    fi
+
+    if (( attempt == max_attempts )); then
+      printf 'Docker build failed for %s after %d attempts\n' "$service_name" "$max_attempts" >&2
+      exit 1
+    fi
+
+    printf 'Retrying %s in %d seconds after a transient build failure\n' "$service_name" "$delay_seconds" >&2
+    sleep "$delay_seconds"
+  done
+}
+
 load_server_env() {
   if [[ ! -f "$SERVER_ENV_FILE" ]]; then
     return
@@ -95,6 +122,9 @@ load_server_env
 ENABLE_IPFS_CLUSTER="${ENABLE_IPFS_CLUSTER:-0}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
 AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
+COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
+BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
+BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
 
 profile_args=()
 if [[ "$ENABLE_IPFS_CLUSTER" == "1" ]]; then
@@ -155,8 +185,10 @@ if [[ "$RESET_DOCKER_STATE" == "1" ]]; then
   "${compose_cmd[@]}" "${profile_args[@]}" down -v --remove-orphans
 fi
 
-log_step "1/7" "Building Docker images for hardhat, backend and frontend"
-"${compose_cmd[@]}" "${profile_args[@]}" build hardhat backend frontend
+log_step "1/7" "Building Docker images sequentially with retry protection"
+for service in hardhat backend frontend; do
+  build_service_with_retries "$service" "$BUILD_RETRY_ATTEMPTS" "$BUILD_RETRY_DELAY_SECONDS"
+done
 
 base_services=(postgres postfix hardhat)
 if [[ "$ENABLE_IPFS_CLUSTER" == "1" ]]; then
