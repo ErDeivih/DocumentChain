@@ -142,9 +142,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+app.get('/health', healthRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
