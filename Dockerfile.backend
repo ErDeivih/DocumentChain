@@ -3,15 +3,33 @@
 
 FROM node:20-alpine AS contracts
 
+ENV npm_config_fetch_retries=5 \
+     npm_config_fetch_retry_factor=2 \
+     npm_config_fetch_retry_mintimeout=20000 \
+     npm_config_fetch_retry_maxtimeout=120000 \
+     npm_config_fetch_timeout=300000 \
+     npm_config_prefer_offline=true \
+     npm_config_audit=false \
+     npm_config_fund=false
+
 WORKDIR /contracts
 
 COPY smart-contracts/package*.json ./
-RUN npm ci
+RUN npm ci --no-audit --prefer-offline
 
 COPY smart-contracts/ .
 RUN npm run compile
 
 FROM node:20-alpine AS builder
+
+ENV npm_config_fetch_retries=5 \
+     npm_config_fetch_retry_factor=2 \
+     npm_config_fetch_retry_mintimeout=20000 \
+     npm_config_fetch_retry_maxtimeout=120000 \
+     npm_config_fetch_timeout=300000 \
+     npm_config_prefer_offline=true \
+     npm_config_audit=false \
+     npm_config_fund=false
 
 WORKDIR /app
 
@@ -19,7 +37,7 @@ WORKDIR /app
 COPY backend/package*.json ./
 
 # Instalar dependencias
-RUN npm ci
+RUN npm ci --no-audit --prefer-offline
 
 # Copiar código fuente
 COPY backend/ .
@@ -37,6 +55,15 @@ RUN npm run build
 # Stage 2: Runtime
 FROM node:20-alpine
 
+ENV npm_config_fetch_retries=5 \
+     npm_config_fetch_retry_factor=2 \
+     npm_config_fetch_retry_mintimeout=20000 \
+     npm_config_fetch_retry_maxtimeout=120000 \
+     npm_config_fetch_timeout=300000 \
+     npm_config_prefer_offline=true \
+     npm_config_audit=false \
+     npm_config_fund=false
+
 WORKDIR /app
 
 # Copiar package files
@@ -46,7 +73,7 @@ RUN apk add --no-cache openssl
 COPY backend/package*.json ./
 
 # Instalar todas las dependencias (incluyendo swagger-ui-express que está en devDependencies)
-RUN npm ci
+RUN npm ci --no-audit --prefer-offline
 
 # Copiar compiled code from builder
 COPY --from=builder /app/dist ./dist
@@ -55,7 +82,6 @@ COPY --from=builder /app/dist ./dist
 COPY backend/src/templates ./dist/templates
 
 # Copiar archivos de configuración necesarios
-COPY backend/.env .env
 COPY backend/prisma ./prisma
 
 # Copiar ABI del contrato (necesario en runtime para ethers)

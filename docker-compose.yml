@@ -40,21 +40,14 @@ services:
       - DKIM_AUTOGENERATE=${POSTFIX_DKIM_AUTOGENERATE:-true}
     ports:
       - "1587:587"     # Backend usa: SMTP_HOST=localhost SMTP_PORT=1587
+    healthcheck:
+      test: ["CMD-SHELL", "postfix status >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 25s
     networks:
       - documentchain
-
-  # MailHog - SMTP para desarrollo (captura emails sin enviarlos)
-  # Ver emails capturados en: http://localhost:8025
-  # DESHABILITADO - Usando Postfix en su lugar
-  # mailhog:
-  #   image: mailhog/mailhog:latest
-  #   container_name: documentchain-mailhog
-  #   restart: unless-stopped
-  #   ports:
-  #     - "1025:1025"   # SMTP server
-  #     - "8025:8025"   # Web UI
-  #   networks:
-  #     - documentchain
 
   # Hardhat Blockchain Node - Nodo local Ethereum para desarrollo
   hardhat:
@@ -187,7 +180,7 @@ services:
       hardhat:
         condition: service_healthy
       postfix:
-        condition: service_started
+        condition: service_healthy
 
   frontend:
     build:

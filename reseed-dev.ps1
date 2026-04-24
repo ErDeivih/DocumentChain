@@ -105,6 +105,7 @@ docker compose up -d postgres postfix | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw 'No se pudieron levantar postgres y postfix'
 }
+Wait-ForContainerHealth -ContainerName 'documentchain-postfix' -Attempts 30 -DelaySeconds 2
 
 Write-Host '[2/8] Reconstruyendo backend y hardhat...' -ForegroundColor Yellow
 docker compose build hardhat backend | Out-Null

@@ -58,6 +58,46 @@ export interface ConfirmVersionInput {
 // ============================================
 
 export class VersionService {
+  private static async userHasAccessToDocument(
+    document: {
+      id: string;
+      ownerId: string;
+      blockchainId: string | null;
+      visibility?: string | null;
+      isDeleted?: boolean | null;
+    },
+    userId: string
+  ): Promise<boolean> {
+    if (document.isDeleted) {
+      return false;
+    }
+
+    if (document.ownerId === userId) {
+      return true;
+    }
+
+    if (document.visibility === 'PUBLIC') {
+      return true;
+    }
+
+    if (document.blockchainId) {
+      const wallets = await prisma.wallet.findMany({
+        where: { userId },
+        select: { walletAddress: true },
+      });
+
+      for (const wallet of wallets) {
+        if (await DocumentPermissionService.canView(document.blockchainId, wallet.walletAddress)) {
+          return true;
+        }
+      }
+    }
+
+    const { ShareService } = await import('./shareService');
+    const fallbackShares = await ShareService.getSharedWithUser(userId);
+    return fallbackShares.some((share) => share.documentId === document.id);
+  }
+
   /**
    * Prepare a version for creation
    * - Validates file (size, MIME type)
@@ -406,6 +446,8 @@ export class VersionService {
             id: true,
             ownerId: true,
             blockchainId: true,
+            visibility: true,
+            isDeleted: true,
             encryptedSymmetricKey: true,
           },
         },
@@ -416,8 +458,7 @@ export class VersionService {
       throw new Error('Versión no encontrada');
     }
 
-    const { DocumentService } = await import('./documentService');
-    const hasAccess = await DocumentService.userHasAccess(version.document.id, userId);
+    const hasAccess = await this.userHasAccessToDocument(version.document, userId);
 
     if (!hasAccess) {
       throw new Error('No tienes acceso a esta versión');
