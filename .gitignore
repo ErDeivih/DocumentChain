@@ -45,6 +45,7 @@ typechain-types/
 
 # Prisma
 # Las migraciones deben versionarse para permitir despliegues reproducibles.
+!backend/prisma/migrations/**/migration.sql
 
 # Docker
 .docker/
