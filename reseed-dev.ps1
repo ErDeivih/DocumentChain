@@ -145,6 +145,9 @@ Set-Or-ReplaceEnvValue -FilePath (Join-Path $PSScriptRoot 'frontend\.env') -Key 
 
 Write-Host '[6/8] Regenerando dataset QA...' -ForegroundColor Yellow
 $env:SEED_PROFILE = $SeedProfile
+if (-not $env:DATABASE_URL) {
+    $env:DATABASE_URL = 'postgresql://documentchain:documentchain@127.0.0.1:5433/documentchain?schema=public'
+}
 Push-Location backend
 try {
     & npm run data:seed:qa -- "--profile=$SeedProfile"

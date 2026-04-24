@@ -13,19 +13,34 @@ const {
 
 const resolvedDocumentRegistryAddress = resolveDocumentRegistryAddress();
 
-if (!BLOCKCHAIN_RPC_URL) {
-  throw new Error('BLOCKCHAIN_RPC_URL no está configurado en las variables de entorno');
+const providerInstance = BLOCKCHAIN_RPC_URL
+  ? new ethers.JsonRpcProvider(BLOCKCHAIN_RPC_URL)
+  : null;
+
+function getProviderInstance(): ethers.JsonRpcProvider {
+  if (!providerInstance) {
+    throw new Error('BLOCKCHAIN_RPC_URL no está configurado en las variables de entorno');
+  }
+
+  return providerInstance;
 }
 
-// Create provider
-export const provider = new ethers.JsonRpcProvider(BLOCKCHAIN_RPC_URL);
+// Create provider lazily so the API can still boot and expose health information
+// even when blockchain settings are temporarily missing.
+export const provider = new Proxy({} as ethers.JsonRpcProvider, {
+  get(_target, prop, receiver) {
+    const activeProvider = getProviderInstance();
+    const value = Reflect.get(activeProvider as unknown as object, prop, receiver);
+    return typeof value === 'function' ? value.bind(activeProvider) : value;
+  },
+}) as ethers.JsonRpcProvider;
 
 export const DOCUMENT_REGISTRY_ADDRESS = resolvedDocumentRegistryAddress;
 export const documentRegistryInterface = new ethers.Interface(DocumentRegistryABI.abi);
 
 // Create signer (backend wallet for gas payments and admin operations)
 export const signer = BLOCKCHAIN_PRIVATE_KEY 
-  ? new ethers.Wallet(BLOCKCHAIN_PRIVATE_KEY, provider)
+  ? new ethers.Wallet(BLOCKCHAIN_PRIVATE_KEY, getProviderInstance())
   : null;
 
 // ADMIN_ROLE constant (should match the one from smart contract)
@@ -59,7 +74,7 @@ export function getDocumentRegistryReadContract() {
   return new ethers.Contract(
     resolvedDocumentRegistryAddress,
     DocumentRegistryABI.abi,
-    provider
+    getProviderInstance()
   );
 }
 

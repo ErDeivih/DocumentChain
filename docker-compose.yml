@@ -139,6 +139,11 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://documentchain:documentchain@postgres:5432/documentchain
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production-min-32-chars}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-your-super-secret-refresh-key-change-this-in-production-min-32}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - ADMIN_REGISTRATION_SECRET=${ADMIN_REGISTRATION_SECRET:-change-this-to-a-secure-random-string-min-32-chars}
       - BLOCKCHAIN_RPC_URL=http://hardhat:8545
       - CONTRACT_DOCUMENT_REGISTRY=${CONTRACT_DOCUMENT_REGISTRY:-0x5FbDB2315678afecb367f032d93F642f64180aa3}
       - BLOCKCHAIN_PRIVATE_KEY=${BLOCKCHAIN_PRIVATE_KEY:-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}
