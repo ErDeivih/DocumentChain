@@ -37,24 +37,43 @@ function Wait-ForHttpRpc {
     param(
         [Parameter(Mandatory = $true)][string]$Url,
         [int]$Attempts = 20,
-        [int]$DelaySeconds = 3
+        [int]$DelaySeconds = 3,
+        [int]$RequiredConsecutiveSuccesses = 3
     )
 
     $body = '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+    $consecutiveSuccesses = 0
 
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         try {
             $response = Invoke-RestMethod -Uri $Url -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 10
             if ($response.result) {
-                return
+                $consecutiveSuccesses++
+                if ($consecutiveSuccesses -ge $RequiredConsecutiveSuccesses) {
+                    return
+                }
+            } else {
+                $consecutiveSuccesses = 0
             }
         } catch {
+            $consecutiveSuccesses = 0
         }
 
         Start-Sleep -Seconds $DelaySeconds
     }
 
-    throw "El RPC $Url no respondio con eth_blockNumber"
+    throw "El RPC $Url no respondio con $RequiredConsecutiveSuccesses respuestas consecutivas a eth_blockNumber"
+}
+
+function Get-CurlBinary {
+    foreach ($candidate in @('curl.exe', 'curl')) {
+        $command = Get-Command $candidate -ErrorAction SilentlyContinue
+        if ($command -and $command.CommandType -eq 'Application') {
+            return $command.Source
+        }
+    }
+
+    throw 'No se encontro una instalacion de curl para verificar la API IPFS'
 }
 
 function Wait-ForIpfsApi {
@@ -65,15 +84,15 @@ function Wait-ForIpfsApi {
         [int]$DelaySeconds = 3
     )
 
+    $curlBinary = Get-CurlBinary
+
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         try {
-            foreach ($method in @('Post', 'Get')) {
-                try {
-                    $response = Invoke-RestMethod -Uri $Url -Method $method -TimeoutSec 10
-                    if ($response.Version -or $response.Commit) {
-                        return
-                    }
-                } catch {
+            $rawResponse = & $curlBinary --silent --show-error --fail --request POST --max-time 10 $Url
+            if ($LASTEXITCODE -eq 0 -and $rawResponse) {
+                $response = ($rawResponse -join "`n") | ConvertFrom-Json
+                if ($response.Version -or $response.Commit) {
+                    return
                 }
             }
         } catch {
@@ -138,7 +157,7 @@ function Set-Or-ReplaceEnvValue {
 }
 
 Write-Host '[1/8] Iniciando infraestructura base...' -ForegroundColor Yellow
-docker compose --profile ipfs up -d postgres postfix ipfs-node | Out-Null
+docker compose --profile ipfs up -d --remove-orphans postgres postfix ipfs-node | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw 'No se pudieron levantar postgres, postfix e IPFS'
 }

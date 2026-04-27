@@ -291,7 +291,7 @@ function Setup-IPFS {
         }
         
         Write-Host "  --> Iniciando nodo IPFS..." -ForegroundColor Cyan
-        $process = Start-Process -FilePath "docker" -ArgumentList "compose","--profile","ipfs","up","-d","ipfs-node" -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\docker-out.txt" -RedirectStandardError "$env:TEMP\docker-err.txt"
+        $process = Start-Process -FilePath "docker" -ArgumentList "compose","--profile","ipfs","up","-d","--remove-orphans","ipfs-node" -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\docker-out.txt" -RedirectStandardError "$env:TEMP\docker-err.txt"
         $exitCode = $process.ExitCode
         Remove-Item "$env:TEMP\docker-out.txt","$env:TEMP\docker-err.txt" -ErrorAction SilentlyContinue
         

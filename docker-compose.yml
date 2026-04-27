@@ -90,7 +90,7 @@ services:
         target: /data/ipfs
     environment:
       - IPFS_PROFILE=server
-    command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    command: ["daemon", "--migrate=true"]
     healthcheck:
       test: ["CMD-SHELL", "ipfs id >/dev/null 2>&1"]
       interval: 10s
