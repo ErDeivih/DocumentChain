@@ -110,7 +110,7 @@ if (Test-Path "backend\.env") {
         $ipfsProvider = $Matches[1]
     }
 }
-if ($ipfsProvider -in @("self-hosted", "cluster")) {
+if ($ipfsProvider -eq "self-hosted") {
     Write-Host "Nodo propio" -ForegroundColor Green
 } else {
     Write-Host $ipfsProvider -ForegroundColor Yellow

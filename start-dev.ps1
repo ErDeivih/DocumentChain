@@ -279,7 +279,7 @@ function Setup-IPFS {
         }
     }
     
-    if ($ipfsProvider -in @("self-hosted", "cluster")) {
+    if ($ipfsProvider -eq "self-hosted") {
         Write-Host "  --> Usando nodo IPFS propio" -ForegroundColor Cyan
         
         $ipfsRunning = docker ps --filter "name=documentchain-ipfs" --filter "status=running" -q
@@ -567,7 +567,7 @@ function Show-Summary {
             }
         }
         
-        if ($ipfsProvider -in @("self-hosted", "cluster")) {
+        if ($ipfsProvider -eq "self-hosted") {
             Write-Host "  IPFS:         Nodo propio" -ForegroundColor Cyan
             Write-Host "  API:          localhost:5001" -ForegroundColor Gray
             Write-Host "  Gateway:      localhost:8080" -ForegroundColor Gray

@@ -60,15 +60,21 @@ function Wait-ForHttpRpc {
 function Wait-ForIpfsApi {
     param(
         [Parameter(Mandatory = $true)][string]$Url,
-        [int]$Attempts = 20,
+        [string]$ContainerName = 'documentchain-ipfs',
+        [int]$Attempts = 30,
         [int]$DelaySeconds = 3
     )
 
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
         try {
-            $response = Invoke-RestMethod -Uri $Url -Method Post -TimeoutSec 10
-            if ($response.Version -or $response.Commit) {
-                return
+            foreach ($method in @('Post', 'Get')) {
+                try {
+                    $response = Invoke-RestMethod -Uri $Url -Method $method -TimeoutSec 10
+                    if ($response.Version -or $response.Commit) {
+                        return
+                    }
+                } catch {
+                }
             }
         } catch {
         }
@@ -76,7 +82,9 @@ function Wait-ForIpfsApi {
         Start-Sleep -Seconds $DelaySeconds
     }
 
-    throw "La API IPFS $Url no respondio correctamente"
+    $containerStatus = docker inspect $ContainerName --format "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" 2>$null
+    $recentLogs = docker logs $ContainerName --tail 120 2>&1
+    throw "La API IPFS $Url no respondio correctamente (estado contenedor: '$containerStatus'). Logs recientes:`n$recentLogs"
 }
 
 function Import-DeploymentEnvironment {
@@ -135,7 +143,8 @@ if ($LASTEXITCODE -ne 0) {
     throw 'No se pudieron levantar postgres, postfix e IPFS'
 }
 Wait-ForContainerHealth -ContainerName 'documentchain-postfix' -Attempts 30 -DelaySeconds 2
-Wait-ForIpfsApi -Url 'http://127.0.0.1:5001/api/v0/version'
+Wait-ForContainerHealth -ContainerName 'documentchain-ipfs' -Attempts 30 -DelaySeconds 3
+Wait-ForIpfsApi -Url 'http://127.0.0.1:5001/api/v0/version' -ContainerName 'documentchain-ipfs'
 
 Write-Host '[2/8] Reconstruyendo backend y hardhat...' -ForegroundColor Yellow
 docker compose build hardhat backend | Out-Null

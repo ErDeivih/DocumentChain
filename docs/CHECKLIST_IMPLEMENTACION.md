@@ -571,9 +571,9 @@
   - [ ] Permisos de AccessControl funcionan
 
 - [ ] **IPFS**
-  - [ ] Cluster con 3 nodos activos
-  - [ ] Replicación factor 2-3 verificada
-  - [ ] API cluster responde
+  - [ ] Nodo IPFS propio activo
+  - [ ] Persistencia del volumen verificada
+  - [ ] API IPFS responde
 
 - [ ] **Seguridad**
   - [ ] Rate limiting activo

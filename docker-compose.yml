@@ -91,6 +91,12 @@ services:
     environment:
       - IPFS_PROFILE=server
     command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
+    healthcheck:
+      test: ["CMD-SHELL", "ipfs id >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 12
     networks:
       - documentchain
 

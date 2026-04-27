@@ -89,7 +89,7 @@ backend/
 │   ├── config/
 │   │   ├── database.ts          # Prisma client
 │   │   ├── blockchain.ts        # Ethers.js contracts
-│   │   ├── ipfs.ts              # IPFS client & cluster
+│   │   ├── ipfs.ts              # Self-hosted IPFS client
 │   │   └── jwt.ts               # JWT utilities
 │   │
 │   ├── lib/
@@ -157,7 +157,7 @@ backend/
 
 - Node.js 18+ 
 - PostgreSQL 14+
-- IPFS Cluster (optional for development)
+- Nodo IPFS propio (optional for development)
 - Ethereum node (Hardhat network for development)
 
 ### 1. Clone Repository
@@ -509,7 +509,7 @@ npm run test:coverage
 - [ ] Change `JWT_SECRET` to secure random value
 - [ ] Use Let's Encrypt for HTTPS certificates
 - [ ] Set up proper PostgreSQL with backups
-- [ ] Configure IPFS Cluster with multiple nodes
+- [ ] Validar persistencia y backups del nodo IPFS propio
 - [ ] Deploy smart contracts to mainnet/testnet
 - [ ] Set up monitoring and logging
 - [ ] Configure CORS for frontend domain

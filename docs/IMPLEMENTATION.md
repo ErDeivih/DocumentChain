@@ -144,7 +144,7 @@ Se ha completado la implementación completa del backend para DocumentChain, un 
 
 #### 12. IPFS
 - ✅ Cliente IPFS HTTP configurado
-- ✅ Integración con IPFS Cluster
+- ✅ Integración con nodo IPFS propio
 - ✅ Upload/download de archivos
 - ✅ Pinning automático
 - ✅ Unpinning al eliminar
