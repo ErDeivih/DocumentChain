@@ -173,6 +173,26 @@ function Set-Or-ReplaceEnvValue {
     Set-Content -Path $FilePath -Value $updated -Encoding UTF8
 }
 
+function Initialize-LocalEnvFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$TargetPath,
+        [Parameter(Mandatory = $true)][string]$ExamplePath
+    )
+
+    if (Test-Path $TargetPath) {
+        return
+    }
+
+    if (-not (Test-Path $ExamplePath)) {
+        throw "No se encontro el ejemplo de entorno requerido: $ExamplePath"
+    }
+
+    Copy-Item -Path $ExamplePath -Destination $TargetPath
+}
+
+Initialize-LocalEnvFile -TargetPath (Join-Path $PSScriptRoot 'backend\.env') -ExamplePath (Join-Path $PSScriptRoot 'backend\.env.example')
+Initialize-LocalEnvFile -TargetPath (Join-Path $PSScriptRoot 'frontend\.env') -ExamplePath (Join-Path $PSScriptRoot 'frontend\.env.example')
+
 Write-Host '[1/8] Iniciando infraestructura base...' -ForegroundColor Yellow
 docker compose --profile ipfs up -d --remove-orphans postgres postfix ipfs-node | Out-Null
 if ($LASTEXITCODE -ne 0) {
