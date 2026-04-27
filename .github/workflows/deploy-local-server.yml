@@ -1,7 +1,11 @@
 name: deploy-local-server
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - ci
+    types:
+      - completed
     branches:
       - main
       - master
@@ -13,6 +17,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on:
       - self-hosted
       - linux
@@ -20,6 +25,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Verify Docker runtime
         run: |
@@ -30,4 +37,7 @@ jobs:
         env:
           SERVER_ENV_FILE: /opt/documentchain/.env.server
           ENABLE_IPFS_NODE: "1"
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          ADMIN_REGISTRATION_SECRET: ${{ secrets.ADMIN_REGISTRATION_SECRET }}
         run: bash scripts/deploy-ubuntu-server.sh
