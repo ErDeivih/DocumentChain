@@ -71,15 +71,19 @@ class HealthController {
       responseTime: 0,
     };
     
-    // Determinar estado general
-    const serviceStatuses = Object.values(health.services).map(s => s.status);
-    
-    if (serviceStatuses.every(s => s === 'healthy')) {
-      health.status = 'healthy';
-    } else if (serviceStatuses.some(s => s === 'unhealthy')) {
+    // El estado global se usa como readiness de la API.
+    // Solo depende de los servicios críticos para servir peticiones.
+    const criticalStatuses = [
+      health.services.database.status,
+      health.services.blockchain.status,
+    ];
+
+    if (criticalStatuses.some(s => s === 'unhealthy')) {
       health.status = 'unhealthy';
-    } else {
+    } else if (criticalStatuses.some(s => s === 'degraded')) {
       health.status = 'degraded';
+    } else {
+      health.status = 'healthy';
     }
     
     health.responseTime = Date.now() - startTime;
