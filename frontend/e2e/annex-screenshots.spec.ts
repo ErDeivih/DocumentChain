@@ -146,9 +146,9 @@ test.describe('Annex UI screenshots', () => {
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: /iniciar sesi[oó]n/i })).toBeVisible();
 
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: /almacenamiento seguro/i })).toBeVisible();
-  await capture(page, 'landing-public.png');
+    await page.goto('/');
+    await expect(page.getByTestId('landing-hero-heading')).toBeVisible();
+    await capture(page, 'landing-public.png');
 
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: /iniciar sesi[oó]n/i })).toBeVisible();

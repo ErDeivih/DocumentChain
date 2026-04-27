@@ -31,7 +31,7 @@ export const Landing: React.FC = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-center">
                             <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left lg:mx-0">
-                                <h1 className="text-4xl tracking-tight font-extrabold text-foreground sm:text-5xl md:text-6xl">
+                                <h1 data-testid="landing-hero-heading" className="text-4xl tracking-tight font-extrabold text-foreground sm:text-5xl md:text-6xl">
                                     <span className="block">Custodia verificable</span>
                                     <span className="block text-primary">de documentos distribuidos</span>
                                 </h1>

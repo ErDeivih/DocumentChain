@@ -65,9 +65,7 @@ test.describe('Route coverage gaps', () => {
 
     await page.goto('/app/profile');
     await expect(page.getByRole('heading', { name: 'Perfil', exact: true })).toBeVisible();
-    const userInformationCard = page
-      .getByRole('heading', { name: 'Información del Usuario', exact: true })
-      .locator('xpath=ancestor::div[contains(@class,"rounded-lg")][1]');
+    const userInformationCard = page.getByTestId('profile-user-information-card');
     await expect(userInformationCard.getByText(seedUsers.owner.username, { exact: true })).toBeVisible();
     await expect(userInformationCard.getByText(seedUsers.owner.email, { exact: true })).toBeVisible();
     await expect(page.getByText('Gestión de Wallets')).toBeVisible();

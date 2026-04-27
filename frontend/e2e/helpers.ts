@@ -5,9 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ethers } from 'ethers';
 
-export const API_BASE_URL = process.env.E2E_API_BASE_URL ?? 'http://localhost:3000/api';
+export const API_BASE_URL = process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:3000/api';
 const HARDHAT_RPC_URL = process.env.E2E_RPC_URL ?? 'http://127.0.0.1:8545';
-const E2E_DATABASE_URL = process.env.E2E_DATABASE_URL ?? 'postgresql://documentchain:documentchain@localhost:5433/documentchain?schema=public';
+const E2E_DATABASE_URL = process.env.E2E_DATABASE_URL ?? 'postgresql://documentchain:documentchain@127.0.0.1:5433/documentchain?schema=public';
 const HARDHAT_MNEMONIC = 'test test test test test test test test test test test junk';
 const SUSPENSION_ABI = ['function suspendMyself()', 'function unsuspendMyself()'];
 

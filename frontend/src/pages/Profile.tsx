@@ -69,7 +69,7 @@ export const Profile: React.FC = () => {
       <h1 className="text-3xl font-bold text-gray-900">Perfil</h1>
 
       {/* User Information */}
-      <Card>
+      <Card data-testid="profile-user-information-card">
         <CardHeader>
           <CardTitle>Información del Usuario</CardTitle>
         </CardHeader>

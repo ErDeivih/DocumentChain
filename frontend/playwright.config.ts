@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const frontendBaseUrl = 'http://127.0.0.1:4173';
+const reuseExistingFrontendServer = process.env.PLAYWRIGHT_REUSE_SERVER === '1';
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -8,7 +11,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: frontendBaseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -29,8 +32,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run dev -- --host 127.0.0.1 --port 4173 --strictPort',
+    url: frontendBaseUrl,
+    reuseExistingServer: reuseExistingFrontendServer,
   },
 });

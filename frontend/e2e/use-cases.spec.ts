@@ -238,7 +238,7 @@ test.describe('Expanded frontend use cases', () => {
     await expect(page.getByText(/Guarde Su Clave de Recuperación/i)).toBeVisible({ timeout: 15000 });
 
     await page.getByTitle(/Mostrar clave/i).click();
-    const recoveryKeyLocator = page.locator('div.bg-gray-900.text-white').first();
+    const recoveryKeyLocator = page.getByTestId('recovery-key-value');
     await expect(recoveryKeyLocator).not.toContainText(/•{8,}/);
 
     const recoveryKey = (await recoveryKeyLocator.textContent())?.trim();
@@ -679,7 +679,7 @@ test.describe('Expanded frontend use cases', () => {
       password: seedUsers.owner.password,
     });
     await page.goto(`/app/documents/${transferredDocument.id}`);
-    await expect(page.getByRole('heading', { name: uploadedDocumentName })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Documento no encontrado')).toBeVisible({ timeout: 30000 });
     await expect(page.getByRole('button', { name: 'Transferir' })).not.toBeVisible();
   });
 

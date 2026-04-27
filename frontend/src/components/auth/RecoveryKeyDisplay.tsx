@@ -107,7 +107,10 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
             Su Clave de Recuperación:
           </label>
           <div className="relative">
-            <div className="rounded-xl border border-primary/20 bg-slate-950 p-4 pr-24 font-mono text-sm break-all text-primary-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+            <div
+              data-testid="recovery-key-value"
+              className="rounded-xl border border-primary/20 bg-slate-950 p-4 pr-24 font-mono text-sm break-all text-primary-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+            >
               {showRecoveryKey ? recoveryKey : '•'.repeat(Math.max(recoveryKey.length, 32))}
             </div>
             <div className="absolute top-2 right-2 flex items-center gap-2">

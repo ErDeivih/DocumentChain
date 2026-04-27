@@ -54,15 +54,15 @@ app.set('trust proxy', 1);
 
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
-const isDev = process.env.NODE_ENV !== 'production';
+const isLoopbackOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
 app.use(cors({
   origin: (origin, callback) => {
     // Permitir requests sin origin (curl, Postman, mobile apps, proxy interno de Vite)
     if (!origin) return callback(null, true);
 
-    // En desarrollo, permitir cualquier origen localhost/127.0.0.1
-    if (isDev && (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/).test(origin)) {
+    // Permitir siempre orígenes loopback para desarrollo local y suites E2E contra Docker.
+    if (isLoopbackOrigin(origin)) {
       return callback(null, true);
     }
 

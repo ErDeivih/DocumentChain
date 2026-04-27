@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
 import { JWT_SECRET } from '../config/jwt';
 
+const isLoopbackOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
 /**
  * WebSocketService - Comunicación en tiempo real
  * 
@@ -47,7 +49,14 @@ class WebSocketService {
     
     this.io = new SocketIOServer(httpServer, {
       cors: {
-        origin: process.env.FRONTEND_URL || 'https://localhost:5173',
+        origin: (origin, callback) => {
+          if (!origin || isLoopbackOrigin(origin) || origin === process.env.FRONTEND_URL) {
+            callback(null, true);
+            return;
+          }
+
+          callback(new Error(`WebSocket CORS: origin '${origin}' not allowed`));
+        },
         credentials: true,
       },
       path: '/socket.io',

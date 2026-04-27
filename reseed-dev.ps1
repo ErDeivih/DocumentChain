@@ -7,6 +7,70 @@ $ErrorActionPreference = 'Stop'
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 Set-Location $PSScriptRoot
 
+function Start-DockerDesktopIfAvailable {
+    $dockerDesktopCandidates = @(
+        'C:\Program Files\Docker\Docker\Docker Desktop.exe',
+        'C:\Program Files (x86)\Docker\Docker\Docker Desktop.exe'
+    )
+
+    foreach ($candidate in $dockerDesktopCandidates) {
+        if (Test-Path $candidate) {
+            Start-Process -FilePath $candidate | Out-Null
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Wait-ForDockerEngine {
+    param(
+        [int]$Attempts = 30,
+        [int]$DelaySeconds = 3
+    )
+
+    $dockerDesktopLaunchAttempted = $false
+
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        docker version | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            return
+        }
+
+        if (-not $dockerDesktopLaunchAttempted) {
+            $dockerDesktopLaunchAttempted = Start-DockerDesktopIfAvailable
+        }
+
+        Start-Sleep -Seconds $DelaySeconds
+    }
+
+    throw 'Docker Desktop no responde tras varios intentos'
+}
+
+function Invoke-DockerComposeWithRetry {
+    param(
+        [Parameter(Mandatory = $true)][string]$OperationName,
+        [Parameter(Mandatory = $true)][scriptblock]$Command,
+        [int]$Attempts = 3,
+        [int]$DelaySeconds = 8
+    )
+
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        Wait-ForDockerEngine
+        & $Command
+        if ($LASTEXITCODE -eq 0) {
+            return
+        }
+
+        if ($attempt -eq $Attempts) {
+            throw "La operacion Docker '$OperationName' fallo tras $Attempts intentos"
+        }
+
+        Write-Host "Reintentando $OperationName ($attempt/$Attempts)..." -ForegroundColor DarkYellow
+        Start-Sleep -Seconds $DelaySeconds
+    }
+}
+
 function Get-DockerContainerStatus {
     param([Parameter(Mandatory = $true)][string]$ContainerName)
 
@@ -123,6 +187,18 @@ function Wait-ForIpfsApi {
     throw "La API IPFS $Url no respondio correctamente (estado contenedor: '$containerStatus'). Logs recientes:`n$recentLogs"
 }
 
+function Invoke-ComposeBuildWithRetry {
+    param(
+        [Parameter(Mandatory = $true)][string]$ServiceName,
+        [int]$Attempts = 3,
+        [int]$DelaySeconds = 8
+    )
+
+    Invoke-DockerComposeWithRetry -OperationName "build $ServiceName" -Attempts $Attempts -DelaySeconds $DelaySeconds -Command {
+        docker compose build $ServiceName | Out-Null
+    }
+}
+
 function Import-DeploymentEnvironment {
     param([Parameter(Mandatory = $true)][string]$FilePath)
 
@@ -194,24 +270,20 @@ Initialize-LocalEnvFile -TargetPath (Join-Path $PSScriptRoot 'backend\.env') -Ex
 Initialize-LocalEnvFile -TargetPath (Join-Path $PSScriptRoot 'frontend\.env') -ExamplePath (Join-Path $PSScriptRoot 'frontend\.env.example')
 
 Write-Host '[1/8] Iniciando infraestructura base...' -ForegroundColor Yellow
-docker compose --profile ipfs up -d --remove-orphans postgres postfix ipfs-node | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw 'No se pudieron levantar postgres, postfix e IPFS'
+Invoke-DockerComposeWithRetry -OperationName 'compose up base infrastructure' -Command {
+    docker compose --profile ipfs up -d --remove-orphans postgres postfix ipfs-node | Out-Null
 }
 Wait-ForContainerHealth -ContainerName 'documentchain-postfix' -Attempts 30 -DelaySeconds 2
 Wait-ForContainerHealth -ContainerName 'documentchain-ipfs' -Attempts 30 -DelaySeconds 3
 Wait-ForIpfsApi -Url 'http://127.0.0.1:5001/api/v0/version' -ContainerName 'documentchain-ipfs'
 
 Write-Host '[2/8] Reconstruyendo backend y hardhat...' -ForegroundColor Yellow
-docker compose build hardhat backend | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw 'La reconstruccion de imagenes Docker fallo'
-}
+Invoke-ComposeBuildWithRetry -ServiceName 'hardhat'
+Invoke-ComposeBuildWithRetry -ServiceName 'backend'
 
 Write-Host '[3/8] Reiniciando Hardhat limpio...' -ForegroundColor Yellow
-docker compose up -d --force-recreate --no-deps hardhat | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw 'No se pudo recrear el servicio hardhat'
+Invoke-DockerComposeWithRetry -OperationName 'compose up hardhat' -Command {
+    docker compose up -d --force-recreate --no-deps hardhat | Out-Null
 }
 Wait-ForContainerHealth -ContainerName 'documentchain-hardhat'
 Wait-ForHttpRpc -Url 'http://127.0.0.1:8545'
@@ -254,9 +326,8 @@ try {
 }
 
 Write-Host '[7/8] Recreando backend con la direccion actual...' -ForegroundColor Yellow
-docker compose up -d --force-recreate --no-deps backend | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    throw 'No se pudo recrear el servicio backend'
+Invoke-DockerComposeWithRetry -OperationName 'compose up backend' -Command {
+    docker compose up -d --force-recreate --no-deps backend | Out-Null
 }
 Wait-ForContainerHealth -ContainerName 'documentchain-backend' -Attempts 50 -DelaySeconds 4
 
