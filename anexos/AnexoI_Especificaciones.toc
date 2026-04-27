@@ -1,109 +1,94 @@
 \babel@toc {spanish}{}\relax 
-\contentsline {section}{\numberline {1}Introducción}{8}{section.1}%
+\contentsline {section}{\numberline {1}Introducción}{7}{section.1}%
 \contentsline {section}{\numberline {2}Lista de usuarios participantes}{8}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Participante -- David Pérez Velasco}{8}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Participante -- Gabriel Villarrubia González}{8}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}Participante -- Sergio García González}{9}{subsection.2.3}%
 \contentsline {section}{\numberline {3}Objetivos del proyecto}{9}{section.3}%
 \contentsline {subsection}{\numberline {3.1}OBJ-0001: Gestionar usuarios y seguridad}{9}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}OBJ-0002: Integración blockchain y almacenamiento descentralizado}{9}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.2}OBJ-0002: Integración blockchain y almacenamiento descentralizado}{10}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}OBJ-0003: Protección criptográfica y gestión de claves}{10}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}OBJ-0004: Versionado y trazabilidad completa}{10}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.4}OBJ-0004: Versionado y trazabilidad completa}{11}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}OBJ-0005: Firmas digitales verificables}{11}{subsection.3.5}%
-\contentsline {subsection}{\numberline {3.6}OBJ-0006: Control de acceso granular}{11}{subsection.3.6}%
-\contentsline {section}{\numberline {4}Catálogo de requisitos del sistema}{12}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Requisitos de información}{12}{subsection.4.1}%
-\contentsline {subsubsection}{\numberline {4.1.1}IRQ-0001: Datos de usuario y autenticación}{12}{subsubsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {4.1.2}IRQ-0002: Documentos y versionado}{13}{subsubsection.4.1.2}%
-\contentsline {subsubsection}{\numberline {4.1.3}IRQ-0003: Organización y categorización}{14}{subsubsection.4.1.3}%
-\contentsline {subsubsection}{\numberline {4.1.4}IRQ-0004: Firmas digitales}{15}{subsubsection.4.1.4}%
-\contentsline {subsubsection}{\numberline {4.1.5}IRQ-0005: Eventos y auditoría}{15}{subsubsection.4.1.5}%
-\contentsline {subsubsection}{\numberline {4.1.6}IRQ-0006: Estadísticas y métricas}{16}{subsubsection.4.1.6}%
-\contentsline {subsubsection}{\numberline {4.1.7}IRQ-0007: Notificaciones y comunicaciones}{17}{subsubsection.4.1.7}%
-\contentsline {subsection}{\numberline {4.2}Requisitos no funcionales}{18}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}NFR-0001: Seguridad y privacidad de datos}{18}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}NFR-0002: Rendimiento y escalabilidad}{19}{subsubsection.4.2.2}%
-\contentsline {subsubsection}{\numberline {4.2.3}NFR-0003: Usabilidad y experiencia de usuario}{20}{subsubsection.4.2.3}%
-\contentsline {subsubsection}{\numberline {4.2.4}NFR-0004: Disponibilidad y tolerancia a fallos}{21}{subsubsection.4.2.4}%
-\contentsline {subsubsection}{\numberline {4.2.5}NFR-0005: Mantenibilidad y documentación}{22}{subsubsection.4.2.5}%
-\contentsline {subsubsection}{\numberline {4.2.6}NFR-0006: Portabilidad y despliegue}{23}{subsubsection.4.2.6}%
-\contentsline {subsection}{\numberline {4.3}Requisitos funcionales}{24}{subsection.4.3}%
-\contentsline {subsubsection}{\numberline {4.3.1}Diagramas de actores}{24}{subsubsection.4.3.1}%
-\contentsline {subsubsection}{\numberline {4.3.2}ACT-01: Usuario}{24}{subsubsection.4.3.2}%
-\contentsline {subsubsection}{\numberline {4.3.3}ACT-02: Administrador}{24}{subsubsection.4.3.3}%
-\contentsline {subsubsection}{\numberline {4.3.4}ACT-03: Smart Contract (DocumentRegistry)}{25}{subsubsection.4.3.4}%
-\contentsline {subsubsection}{\numberline {4.3.5}ACT-04: Proveedor IPFS compatible}{25}{subsubsection.4.3.5}%
-\contentsline {subsubsection}{\numberline {4.3.6}ACT-05: Sistema de Email}{26}{subsubsection.4.3.6}%
-\contentsline {subsubsection}{\numberline {4.3.7}Diagramas de casos de uso}{26}{subsubsection.4.3.7}%
+\contentsline {subsection}{\numberline {3.6}OBJ-0006: Control de acceso granular}{12}{subsection.3.6}%
+\contentsline {section}{\numberline {4}Catálogo de requisitos del sistema}{13}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Requisitos de información}{13}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}IRQ-0001: Datos de usuario y autenticación}{13}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}IRQ-0002: Documentos y versionado}{14}{subsubsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {4.1.3}IRQ-0003: Organización y categorización}{15}{subsubsection.4.1.3}%
+\contentsline {subsubsection}{\numberline {4.1.4}IRQ-0004: Firmas digitales}{16}{subsubsection.4.1.4}%
+\contentsline {subsubsection}{\numberline {4.1.5}IRQ-0005: Eventos y auditoría}{16}{subsubsection.4.1.5}%
+\contentsline {subsubsection}{\numberline {4.1.6}IRQ-0006: Estadísticas y métricas}{17}{subsubsection.4.1.6}%
+\contentsline {subsubsection}{\numberline {4.1.7}IRQ-0007: Notificaciones y comunicaciones}{18}{subsubsection.4.1.7}%
+\contentsline {subsection}{\numberline {4.2}Requisitos no funcionales}{19}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}NFR-0001: Seguridad y privacidad de datos}{19}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}NFR-0002: Rendimiento y escalabilidad}{20}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}NFR-0003: Usabilidad y experiencia de usuario}{21}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}NFR-0004: Disponibilidad y tolerancia a fallos}{22}{subsubsection.4.2.4}%
+\contentsline {subsubsection}{\numberline {4.2.5}NFR-0005: Mantenibilidad y documentación}{23}{subsubsection.4.2.5}%
+\contentsline {subsubsection}{\numberline {4.2.6}NFR-0006: Portabilidad y despliegue}{24}{subsubsection.4.2.6}%
+\contentsline {subsection}{\numberline {4.3}Requisitos funcionales}{25}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Diagramas de actores}{25}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}ACT-01: Usuario}{25}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}ACT-02: Administrador}{25}{subsubsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.4}ACT-03: Smart Contract (DocumentRegistry)}{26}{subsubsection.4.3.4}%
+\contentsline {subsubsection}{\numberline {4.3.5}ACT-04: Nodo IPFS autoalojado}{26}{subsubsection.4.3.5}%
+\contentsline {subsubsection}{\numberline {4.3.6}ACT-05: Sistema de Email}{27}{subsubsection.4.3.6}%
+\contentsline {subsubsection}{\numberline {4.3.7}Diagramas de casos de uso}{27}{subsubsection.4.3.7}%
 \contentsline {subsubsection}{\numberline {4.3.8}Casos de Uso Detallados}{27}{subsubsection.4.3.8}%
-\contentsline {subsubsection}{\numberline {4.3.9}UC-0001: Registrar Usuario}{27}{subsubsection.4.3.9}%
-\contentsline {subsubsection}{\numberline {4.3.10}UC-0002: Registrar Usuario y Vincular Wallet Opcionalmente}{28}{subsubsection.4.3.10}%
-\contentsline {subsubsection}{\numberline {4.3.11}UC-0003: Iniciar Sesión}{29}{subsubsection.4.3.11}%
-\contentsline {subsubsection}{\numberline {4.3.12}UC-0004: Validar Segundo Factor en el Inicio de Sesión}{30}{subsubsection.4.3.12}%
-\contentsline {subsubsection}{\numberline {4.3.13}UC-0005: Cerrar Sesión}{31}{subsubsection.4.3.13}%
-\contentsline {subsubsection}{\numberline {4.3.14}UC-0006: Conectar Wallet}{32}{subsubsection.4.3.14}%
-\contentsline {subsubsection}{\numberline {4.3.15}UC-0007: Eliminar Wallet}{33}{subsubsection.4.3.15}%
-\contentsline {subsubsection}{\numberline {4.3.16}UC-0008: Establecer Wallet Principal}{34}{subsubsection.4.3.16}%
-\contentsline {subsubsection}{\numberline {4.3.17}UC-0009: Renombrar/Etiquetar Wallet}{35}{subsubsection.4.3.17}%
-\contentsline {subsubsection}{\numberline {4.3.18}UC-0010: Gestionar Perfil}{36}{subsubsection.4.3.18}%
-\contentsline {subsubsection}{\numberline {4.3.19}UC-0011: Desactivar Propia Cuenta}{36}{subsubsection.4.3.19}%
-\contentsline {subsubsection}{\numberline {4.3.20}UC-0012: Reactivar Propia Cuenta}{37}{subsubsection.4.3.20}%
-\contentsline {subsubsection}{\numberline {4.3.21}UC-0013: Cambiar Contraseña}{38}{subsubsection.4.3.21}%
-\contentsline {subsubsection}{\numberline {4.3.22}UC-0014: Recuperar Contraseña}{39}{subsubsection.4.3.22}%
-\contentsline {subsubsection}{\numberline {4.3.23}UC-0015: Verificar Email}{40}{subsubsection.4.3.23}%
-\contentsline {subsubsection}{\numberline {4.3.24}UC-0016: Reenviar Email de Verificación}{41}{subsubsection.4.3.24}%
-\contentsline {subsubsection}{\numberline {4.3.25}UC-0017: Configurar Autenticación de Dos Factores}{42}{subsubsection.4.3.25}%
-\contentsline {subsubsection}{\numberline {4.3.26}UC-0018: Regenerar Códigos de Backup 2FA}{43}{subsubsection.4.3.26}%
-\contentsline {subsubsection}{\numberline {4.3.27}UC-0019: Subir Documento}{44}{subsubsection.4.3.27}%
-\contentsline {subsubsection}{\numberline {4.3.28}UC-0020: Listar Documentos}{45}{subsubsection.4.3.28}%
-\contentsline {subsubsection}{\numberline {4.3.29}UC-0021: Ver Detalle de Documento}{46}{subsubsection.4.3.29}%
-\contentsline {subsubsection}{\numberline {4.3.30}UC-0022: Descargar Documento}{47}{subsubsection.4.3.30}%
-\contentsline {subsubsection}{\numberline {4.3.31}UC-0023: Archivar Documento}{48}{subsubsection.4.3.31}%
-\contentsline {subsubsection}{\numberline {4.3.32}UC-0024: Desarchivar Documento}{49}{subsubsection.4.3.32}%
-\contentsline {subsubsection}{\numberline {4.3.33}UC-0025: Eliminar Documento}{49}{subsubsection.4.3.33}%
-\contentsline {subsubsection}{\numberline {4.3.34}UC-0026: Editar Metadatos de Documento}{50}{subsubsection.4.3.34}%
-\contentsline {subsubsection}{\numberline {4.3.35}UC-0027: Transferir Documento}{51}{subsubsection.4.3.35}%
-\contentsline {subsubsection}{\numberline {4.3.36}UC-0028: Buscar Documentos}{52}{subsubsection.4.3.36}%
-\contentsline {subsubsection}{\numberline {4.3.37}UC-0029: Crear Nueva Versión}{53}{subsubsection.4.3.37}%
-\contentsline {subsubsection}{\numberline {4.3.38}UC-0030: Listar Versiones}{54}{subsubsection.4.3.38}%
-\contentsline {subsubsection}{\numberline {4.3.39}UC-0031: Establecer Versión Operativa}{55}{subsubsection.4.3.39}%
-\contentsline {subsubsection}{\numberline {4.3.40}UC-0032: Restaurar Versión Anterior}{56}{subsubsection.4.3.40}%
-\contentsline {subsubsection}{\numberline {4.3.41}UC-0033: Descargar Versión Específica}{57}{subsubsection.4.3.41}%
-\contentsline {subsubsection}{\numberline {4.3.42}UC-0034: Firmar Documento}{58}{subsubsection.4.3.42}%
-\contentsline {subsubsection}{\numberline {4.3.43}UC-0035: Ver Firmas de un Documento}{59}{subsubsection.4.3.43}%
-\contentsline {subsubsection}{\numberline {4.3.44}UC-0036: Verificar Firma en Blockchain}{60}{subsubsection.4.3.44}%
-\contentsline {subsubsection}{\numberline {4.3.45}UC-0037: Compartir Documento}{61}{subsubsection.4.3.45}%
-\contentsline {subsubsection}{\numberline {4.3.46}UC-0038: Modificar Permisos de Acceso}{62}{subsubsection.4.3.46}%
-\contentsline {subsubsection}{\numberline {4.3.47}UC-0039: Revocar Acceso a Documento}{63}{subsubsection.4.3.47}%
-\contentsline {subsubsection}{\numberline {4.3.48}UC-0040: Ver Documentos Compartidos Conmigo}{64}{subsubsection.4.3.48}%
-\contentsline {subsubsection}{\numberline {4.3.49}UC-0041: Gestionar Carpetas}{64}{subsubsection.4.3.49}%
-\contentsline {subsubsection}{\numberline {4.3.50}UC-0042: Gestionar Categorías}{65}{subsubsection.4.3.50}%
-\contentsline {subsubsection}{\numberline {4.3.51}UC-0043: Etiquetar Documento}{66}{subsubsection.4.3.51}%
-\contentsline {subsubsection}{\numberline {4.3.52}UC-0044: Ver Timeline de Documento}{67}{subsubsection.4.3.52}%
-\contentsline {subsubsection}{\numberline {4.3.53}UC-0045: Ver Estadísticas Personales}{68}{subsubsection.4.3.53}%
-\contentsline {subsubsection}{\numberline {4.3.54}UC-0046: Ver Estadísticas Globales del Sistema}{69}{subsubsection.4.3.54}%
-\contentsline {subsubsection}{\numberline {4.3.55}UC-0047: Verificar Autenticidad de Documento}{70}{subsubsection.4.3.55}%
-\contentsline {subsubsection}{\numberline {4.3.56}UC-0048: Auditoría Blockchain}{71}{subsubsection.4.3.56}%
-\contentsline {subsubsection}{\numberline {4.3.57}UC-0049: Listar Usuarios}{72}{subsubsection.4.3.57}%
-\contentsline {subsubsection}{\numberline {4.3.58}UC-0050: Gestionar Roles de Usuario}{73}{subsubsection.4.3.58}%
-\contentsline {subsubsection}{\numberline {4.3.59}UC-0051: Crear Usuario Administrador}{74}{subsubsection.4.3.59}%
-\contentsline {subsubsection}{\numberline {4.3.60}UC-0052: Suspender Usuario}{75}{subsubsection.4.3.60}%
-\contentsline {subsubsection}{\numberline {4.3.61}UC-0053: Eliminar Cuenta de Usuario (Admin)}{76}{subsubsection.4.3.61}%
-\contentsline {subsubsection}{\numberline {4.3.62}UC-0054: Pausar Sistema (Circuit Breaker)}{76}{subsubsection.4.3.62}%
-\contentsline {subsubsection}{\numberline {4.3.63}UC-0055: Reanudar Sistema}{77}{subsubsection.4.3.63}%
-\contentsline {subsubsection}{\numberline {4.3.64}UC-0056: Ver Notificaciones}{78}{subsubsection.4.3.64}%
-\contentsline {subsubsection}{\numberline {4.3.65}UC-0057: Configurar Preferencias de Notificaciones}{79}{subsubsection.4.3.65}%
-\contentsline {section}{\numberline {5}Matrices de rastreabilidad}{80}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Matriz IRQ-OBJ}{80}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Matriz NFR-IRQ}{82}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Matriz NFR-NFR}{82}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Matriz NFR-OBJ}{82}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Matriz UC-NFR}{82}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Matriz UC-IRQ}{83}{subsection.5.6}%
-\contentsline {subsection}{\numberline {5.7}Matriz UC-UC}{84}{subsection.5.7}%
-\contentsline {subsection}{\numberline {5.8}Matriz UC-OBJ}{84}{subsection.5.8}%
-\contentsline {section}{\numberline {6}Propuesta arquitectónica}{86}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Arquitectura por paquetes}{86}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Diagrama de arquitectura}{86}{subsection.6.2}%
-\contentsline {section}{\numberline {7}Glosario}{89}{section.7}%
-\contentsline {section}{Bibliografía}{89}{section*.4}%
+\contentsline {subsubsection}{UC-0001: Registrar Usuario}{27}{section*.6}%
+\contentsline {subsubsection}{UC-0002: Iniciar Sesión}{28}{section*.8}%
+\contentsline {subsubsection}{UC-0003: Validar Segundo Factor en el Inicio de Sesión}{29}{section*.10}%
+\contentsline {subsubsection}{UC-0004: Cerrar Sesión}{30}{section*.12}%
+\contentsline {subsubsection}{UC-0005: Conectar Wallet}{31}{section*.14}%
+\contentsline {subsubsection}{UC-0006: Eliminar Wallet}{32}{section*.16}%
+\contentsline {subsubsection}{UC-0007: Establecer Wallet Principal}{33}{section*.18}%
+\contentsline {subsubsection}{UC-0008: Renombrar/Etiquetar Wallet}{34}{section*.20}%
+\contentsline {subsubsection}{UC-0009: Gestionar Perfil}{35}{section*.22}%
+\contentsline {subsubsection}{UC-0010: Desactivar Propia Cuenta}{35}{section*.24}%
+\contentsline {subsubsection}{UC-0011: Reactivar Propia Cuenta}{36}{section*.26}%
+\contentsline {subsubsection}{UC-0012: Cambiar Contraseña}{37}{section*.28}%
+\contentsline {subsubsection}{UC-0013: Recuperar Contraseña}{38}{section*.30}%
+\contentsline {subsubsection}{UC-0014: Verificar Email}{39}{section*.32}%
+\contentsline {subsubsection}{UC-0015: Reenviar Email de Verificación}{40}{section*.34}%
+\contentsline {subsubsection}{UC-0016: Subir Documento}{41}{section*.36}%
+\contentsline {subsubsection}{UC-0017: Listar Documentos}{42}{section*.38}%
+\contentsline {subsubsection}{UC-0018: Ver Detalle de Documento}{43}{section*.40}%
+\contentsline {subsubsection}{UC-0019: Descargar Documento}{44}{section*.42}%
+\contentsline {subsubsection}{UC-0020: Archivar Documento}{45}{section*.44}%
+\contentsline {subsubsection}{UC-0021: Desarchivar Documento}{46}{section*.46}%
+\contentsline {subsubsection}{UC-0022: Eliminar Documento}{47}{section*.48}%
+\contentsline {subsubsection}{UC-0023: Transferir Documento}{48}{section*.50}%
+\contentsline {subsubsection}{UC-0024: Buscar Documentos}{49}{section*.52}%
+\contentsline {subsubsection}{UC-0025: Crear Nueva Versión}{50}{section*.54}%
+\contentsline {subsubsection}{UC-0026: Listar Versiones}{51}{section*.56}%
+\contentsline {subsubsection}{UC-0027: Establecer Versión Operativa}{52}{section*.58}%
+\contentsline {subsubsection}{UC-0028: Restaurar Versión Anterior}{52}{section*.60}%
+\contentsline {subsubsection}{UC-0029: Descargar Versión Específica}{53}{section*.62}%
+\contentsline {subsubsection}{UC-0030: Firmar Documento}{54}{section*.64}%
+\contentsline {subsubsection}{UC-0031: Ver Firmas de un Documento}{55}{section*.66}%
+\contentsline {subsubsection}{UC-0032: Verificar Firma en Blockchain}{56}{section*.68}%
+\contentsline {subsubsection}{UC-0033: Compartir Documento}{57}{section*.70}%
+\contentsline {subsubsection}{UC-0034: Revocar Acceso a Documento}{58}{section*.72}%
+\contentsline {subsubsection}{UC-0035: Ver Documentos Compartidos Conmigo}{59}{section*.74}%
+\contentsline {subsubsection}{UC-0036: Ver Timeline de Documento}{60}{section*.76}%
+\contentsline {subsubsection}{UC-0037: Ver Estadísticas Personales}{61}{section*.78}%
+\contentsline {subsubsection}{UC-0038: Ver Estadísticas Globales del Sistema}{62}{section*.80}%
+\contentsline {subsubsection}{UC-0039: Verificar Autenticidad de Documento}{63}{section*.82}%
+\contentsline {subsubsection}{UC-0040: Auditoría Blockchain}{64}{section*.84}%
+\contentsline {subsubsection}{UC-0041: Listar Usuarios}{65}{section*.86}%
+\contentsline {subsubsection}{UC-0042: Gestionar Roles de Usuario}{66}{section*.88}%
+\contentsline {section}{\numberline {5}Matrices de rastreabilidad}{67}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Matriz IRQ-OBJ}{67}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Matriz NFR-IRQ}{67}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Matriz NFR-NFR}{68}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Matriz NFR-OBJ}{68}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Matriz UC-NFR}{68}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Matriz UC-IRQ}{69}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Matriz UC-UC}{70}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Matriz UC-OBJ}{70}{subsection.5.8}%
+\contentsline {section}{\numberline {6}Propuesta arquitectónica}{71}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Arquitectura por paquetes}{71}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Diagrama de arquitectura}{72}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Glosario}{74}{section.7}%
+\contentsline {section}{Bibliografía}{74}{section*.89}%

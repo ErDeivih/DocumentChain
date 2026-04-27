@@ -1,8 +1,8 @@
 \babel@toc {spanish}{}\relax 
-\contentsline {table}{\numberline {1}{\ignorespaces Campos del struct Document en el smart contract}}{17}{table.caption.13}%
-\contentsline {table}{\numberline {2}{\ignorespaces Campos del struct Version en el smart contract}}{18}{table.caption.15}%
-\contentsline {table}{\numberline {3}{\ignorespaces Campos del struct Signature en el smart contract}}{18}{table.caption.17}%
-\contentsline {table}{\numberline {4}{\ignorespaces Mappings principales del smart contract DocumentRegistry}}{18}{table.caption.19}%
-\contentsline {table}{\numberline {5}{\ignorespaces Matriz de trazabilidad IRQ -- componentes de diseño}}{66}{table.caption.96}%
-\contentsline {table}{\numberline {6}{\ignorespaces Matriz de trazabilidad UC -- clases de análisis}}{66}{table.caption.97}%
-\contentsline {table}{\numberline {7}{\ignorespaces Cobertura de requisitos no funcionales}}{67}{table.caption.98}%
+\contentsline {table}{\numberline {1}{\ignorespaces Campos del struct Document en el smart contract}}{18}{table.caption.14}%
+\contentsline {table}{\numberline {2}{\ignorespaces Campos del struct Version en el smart contract}}{19}{table.caption.16}%
+\contentsline {table}{\numberline {3}{\ignorespaces Campos del struct Signature en el smart contract}}{19}{table.caption.18}%
+\contentsline {table}{\numberline {4}{\ignorespaces Mappings principales del smart contract DocumentRegistry}}{19}{table.caption.20}%
+\contentsline {table}{\numberline {5}{\ignorespaces Matriz de trazabilidad IRQ -- componentes de diseño}}{58}{table.caption.80}%
+\contentsline {table}{\numberline {6}{\ignorespaces Matriz de trazabilidad UC -- clases de análisis}}{58}{table.caption.81}%
+\contentsline {table}{\numberline {7}{\ignorespaces Cobertura de requisitos no funcionales}}{59}{table.caption.82}%
