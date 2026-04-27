@@ -67,6 +67,37 @@ upsert_env_value() {
   fi
 }
 
+generate_secure_secret() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 32
+    return
+  fi
+
+  if command -v node >/dev/null 2>&1; then
+    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+    return
+  fi
+
+  printf 'Unable to generate a secure secret automatically: neither openssl nor node is available\n' >&2
+  exit 1
+}
+
+ensure_persistent_secret() {
+  local secret_name="$1"
+  local secret_value="${!secret_name:-}"
+
+  if [[ -n "$secret_value" ]] && (( ${#secret_value} >= 32 )) && [[ ! "$secret_value" =~ $secret_placeholder_pattern ]]; then
+    export "$secret_name=$secret_value"
+    return
+  fi
+
+  local generated_secret
+  generated_secret="$(generate_secure_secret)"
+  upsert_env_value "$SERVER_ENV_FILE" "$secret_name" "$generated_secret"
+  export "$secret_name=$generated_secret"
+  printf 'Generated persistent secret %s in %s\n' "$secret_name" "$SERVER_ENV_FILE"
+}
+
 wait_for_health() {
   local container_name="$1"
   local attempts="${2:-30}"
@@ -150,7 +181,12 @@ fi
 
 ensure_env_file "$ROOT_DIR/backend/.env" "$ROOT_DIR/backend/.env.example"
 ensure_env_file "$ROOT_DIR/frontend/.env" "$ROOT_DIR/frontend/.env.example"
+ensure_env_file "$SERVER_ENV_FILE" "$ROOT_DIR/.env.server.example"
 load_server_env
+
+ensure_persistent_secret "JWT_SECRET"
+ensure_persistent_secret "JWT_REFRESH_SECRET"
+ensure_persistent_secret "ADMIN_REGISTRATION_SECRET"
 
 require_secure_secret "JWT_SECRET"
 require_secure_secret "JWT_REFRESH_SECRET"

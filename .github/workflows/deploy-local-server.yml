@@ -37,7 +37,4 @@ jobs:
         env:
           SERVER_ENV_FILE: /opt/documentchain/.env.server
           ENABLE_IPFS_NODE: "1"
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-          ADMIN_REGISTRATION_SECRET: ${{ secrets.ADMIN_REGISTRATION_SECRET }}
         run: bash scripts/deploy-ubuntu-server.sh
