@@ -10,8 +10,7 @@ Set-Location $PSScriptRoot
 function Get-DockerContainerStatus {
     param([Parameter(Mandatory = $true)][string]$ContainerName)
 
-    $command = "docker inspect $ContainerName --format ""{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}"" 2>nul"
-    $status = cmd.exe /d /c $command
+    $status = docker inspect $ContainerName --format "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" 2>$null
     if ($LASTEXITCODE -ne 0) {
         return $null
     }
