@@ -6,6 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { useToast } from '../components/ui/Toast';
 import { api } from '../lib/api';
+import { copyToClipboard } from '../lib/utils';
 import {
   Users,
   UserPlus,
@@ -210,24 +211,32 @@ export const AdminPanel: React.FC = () => {
             </form>
 
             {recoveryKey && (
-              <div className="mt-4 p-4 bg-warning-50 border border-warning-200 rounded-lg">
+              <div className="mt-4 rounded-xl border border-warning-700/30 bg-warning-900/20 p-4">
                 <p className="text-sm font-medium text-warning-800 mb-2">
                   ⚠️ Guarde esta clave de recuperación - no se volverá a mostrar!
                 </p>
-                <code className="block p-2 bg-white rounded border text-xs break-all">
+                <code className="block break-all rounded-lg border border-primary/20 bg-slate-950 p-2 text-xs text-primary-50">
                   {recoveryKey}
                 </code>
                 <Button
                   size="sm"
                   variant="outline"
                   className="mt-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(recoveryKey);
-                    toast({
-                      title: 'Copiado',
-                      description: 'Clave de recuperación copiada al portapapeles',
-                      variant: 'success',
-                    });
+                  onClick={async () => {
+                    try {
+                      await copyToClipboard(recoveryKey);
+                      toast({
+                        title: 'Copiado',
+                        description: 'Clave de recuperación copiada al portapapeles',
+                        variant: 'success',
+                      });
+                    } catch {
+                      toast({
+                        title: 'Error',
+                        description: 'No se pudo copiar automáticamente la clave de recuperación',
+                        variant: 'destructive',
+                      });
+                    }
                   }}
                 >
                   Copiar al Portapapeles

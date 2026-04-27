@@ -53,11 +53,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Fallback por defecto
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+        <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-card/95 p-6 shadow-[0_32px_80px_-30px_rgba(2,6,23,0.95)] backdrop-blur-xl">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-error-900/35">
               <svg
-                className="w-6 h-6 text-red-600"
+                className="w-6 h-6 text-error-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -71,20 +71,20 @@ export class ErrorBoundary extends Component<Props, State> {
               </svg>
             </div>
             
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            <h2 className="mb-2 text-center text-2xl font-bold text-foreground">
               Algo salió mal
             </h2>
             
-            <p className="text-gray-600 text-center mb-6">
+            <p className="mb-6 text-center text-muted-foreground">
               La aplicación encontró un error inesperado. Por favor, intenta recargar la página.
             </p>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="mb-4 p-4 bg-red-50 rounded text-xs">
-                <summary className="cursor-pointer font-semibold text-red-800 mb-2">
+              <details className="mb-4 rounded-xl border border-error-700/30 bg-error-900/20 p-4 text-xs">
+                <summary className="mb-2 cursor-pointer font-semibold text-error-200">
                   Detalles del error (solo desarrollo)
                 </summary>
-                <pre className="text-red-700 whitespace-pre-wrap break-words">
+                <pre className="whitespace-pre-wrap break-words text-error-100">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>
@@ -94,13 +94,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3">
               <button
                 onClick={this.handleReset}
-                className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300 transition"
+                className="flex-1 rounded-xl border border-white/10 bg-secondary/70 px-4 py-2 text-secondary-foreground transition hover:bg-secondary"
               >
                 Reintentar
               </button>
               <button
                 onClick={() => window.location.href = '/'}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+                className="flex-1 rounded-xl bg-primary px-4 py-2 text-primary-foreground transition hover:bg-primary/90"
               >
                 Ir al inicio
               </button>
@@ -108,7 +108,7 @@ export class ErrorBoundary extends Component<Props, State> {
             
             <button
               onClick={() => window.location.reload()}
-              className="w-full mt-3 text-sm text-gray-600 hover:text-gray-800 underline"
+              className="mt-3 w-full text-sm text-muted-foreground underline hover:text-foreground"
             >
               Recargar página
             </button>

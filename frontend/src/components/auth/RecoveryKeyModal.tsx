@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import AlertMessage from '../ui/AlertMessage';
 import { Copy, Download, AlertTriangle, Check } from 'lucide-react';
+import { copyToClipboard } from '../../lib/utils';
 
 interface RecoveryKeyModalProps {
   isOpen: boolean;
@@ -17,13 +18,16 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(recoveryKey);
+      await copyToClipboard(recoveryKey);
+      setCopyError(null);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch (error) {
+      setCopyError('No se pudo copiar automáticamente. Descargue la clave como archivo.');
       console.error('Error al copiar:', error);
     }
   };
@@ -73,26 +77,26 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
         />
 
         {/* Instructions */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
+        <div className="rounded-xl border border-white/10 bg-secondary/40 p-4">
+          <h3 className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+            <AlertTriangle className="w-5 h-5 text-warning-300" />
             Información Crítica
           </h3>
-          <ul className="space-y-2 text-sm text-gray-700">
+          <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
-              <span className="text-orange-600 font-bold">•</span>
+              <span className="font-bold text-warning-300">•</span>
               <span>Necesita esta clave de recuperación para restablecer su contraseña</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-orange-600 font-bold">•</span>
+              <span className="font-bold text-warning-300">•</span>
               <span>Si pierde esta clave Y olvida su contraseña, perderá acceso a todos sus documentos encriptados</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-orange-600 font-bold">•</span>
+              <span className="font-bold text-warning-300">•</span>
               <span>Guárdela en un lugar seguro (gestor de contraseñas, caja de seguridad, etc.)</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-orange-600 font-bold">•</span>
+              <span className="font-bold text-warning-300">•</span>
               <span>Nunca comparta esta clave con nadie</span>
             </li>
           </ul>
@@ -100,14 +104,15 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
 
         {/* Recovery Key Display */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="mb-2 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Su Clave de Recuperación
           </label>
           <div className="relative">
-            <div className="bg-white border-2 border-blue-500 rounded-lg p-4 font-mono text-sm break-all select-all">
+            <div className="rounded-xl border border-primary/20 bg-slate-950 p-4 font-mono text-sm break-all text-primary-50 select-all shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
               {recoveryKey}
             </div>
           </div>
+          {copyError ? <AlertMessage type="error" message={copyError} onClose={() => setCopyError(null)} /> : null}
         </div>
 
         {/* Action Buttons */}
@@ -140,15 +145,15 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
         </div>
 
         {/* Acknowledgment Checkbox */}
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="rounded-xl border border-error-700/30 bg-error-900/20 p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={acknowledged}
               onChange={(e) => setAcknowledged(e.target.checked)}
-              className="mt-1 h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+              className="mt-1 h-5 w-5 rounded border-white/15 bg-background text-primary focus:ring-primary"
             />
-            <span className="text-sm text-gray-900 font-medium">
+            <span className="text-sm font-medium text-foreground">
               Entiendo que necesito guardar esta clave de recuperación. Si la pierdo y olvido mi contraseña, 
               perderé permanentemente el acceso a todos mis documentos encriptados. No hay forma de recuperarlos.
             </span>

@@ -130,7 +130,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Descripción (opcional)
           </label>
           <textarea
@@ -139,12 +139,12 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             placeholder="Ingrese descripción de la categoría"
             rows={3}
             disabled={loading || (isEditMode && editCategory?.isPredefined)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-input bg-background/75 px-3 py-2 text-foreground backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="mb-2 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Color
           </label>
           <div className="grid grid-cols-6 gap-2">
@@ -156,7 +156,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
                 disabled={loading || (isEditMode && editCategory?.isPredefined)}
                 className={`
                   w-full h-10 rounded-lg border-2 transition-all
-                  ${color === c.value ? 'border-gray-800 scale-105 shadow-md' : 'border-gray-300'}
+                  ${color === c.value ? 'border-foreground scale-105 shadow-md' : 'border-white/10'}
                   ${loading || (isEditMode && editCategory?.isPredefined) ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
                 `}
                 style={{ backgroundColor: c.value }}
@@ -167,8 +167,8 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
         </div>
 
         {/* Vista previa */}
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-xs text-gray-500 mb-2">Vista previa:</p>
+        <div className="rounded-xl border border-white/10 bg-secondary/40 p-4">
+          <p className="mb-2 text-xs uppercase tracking-[0.08em] text-muted-foreground">Vista previa</p>
           <div className="flex items-center gap-2">
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md font-medium text-white"
@@ -179,7 +179,7 @@ export const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({
             </div>
           </div>
           {description && (
-            <p className="mt-2 text-sm text-gray-600">{description}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{description}</p>
           )}
         </div>
 

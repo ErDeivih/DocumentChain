@@ -105,7 +105,7 @@ export const ResetPassword: React.FC = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
             <AlertMessage
@@ -123,7 +123,7 @@ export const ResetPassword: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
             <div className="flex items-center justify-center mb-4">
@@ -131,10 +131,10 @@ export const ResetPassword: React.FC = () => {
                 <Shield className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="mb-2 text-2xl font-bold text-foreground">
               ¡Contraseña Restablecida con Éxito!
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="mb-4 text-muted-foreground">
               Su contraseña ha sido restablecida correctamente.
             </p>
             <p className="text-sm text-green-600 font-medium">
@@ -150,18 +150,18 @@ export const ResetPassword: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
+            <div className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] p-3 rounded-full shadow-[0_0_24px_rgba(14,165,233,0.24)]">
               <Lock className="w-8 h-8 text-white" />
             </div>
           </div>
           <CardTitle className="text-center text-2xl">
             Restablecer Su Contraseña
           </CardTitle>
-          <p className="text-center text-gray-600 text-sm mt-2">
+          <p className="mt-2 text-center text-sm text-slate-600">
             Introduzca su clave de recuperación y nueva contraseña
           </p>
         </CardHeader>
@@ -231,16 +231,16 @@ export const ResetPassword: React.FC = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               ¿Recuerda su contraseña?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link to="/login" className="font-medium text-primary hover:text-blockchain-700">
                 Inicie sesión aquí
               </Link>
             </p>
           </div>
 
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs text-yellow-800">
+          <div className="mt-4 rounded-xl border border-warning-200 bg-warning-50/85 p-3">
+            <p className="text-xs text-warning-800">
               <strong>¿Perdió su clave de recuperación?</strong> Lamentablemente, sin su clave de recuperación, 
               no podemos ayudarle a restablecer su contraseña manteniendo el acceso a sus documentos cifrados. 
               Esto es una característica de seguridad para proteger sus datos.

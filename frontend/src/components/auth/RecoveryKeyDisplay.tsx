@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import AlertMessage from '../ui/AlertMessage';
 import { Copy, Download, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { copyToClipboard } from '../../lib/utils';
 
 interface RecoveryKeyDisplayProps {
   isOpen: boolean;
@@ -19,13 +20,16 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
   const [downloaded, setDownloaded] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [showRecoveryKey, setShowRecoveryKey] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(recoveryKey);
+      await copyToClipboard(recoveryKey);
+      setCopyError(null);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
+      setCopyError('No se pudo copiar automáticamente. Use la descarga como alternativa.');
       console.error('Error al copiar:', error);
     }
   };
@@ -84,12 +88,12 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
         />
 
         {/* Instrucciones */}
-        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+        <div className="space-y-2 rounded-xl border border-white/10 bg-secondary/40 p-4">
+          <h3 className="flex items-center gap-2 font-semibold text-foreground">
+            <AlertTriangle className="w-5 h-5 text-warning-300" />
             ¿Qué es una Clave de Recuperación?
           </h3>
-          <ul className="text-sm text-gray-700 space-y-1 ml-6 list-disc">
+          <ul className="ml-6 list-disc space-y-1 text-sm text-muted-foreground">
             <li>Su clave de recuperación le permite restablecer su contraseña si la olvida</li>
             <li>Sin esta clave, los documentos cifrados son <strong>inaccesibles permanentemente</strong></li>
             <li>Guárdela en un <strong>lugar seguro y sin conexión</strong> (memoria USB, papel impreso, gestor de contraseñas)</li>
@@ -99,11 +103,11 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
 
         {/* Visualización de la Clave de Recuperación */}
         <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Su Clave de Recuperación:
           </label>
           <div className="relative">
-            <div className="bg-gray-900 text-white p-4 pr-24 rounded-lg font-mono text-sm break-all">
+            <div className="rounded-xl border border-primary/20 bg-slate-950 p-4 pr-24 font-mono text-sm break-all text-primary-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
               {showRecoveryKey ? recoveryKey : '•'.repeat(Math.max(recoveryKey.length, 32))}
             </div>
             <div className="absolute top-2 right-2 flex items-center gap-2">
@@ -111,7 +115,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowRecoveryKey(prev => !prev)}
-                className="bg-gray-800 hover:bg-gray-700 text-white px-2"
+                className="bg-secondary/70 px-2 text-foreground hover:bg-secondary"
                 title={showRecoveryKey ? 'Ocultar clave' : 'Mostrar clave'}
               >
                 {showRecoveryKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -120,13 +124,14 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleCopy}
-                className="bg-gray-800 hover:bg-gray-700 text-white px-2"
+                className="bg-secondary/70 px-2 text-foreground hover:bg-secondary"
                 title={copied ? '¡Copiado!' : 'Copiar al portapapeles'}
               >
                 {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </Button>
             </div>
           </div>
+          {copyError ? <AlertMessage type="error" message={copyError} onClose={() => setCopyError(null)} /> : null}
         </div>
 
         {/* Botones de Acción */}
@@ -143,15 +148,15 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
         </div>
 
         {/* Casilla de Confirmación */}
-        <div className="border-t pt-4">
+        <div className="border-t border-white/10 pt-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="mt-1 h-4 w-4 rounded border-white/15 bg-background text-primary focus:ring-primary"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-muted-foreground">
               Confirmo que he <strong>guardado mi clave de recuperación</strong> en un lugar seguro. 
               Entiendo que sin esta clave, <strong>perderé permanentemente el acceso</strong> a 
               mis documentos cifrados si olvido mi contraseña.
@@ -170,7 +175,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
         </Button>
 
         {!confirmed && (
-          <p className="text-xs text-center text-gray-500">
+          <p className="text-center text-xs text-muted-foreground">
             Debe confirmar que ha guardado su clave de recuperación antes de continuar
           </p>
         )}

@@ -104,11 +104,11 @@ export const VerifyEmail: React.FC = () => {
   }, [redirectedAsUnverified, token]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-100 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
+            <div className="rounded-full bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] p-3 shadow-[0_0_24px_rgba(14,165,233,0.24)]">
               {status === 'loading' && <Loader2 className="w-8 h-8 text-white animate-spin" />}
               {status === 'success' && <MailCheck className="w-8 h-8 text-white" />}
               {status === 'error' && <XCircle className="w-8 h-8 text-white" />}
@@ -140,7 +140,7 @@ export const VerifyEmail: React.FC = () => {
           ) : null}
 
           {status === 'loading' ? (
-            <div className="text-center text-sm text-gray-600 flex items-center justify-center gap-2 py-2">
+            <div className="flex items-center justify-center gap-2 py-2 text-center text-sm text-slate-600">
               <Loader2 className="w-4 h-4 animate-spin" />
               Procesando el enlace de verificación...
             </div>

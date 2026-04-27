@@ -4,16 +4,16 @@ import { X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const toastVariants = cva(
-  'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full',
+  'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-xl border p-6 pr-8 shadow-[0_24px_60px_-30px_rgba(2,6,23,0.95)] backdrop-blur-md transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full',
   {
     variants: {
       variant: {
-        default: 'border bg-background text-foreground',
+        default: 'border-white/10 bg-card/95 text-foreground',
         destructive:
-          'destructive group border-destructive bg-destructive text-destructive-foreground',
-        success: 'border-success-200 bg-success-50 text-success-900',
-        warning: 'border-warning-200 bg-warning-50 text-warning-900',
-        info: 'border-primary-200 bg-primary-50 text-primary-900',
+          'destructive group border-error-700/35 bg-error-900/25 text-error-100',
+        success: 'border-success-700/35 bg-success-900/25 text-success-100',
+        warning: 'border-warning-700/35 bg-warning-900/25 text-warning-100',
+        info: 'border-blockchain-700/35 bg-blockchain-900/25 text-foreground',
       },
     },
     defaultVariants: {

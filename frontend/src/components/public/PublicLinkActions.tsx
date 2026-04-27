@@ -4,6 +4,7 @@ import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import AlertMessage from '../ui/AlertMessage';
 import { Copy, ExternalLink, QrCode, Download } from 'lucide-react';
+import { copyToClipboard } from '../../lib/utils';
 
 interface PublicLinkActionsProps {
   url: string;
@@ -35,7 +36,7 @@ export const PublicLinkActions: React.FC<PublicLinkActionsProps> = ({
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      await copyToClipboard(url);
       setMessage('Enlace copiado al portapapeles.');
     } catch {
       setMessage('No se pudo copiar el enlace automáticamente.');
@@ -92,12 +93,12 @@ export const PublicLinkActions: React.FC<PublicLinkActionsProps> = ({
       >
         <div className="space-y-4">
           {message && <AlertMessage type="info" message={message} onClose={() => setMessage(null)} />}
-          <p className="text-sm text-gray-600 break-all">{url}</p>
-          <div className="flex justify-center rounded-xl bg-white p-4 shadow-sm">
+          <p className="break-all text-sm text-muted-foreground">{url}</p>
+          <div className="flex justify-center rounded-xl border border-white/10 bg-card/90 p-4 shadow-sm">
             {qrDataUrl ? (
               <img src={qrDataUrl} alt={`QR de ${title}`} className="h-72 w-72" />
             ) : (
-              <div className="flex h-72 w-72 items-center justify-center text-sm text-gray-500">
+              <div className="flex h-72 w-72 items-center justify-center text-sm text-muted-foreground">
                 Generando QR...
               </div>
             )}

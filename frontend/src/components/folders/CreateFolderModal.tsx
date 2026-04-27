@@ -161,7 +161,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
         />
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Descripción (opcional)
           </label>
           <textarea
@@ -170,12 +170,12 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
             placeholder="Ingrese descripción de la carpeta"
             rows={3}
             disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-input bg-background/75 px-3 py-2 text-foreground backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="mb-2 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Color
           </label>
           <div className="grid grid-cols-9 gap-2">
@@ -187,7 +187,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
                 disabled={loading}
                 className={`
                   w-8 h-8 rounded-full border-2 transition-all
-                  ${color === c.value ? 'border-gray-800 scale-110' : 'border-gray-300'}
+                  ${color === c.value ? 'border-foreground scale-110' : 'border-white/10'}
                 `}
                 style={{ backgroundColor: c.value }}
                 title={c.label}
@@ -197,14 +197,14 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="mb-1 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
             Carpeta Padre (opcional)
           </label>
           <select
             value={selectedParentId || ''}
             onChange={(e) => setSelectedParentId(e.target.value || null)}
             disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-input bg-background/75 px-3 py-2 text-foreground backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
           >
             <option value="">Ninguna (Nivel raíz)</option>
             {getAvailableFolders().map((folder) => (
@@ -216,14 +216,14 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
         </div>
 
         {/* Vista previa */}
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-xs text-gray-500 mb-2">Vista previa:</p>
+        <div className="rounded-xl border border-white/10 bg-secondary/40 p-4">
+          <p className="mb-2 text-xs uppercase tracking-[0.08em] text-muted-foreground">Vista previa</p>
           <div className="flex items-center gap-2">
             <Folder className="w-5 h-5" style={{ color }} />
-            <span className="font-medium text-gray-700">{name || 'Carpeta Sin Título'}</span>
+            <span className="font-medium text-foreground">{name || 'Carpeta Sin Título'}</span>
           </div>
           {description && (
-            <p className="mt-2 text-sm text-gray-600">{description}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{description}</p>
           )}
         </div>
 

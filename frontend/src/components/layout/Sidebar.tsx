@@ -30,10 +30,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => {
       to={to}
       className={({ isActive }) =>
         cn(
-          'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+          'flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200',
           isActive
-            ? 'bg-primary/10 text-primary font-medium'
-            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+            ? 'border border-primary/20 bg-[linear-gradient(90deg,rgba(45,212,191,0.18),rgba(14,165,233,0.10))] font-medium text-white shadow-[0_10px_30px_-18px_rgba(14,165,233,0.55)]'
+            : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
         )
       }
     >
@@ -66,10 +66,10 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-64 bg-background border-r p-4 sticky top-0 h-screen overflow-y-auto">
+    <aside className="scrollbar-thin sticky top-0 h-screen w-64 overflow-y-auto border-r border-white/10 bg-[#0b1324]/88 p-4 text-slate-200 backdrop-blur-xl">
       <nav className="space-y-1">
         <div className="mb-4">
-          <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Principal
           </p>
           {user?.isAdmin && (
@@ -107,7 +107,7 @@ export const Sidebar: React.FC = () => {
       {showFolders && (
         <div className="mt-4">
           <div className="flex items-center justify-between px-4 mb-2">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               <FolderIcon className="w-3 h-3 inline mr-1" />
               Carpetas
             </h3>
@@ -123,15 +123,15 @@ export const Sidebar: React.FC = () => {
 
       {!user?.isAdmin && (
         <div className="mt-8 pt-8 border-t">
-          <h3 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          <h3 className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Almacenamiento
           </h3>
-          <div className="px-4 py-3 bg-accent rounded-lg">
+          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-medium text-slate-100">
                 {formatBytes(storageUsed)} / 5 GB
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-slate-400">
                 {storagePercentage.toFixed(1)}%
               </span>
             </div>

@@ -82,6 +82,22 @@ generate_secure_secret() {
   exit 1
 }
 
+extract_email_domain() {
+  local email_address="$1"
+
+  if [[ "$email_address" != *"@"* ]]; then
+    printf ''
+    return
+  fi
+
+  printf '%s' "${email_address##*@}" | tr '[:upper:]' '[:lower:]'
+}
+
+is_local_email_domain() {
+  local email_domain="$1"
+  [[ "$email_domain" == "localhost" || "$email_domain" == *.local ]]
+}
+
 ensure_persistent_secret() {
   local secret_name="$1"
   local secret_value="${!secret_name:-}"
@@ -184,6 +200,35 @@ ensure_env_file "$ROOT_DIR/frontend/.env" "$ROOT_DIR/frontend/.env.example"
 ensure_env_file "$SERVER_ENV_FILE" "$ROOT_DIR/.env.server.example"
 load_server_env
 
+EMAIL_DOMAIN="$(extract_email_domain "${EMAIL_FROM:-}")"
+
+if [[ -n "$EMAIL_DOMAIN" ]]; then
+  if [[ -z "${ALLOWED_SENDER_DOMAINS:-}" || "${ALLOWED_SENDER_DOMAINS}" == "documentchain.local" ]]; then
+    upsert_env_value "$SERVER_ENV_FILE" "ALLOWED_SENDER_DOMAINS" "$EMAIL_DOMAIN"
+    export ALLOWED_SENDER_DOMAINS="$EMAIL_DOMAIN"
+  fi
+
+  if [[ -z "${MASQUERADED_DOMAINS:-}" || "${MASQUERADED_DOMAINS}" == "documentchain.local" ]]; then
+    upsert_env_value "$SERVER_ENV_FILE" "MASQUERADED_DOMAINS" "$EMAIL_DOMAIN"
+    export MASQUERADED_DOMAINS="$EMAIL_DOMAIN"
+  fi
+
+  if [[ -z "${POSTFIX_HOSTNAME:-}" || "${POSTFIX_HOSTNAME}" == "mail.documentchain.local" ]]; then
+    upsert_env_value "$SERVER_ENV_FILE" "POSTFIX_HOSTNAME" "mail.${EMAIL_DOMAIN}"
+    export POSTFIX_HOSTNAME="mail.${EMAIL_DOMAIN}"
+  fi
+fi
+
+if [[ -z "${EMAIL_FROM:-}" ]]; then
+  printf 'Warning: EMAIL_FROM is not set in %s; outbound verification emails may use a non-deliverable sender.\n' "$SERVER_ENV_FILE" >&2
+elif is_local_email_domain "$EMAIL_DOMAIN"; then
+  printf 'Warning: EMAIL_FROM uses a local domain (%s); external email delivery will not be reliable.\n' "$EMAIL_FROM" >&2
+fi
+
+if [[ -z "${SMTP_RELAYHOST:-}" && "${SMTP_HOST:-postfix}" == "postfix" ]]; then
+  printf 'Warning: SMTP_RELAYHOST is not configured; outbound delivery will depend on the server MTA reputation and DNS.\n' >&2
+fi
+
 ensure_persistent_secret "JWT_SECRET"
 ensure_persistent_secret "JWT_REFRESH_SECRET"
 ensure_persistent_secret "ADMIN_REGISTRATION_SECRET"
@@ -216,6 +261,34 @@ fi
 
 if [[ -n "${FRONTEND_URL:-}" ]]; then
   upsert_env_value "$ROOT_DIR/backend/.env" "FRONTEND_URL" "\"${FRONTEND_URL}\""
+fi
+
+if [[ -n "${EMAIL_FROM:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "EMAIL_FROM" "\"${EMAIL_FROM}\""
+fi
+
+if [[ -n "${EMAIL_FROM_NAME:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "EMAIL_FROM_NAME" "\"${EMAIL_FROM_NAME}\""
+fi
+
+if [[ -n "${SMTP_HOST:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "SMTP_HOST" "\"${SMTP_HOST}\""
+fi
+
+if [[ -n "${SMTP_PORT:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "SMTP_PORT" "\"${SMTP_PORT}\""
+fi
+
+if [[ -n "${SMTP_SECURE:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "SMTP_SECURE" "\"${SMTP_SECURE}\""
+fi
+
+if [[ -n "${SMTP_USER:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "SMTP_USER" "\"${SMTP_USER}\""
+fi
+
+if [[ -n "${SMTP_PASS:-}" ]]; then
+  upsert_env_value "$ROOT_DIR/backend/.env" "SMTP_PASS" "\"${SMTP_PASS}\""
 fi
 
 if [[ -n "${ALLOWED_ORIGINS:-}" ]]; then

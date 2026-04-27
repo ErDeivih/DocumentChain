@@ -16,6 +16,10 @@ export class EmailService {
   private readonly fromName: string;
   private readonly appUrl: string;
   private readonly sendTimeoutMs: number;
+  private readonly smtpHost: string;
+  private readonly smtpPort: number;
+  private readonly smtpSecure: boolean;
+  private readonly smtpUsesAuth: boolean;
 
   constructor() {
     const smtpHost = process.env.SMTP_HOST || 'localhost';
@@ -23,6 +27,11 @@ export class EmailService {
     const smtpSecure = process.env.SMTP_SECURE === 'true';
     const smtpUser = process.env.SMTP_USER || '';
     const smtpPass = process.env.SMTP_PASS || '';
+
+    this.smtpHost = smtpHost;
+    this.smtpPort = smtpPort;
+    this.smtpSecure = smtpSecure;
+    this.smtpUsesAuth = Boolean(smtpUser && smtpPass);
 
     this.fromEmail = process.env.EMAIL_FROM || 'noreply@documentchain.local';
     this.fromName = process.env.EMAIL_FROM_NAME || 'DocumentChain System';
@@ -47,6 +56,64 @@ export class EmailService {
     });
 
     logger.info(`EmailService inicializado con SMTP: ${smtpHost}:${smtpPort}`);
+    this.logConfigurationWarnings();
+  }
+
+  private getSenderDomain(): string {
+    return this.fromEmail.split('@')[1]?.trim().toLowerCase() || '';
+  }
+
+  private getConfigurationWarnings(): string[] {
+    const warnings: string[] = [];
+    const senderDomain = this.getSenderDomain();
+    const relayConfigured = Boolean(process.env.SMTP_RELAYHOST);
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (isProduction && (!this.fromEmail || !senderDomain)) {
+      warnings.push('EMAIL_FROM no está configurado con un remitente válido.');
+    }
+
+    if (isProduction && (senderDomain.endsWith('.local') || senderDomain === 'localhost')) {
+      warnings.push('EMAIL_FROM usa un dominio local no enrutable; el correo externo no será entregable.');
+    }
+
+    if (isProduction && this.smtpHost === 'postfix' && !relayConfigured) {
+      warnings.push('SMTP_RELAYHOST no está configurado; la entrega externa dependerá de DNS, PTR, SPF, DKIM y reputación de IP del servidor.');
+    }
+
+    return warnings;
+  }
+
+  private logConfigurationWarnings(): void {
+    this.getConfigurationWarnings().forEach((warning) => {
+      logger.warn(`Configuración de email: ${warning}`, {
+        smtpHost: this.smtpHost,
+        smtpPort: this.smtpPort,
+        fromEmail: this.fromEmail,
+      });
+    });
+  }
+
+  getDiagnostics(): {
+    smtpHost: string;
+    smtpPort: number;
+    smtpSecure: boolean;
+    smtpUsesAuth: boolean;
+    fromEmail: string;
+    fromName: string;
+    appUrl: string;
+    warnings: string[];
+  } {
+    return {
+      smtpHost: this.smtpHost,
+      smtpPort: this.smtpPort,
+      smtpSecure: this.smtpSecure,
+      smtpUsesAuth: this.smtpUsesAuth,
+      fromEmail: this.fromEmail,
+      fromName: this.fromName,
+      appUrl: this.appUrl,
+      warnings: this.getConfigurationWarnings(),
+    };
   }
 
   private resolveTemplatesPath(): string {

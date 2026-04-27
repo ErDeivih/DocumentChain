@@ -264,7 +264,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
               className={`p-4 rounded-lg border transition-colors ${
                 version.isOperational
                   ? 'bg-green-50 border-green-200'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
+                  : 'bg-card/90 border-white/10 hover:border-primary/30'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -275,8 +275,8 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                      <span className="text-sm font-medium text-gray-600">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-secondary/70">
+                      <span className="text-sm font-medium text-muted-foreground">
                         v{version.versionNumber}
                       </span>
                     </div>
@@ -299,14 +299,14 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                       ) : null}
                     </div>
                     
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatDate(version.createdAt)}</span>
                       <span>·</span>
                       <span className="font-mono">{truncateCid(version.ipfsCid || 'CID pendiente')}</span>
                     </div>
                     
                     {version.comment && (
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {version.comment}
                       </p>
                     )}
@@ -360,7 +360,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
 
         {/* Información adicional */}
         {!isOwner && (
-          <p className="text-xs text-gray-500 mt-4 text-center">
+          <p className="mt-4 text-center text-xs text-muted-foreground">
             Solo el propietario puede cambiar la versión operacional
           </p>
         )}
@@ -378,16 +378,16 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
         }
       >
         {loadingSignaturesForVersion !== null ? (
-          <div className="flex items-center justify-center py-12 text-gray-600">
+          <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Cargando firmantes...
           </div>
         ) : signaturesError ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-lg border border-error-700/35 bg-error-900/20 p-4 text-sm text-error-100">
             {signaturesError}
           </div>
         ) : selectedVersionSignatures.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-600">
+          <div className="rounded-lg border border-dashed border-white/10 bg-secondary/35 p-6 text-center text-sm text-muted-foreground">
             Esta versión todavía no tiene firmas registradas.
           </div>
         ) : (
@@ -405,23 +405,23 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     onClick={() => setSelectedSignatureId(signature.id)}
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
                       selectedSignature?.id === signature.id
-                        ? 'border-blue-300 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-primary/40 bg-primary/10'
+                        : 'border-white/10 bg-card/90 hover:border-primary/25'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-medium text-gray-900">{signerName}</p>
+                        <p className="font-medium text-foreground">{signerName}</p>
                         {signerUsername ? (
-                          <p className="mt-1 text-xs text-gray-500">@{signerUsername}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">@{signerUsername}</p>
                         ) : null}
                       </div>
                       <Badge variant={getStatusVariant(signature.blockchainStatus)} className="shrink-0">
                         {getStatusLabel(signature.blockchainStatus)}
                       </Badge>
                     </div>
-                    <p className="mt-3 font-mono text-xs text-gray-500">{truncateWalletAddress(walletAddress)}</p>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-3 font-mono text-xs text-muted-foreground">{truncateWalletAddress(walletAddress)}</p>
+                    <p className="mt-2 text-xs text-muted-foreground">
                       {signature.signedAt ? formatDate(signature.signedAt) : 'Fecha pendiente'}
                     </p>
                   </button>
@@ -430,9 +430,9 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
             </div>
 
             {selectedSignature ? (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-5" data-testid="signer-profile-panel">
+              <div className="rounded-xl border border-white/10 bg-secondary/35 p-5" data-testid="signer-profile-panel">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg font-semibold text-gray-900">Perfil del firmante</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Perfil del firmante</h3>
                   <Badge variant={getStatusVariant(selectedSignature.blockchainStatus)}>
                     {getStatusLabel(selectedSignature.blockchainStatus)}
                   </Badge>
@@ -444,28 +444,28 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-lg border border-gray-200 bg-white p-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                       <ShieldCheck className="h-4 w-4" />
                       Identidad mostrada
                     </div>
-                    <p className="mt-3 text-base font-semibold text-gray-900">{getSignerDisplayName(selectedSignature)}</p>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-3 text-base font-semibold text-foreground">{getSignerDisplayName(selectedSignature)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
                       {getSignerUsername(selectedSignature) ? `@${getSignerUsername(selectedSignature)}` : 'Sin alias disponible'}
                     </p>
                   </div>
 
-                  <div className="rounded-lg border border-gray-200 bg-white p-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                       <Wallet className="h-4 w-4" />
                       Wallet empleada en la firma
                     </div>
-                    <p className="mt-3 break-all font-mono text-sm text-gray-900">{getSignerWalletAddress(selectedSignature)}</p>
+                    <p className="mt-3 break-all font-mono text-sm text-foreground">{getSignerWalletAddress(selectedSignature)}</p>
                   </div>
 
-                  <div className="rounded-lg border border-gray-200 bg-white p-4">
-                    <p className="text-sm font-medium text-gray-700">Fecha de registro</p>
-                    <p className="mt-3 text-sm text-gray-900">
+                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
+                    <p className="text-sm font-medium text-foreground">Fecha de registro</p>
+                    <p className="mt-3 text-sm text-foreground">
                       {selectedSignature.signedAt
                         ? new Date(selectedSignature.signedAt).toLocaleString('es-ES', {
                             year: 'numeric',
@@ -478,11 +478,11 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     </p>
                   </div>
 
-                  <div className="rounded-lg border border-gray-200 bg-white p-4">
-                    <p className="text-sm font-medium text-gray-700">Versión firmada</p>
-                    <p className="mt-3 text-sm text-gray-900">Versión {selectedSignature.versionNumber ?? selectedVersionNumber}</p>
+                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
+                    <p className="text-sm font-medium text-foreground">Versión firmada</p>
+                    <p className="mt-3 text-sm text-foreground">Versión {selectedSignature.versionNumber ?? selectedVersionNumber}</p>
                     {selectedSignature.blockchainTxHash ? (
-                      <p className="mt-2 break-all font-mono text-xs text-gray-500">TX: {selectedSignature.blockchainTxHash}</p>
+                      <p className="mt-2 break-all font-mono text-xs text-muted-foreground">TX: {selectedSignature.blockchainTxHash}</p>
                     ) : null}
                   </div>
                 </div>

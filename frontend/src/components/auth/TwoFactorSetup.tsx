@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '../ui/Alert';
 import { Badge } from '../ui/Badge';
 import { useToast } from '../ui/Toast';
 import { twoFactorApi } from '../../api/twoFactor';
+import { copyToClipboard as copyTextToClipboard } from '../../lib/utils';
 import {
   Smartphone,
   Shield,
@@ -187,12 +188,21 @@ export const TwoFactorSetup: React.FC = () => {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: 'Copiado',
-      description: 'Copiado al portapapeles',
-      variant: 'success',
-    });
+    void copyTextToClipboard(text)
+      .then(() => {
+        toast({
+          title: 'Copiado',
+          description: 'Copiado al portapapeles',
+          variant: 'success',
+        });
+      })
+      .catch(() => {
+        toast({
+          title: 'Error',
+          description: 'No se pudo copiar al portapapeles',
+          variant: 'destructive',
+        });
+      });
   };
 
   const downloadBackupCodes = () => {
@@ -223,7 +233,7 @@ export const TwoFactorSetup: React.FC = () => {
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-full ${status?.enabled ? 'bg-green-100' : 'bg-gray-100'}`}>
-              <Shield className={`w-5 h-5 ${status?.enabled ? 'text-green-600' : 'text-gray-600'}`} />
+              <Shield className={`w-5 h-5 ${status?.enabled ? 'text-green-600' : 'text-muted-foreground'}`} />
             </div>
             <div>
               <p className="font-medium">Estado de 2FA</p>

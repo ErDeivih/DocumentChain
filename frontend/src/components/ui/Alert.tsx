@@ -3,19 +3,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full rounded-xl border p-4 backdrop-blur-sm [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
   {
     variants: {
       variant: {
-        default: 'bg-background text-foreground',
+        default: 'border-white/10 bg-secondary/40 text-foreground',
         destructive:
-          'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+          'border-error-700/35 bg-error-900/20 text-error-100 [&>svg]:text-error-300',
         success:
-          'border-success-200 bg-success-50 text-success-900 [&>svg]:text-success-600',
+          'border-success-700/35 bg-success-900/20 text-success-100 [&>svg]:text-success-300',
         warning:
-          'border-warning-200 bg-warning-50 text-warning-900 [&>svg]:text-warning-600',
+          'border-warning-700/35 bg-warning-900/20 text-warning-100 [&>svg]:text-warning-300',
         info:
-          'border-primary-200 bg-primary-50 text-primary-900 [&>svg]:text-primary-600',
+          'border-blockchain-700/35 bg-blockchain-900/20 text-foreground [&>svg]:text-blockchain-300',
       },
     },
     defaultVariants: {

@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { provider } from '../config/blockchain';
+import { emailService } from '../services/emailService';
 import { logger } from '../utils/logger';
 import webSocketService from '../services/webSocketService';
+
+type ServiceStatus = 'healthy' | 'degraded' | 'unhealthy';
 
 /**
  * HealthController - Endpoints para monitoring
@@ -61,6 +64,7 @@ class HealthController {
       services: {
         database: await this.checkDatabase(),
         blockchain: await this.checkBlockchain(),
+        email: await this.checkEmail(),
         websocket: this.checkWebSocket(),
       },
       system: this.getSystemInfo(),
@@ -90,7 +94,7 @@ class HealthController {
    * Verificar estado de la base de datos
    */
   private async checkDatabase(): Promise<{
-    status: 'healthy' | 'unhealthy';
+    status: ServiceStatus;
     latency?: number;
     error?: string;
   }> {
@@ -121,7 +125,7 @@ class HealthController {
    * Verificar estado del blockchain
    */
   private async checkBlockchain(): Promise<{
-    status: 'healthy' | 'unhealthy';
+    status: ServiceStatus;
     blockNumber?: number;
     latency?: number;
     error?: string;
@@ -153,7 +157,7 @@ class HealthController {
    * Verificar estado del WebSocket
    */
   private checkWebSocket(): {
-    status: 'healthy';
+    status: ServiceStatus;
     stats: {
       totalConnectedUsers: number;
       totalConnections: number;
@@ -166,6 +170,52 @@ class HealthController {
       status: 'healthy',
       stats,
     };
+  }
+
+  /**
+   * Verificar estado del servicio SMTP y su configuración efectiva.
+   */
+  private async checkEmail(): Promise<{
+    status: ServiceStatus;
+    latency?: number;
+    smtpHost: string;
+    smtpPort: number;
+    smtpSecure: boolean;
+    smtpUsesAuth: boolean;
+    fromEmail: string;
+    warnings: string[];
+    error?: string;
+  }> {
+    const diagnostics = emailService.getDiagnostics();
+    const startTime = Date.now();
+
+    try {
+      const smtpHealthy = await emailService.verifyConnection();
+      const latency = Date.now() - startTime;
+
+      if (!smtpHealthy) {
+        return {
+          status: 'unhealthy',
+          latency,
+          ...diagnostics,
+          error: 'No se pudo verificar la conectividad SMTP',
+        };
+      }
+
+      return {
+        status: diagnostics.warnings.length > 0 ? 'degraded' : 'healthy',
+        latency,
+        ...diagnostics,
+      };
+    } catch (error) {
+      logger.error('Health check de email fallido', { error });
+
+      return {
+        status: 'unhealthy',
+        ...diagnostics,
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      };
+    }
   }
   
   /**

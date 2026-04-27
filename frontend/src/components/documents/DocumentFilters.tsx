@@ -64,14 +64,14 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   }).length;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg">
+    <div className="rounded-xl border border-white/10 bg-card/90 backdrop-blur-sm">
       {/* Encabezado */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between border-b border-white/5 p-4">
         <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-800">Filtros</h3>
+          <Filter className="w-5 h-5 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">Filtros</h3>
           {activeFilterCount > 0 && (
-            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+            <span className="rounded-full border border-primary/20 bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary-300">
               {activeFilterCount}
             </span>
           )}
@@ -80,14 +80,14 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
           {hasActiveFilters && (
             <button
               onClick={handleClearAll}
-              className="text-sm text-red-600 hover:underline"
+              className="text-sm text-error-300 hover:underline"
             >
               Limpiar todo
             </button>
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             {isExpanded ? 'Ocultar' : 'Mostrar'} filtros
           </button>
@@ -99,7 +99,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
         <div className="p-4 space-y-4">
           {/* Buscar por nombre */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
               <Search className="w-4 h-4 inline mr-1" />
               Buscar por nombre
             </label>
@@ -128,14 +128,14 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
 
           {/* Filtro de extensión de archivo */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
               <FileType className="w-4 h-4 inline mr-1" />
               Tipo de Archivo
             </label>
             <select
               value={localFilters.fileExtension || ''}
               onChange={(e) => updateFilter('fileExtension', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-input bg-background/75 px-3 py-2 text-foreground backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
             >
               <option value="">Todos los tipos de archivo</option>
               {FILE_EXTENSIONS.map((ext) => (
@@ -148,7 +148,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
 
           {/* Filtro de etiquetas */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="mb-1 block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
               Etiquetas (separadas por comas)
             </label>
             <Input
@@ -167,7 +167,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
                 {localFilters.tags.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"
+                    className="rounded-md border border-white/10 bg-secondary/50 px-2 py-1 text-xs text-foreground"
                   >
                     {tag}
                   </span>
@@ -178,11 +178,11 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
 
           {/* Resumen de filtros activos */}
           {hasActiveFilters && (
-            <div className="pt-4 border-t">
-              <p className="text-sm font-medium text-gray-700 mb-2">Filtros Activos:</p>
+            <div className="border-t border-white/5 pt-4">
+              <p className="mb-2 text-sm font-medium text-foreground">Filtros Activos:</p>
               <div className="flex flex-wrap gap-2">
                 {localFilters.search && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/15 px-2 py-1 text-xs text-primary-300">
                     Búsqueda: "{localFilters.search}"
                     <button onClick={() => updateFilter('search', undefined)}>
                       <X className="w-3 h-3" />
@@ -190,7 +190,7 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
                   </span>
                 )}
                 {localFilters.folderId && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
+                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/15 px-2 py-1 text-xs text-primary-300">
                     Carpeta seleccionada
                     <button onClick={() => updateFilter('folderId', undefined)}>
                       <X className="w-3 h-3" />

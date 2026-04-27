@@ -52,7 +52,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
   return (
     <div className="space-y-1">
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium uppercase tracking-[0.08em] text-muted-foreground">
           {label}
         </label>
       )}
@@ -64,10 +64,10 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
           disabled={disabled || loading}
           className={`
             w-full px-3 py-2 pl-10 pr-8 
-            border border-gray-300 rounded-lg 
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            appearance-none bg-white
-            ${disabled || loading ? 'bg-gray-100 cursor-not-allowed' : ''}
+            border border-input rounded-xl 
+            focus:outline-none focus:ring-2 focus:ring-primary/60
+            appearance-none bg-background/75 text-foreground backdrop-blur-sm
+            ${disabled || loading ? 'bg-secondary/50 cursor-not-allowed' : ''}
           `}
         >
           <option value="">
@@ -105,7 +105,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
 
         {/* Icono de desplegable */}
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
             {selectedCategory.name}
           </div>
           {selectedCategory.description && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               {selectedCategory.description}
             </span>
           )}

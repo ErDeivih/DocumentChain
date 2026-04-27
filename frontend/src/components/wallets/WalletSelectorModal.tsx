@@ -4,6 +4,7 @@ import { WalletType, DetectedWallet, BlockchainProvider } from '../../lib/blockc
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
+import { copyToClipboard } from '../../lib/utils';
 import { 
   Wallet, 
   Plus, 
@@ -194,9 +195,13 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
     }
   };
 
-  const copyAddress = (address: string, e: React.MouseEvent) => {
+  const copyAddress = async (address: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(address);
+    try {
+      await copyToClipboard(address);
+    } catch {
+      setLocalError('No se pudo copiar la dirección de la wallet');
+    }
   };
 
   const formatAddress = (address: string) => {

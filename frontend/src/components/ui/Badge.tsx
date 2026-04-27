@@ -3,23 +3,23 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.08em] transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+          'border-primary/20 bg-primary/15 text-primary-300 hover:bg-primary/25',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'border-white/10 bg-secondary/60 text-secondary-foreground hover:bg-secondary/80',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+          'border-error-700/30 bg-error-900/20 text-error-200 hover:bg-error-900/30',
+        outline: 'border-white/15 bg-transparent text-foreground',
         success:
-          'border-transparent bg-success-100 text-success-700 hover:bg-success-200',
+          'border-success-700/30 bg-success-900/20 text-success-200 hover:bg-success-900/30',
         warning:
-          'border-transparent bg-warning-100 text-warning-700 hover:bg-warning-200',
+          'border-warning-700/30 bg-warning-900/20 text-warning-200 hover:bg-warning-900/30',
         info:
-          'border-transparent bg-primary-100 text-primary-700 hover:bg-primary-200',
+          'border-blockchain-700/30 bg-blockchain-900/20 text-blockchain-200 hover:bg-blockchain-900/30',
       },
     },
     defaultVariants: {

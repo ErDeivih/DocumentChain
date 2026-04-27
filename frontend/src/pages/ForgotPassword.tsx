@@ -47,7 +47,7 @@ export const ForgotPassword: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
             <div className="flex items-center justify-center mb-4">
@@ -55,10 +55,10 @@ export const ForgotPassword: React.FC = () => {
                 <Mail className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="mb-2 text-2xl font-bold text-foreground">
               Compruebe Su Email
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="mb-4 text-muted-foreground">
               Si existe una cuenta con ese email, le hemos enviado un enlace para restablecer su contraseña.
             </p>
             <p className="text-sm text-gray-500 mb-6">
@@ -77,7 +77,7 @@ export const ForgotPassword: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
@@ -140,8 +140,8 @@ export const ForgotPassword: React.FC = () => {
             </Link>
           </div>
 
-          <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <p className="text-xs text-gray-700">
+          <div className="mt-6 rounded-xl border border-primary/15 bg-card/70 p-3 backdrop-blur-sm">
+            <p className="text-xs text-slate-300">
               <strong>Nota de Seguridad:</strong> Para su protección, no confirmaremos si existe una cuenta 
               con este email. Si no recibe un email en unos minutos, compruebe su 
               carpeta de spam o verifique que está usando la dirección de email correcta.

@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import AlertMessage from '../components/ui/AlertMessage';
-import { formatDate } from '../lib/utils';
+import { copyToClipboard, formatDate } from '../lib/utils';
 import {
   Search,
   Filter,
@@ -167,7 +167,7 @@ export const BlockchainAuditor: React.FC = () => {
   };
 
   const copyText = async (text: string) => {
-    await navigator.clipboard.writeText(text);
+    await copyToClipboard(text);
   };
 
   const exportToCSV = () => {
