@@ -103,17 +103,17 @@ Write-Host "  PostgreSQL: localhost:5432" -ForegroundColor Cyan
 Write-Host "  Postfix:    localhost:587" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "IPFS Provider: " -NoNewline
-$ipfsProvider = "pinata"
+$ipfsProvider = "self-hosted"
 if (Test-Path "backend\.env") {
     $envContent = Get-Content "backend\.env" -Raw
-    if ($envContent -match 'IPFS_PROVIDER=\"?(\w+)\"?') {
+    if ($envContent -match 'IPFS_PROVIDER=\"?([\w-]+)\"?') {
         $ipfsProvider = $Matches[1]
     }
 }
-if ($ipfsProvider -eq "pinata") {
-    Write-Host "Pinata Cloud" -ForegroundColor Green
+if ($ipfsProvider -in @("self-hosted", "cluster")) {
+    Write-Host "Nodo propio" -ForegroundColor Green
 } else {
-    Write-Host "IPFS Cluster Local" -ForegroundColor Green
+    Write-Host $ipfsProvider -ForegroundColor Yellow
 }
 Write-Host ""
 

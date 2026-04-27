@@ -350,26 +350,26 @@
 
 ---
 
-### ⏳ [PENDIENTE] 10. Configurar IPFS Cluster
+### ⏳ [PENDIENTE] 10. Ajustar nodo IPFS self-hosted
 **Tiempo estimado**: 2 horas  
 **Prioridad**: 🟡 ALTA
 
-- [ ] **Paso 1**: Crear `service.json`
-  - [ ] Copiar config del plan
-  - [ ] Ajustar `replication_factor_min: 2, max: 3`
+- [ ] **Paso 1**: Fijar la persistencia fuera del checkout
+  - [ ] Crear `IPFS_DATA_ROOT` en el servidor
+  - [ ] Verificar permisos de escritura para Docker
 
-- [ ] **Paso 2**: Generar secret del cluster
+- [ ] **Paso 2**: Levantar el nodo self-hosted con el perfil principal
   ```bash
-  docker exec documentchain-ipfs-cluster ipfs-cluster-service init
+  docker compose --profile ipfs up -d ipfs-node
   ```
 
-- [ ] **Paso 3**: Configurar peers
-  - [ ] Conectar 3 nodos IPFS al cluster
-  - [ ] Verificar peering
+- [ ] **Paso 3**: Verificar API y gateway
+  - [ ] Comprobar `http://localhost:5001/api/v0/version`
+  - [ ] Comprobar `http://localhost:8080/ipfs/...`
 
-- [ ] **Paso 4**: Test de replicación
-  - [ ] Subir archivo via cluster API
-  - [ ] Verificar que se replica en 2-3 nodos
+- [ ] **Paso 4**: Test funcional
+  - [ ] Subir archivo via backend
+  - [ ] Verificar pin local y descarga posterior
   ```bash
   curl http://localhost:9095/pins/QmXXX
   ```
@@ -628,7 +628,7 @@ cd backend && npm test
 cd smart-contracts && npm test
 
 # Iniciar servicios
-docker-compose -f ipfs-cluster/docker-compose.yml up -d
+docker compose --profile ipfs up -d ipfs-node
 cd backend && npm run dev
 cd frontend && npm run dev
 ```

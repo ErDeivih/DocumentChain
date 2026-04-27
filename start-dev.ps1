@@ -271,53 +271,44 @@ function Setup-IPFS {
     Write-Host "[9/13] Configurando IPFS..." -ForegroundColor Yellow
     
     # Leer IPFS_PROVIDER del .env
-    $ipfsProvider = "pinata"  # Default
+    $ipfsProvider = "self-hosted"
     if (Test-Path "backend\.env") {
         $envContent = Get-Content "backend\.env" -Raw
-        if ($envContent -match 'IPFS_PROVIDER=\"?(\w+)\"?') {
+        if ($envContent -match 'IPFS_PROVIDER=\"?([\w-]+)\"?') {
             $ipfsProvider = $Matches[1].Trim().ToLower()
         }
     }
     
-    if ($ipfsProvider -eq "pinata") {
-        Write-Host "  --> Usando Pinata Cloud IPFS" -ForegroundColor Cyan
-        Write-Host "  [INFO] No se requieren nodos IPFS locales" -ForegroundColor Gray
-        Write-Host "  [OK] IPFS configurado (cloud gateway)" -ForegroundColor Green
-        $global:ipfsReady = $true
-        return $true
-    } 
-    elseif ($ipfsProvider -eq "cluster") {
-        Write-Host "  --> Usando IPFS Cluster (nodos propios)" -ForegroundColor Cyan
+    if ($ipfsProvider -in @("self-hosted", "cluster")) {
+        Write-Host "  --> Usando nodo IPFS propio" -ForegroundColor Cyan
         
-        $ipfsRunning = docker ps --filter "name=ipfs-cluster" --filter "status=running" -q
+        $ipfsRunning = docker ps --filter "name=documentchain-ipfs" --filter "status=running" -q
         
         if ($ipfsRunning) {
-            Write-Host "  [OK] IPFS Cluster ya esta corriendo" -ForegroundColor Gray
+            Write-Host "  [OK] El nodo IPFS ya esta corriendo" -ForegroundColor Gray
             $global:ipfsReady = $true
             return $true
         }
         
-        Write-Host "  --> Iniciando IPFS Cluster..." -ForegroundColor Cyan
-        Push-Location ipfs-cluster
-        $process = Start-Process -FilePath "docker-compose" -ArgumentList "up","-d" -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\docker-out.txt" -RedirectStandardError "$env:TEMP\docker-err.txt"
+        Write-Host "  --> Iniciando nodo IPFS..." -ForegroundColor Cyan
+        $process = Start-Process -FilePath "docker" -ArgumentList "compose","--profile","ipfs","up","-d","ipfs-node" -NoNewWindow -Wait -PassThru -RedirectStandardOutput "$env:TEMP\docker-out.txt" -RedirectStandardError "$env:TEMP\docker-err.txt"
         $exitCode = $process.ExitCode
         Remove-Item "$env:TEMP\docker-out.txt","$env:TEMP\docker-err.txt" -ErrorAction SilentlyContinue
-        Pop-Location
         
         if ($exitCode -eq 0) {
-            Write-Host "  --> Esperando que IPFS Cluster este listo..." -ForegroundColor Cyan
-            Start-Sleep -Seconds 8
-            Write-Host "  [OK] IPFS Cluster corriendo" -ForegroundColor Green
+            Write-Host "  --> Esperando que el nodo IPFS este listo..." -ForegroundColor Cyan
+            Start-Sleep -Seconds 5
+            Write-Host "  [OK] Nodo IPFS corriendo" -ForegroundColor Green
             $global:ipfsReady = $true
             return $true
         } else {
-            Write-Host "  [ERROR] No se pudo iniciar IPFS Cluster" -ForegroundColor Red
+            Write-Host "  [ERROR] No se pudo iniciar el nodo IPFS" -ForegroundColor Red
             return $false
         }
     }
     else {
         Write-Host "  [ERROR] IPFS_PROVIDER desconocido: $ipfsProvider" -ForegroundColor Red
-        Write-Host "  [INFO] Valores validos: pinata, cluster" -ForegroundColor Yellow
+        Write-Host "  [INFO] Valores validos: self-hosted" -ForegroundColor Yellow
         return $false
     }
 }
@@ -568,20 +559,20 @@ function Show-Summary {
     Write-Host "  ----------------------------------------" -ForegroundColor Gray
     if ($global:ipfsReady) {
         # Leer provider actual
-        $ipfsProvider = "pinata"
+        $ipfsProvider = "self-hosted"
         if (Test-Path "backend\.env") {
             $envContent = Get-Content "backend\.env" -Raw
-            if ($envContent -match 'IPFS_PROVIDER=\"?(\w+)\"?') {
+            if ($envContent -match 'IPFS_PROVIDER=\"?([\w-]+)\"?') {
                 $ipfsProvider = $Matches[1].Trim().ToLower()
             }
         }
         
-        if ($ipfsProvider -eq "pinata") {
-            Write-Host "  IPFS:         Pinata Cloud" -ForegroundColor Cyan
-            Write-Host "  Gateway:      gateway.pinata.cloud" -ForegroundColor Gray
+        if ($ipfsProvider -in @("self-hosted", "cluster")) {
+            Write-Host "  IPFS:         Nodo propio" -ForegroundColor Cyan
+            Write-Host "  API:          localhost:5001" -ForegroundColor Gray
+            Write-Host "  Gateway:      localhost:8080" -ForegroundColor Gray
         } else {
-            Write-Host "  IPFS:         Cluster Local" -ForegroundColor Cyan
-            Write-Host "  API:          localhost:9094" -ForegroundColor Gray
+            Write-Host "  IPFS:         Configuracion no reconocida" -ForegroundColor Yellow
         }
     }
     Write-Host ""

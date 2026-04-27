@@ -74,11 +74,11 @@ services:
     depends_on:
       - postgres
 
-  # IPFS Kubo node 1 - persistent content store for self-hosted mode
-  ipfs-node-1:
-    profiles: ["ipfs-cluster"]
+  # Self-hosted IPFS node - persistent content store for binary data.
+  ipfs-node:
+    profiles: ["ipfs"]
     image: ipfs/kubo:latest
-    container_name: documentchain-ipfs-1
+    container_name: documentchain-ipfs
     restart: unless-stopped
     ports:
       - "4001:4001"
@@ -86,46 +86,11 @@ services:
       - "8080:8080"
     volumes:
       - type: bind
-        source: ${IPFS_DATA_ROOT:-./ipfs-cluster/runtime}/node-1
+        source: ${IPFS_DATA_ROOT:-./ipfs/runtime/node}
         target: /data/ipfs
     environment:
       - IPFS_PROFILE=server
     command: ["daemon", "--migrate=true", "--enable-pubsub-experiment"]
-    networks:
-      - documentchain
-
-  # IPFS Cluster peer exposing REST API and IPFS proxy for self-hosted mode.
-  # On a single Ubuntu host this keeps the pinning API and persistence without
-  # paying the cost of extra local peers that do not add a separate failure domain.
-  ipfs-cluster:
-    profiles: ["ipfs-cluster"]
-    image: ipfs/ipfs-cluster:latest
-    container_name: documentchain-ipfs-cluster
-    restart: unless-stopped
-    ports:
-      - "9094:9094"
-      - "9095:9095"
-      - "9096:9096"
-    volumes:
-      - type: bind
-        source: ${IPFS_DATA_ROOT:-./ipfs-cluster/runtime}/cluster-1
-        target: /data/ipfs-cluster
-    environment:
-      - CLUSTER_PEERNAME=documentchain-cluster-1
-      - CLUSTER_SECRET=${IPFS_CLUSTER_SECRET:-1b07733842fbadb651ebcf4093af2db75b2ce207abec189aacb802466aff33d3}
-      - CLUSTER_LEAVEONSHUTDOWN=false
-      - CLUSTER_IPFSHTTP_NODEMULTIADDRESS=/dns4/ipfs-node-1/tcp/5001
-      - CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS=/ip4/0.0.0.0/tcp/9094
-      - CLUSTER_IPFSPROXY_LISTENMULTIADDRESS=/ip4/0.0.0.0/tcp/9095
-      - CLUSTER_CLUSTER_LISTEN_MULTIADDRESS=/ip4/0.0.0.0/tcp/9096
-      - CLUSTER_CONSENSUS_CRDT_CLUSTERNAME=documentchain
-      - CLUSTER_CONSENSUS_CRDT_TRUSTEDPEERS=*
-      - CLUSTER_MONITORPINGINTERVAL=15s
-      - CLUSTER_RESTAPI_CORS_ALLOWED_ORIGINS=*
-      - CLUSTER_RESTAPI_CORS_ALLOWED_HEADERS=*
-      - CLUSTER_RESTAPI_CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
-    depends_on:
-      - ipfs-node-1
     networks:
       - documentchain
 
@@ -158,10 +123,9 @@ services:
       - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-DocumentChain}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,https://localhost:5173}
-      - IPFS_PROVIDER=${IPFS_PROVIDER:-pinata}
-      - IPFS_API_URL=${IPFS_API_URL:-http://ipfs-node-1:5001}
-      - IPFS_CLUSTER_API_URL=${IPFS_CLUSTER_API_URL:-http://ipfs-cluster:9094}
-      - IPFS_GATEWAY_URL=${IPFS_GATEWAY_URL:-http://ipfs-node-1:8080}
+      - IPFS_PROVIDER=${IPFS_PROVIDER:-self-hosted}
+      - IPFS_API_URL=${IPFS_API_URL:-http://ipfs-node:5001}
+      - IPFS_GATEWAY_URL=${IPFS_GATEWAY_URL:-http://ipfs-node:8080}
       - UPLOAD_RATE_LIMIT_MAX=${UPLOAD_RATE_LIMIT_MAX:-500}
       - GENERAL_RATE_LIMIT_MAX=${GENERAL_RATE_LIMIT_MAX:-2000}
       - PREPARE_RATE_LIMIT_MAX=${PREPARE_RATE_LIMIT_MAX:-100}

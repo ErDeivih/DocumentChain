@@ -84,15 +84,11 @@ if ($response -eq "S" -or $response -eq "s") {
         Write-Host "  Backend detenido" -ForegroundColor Gray
     }
     
-    # Detener IPFS Cluster
-    if (Test-Path "ipfs-cluster") {
-        Push-Location ipfs-cluster
-        $ipfs = docker ps --filter "name=documentchain-ipfs" --format "{{.Names}}" 2>$null
-        if ($ipfs) {
-            docker-compose down 2>&1 | Out-Null
-            Write-Host "  IPFS Cluster detenido" -ForegroundColor Gray
-        }
-        Pop-Location
+    # Detener nodo IPFS
+    $ipfs = docker ps --filter "name=documentchain-ipfs" --format "{{.Names}}" 2>$null
+    if ($ipfs) {
+        docker stop documentchain-ipfs 2>&1 | Out-Null
+        Write-Host "  Nodo IPFS detenido" -ForegroundColor Gray
     }
     
     Write-Host "  OK" -ForegroundColor Green

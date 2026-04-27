@@ -2,7 +2,7 @@ import { ipfsClient, IPFSAdapter } from '../config/ipfs';
 import logger from '../utils/logger';
 
 /**
- * IPFSService - Wrapper limpio sobre el cliente IPFS (Pinata o Cluster)
+ * IPFSService - Wrapper limpio sobre el cliente IPFS self-hosted
  * 
  * Proporciona una interfaz simplificada para operaciones IPFS:
  * - Upload de archivos cifrados
@@ -30,12 +30,12 @@ export class IPFSService {
   private client: IPFSAdapter;
 
   constructor() {
-    this.client = ipfsClient; // Usa el cliente configurado (Pinata o Cluster)
+    this.client = ipfsClient;
   }
 
   /**
-   * Subir archivo a IPFS
-   * Automáticamente hace pin del archivo en el cluster
+  * Subir archivo a IPFS
+  * El nodo self-hosted deja el contenido anclado tras el alta.
    * 
    * @param buffer - Contenido del archivo (ya cifrado)
    * @returns Resultado con CID y metadata
@@ -52,7 +52,7 @@ export class IPFSService {
       // 2. Asegurar que está pinned
       try {
         await this.client.pin(cid);
-        logger.info(`Archivo anclado en cluster IPFS: ${cid}`);
+        logger.info(`Archivo anclado en el nodo IPFS propio: ${cid}`);
       } catch (pinError) {
         // Si ya está pinned, está bien
         logger.warn(`Operación de pin puede haber fallado (el archivo puede ya estar anclado): ${pinError}`);
@@ -93,14 +93,14 @@ export class IPFSService {
   }
 
   /**
-   * Pin un archivo en IPFS cluster
+  * Pin un archivo en el nodo IPFS propio
    * Útil para archivos que se suben externamente pero queremos mantener
    * 
    * @param cid - Content Identifier a hacer pin
    */
   async pinFile(cid: string): Promise<void> {
     try {
-      logger.info(`Anclando archivo en cluster IPFS: ${cid}`);
+      logger.info(`Anclando archivo en el nodo IPFS propio: ${cid}`);
 
       await this.client.pin(cid);
 
@@ -113,14 +113,14 @@ export class IPFSService {
   }
 
   /**
-   * Unpin un archivo de IPFS cluster
+  * Unpin un archivo del nodo IPFS propio
    * ⚠️ CUIDADO: Solo usar cuando se elimina permanentemente un documento
    * 
    * @param cid - Content Identifier a unpin
    */
   async unpinFile(cid: string): Promise<void> {
     try {
-      logger.info(`Desanclando archivo de cluster IPFS: ${cid}`);
+      logger.info(`Desanclando archivo del nodo IPFS propio: ${cid}`);
 
       await this.client.unpin(cid);
 
@@ -190,7 +190,7 @@ export class IPFSService {
       // Intentar obtener metadata del archivo
       const status = await this.client.getPinStatus(cid);
       
-      // IPFS Cluster API puede retornar size en metadata
+      // La respuesta normalizada puede incluir size cuando el backend lo amplíe.
       if (status.size) {
         return Number(status.size);
       }
@@ -217,7 +217,7 @@ export class IPFSService {
 
       const results: IPFSUploadResult[] = [];
 
-      // Upload secuencial (IPFS Cluster no soporta batch nativo)
+      // Upload secuencial para mantener el flujo controlado en un único nodo.
       for (const file of files) {
         const result = await this.uploadFile(file);
         results.push(result);

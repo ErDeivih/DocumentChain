@@ -8,7 +8,7 @@ DocumentChain es un sistema de gestion documental con trazabilidad blockchain, v
 - Backend: Express + TypeScript + Prisma
 - Base de datos: PostgreSQL
 - Blockchain local: Hardhat
-- Persistencia de binarios: IPFS con proveedor configurable (Pinata o cluster propio)
+- Persistencia de binarios: IPFS self-hosted con nodo propio
 - Correo saliente: Postfix en Docker
 - Documentacion academica: anexos LaTeX
 
@@ -26,7 +26,7 @@ Servicios expuestos:
 - Backend API: http://localhost:3000
 - PostgreSQL: localhost:5433
 - Hardhat RPC: http://localhost:8545
-- IPFS Kubo y cluster: opcionales con perfil `ipfs-cluster`
+- Nodo IPFS propio: opcional con perfil `ipfs`
 - SMTP Postfix: localhost:1587
 
 Comprobaciones rapidas:
@@ -62,26 +62,20 @@ Para trabajo local fuera de Docker, `backend/.env` debe apuntar a PostgreSQL en 
 DATABASE_URL="postgresql://documentchain:documentchain@localhost:5433/documentchain?schema=public"
 ```
 
-## IPFS: proveedor gestionado o infraestructura propia
+## IPFS self-hosted
 
-El backend ya soporta dos modos reales de almacenamiento IPFS:
-
-- `IPFS_PROVIDER=pinata`: arranque rapido, pero sujeto a cuotas del proveedor.
-- `IPFS_PROVIDER=cluster`: soberania operativa sobre nodos propios, sin dependencia funcional de terceros.
-
-Si quieres usar el clúster IPFS propio incluido en el repositorio con el compose principal, activa el perfil `ipfs-cluster` y fuerza el proveedor en el entorno de Docker:
+El runtime principal queda alineado con un unico nodo IPFS propio. Si quieres levantarlo con el compose principal, activa el perfil `ipfs` y fuerza el proveedor self-hosted en el entorno de Docker:
 
 ```powershell
-$env:IPFS_PROVIDER = "cluster"
-$env:IPFS_API_URL = "http://ipfs-node-1:5001"
-$env:IPFS_CLUSTER_API_URL = "http://ipfs-cluster:9094"
-$env:IPFS_GATEWAY_URL = "http://ipfs-node-1:8080"
+$env:IPFS_PROVIDER = "self-hosted"
+$env:IPFS_API_URL = "http://ipfs-node:5001"
+$env:IPFS_GATEWAY_URL = "http://ipfs-node:8080"
 $env:IPFS_DATA_ROOT = "/opt/documentchain/ipfs"
 
-docker compose --profile ipfs-cluster up -d postgres hardhat postfix ipfs-node-1 ipfs-cluster backend frontend
+docker compose --profile ipfs up -d postgres hardhat postfix ipfs-node backend frontend
 ```
 
-Ese modo reutiliza la configuracion de `ipfs-cluster/`, levanta un nodo Kubo persistente mas un peer de `ipfs-cluster` accesible por el backend y deja los datos fuera del checkout si defines `IPFS_DATA_ROOT`. Para desarrollo puntual Pinata sigue siendo valido; para despliegue autonomo y para evitar limites de cuota, el camino recomendado en una sola maquina es este modo self-hosted persistente.
+Ese modo levanta un nodo Kubo persistente accesible por el backend y deja los datos fuera del checkout si defines `IPFS_DATA_ROOT`.
 
 ## Correo con Postfix del proyecto
 

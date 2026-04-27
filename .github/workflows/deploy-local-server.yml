@@ -38,5 +38,5 @@ jobs:
       - name: Deploy DocumentChain on local Ubuntu server
         env:
           SERVER_ENV_FILE: /opt/documentchain/.env.server
-          ENABLE_IPFS_CLUSTER: "1"
+          ENABLE_IPFS_NODE: "1"
         run: bash scripts/deploy-ubuntu-server.sh

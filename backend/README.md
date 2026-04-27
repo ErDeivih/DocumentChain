@@ -65,7 +65,7 @@
 - **Framework**: Express.js
 - **Database**: PostgreSQL + Prisma ORM
 - **Blockchain**: Ethereum + Hardhat + ethers.js
-- **Storage**: IPFS configurable (Pinata o IPFS Cluster autoalojado)
+- **Storage**: IPFS self-hosted con nodo propio
 - **Encryption**: Node.js crypto (ECDH P-256 + AES-256-GCM)
 - **Authentication**: JWT + bcrypt
 - **File Upload**: Multer
@@ -200,8 +200,9 @@ SSL_KEY_PATH="./ssl/private-key.pem"
 SSL_CERT_PATH="./ssl/certificate.pem"
 
 # IPFS
+IPFS_PROVIDER="self-hosted"
 IPFS_API_URL="http://localhost:5001"
-IPFS_CLUSTER_API_URL="http://localhost:9094"
+IPFS_GATEWAY_URL="http://localhost:8080"
 
 # Blockchain (fill after deploying contracts)
 BLOCKCHAIN_RPC_URL="http://localhost:8545"
@@ -242,23 +243,20 @@ npx hardhat run scripts/deploy.js --network localhost
 
 Copy the contract addresses from deployment output to your `.env` file.
 
-### 7. Start Self-Hosted IPFS Cluster (Optional)
+### 7. Start Self-Hosted IPFS Node (Optional)
 
 ```bash
 cd ..
-docker compose --profile ipfs-cluster up -d ipfs-node-1 ipfs-node-2 ipfs-node-3 ipfs-cluster
+docker compose --profile ipfs up -d ipfs-node
 ```
 
-For Docker runtime with the self-hosted cluster, set these environment variables before starting `backend`:
+For Docker runtime with the self-hosted node, set these environment variables before starting `backend`:
 
 ```bash
-export IPFS_PROVIDER=cluster
-export IPFS_API_URL=http://ipfs-node-1:5001
-export IPFS_CLUSTER_API_URL=http://ipfs-cluster:9094
-export IPFS_GATEWAY_URL=http://ipfs-node-1:8080
+export IPFS_PROVIDER=self-hosted
+export IPFS_API_URL=http://ipfs-node:5001
+export IPFS_GATEWAY_URL=http://ipfs-node:8080
 ```
-
-Pinata remains useful for quick bootstrap or temporary demos, but the self-hosted cluster is the recommended path when storage sovereignty and quota independence matter.
 
 ### 8. Start Backend Server
 
@@ -529,7 +527,8 @@ PORT=3000
 DATABASE_URL="postgresql://user:password@db-server:5432/documentchain"
 JWT_SECRET="generate-with-openssl-rand-base64-32"
 BLOCKCHAIN_RPC_URL="https://mainnet.infura.io/v3/YOUR_KEY"
-IPFS_CLUSTER_API_URL="https://ipfs-cluster.your-domain.com:9094"
+IPFS_API_URL="https://ipfs.your-domain.com:5001"
+IPFS_PROVIDER="self-hosted"
 ```
 
 ---
@@ -549,12 +548,11 @@ psql -U user -h localhost -d documentchain
 ### IPFS Issues
 
 ```bash
-# Check IPFS cluster status
-cd ipfs-cluster
-docker-compose ps
+# Check IPFS node status
+docker compose --profile ipfs ps
 
 # View logs
-docker-compose logs -f
+docker compose logs -f ipfs-node
 ```
 
 ### Blockchain Issues

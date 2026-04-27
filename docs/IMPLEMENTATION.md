@@ -461,8 +461,7 @@ npx hardhat run scripts/deploy.js --network localhost  # Terminal 2
 
 ### 3. Iniciar IPFS (Opcional)
 ```bash
-cd ipfs-cluster
-docker-compose up -d
+docker compose --profile ipfs up -d ipfs-node
 ```
 
 ### 4. Iniciar Backend

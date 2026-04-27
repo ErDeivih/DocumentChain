@@ -57,6 +57,28 @@ function Wait-ForHttpRpc {
     throw "El RPC $Url no respondio con eth_blockNumber"
 }
 
+function Wait-ForIpfsApi {
+    param(
+        [Parameter(Mandatory = $true)][string]$Url,
+        [int]$Attempts = 20,
+        [int]$DelaySeconds = 3
+    )
+
+    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+        try {
+            $response = Invoke-RestMethod -Uri $Url -Method Post -TimeoutSec 10
+            if ($response.Version -or $response.Commit) {
+                return
+            }
+        } catch {
+        }
+
+        Start-Sleep -Seconds $DelaySeconds
+    }
+
+    throw "La API IPFS $Url no respondio correctamente"
+}
+
 function Import-DeploymentEnvironment {
     param([Parameter(Mandatory = $true)][string]$FilePath)
 
@@ -108,11 +130,12 @@ function Set-Or-ReplaceEnvValue {
 }
 
 Write-Host '[1/8] Iniciando infraestructura base...' -ForegroundColor Yellow
-docker compose up -d postgres postfix | Out-Null
+docker compose --profile ipfs up -d postgres postfix ipfs-node | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    throw 'No se pudieron levantar postgres y postfix'
+    throw 'No se pudieron levantar postgres, postfix e IPFS'
 }
 Wait-ForContainerHealth -ContainerName 'documentchain-postfix' -Attempts 30 -DelaySeconds 2
+Wait-ForIpfsApi -Url 'http://127.0.0.1:5001/api/v0/version'
 
 Write-Host '[2/8] Reconstruyendo backend y hardhat...' -ForegroundColor Yellow
 docker compose build hardhat backend | Out-Null

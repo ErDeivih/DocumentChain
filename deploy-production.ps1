@@ -281,8 +281,9 @@ PORT=3001
 NODE_ENV="production"
 
 # IPFS
-IPFS_API_URL="https://api.pinata.cloud"
-IPFS_GATEWAY_URL="https://gateway.pinata.cloud/ipfs"
+IPFS_PROVIDER="self-hosted"
+IPFS_API_URL="http://ipfs-node:5001"
+IPFS_GATEWAY_URL="http://ipfs-node:8080/ipfs"
 
 # Blockchain - $networkName
 BLOCKCHAIN_RPC_URL="$rpcUrl"

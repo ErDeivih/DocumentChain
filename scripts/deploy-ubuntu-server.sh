@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVER_ENV_FILE="${SERVER_ENV_FILE:-$ROOT_DIR/.env.server}"
-ENABLE_IPFS_CLUSTER="${ENABLE_IPFS_CLUSTER:-0}"
+ENABLE_IPFS_NODE="${ENABLE_IPFS_NODE:-${ENABLE_IPFS_CLUSTER:-0}}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
 AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
 COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
@@ -130,19 +130,18 @@ ensure_env_file "$ROOT_DIR/backend/.env" "$ROOT_DIR/backend/.env.example"
 ensure_env_file "$ROOT_DIR/frontend/.env" "$ROOT_DIR/frontend/.env.example"
 load_server_env
 
-ENABLE_IPFS_CLUSTER="${ENABLE_IPFS_CLUSTER:-0}"
+ENABLE_IPFS_NODE="${ENABLE_IPFS_NODE:-${ENABLE_IPFS_CLUSTER:-0}}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
 AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
 COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
 BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
 BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
-IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-$ROOT_DIR/ipfs-cluster/runtime}"
+IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-$ROOT_DIR/ipfs/runtime}"
 
 profile_args=()
-if [[ "$ENABLE_IPFS_CLUSTER" == "1" ]]; then
-  profile_args+=(--profile ipfs-cluster)
-  ensure_directory "$IPFS_DATA_ROOT/node-1"
-  ensure_directory "$IPFS_DATA_ROOT/cluster-1"
+if [[ "$ENABLE_IPFS_NODE" == "1" ]]; then
+  profile_args+=(--profile ipfs)
+  ensure_directory "$IPFS_DATA_ROOT/node"
 fi
 
 require_command docker
@@ -167,10 +166,6 @@ fi
 
 if [[ -n "${IPFS_API_URL:-}" ]]; then
   upsert_env_value "$ROOT_DIR/backend/.env" "IPFS_API_URL" "\"${IPFS_API_URL}\""
-fi
-
-if [[ -n "${IPFS_CLUSTER_API_URL:-}" ]]; then
-  upsert_env_value "$ROOT_DIR/backend/.env" "IPFS_CLUSTER_API_URL" "\"${IPFS_CLUSTER_API_URL}\""
 fi
 
 if [[ -n "${IPFS_GATEWAY_URL:-}" ]]; then
@@ -205,8 +200,8 @@ for service in hardhat backend frontend; do
 done
 
 base_services=(postgres postfix hardhat)
-if [[ "$ENABLE_IPFS_CLUSTER" == "1" ]]; then
-  base_services+=(ipfs-node-1 ipfs-cluster)
+if [[ "$ENABLE_IPFS_NODE" == "1" ]]; then
+  base_services+=(ipfs-node)
 fi
 
 log_step "2/7" "Starting base infrastructure services"
