@@ -39,9 +39,9 @@ export const WalletSidebar: React.FC = () => {
   };
 
   return (
-    <div className="mt-6 pt-6 border-t">
+    <div className="mt-6 border-t border-slate-200/80 pt-6">
       <div className="flex items-center justify-between mb-3">
-        <p className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <p className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
           Mis Wallets
         </p>
         {canAddWallet && (
@@ -49,7 +49,7 @@ export const WalletSidebar: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={handleAddWallet}
-            className="h-6 w-6 p-0 hover:bg-accent"
+            className="h-6 w-6 p-0 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             title="Añadir wallet"
           >
             <Plus className="h-3 w-3" />
@@ -69,18 +69,18 @@ export const WalletSidebar: React.FC = () => {
                 'w-full px-3 py-2.5 rounded-lg transition-all text-left',
                 'flex items-center gap-2.5',
                 isActive
-                  ? 'bg-primary/10 border-2 border-primary'
-                  : 'hover:bg-accent border-2 border-transparent'
+                  ? 'border-2 border-primary/40 bg-primary/10 shadow-[0_10px_26px_-20px_rgba(14,165,233,0.22)]'
+                  : 'border-2 border-transparent hover:bg-slate-100/85'
               )}
             >
               {/* Wallet Icon */}
               <div
                 className={cn(
                   'p-1.5 rounded-full shrink-0',
-                  isActive ? 'bg-primary/20' : 'bg-accent'
+                  isActive ? 'bg-primary/20' : 'bg-slate-200'
                 )}
               >
-                <Wallet className={cn('w-3.5 h-3.5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                <Wallet className={cn('w-3.5 h-3.5', isActive ? 'text-primary' : 'text-slate-500')} />
               </div>
 
               {/* Wallet Info */}
@@ -92,13 +92,13 @@ export const WalletSidebar: React.FC = () => {
                   <p
                     className={cn(
                       'text-xs font-medium truncate',
-                      isActive ? 'text-primary' : 'text-foreground'
+                      isActive ? 'text-slate-900' : 'text-slate-700'
                     )}
                   >
                     {wallet.label || 'Wallet sin nombre'}
                   </p>
                 </div>
-                <p className="text-[10px] text-muted-foreground font-mono">
+                <p className="font-mono text-[10px] text-slate-500">
                   {shortenAddress(wallet.walletAddress)}
                 </p>
               </div>
@@ -113,7 +113,7 @@ export const WalletSidebar: React.FC = () => {
       </div>
 
       {/* Info Text */}
-      <p className="px-4 mt-3 text-[10px] text-muted-foreground">
+      <p className="mt-3 px-4 text-[10px] text-slate-500">
         Click en una wallet para ver sus documentos compartidos
       </p>
     </div>

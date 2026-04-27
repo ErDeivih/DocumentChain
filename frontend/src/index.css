@@ -9,24 +9,24 @@
    ======================================== */
 @layer base {
   :root {
-    --background: 216 58% 7%;
-    --foreground: 210 58% 90%;
-    --card: 214 43% 13%;
-    --card-foreground: 210 58% 90%;
-    --popover: 214 43% 13%;
-    --popover-foreground: 210 58% 90%;
+    --background: 200 38% 96%;
+    --foreground: 217 42% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 217 42% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 42% 17%;
     --primary: 172 73% 58%;
     --primary-foreground: 210 52% 12%;
-    --secondary: 215 25% 24%;
-    --secondary-foreground: 210 32% 90%;
-    --muted: 214 35% 17%;
-    --muted-foreground: 214 17% 71%;
-    --accent: 214 35% 18%;
-    --accent-foreground: 210 58% 90%;
+    --secondary: 202 31% 91%;
+    --secondary-foreground: 217 32% 24%;
+    --muted: 204 24% 92%;
+    --muted-foreground: 215 18% 43%;
+    --accent: 190 38% 92%;
+    --accent-foreground: 217 32% 24%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 26%;
-    --input: 215 25% 26%;
+    --border: 205 23% 80%;
+    --input: 205 23% 80%;
     --ring: 198 89% 48%;
     --radius: 0.875rem;
   }
@@ -80,10 +80,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.16), transparent 22%),
-    radial-gradient(circle at top right, rgba(45, 212, 191, 0.14), transparent 20%),
-    linear-gradient(180deg, #051424 0%, #020617 100%);
-  color: #d4e4fa;
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.12), transparent 20%),
+    linear-gradient(180deg, #f4fbff 0%, #edf5fb 52%, #e7eff8 100%);
+  color: #17324a;
   line-height: 1.6;
   min-height: 100vh;
   position: relative;
@@ -94,9 +94,9 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
   background-size: 30px 30px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 88%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 88%);
   z-index: -1;
 }
 
@@ -134,12 +134,12 @@ code {
   
   /* Tarjetas */
   .card {
-      @apply rounded-card border border-white/10 bg-card/90 backdrop-blur-md shadow-medium
-        transition-all duration-200 hover:border-primary/25 hover:shadow-strong;
+    @apply rounded-card border border-border/80 bg-white/90 backdrop-blur-md shadow-[0_18px_45px_-30px_rgba(15,23,42,0.22)]
+      transition-all duration-200 hover:border-primary/30 hover:shadow-[0_26px_55px_-34px_rgba(14,165,233,0.24)];
   }
   
   .card-header {
-    @apply px-6 py-4 border-b border-white/5;
+    @apply px-6 py-4 border-b border-border/60;
   }
   
   .card-body {
@@ -147,7 +147,7 @@ code {
   }
   
   .card-footer {
-    @apply px-6 py-4 bg-secondary-100/45 border-t border-white/5 rounded-b-card;
+    @apply px-6 py-4 bg-secondary/50 border-t border-border/60 rounded-b-card;
   }
   
   /* Botones */
@@ -178,18 +178,18 @@ code {
   }
   
   .btn-outline {
-    @apply btn border border-white/15 bg-secondary-100/35 text-foreground hover:border-primary/40 hover:bg-secondary-200/60
+    @apply btn border border-border/80 bg-white/80 text-foreground hover:border-primary/40 hover:bg-primary/5
            focus:ring-primary-500;
   }
   
   .btn-ghost {
-    @apply btn text-muted-foreground hover:bg-secondary-100/45 hover:text-foreground
+    @apply btn text-muted-foreground hover:bg-secondary/70 hover:text-foreground
            focus:ring-secondary-500;
   }
   
   /* Inputs */
   .input {
-    @apply w-full px-4 py-2.5 border border-input rounded-xl bg-background/75 text-foreground
+    @apply w-full px-4 py-2.5 border border-input rounded-xl bg-white/80 text-foreground
          focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/40
          transition-all duration-200 backdrop-blur-sm;
   }
@@ -208,27 +208,27 @@ code {
   }
   
   .badge-primary {
-    @apply badge bg-primary/15 text-primary-400 border border-primary/20;
+    @apply badge bg-primary/10 text-primary-400 border border-primary/20;
   }
   
   .badge-success {
-    @apply badge bg-success-900/25 text-success-300 border border-success-700/30;
+    @apply badge bg-success-900/20 text-success-300 border border-success-700/30;
   }
   
   .badge-warning {
-    @apply badge bg-warning-900/25 text-warning-300 border border-warning-700/30;
+    @apply badge bg-warning-900/20 text-warning-300 border border-warning-700/30;
   }
   
   .badge-error {
-    @apply badge bg-error-900/25 text-error-300 border border-error-700/30;
+    @apply badge bg-error-900/20 text-error-300 border border-error-700/30;
   }
   
   .badge-blockchain {
-    @apply badge bg-blockchain-900/25 text-blockchain-300 border border-blockchain-700/30;
+    @apply badge bg-blockchain-900/20 text-blockchain-300 border border-blockchain-700/30;
   }
   
   .badge-secondary {
-    @apply badge bg-secondary-200/45 text-secondary-800 border border-white/10;
+    @apply badge bg-secondary-200/40 text-secondary-800 border border-white/10;
   }
   
   /* Estados de carga */
@@ -267,7 +267,7 @@ code {
   }
   
   .table-header {
-    @apply bg-secondary-100/35 border-b border-white/5;
+    @apply bg-secondary-100/30 border-b border-white/5;
   }
   
   .table-header-cell {
@@ -275,7 +275,7 @@ code {
   }
   
   .table-row {
-    @apply border-b border-white/5 hover:bg-secondary-100/35 transition-colors;
+    @apply border-b border-white/5 hover:bg-secondary-100/30 transition-colors;
   }
   
   .table-cell {

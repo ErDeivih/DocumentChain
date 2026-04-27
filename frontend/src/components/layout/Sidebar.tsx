@@ -32,8 +32,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => {
         cn(
           'flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-200',
           isActive
-            ? 'border border-primary/20 bg-[linear-gradient(90deg,rgba(45,212,191,0.18),rgba(14,165,233,0.10))] font-medium text-white shadow-[0_10px_30px_-18px_rgba(14,165,233,0.55)]'
-            : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
+            ? 'border border-primary/30 bg-[linear-gradient(90deg,rgba(45,212,191,0.18),rgba(14,165,233,0.10))] font-medium text-slate-950 shadow-[0_10px_30px_-18px_rgba(14,165,233,0.22)]'
+            : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-950'
         )
       }
     >
@@ -66,7 +66,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="scrollbar-thin sticky top-0 h-screen w-64 overflow-y-auto border-r border-white/10 bg-[#0b1324]/88 p-4 text-slate-200 backdrop-blur-xl">
+    <aside className="scrollbar-thin sticky top-0 h-screen w-64 overflow-y-auto border-r border-slate-200/75 bg-white/72 p-4 text-slate-700 shadow-[18px_0_40px_-34px_rgba(15,23,42,0.22)] backdrop-blur-xl">
       <nav className="space-y-1">
         <div className="mb-4">
           <p className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -122,16 +122,16 @@ export const Sidebar: React.FC = () => {
       )}
 
       {!user?.isAdmin && (
-        <div className="mt-8 pt-8 border-t">
+        <div className="mt-8 border-t border-slate-200/80 pt-8">
           <h3 className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
             Almacenamiento
           </h3>
-          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+          <div className="rounded-xl border border-slate-200/80 bg-slate-50/90 px-4 py-3 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.18)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-100">
+              <span className="text-sm font-semibold text-slate-800">
                 {formatBytes(storageUsed)} / 5 GB
               </span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-500">
                 {storagePercentage.toFixed(1)}%
               </span>
             </div>

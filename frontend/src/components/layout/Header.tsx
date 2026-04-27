@@ -35,7 +35,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0f172a]/88 text-slate-100 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.9)] backdrop-blur-xl supports-[backdrop-filter]:bg-[#0f172a]/72">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/78 text-slate-900 shadow-[0_18px_38px_-28px_rgba(15,23,42,0.2)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/68">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -44,8 +44,8 @@ export const Header: React.FC = () => {
               <Lock className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">DocumentChain</h1>
-              <p className="hidden text-xs text-slate-400 sm:block">
+              <h1 className="text-xl font-bold text-slate-950">DocumentChain</h1>
+              <p className="hidden text-xs text-slate-500 sm:block">
                 Gestión de Documentos Blockchain
               </p>
             </div>
@@ -60,8 +60,8 @@ export const Header: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-100">{user?.username}</p>
-                <p className="text-xs text-slate-400">{user?.email}</p>
+                <p className="text-sm font-semibold text-slate-900">{user?.username}</p>
+                <p className="text-xs text-slate-500">{user?.email}</p>
               </div>
               {user?.isAdmin && (
                 <Badge variant="default">
@@ -102,7 +102,7 @@ export const Header: React.FC = () => {
 
             {/* Botón Menú Móvil */}
             <button
-              className="rounded-md p-2 text-slate-400 transition-colors hover:bg-white/5 hover:text-white md:hidden"
+              className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -115,15 +115,15 @@ export const Header: React.FC = () => {
           <div className="md:hidden py-4">
             <Separator className="mb-4" />
             <div className="space-y-3">
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/82 px-3 py-2 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.16)]">
                 <Avatar>
                   <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-slate-950">
                     {user?.username?.slice(0, 2).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-100">{user?.username}</p>
-                  <p className="text-xs text-slate-400">{user?.email}</p>
+                  <p className="text-sm font-semibold text-slate-900">{user?.username}</p>
+                  <p className="text-xs text-slate-500">{user?.email}</p>
                 </div>
                 {user?.isAdmin && (
                   <Badge variant="default">
