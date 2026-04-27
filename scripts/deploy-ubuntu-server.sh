@@ -271,7 +271,7 @@ if [[ "$ENABLE_IPFS_NODE" == "1" ]]; then
 fi
 
 log_step "2/7" "Starting base infrastructure services"
-"${compose_cmd[@]}" "${profile_args[@]}" up -d "${base_services[@]}"
+"${compose_cmd[@]}" "${profile_args[@]}" up -d --remove-orphans "${base_services[@]}"
 
 log_step "3/7" "Waiting for PostgreSQL and Hardhat to become healthy"
 wait_for_health documentchain-postgres 30 4
