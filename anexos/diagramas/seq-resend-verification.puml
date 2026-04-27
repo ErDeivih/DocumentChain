@@ -1,21 +1,27 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Login / aviso de verificacion" as ui
+boundary "Login / pagina verify-email" as ui
 control "Endpoints de verificacion de correo (/api/email)" as api
-control "EmailService" as srv
+control "EmailController" as srv
 database "PostgreSQL" as db
 participant "Proveedor de email" as email
 
 user -> ui: Solicita reenviar el correo de verificacion
-ui -> api: Preparar nuevo envio
+ui -> api: Enviar email de la cuenta
 api -> srv: Comprobar estado y limites
-srv -> db: Invalidar token anterior y crear uno nuevo
-db --> srv: Token listo
-srv -> email: Enviar nuevo enlace
-email --> srv: OK
-srv --> api: Reenvio completado
-api --> ui: Aviso enviado
-ui --> user: Se muestra la confirmacion
+srv -> db: Consultar User.emailVerified
+alt Cuenta ya verificada
+	srv --> api: Mensaje informativo
+	api --> ui: Mostrar "ya verificado"
+else Cuenta pendiente
+	srv -> db: Invalidar token anterior y crear uno nuevo
+	db --> srv: Token listo
+	srv -> email: Enviar nuevo enlace
+	email --> srv: OK
+	srv --> api: Reenvio completado
+	api --> ui: Aviso enviado
+	ui --> user: Se muestra la confirmacion
+end
 @enduml
 

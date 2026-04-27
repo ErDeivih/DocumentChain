@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>blockchain-auditor-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>blockchain-auditor-wireframe</h1>
+      <p>Explorador blockchain con metricas, filtros avanzados y lista de eventos.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/blockchain</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item active">Explorador Blockchain</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h2>Auditoria Blockchain</h2>
+            <p class="muted">Consulta de eventos registrados en cadena.</p>
+          </div>
+          <div class="top-actions">
+            <div class="action-pill">Filtros</div>
+            <div class="action-pill">CSV</div>
+            <div class="action-pill dark">Actualizar</div>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric"><strong>Total</strong><p class="muted">1240</p></div>
+          <div class="metric"><strong>Mostrados</strong><p class="muted">25</p></div>
+          <div class="metric"><strong>Tipos</strong><p class="muted">8</p></div>
+        </div>
+
+        <div class="section-card">
+          <strong>Filtros avanzados</strong>
+          <div class="tab-row">
+            <div class="chip">UPLOAD</div>
+            <div class="chip">SHARE</div>
+            <div class="chip">SIGN</div>
+            <div class="chip">VERSION</div>
+            <div class="chip">TRANSFER</div>
+          </div>
+          <div class="filter-grid">
+            <div class="input">Wallet</div>
+            <div class="input">Tx hash</div>
+            <div class="input">Desde bloque</div>
+            <div class="input">Hasta bloque</div>
+            <div class="input">Fecha inicio</div>
+            <div class="input">Fecha fin</div>
+          </div>
+          <div class="button-wide dark">Buscar eventos</div>
+        </div>
+
+        <div class="event-list">
+          <div class="event-row">
+            <div class="event-row-head"><strong>FILE_SHARED</strong><span class="pill">Bloque 1824</span></div>
+            <p>Usuario: davidpeve01 · Documento: contrato_colaboracion.pdf · Tx: 0x81...9c</p>
+          </div>
+          <div class="event-row">
+            <div class="event-row-head"><strong>FILE_SIGNED</strong><span class="pill">Bloque 1827</span></div>
+            <p>Usuario: diego_ortega · Documento: memoria_tecnica.docx · Tx: 0x23...7a</p>
+          </div>
+          <div class="event-row">
+            <div class="event-row-head"><strong>NEW_VERSION</strong><span class="pill">Bloque 1831</span></div>
+            <p>Usuario: admin_operaciones · Documento: informe_auditoria.pdf · Tx: 0xbf...11</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 % ============================================================
-%  Anexo VI - Guía del Programador y Defensa
+%  Anexo VII - Guía del Programador y Defensa
 %  Sistema de Gestión Documental mediante Blockchain
 % ============================================================
 
@@ -51,7 +51,7 @@
     \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
 }
 
-\newcommand{\tituloInforme}{Anexo VI: Guía del programador y defensa}
+\newcommand{\tituloInforme}{Anexo VII: Guía del programador y defensa}
 \newcommand{\subtituloInforme}{Sistema de Gestión Documental mediante Blockchain}
 \newcommand{\asignatura}{Trabajo de Fin de Grado}
 \newcommand{\autorUno}{David Pérez Velasco}
@@ -102,7 +102,7 @@
 
 \section{Propósito del anexo}
 
-Este anexo se plantea como una guía técnica de apoyo para la defensa y para la explicación posterior del sistema desde la perspectiva de implementación. No sustituye a la memoria principal ni a los anexos funcionales, sino que recoge la interpretación técnica de decisiones arquitectónicas que conviene justificar con claridad ante un tribunal. Su contenido podrá ampliarse de forma incremental con nuevas cuestiones según se prepare la exposición.
+Este anexo se plantea como una guía de apoyo para la defensa y para la explicación posterior del sistema desde la perspectiva de implementación, despliegue e integración. No sustituye a la memoria principal ni a los anexos funcionales. Tampoco reemplaza al nuevo Anexo VI, centrado en la arquitectura blockchain, Solidity e IPFS. Aquí se recogen argumentos técnicos complementarios, decisiones de infraestructura y criterios útiles para responder preguntas del tribunal con un hilo expositivo claro.
 
 \section{Dualidad entre blockchain y base de datos relacional}
 
@@ -119,24 +119,26 @@ Desde la defensa conviene transmitir que la blockchain no sustituye a la base de
 \begin{table}[H]
     \centering
     \small
-    \begin{tabular}{|p{5cm}|p{4.7cm}|p{4.7cm}|}
+    \begin{tabular}{|p{3.8cm}|p{3.6cm}|p{3.6cm}|p{3.6cm}|}
     \hline
-    \textbf{Aspecto} & \textbf{Blockchain} & \textbf{PostgreSQL} \\
+    \textbf{Aspecto} & \textbf{Blockchain} & \textbf{PostgreSQL} & \textbf{IPFS} \\
     \hline
-    Evidencia de autoría, firma y permisos & Fuente de verdad verificable & Réplica operativa y consulta enriquecida \\
+    Evidencia de autoría, firma y permisos & Fuente de verdad verificable & Réplica operativa y consulta enriquecida & No aplica como fuente de verdad \\
     \hline
-    Consultas complejas, filtros y paginación & Poco adecuada & Adecuada \\
+    Consultas complejas, filtros y paginación & Poco adecuada & Adecuada & No adecuada \\
     \hline
-    Coste por operación & Alto o limitado por red & Bajo \\
+    Coste por operación & Alto o limitado por red & Bajo & Bajo \\
     \hline
-    Mutabilidad controlada & Muy reducida & Alta \\
+    Mutabilidad controlada & Muy reducida & Alta & Sustitución por nuevo CID \\
     \hline
-    Experiencia de usuario & Indirecta & Directa \\
+    Experiencia de usuario & Indirecta & Directa & Indirecta \\
     \hline
-    Auditoría externa & Muy favorable & Limitada al entorno interno \\
+    Auditoría externa & Muy favorable & Limitada al entorno interno & Válida para disponibilidad y contenido direccionado \\
+    \hline
+    Contenido binario del documento & Solo huellas y referencias mínimas & Metadatos, proyecciones y estado operativo & Contenido documental cifrado o público según el caso \\
     \hline
     \end{tabular}
-    \caption{Papel complementario de blockchain y base de datos}
+    \caption{Papel complementario de blockchain, base de datos e IPFS}
     \label{tab:blockchain-bd}
 \end{table}
 

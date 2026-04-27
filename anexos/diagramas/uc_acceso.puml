@@ -1,0 +1,74 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "Sistema de email" as EMAIL
+actor "Blockchain" as SC
+
+rectangle "Gestion de Acceso y Cuenta" {
+  usecase "UC-0001: Registrar Usuario" as UC1
+  usecase "UC-0002: Iniciar Sesion" as UC3
+  usecase "UC-0003: Validar Segundo Factor" as UC4
+  usecase "UC-0004: Cerrar Sesion" as UC5
+  usecase "UC-0005: Conectar Wallet" as UC6
+  usecase "UC-0006: Eliminar Wallet" as UC7
+  usecase "UC-0007: Establecer Wallet Principal" as UC8
+  usecase "UC-0008: Renombrar Wallet" as UC9
+  usecase "UC-0009: Gestionar Perfil" as UC10
+  usecase "UC-0010: Desactivar Propia Cuenta" as UC11
+  usecase "UC-0011: Reactivar Propia Cuenta" as UC12
+  usecase "UC-0012: Cambiar Contrasena" as UC13
+  usecase "UC-0013: Recuperar Contrasena" as UC14
+  usecase "UC-0014: Verificar Email" as UC15
+  usecase "UC-0015: Reenviar Verificacion" as UC16
+}
+
+UC1 -[hidden]down-> UC3
+UC3 -[hidden]down-> UC4
+UC4 -[hidden]down-> UC5
+UC5 -[hidden]down-> UC6
+UC6 -[hidden]down-> UC7
+UC7 -[hidden]down-> UC8
+UC8 -[hidden]down-> UC9
+UC9 -[hidden]down-> UC10
+UC10 -[hidden]down-> UC11
+UC11 -[hidden]down-> UC12
+UC12 -[hidden]down-> UC13
+UC13 -[hidden]down-> UC14
+UC14 -[hidden]down-> UC15
+UC15 -[hidden]down-> UC16
+
+USER --> UC1
+USER --> UC3
+USER --> UC4
+USER --> UC5
+USER --> UC6
+USER --> UC7
+USER --> UC8
+USER --> UC9
+USER --> UC10
+USER --> UC11
+USER --> UC12
+USER --> UC13
+USER --> UC14
+USER --> UC15
+USER --> UC16
+
+EMAIL --> UC1
+EMAIL --> UC14
+EMAIL --> UC15
+EMAIL --> UC16
+SC --> UC12
+
+note right of UC10
+  Integra como subflujos:
+  UC-0017 configuracion avanzada de 2FA
+  UC-0018 regeneracion de backup 2FA
+end note
+
+note right of UC1
+  UC-0002 queda absorbido como variante
+  de registro con wallet opcional.
+end note
+@enduml

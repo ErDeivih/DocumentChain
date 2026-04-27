@@ -1,4 +1,4 @@
-% ============================================================
+﻿% ============================================================
 %  Anexo V - Manuales de Usuario
 %  Sistema de Gestión Documental mediante Blockchain
 %  Compilar con: lualatex AnexoV_ManualesUsuario.tex
@@ -153,15 +153,15 @@ En este apartado se presenta el esquema de acceso a las distintas vistas y funci
 \hline
 \texttt{/audit} & Consulta pública de actividad agregada del sistema. & Pública \\
 \hline
-\texttt{/public/d/:publicId} & Página pública de un documento publicado con enlace compartible. & Pública \\
+\path{/public/d/:publicId} & Página pública de un documento publicado con enlace compartible. & Pública \\
 \hline
-\texttt{/public/d/:publicId/v/:versionNumber} & Página pública de una versión concreta del documento publicado. & Pública \\
+\path{/public/d/:publicId/v/:versionNumber} & Página pública de una versión concreta del documento publicado. & Pública \\
 \hline
 \texttt{/app/documents} & Vista principal de documentos del usuario. & Autenticado \\
 \hline
 \texttt{/app/documents/:id} & Vista de detalle de un documento. & Autenticado (propietario/compartido) \\
 \hline
-\texttt{/app/documents/:id/timeline} & Historial cronológico detallado del documento. & Autenticado (propietario/compartido) \\
+\path{/app/documents/:id/timeline} & Historial cronológico detallado del documento. & Autenticado (propietario/compartido) \\
 \hline
 \texttt{/app/shared} & Documentos compartidos con la wallet activa del usuario. & Autenticado \\
 \hline
@@ -214,7 +214,7 @@ La aplicación presenta una portada pública accesible desde \texttt{/}. En esa 
 \begin{enumerate}
     \item Accede a la URL de DocumentChain en tu navegador.
     
-    \item En la pantalla de inicio, haz clic en el enlace \textbf{"¿No tienes cuenta? Regístrate"}.
+    \item En la pantalla de inicio, haz clic en el enlace \textbf{¿No tienes cuenta? Regístrate}.
     
     \begin{figure}[H]
         \centering
@@ -239,7 +239,7 @@ La aplicación presenta una portada pública accesible desde \texttt{/}. En esa 
         \label{fig:register-form}
     \end{figure}
     
-    \item \textbf{Importante}: Tras hacer clic en \textbf{"Crear Cuenta"}, el sistema generará un par de claves criptográficas. Se te mostrará una \textit{Recovery Key} (clave de recuperación). 
+    \item \textbf{Importante}: Tras hacer clic en \textbf{Crear Cuenta}, el sistema generará un par de claves criptográficas. Se te mostrará una \textit{Recovery Key} (clave de recuperación). 
     
     \textbf{Guarda esta clave en un lugar seguro}. Es la única forma de recuperar tu cuenta si olvidas la contraseña.
     
@@ -250,13 +250,15 @@ La aplicación presenta una portada pública accesible desde \texttt{/}. En esa 
         \label{fig:recovery-key}
     \end{figure}
     
-    \item Descarga la Recovery Key haciendo clic en \textbf{"Descargar clave"} o cópiala manualmente.
+    \item Descarga la Recovery Key haciendo clic en \textbf{Descargar clave} o cópiala manualmente.
     
-    \item Marca la casilla \textbf{"He guardado mi clave de recuperación de forma segura"} y haz clic en \textbf{"Continuar"}.
+    \item Marca la casilla \textbf{He guardado mi clave de recuperación de forma segura} y haz clic en \textbf{Continuar}.
+    
+    \item El sistema mostrará una pantalla de confirmación indicando que la cuenta ya ha sido creada, pero que todavía no es posible acceder al área privada hasta verificar el correo.
     
     \item Recibirás un email de verificación. Abre tu bandeja de entrada y haz clic en el enlace de verificación.
     
-    \item ¡Listo! Ya puedes iniciar sesión.
+    \item Tras esa confirmación ya podrás iniciar sesión con normalidad.
 \end{enumerate}
 
 \textbf{Nota}: En la versión actual, los documentos privados se protegen criptográficamente y solo pueden descargarse con las credenciales adecuadas. Los documentos públicos siguen otro flujo: se publican sin cifrar porque están destinados a ser accesibles mediante enlace compartible.
@@ -271,9 +273,10 @@ Tras completar el registro, o cuando cambias el email desde la configuración de
     \item La pantalla mostrará uno de estos resultados:
     \begin{itemize}
         \item \textbf{Verificación correcta}: la cuenta queda confirmada y ya puede iniciarse sesión con normalidad.
-        \item \textbf{Error de verificación}: el token no es válido, ha caducado o falta en la URL.
+        \item \textbf{Verificación pendiente}: si la cuenta ya tiene sesión pero sigue bloqueada, la pantalla avisará de que falta confirmar el correo y ofrecerá un reenvío.
+        \item \textbf{Error de verificación}: el token no es válido, ha caducado o falta en la URL. En ese caso también puede solicitarse un nuevo mensaje desde la propia pantalla.
     \end{itemize}
-    \item Desde esa misma página puedes volver a \textbf{Iniciar sesión} o regresar al formulario de \textbf{Registro}.
+    \item Desde esa misma página puedes volver a \textbf{Iniciar sesión}, regresar al formulario de \textbf{Registro} o reenviar la verificación si todavía no ha llegado el mensaje válido.
 \end{enumerate}
 
 El mensaje recibido incluye un único botón principal con acceso directo al flujo de verificación. Se ha mantenido un diseño sencillo para favorecer la legibilidad en proveedores de correo habituales y para reducir el riesgo de que el mensaje sea interpretado como contenido promocional.
@@ -292,8 +295,9 @@ El acceso al sistema se realiza con \textbf{nombre de usuario o email} y \textbf
 \begin{enumerate}
     \item En la pantalla de inicio, introduce tu \textbf{nombre de usuario o email}.
     \item Introduce tu \textbf{contraseña}.
-    \item Haz clic en \textbf{"Iniciar Sesión"}.
-    \item Si la cuenta tiene 2FA activo, se abrirá una segunda pantalla de verificación.
+    \item Haz clic en \textbf{Iniciar Sesión}.
+    \item Si el correo de la cuenta todavía no está verificado, el sistema bloqueará el acceso y mostrará un enlace para reenviar la verificación.
+    \item Si la cuenta tiene 2FA activo y el correo ya está verificado, se abrirá una segunda pantalla de verificación.
     \item Introduce el código temporal de tu aplicación autenticadora o uno de los códigos de respaldo válidos.
     \item Tras completar la validación, accederás a la vista principal de documentos.
 \end{enumerate}
@@ -305,7 +309,7 @@ El acceso al sistema se realiza con \textbf{nombre de usuario o email} y \textbf
     \label{fig:two-factor-login}
 \end{figure}
 
-\textbf{Nota}: En la versión actual del sistema, las wallets \textbf{no} se utilizan para iniciar sesión ni para registrarse. Su uso queda reservado para firmar operaciones blockchain como subida, compartición, firmado o reactivación de cuenta.
+\textbf{Nota}: En la interfaz entregada, las wallets \textbf{no} se utilizan para iniciar sesión ni para completar el registro habitual. Su uso visible para el usuario queda reservado a la firma de operaciones blockchain, como subida, compartición, firmado o reactivación de cuenta.
 
 \subsubsection{Cerrar sesión}
 
@@ -322,13 +326,13 @@ El cierre de sesión está disponible desde la cabecera superior, tanto en escri
 Si olvidaste tu contraseña:
 
 \begin{enumerate}
-    \item En la pantalla de inicio, haz clic en \textbf{"¿Olvidaste tu contraseña?"}.
+    \item En la pantalla de inicio, haz clic en \textbf{¿Olvidaste tu contraseña?}.
     \item Introduce tu \textbf{email} registrado.
     \item Recibirás un email con un enlace de recuperación (válido por 1 hora).
     \item Haz clic en el enlace y se abrirá una página para crear nueva contraseña.
     \item Introduce tu \textbf{Recovery Key} (la que guardaste al registrarte).
     \item Crea una nueva contraseña y confírmala.
-    \item Haz clic en \textbf{"Restablecer Contraseña"}.
+    \item Haz clic en \textbf{Restablecer Contraseña}.
 \end{enumerate}
 
 \textbf{Advertencia}: Si no tienes la Recovery Key, no podrás recuperar tu cuenta ni tus documentos cifrados. Es \textbf{imposible} descifrarlos sin la clave privada.
@@ -376,7 +380,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
     
     \item \textbf{Área principal}:
     \begin{itemize}
-        \item Botones \textbf{"Nueva Carpeta"} y \textbf{"Subir Documento"}
+        \item Botones \textbf{Nueva Carpeta} y \textbf{Subir Documento}
         \item Pestañas \textbf{Activos} y \textbf{Archivados}
         \item Búsqueda por nombre y filtro por tipo de archivo
         \item Listado paginado de documentos con acceso directo al detalle
@@ -388,7 +392,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
 \subsubsection{Subir un documento}
 
 \begin{enumerate}
-    \item Haz clic en el botón \textbf{"+ Subir Documento"} en el Dashboard.
+    \item Haz clic en el botón \textbf{+ Subir Documento} en el Dashboard.
     
     \item Se abrirá un modal con un formulario. Puedes subir el archivo de dos formas:
     \begin{itemize}
@@ -412,7 +416,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
         \item \textbf{Visibilidad}: decide si el documento será privado o público
     \end{itemize}
     
-    \item Si activas \textbf{"Publicar documento con enlace y QR"}, la propia interfaz mostrará una advertencia: ese archivo se almacenará sin cifrar y cualquier persona con el enlace podrá verlo o descargarlo.
+    \item Si activas \textbf{Publicar documento con enlace y QR}, la propia interfaz mostrará una advertencia: ese archivo se almacenará sin cifrar y cualquier persona con el enlace podrá verlo o descargarlo.
 
     \item Si dejas la opción desactivada, el documento seguirá el flujo privado habitual.
 
@@ -425,7 +429,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
         \label{fig:wallet-selector-modal}
     \end{figure}
     
-    \item Haz clic en \textbf{"Subir y Firmar"}.
+    \item Haz clic en \textbf{Subir y Firmar}.
     
     \item El sistema mostrará el progreso de preparación, firma y confirmación en blockchain.
     
@@ -466,7 +470,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
 \subsubsection{Ver detalles de un documento}
 
 \begin{enumerate}
-    \item En la lista de documentos, haz clic en el nombre del documento o en el botón \textbf{"Ver detalles"}.
+    \item En la lista de documentos, haz clic en el nombre del documento o en el botón \textbf{Ver detalles}.
     
     \begin{figure}[H]
         \centering
@@ -496,7 +500,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
 \subsubsection{Descargar un documento}
 
 \begin{enumerate}
-    \item Desde la vista de detalles, haz clic en el botón \textbf{"Descargar"} (icono de descarga).
+    \item Desde la vista de detalles, haz clic en el botón \textbf{Descargar} (icono de descarga).
     
     \item Si el documento es privado, se abrirá un modal solicitando tu contraseña. Esto es necesario para descifrar tu clave privada.
     
@@ -507,7 +511,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
         \label{fig:download-password}
     \end{figure}
     
-    \item Si el documento es privado, introduce tu contraseña y haz clic en \textbf{"Confirmar"}.
+    \item Si el documento es privado, introduce tu contraseña y haz clic en \textbf{Confirmar}.
     
     \item En documentos privados, el sistema:
     \begin{enumerate}
@@ -532,15 +536,15 @@ Archivar oculta el documento de las vistas principales sin eliminarlo.
 
 \begin{enumerate}
     \item En la vista de detalles, haz clic en el menú de acciones (tres puntos).
-    \item Selecciona \textbf{"Archivar"}.
+    \item Selecciona \textbf{Archivar}.
     \item Confirma la acción.
-    \item El documento desaparecerá de la lista principal y aparecerá en \textbf{"Archivados"} del sidebar.
+    \item El documento desaparecerá de la lista principal y aparecerá en \textbf{Archivados} del sidebar.
 \end{enumerate}
 
 Para \textbf{desarchivar}:
 \begin{enumerate}
-    \item Ve a \textbf{"Archivados"} en el sidebar.
-    \item Abre el documento y selecciona \textbf{"Desarchivar"}.
+    \item Ve a \textbf{Archivados} en el sidebar.
+    \item Abre el documento y selecciona \textbf{Desarchivar}.
 \end{enumerate}
 
 \subsubsection{Eliminar un documento}
@@ -549,7 +553,7 @@ Para \textbf{desarchivar}:
 
 \begin{enumerate}
     \item En la vista de detalles, haz clic en el menú de acciones.
-    \item Selecciona \textbf{"Eliminar"}.
+    \item Selecciona \textbf{Eliminar}.
     \item El navegador mostrará una confirmación simple para evitar eliminaciones accidentales.
     \item Acepta la confirmación.
     \item El sistema:
@@ -568,11 +572,11 @@ Para \textbf{desarchivar}:
 
 \begin{enumerate}
     \item Abre el documento del que quieres crear una versión.
-    \item Ve a la pestaña \textbf{"Versiones"}.
-    \item Haz clic en \textbf{"Subir Nueva Versión"}.
+    \item Ve a la pestaña \textbf{Versiones}.
+    \item Haz clic en \textbf{Subir Nueva Versión}.
     \item Se abrirá un modal específico que valida el \textbf{mismo nombre base} y el \textbf{mismo tipo MIME} del documento original.
     \item Sube el nuevo archivo y añade, si lo deseas, un comentario descriptivo.
-    \item Pulsa \textbf{"Subir y Firmar"} y selecciona la wallet con la que registrarás la operación.
+    \item Pulsa \textbf{Subir y Firmar} y selecciona la wallet con la que registrarás la operación.
     \item Tras la confirmación on-chain, la nueva versión aparecerá en el historial y quedará disponible para activarse como versión operativa.
 \end{enumerate}
 
@@ -595,7 +599,7 @@ Para \textbf{desarchivar}:
 \subsubsection{Consultar el historial de versiones}
 
 \begin{enumerate}
-    \item En la pestaña \textbf{"Versiones"}, cada tarjeta muestra el número de versión, la fecha, el CID abreviado y, si existe, el comentario asociado.
+    \item En la pestaña \textbf{Versiones}, cada tarjeta muestra el número de versión, la fecha, el CID abreviado y, si existe, el comentario asociado.
     \item La versión operativa aparece destacada como \textbf{Activa}.
     \item Desde esa misma lista puedes consultar firmantes y, si eres propietario, activar otra versión como operativa.
 \end{enumerate}
@@ -604,7 +608,7 @@ Para \textbf{desarchivar}:
 
 \begin{enumerate}
     \item En el historial de versiones, localiza la versión que deseas restaurar.
-    \item Pulsa \textbf{"Activar"} en la tarjeta de esa versión.
+    \item Pulsa \textbf{Activar} en la tarjeta de esa versión.
     \item El sistema actualiza el historial y esa versión pasa a ser la \textit{versión operativa} (la que se descarga por defecto).
 \end{enumerate}
 
@@ -616,7 +620,7 @@ Para \textbf{desarchivar}:
 
 \begin{enumerate}
     \item Abre el documento que deseas firmar.
-    \item Haz clic en el botón \textbf{"Firmar Documento"}.
+    \item Haz clic en el botón \textbf{Firmar Documento}.
     \item Se abrirá un modal de confirmación.
     
     \begin{figure}[H]
@@ -633,7 +637,7 @@ Para \textbf{desarchivar}:
         \item Comentario opcional asociado a la firma
     \end{itemize}
     
-    \item Haz clic en \textbf{"Firmar Documento"}.
+    \item Haz clic en \textbf{Firmar Documento}.
     
     \item El sistema solicitará seleccionar una wallet y confirmar la transacción de firma.
     
@@ -647,9 +651,9 @@ Para \textbf{desarchivar}:
 \subsubsection{Consultar los firmantes de una versión}
 
 \begin{enumerate}
-    \item Abre el documento y entra en la pestaña \textbf{"Versiones"}.
+    \item Abre el documento y entra en la pestaña \textbf{Versiones}.
     \item Localiza la versión que quieras revisar.
-    \item Pulsa \textbf{"Ver firmantes"}.
+    \item Pulsa \textbf{Ver firmantes}.
     \item El sistema abrirá un modal con la lista de firmas registradas para esa versión.
     \item Selecciona cualquiera de los firmantes para ver su ficha resumida.
     \item En esa ficha se muestran el nombre visible, el alias disponible, la wallet utilizada para la firma, la fecha registrada y el estado de sincronización blockchain.
@@ -671,7 +675,7 @@ La comprobación detallada de la validez blockchain continúa disponible desde l
 
 \begin{enumerate}
     \item Abre el documento que deseas compartir.
-    \item Haz clic en el botón \textbf{"Compartir"} (icono de personas o link).
+    \item Haz clic en el botón \textbf{Compartir} (icono de personas o link).
     \item Se abrirá un modal con opciones de compartición.
     
     \begin{figure}[H]
@@ -681,7 +685,7 @@ La comprobación detallada de la validez blockchain continúa disponible desde l
         \label{fig:share-modal}
     \end{figure}
     
-    \item En el campo \textbf{"Nombre de Usuario"}, escribe el identificador del destinatario.
+    \item En el campo \textbf{Nombre de Usuario}, escribe el identificador del destinatario.
     \item Elige el rol que tendrá:
     \begin{itemize}
         \item \textbf{Lectura}: permite ver y descargar el documento
@@ -690,7 +694,7 @@ La comprobación detallada de la validez blockchain continúa disponible desde l
     
     \item Se te solicitará tu contraseña (para descifrar tu clave privada y re-encriptar la clave del documento).
     
-    \item Introduce tu contraseña y haz clic en \textbf{"Compartir y Firmar"}.
+    \item Introduce tu contraseña y haz clic en \textbf{Compartir y Firmar}.
     
     \item El sistema re-encriptará la clave simétrica del documento con la clave pública del destinatario.
     
@@ -707,7 +711,7 @@ La comprobación detallada de la validez blockchain continúa disponible desde l
 \subsubsection{Acceder a documentos compartidos contigo}
 
 \begin{enumerate}
-    \item Accede a \texttt{/app/shared} desde la barra lateral mediante la entrada \textbf{"Compartidos Conmigo"}.
+    \item Accede a \texttt{/app/shared} desde la barra lateral mediante la entrada \textbf{Compartidos Conmigo}.
     \item La vista mostrará únicamente los documentos asociados a la \textbf{wallet activa} del usuario.
     \item Puedes buscar por nombre y filtrar por tipo de archivo.
     \item Cada tarjeta indica el propietario del documento y, cuando procede, la categoría asociada.
@@ -726,8 +730,8 @@ En la versión entregada no existe todavía una acción directa para cambiar el 
 \subsubsection{Revocar acceso}
 
 \begin{enumerate}
-    \item Abre el documento y, dentro de \textbf{"Detalles"}, localiza el bloque \textbf{"Compartido con"}.
-    \item Haz clic en el icono \textbf{X} o \textbf{"Revocar"} junto al usuario.
+    \item Abre el documento y, dentro de \textbf{Detalles}, localiza el bloque \textbf{Compartido con}.
+    \item Haz clic en el icono \textbf{X} o \textbf{Revocar} junto al usuario.
     \item Confirma la acción.
     \item Confirma la firma con la wallet seleccionada.
     \item El usuario perderá acceso on-chain inmediatamente.
@@ -741,7 +745,7 @@ En la versión entregada no existe todavía una acción directa para cambiar el 
 Solo el OWNER puede transferir la propiedad:
 
 \begin{enumerate}
-    \item Abre el detalle del documento y entra en la pestaña \textbf{"Transferir"}.
+    \item Abre el detalle del documento y entra en la pestaña \textbf{Transferir}.
     \item Busca al nuevo propietario por nombre de usuario.
     \item Introduce la contraseña de tu cuenta para descifrar localmente la clave del documento.
     \item El sistema preparará la transferencia y te solicitará la wallet principal para firmar la transacción blockchain.
@@ -760,11 +764,11 @@ Solo el OWNER puede transferir la propiedad:
 \subsubsection{Crear una carpeta}
 
 \begin{enumerate}
-    \item En el sidebar, haz clic en el botón \textbf{+} junto a \textbf{"Carpetas"}.
+    \item En el sidebar, haz clic en el botón \textbf{+} junto a \textbf{Carpetas}.
     \item Introduce el nombre de la carpeta.
     \item (Opcional) Añade descripción, selecciona color e icono.
     \item Si quieres crear una subcarpeta, selecciona la carpeta padre.
-    \item Haz clic en \textbf{"Crear"}.
+    \item Haz clic en \textbf{Crear}.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -791,7 +795,7 @@ La clasificación complementaria se realiza durante la subida o la creación de 
 
 \begin{enumerate}
     \item Abre el documento.
-    \item Ve a la pestaña \textbf{"Historial"}.
+    \item Ve a la pestaña \textbf{Historial}.
     \item Verás un historial cronológico de todos los eventos:
     \begin{itemize}
         \item Creación
@@ -817,7 +821,7 @@ La clasificación complementaria se realiza durante la subida o la creación de 
 \begin{enumerate}
     \item Accede a \texttt{/app/verify} desde la barra lateral.
     \item Elige el método de verificación: archivo original, CID de IPFS o identificador blockchain.
-    \item Introduce el dato correspondiente y pulsa \textbf{"Verificar Documento"}.
+    \item Introduce el dato correspondiente y pulsa \textbf{Verificar Documento}.
     \item La interfaz mostrará si el documento existe, si coincide con el registro blockchain y qué metadatos principales tiene asociados.
 \end{enumerate}
 
@@ -846,12 +850,13 @@ La clasificación complementaria se realiza durante la subida o la creación de 
 \subsubsection{Consultar un documento público mediante enlace}
 
 \begin{enumerate}
-    \item Abre la URL pública con formato \texttt{/public/d/:publicId} o una variante de versión \texttt{/public/d/:publicId/v/:versionNumber}.
+    \item Abre la URL pública del documento, normalmente con el formato \path{/public/d/:publicId}.
+    \item Si necesitas una versión concreta, añade el sufijo \path{/v/:versionNumber} al enlace público del documento.
     \item La página mostrará una previsualización del contenido, sus metadatos básicos y el listado de versiones públicas disponibles.
     \item Desde esa misma vista puedes descargar el documento directamente sin iniciar sesión.
     \item Si el documento tiene varias versiones públicas, selecciona la deseada en el panel lateral para abrir la ruta específica de esa versión.
     \item En la parte inferior también se muestran las firmas registradas y el historial público asociado al documento.
-    \item Si necesitas continuar en el entorno autenticado para firmar o revisar más detalles, utiliza \textbf{"Abrir en la aplicación"} o \textbf{"Iniciar sesión y continuar"}.
+    \item Si necesitas continuar en el entorno autenticado para firmar o revisar más detalles, utiliza \textbf{Abrir en la aplicación} o \textbf{Iniciar sesión y continuar}.
 \end{enumerate}
 
 \subsection{Notificaciones}
@@ -882,19 +887,28 @@ La clasificación complementaria se realiza durante la subida o la creación de 
 \subsubsection{Gestionar notificaciones}
 
 \begin{enumerate}
-    \item Usa las pestañas \textbf{"Todas"}, \textbf{"No leídas"}, \textbf{"Documentos"} y \textbf{"Compartidos"} para filtrar el listado.
+    \item Usa las pestañas \textbf{Todas}, \textbf{No leídas}, \textbf{Documentos} y \textbf{Compartidos} para filtrar el listado.
     \item Haz clic sobre una notificación no leída para marcarla como leída.
-    \item Si deseas limpiar el panel, utiliza \textbf{"Marcar todas como leídas"}.
+    \item Si deseas limpiar el panel, utiliza \textbf{Marcar todas como leídas}.
     \item Cada entrada incluye además un botón de papelera para eliminarla individualmente.
 \end{enumerate}
 
 Cuando un usuario con permisos de edición crea una nueva versión sobre un documento ajeno, el propietario recibe un aviso específico que identifica la operación como una actualización realizada por un editor. De este modo, el panel de notificaciones diferencia entre cambios propios y cambios introducidos por terceros con permisos válidos.
 
+Si se mantienen activadas las notificaciones por email, estos eventos también pueden remitirse por correo. En la figura siguiente se muestra el formato empleado para el aviso de firma de documento, con un acceso directo al recurso afectado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{capturas-ui/email-document-signed-preview.png}
+    \caption{Correo transaccional de documento firmado}
+    \label{fig:email-document-signed-preview}
+\end{figure}
+
 \subsubsection{Configurar preferencias de notificaciones}
 
 \begin{enumerate}
     \item Accede a \textbf{Configuración} desde el icono de engranaje.
-    \item Ve a la pestaña \textbf{"Notificaciones"}.
+    \item Ve a la pestaña \textbf{Notificaciones}.
     \item Activa/desactiva:
     \begin{itemize}
         \item Notificaciones in-app
@@ -917,13 +931,13 @@ Cuando un usuario con permisos de edición crea una nueva versión sobre un docu
 
 \begin{enumerate}
     \item Accede a \textbf{Configuración}.
-    \item En la pestaña \textbf{"Perfil"}, puedes editar:
+    \item En la pestaña \textbf{Perfil}, puedes editar:
     \begin{itemize}
         \item Nombre completo
         \item Email (requiere re-verificación)
         \item Nombre y apellidos
     \end{itemize}
-    \item Haz clic en \textbf{"Guardar cambios"}.
+    \item Haz clic en \textbf{Guardar cambios}.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -948,8 +962,9 @@ La ruta \texttt{/app/profile} complementa a \texttt{/app/settings} y concentra l
 \subsubsection{Gestionar wallets}
 
 \begin{enumerate}
-    \item En \texttt{/app/settings}, dentro de la pestaña \textbf{"Perfil"}, revisa el bloque \textbf{"Wallets de Blockchain"}.
+    \item En \texttt{/app/settings}, dentro de la pestaña \textbf{Perfil}, revisa el bloque \textbf{Wallets de Blockchain}.
     \item Las wallets se guardan automáticamente cuando se usan por primera vez para subir, compartir, versionar, firmar o reactivar la cuenta.
+    \item En la captura del anexo se muestra un caso con el límite completo de wallets registradas, de modo que puede comprobarse el contador \textbf{5/5} visible en la interfaz.
     \item Desde ese bloque puedes:
     \begin{itemize}
         \item Marcar una wallet como \textbf{principal}
@@ -965,22 +980,31 @@ La ruta \texttt{/app/profile} complementa a \texttt{/app/settings} y concentra l
 \subsubsection{Cambiar contraseña}
 
 \begin{enumerate}
-    \item Ve a la pestaña \textbf{"Seguridad"}.
+    \item Ve a la pestaña \textbf{Seguridad}.
     \item Introduce:
     \begin{itemize}
         \item Contraseña actual
         \item Nueva contraseña
         \item Confirmar nueva contraseña
     \end{itemize}
-    \item Haz clic en \textbf{"Actualizar contraseña"}.
+    \item Haz clic en \textbf{Actualizar contraseña}.
 \end{enumerate}
 
 \textcolor{orange}{\textbf{Importante}}: Al cambiar la contraseña, tu clave privada se re-encriptará con la nueva contraseña. Asegúrate de recordarla.
 
+Tras completarse el cambio, se envía un correo de confirmación con la fecha y hora del evento y un acceso directo a la configuración de seguridad. Esta notificación permite revisar con rapidez el estado de la cuenta cuando se detecta una modificación no esperada.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{capturas-ui/email-password-changed-preview.png}
+    \caption{Correo de confirmación tras el cambio de contraseña}
+    \label{fig:email-password-changed-preview}
+\end{figure}
+
 \subsubsection{Activar autenticación de dos factores (2FA)}
 
 \begin{enumerate}
-    \item En la pestaña \textbf{"Seguridad"}, pulsa \textbf{"Configurar 2FA"}.
+    \item En la pestaña \textbf{Seguridad}, pulsa \textbf{Configurar 2FA}.
     \item Se mostrará un código QR y un secreto alternativo para configuración manual.
     \item Abre tu app de autenticación (Google Authenticator, Authy, etc.).
     \item Escanea el código QR.
@@ -1001,16 +1025,16 @@ Desde ahora, al iniciar sesión se te pedirá código 2FA tras la contraseña.
 \subsubsection{Regenerar códigos de respaldo o desactivar 2FA}
 
 \begin{enumerate}
-    \item Vuelve al bloque de \textbf{2FA} dentro de la pestaña \textbf{"Seguridad"}.
+    \item Vuelve al bloque de \textbf{2FA} dentro de la pestaña \textbf{Seguridad}.
     \item Para regenerar códigos de respaldo, pulsa la opción correspondiente e introduce un código temporal válido de tu aplicación autenticadora.
     \item El sistema invalidará los códigos anteriores y mostrará un nuevo conjunto una única vez para que puedas guardarlo.
-    \item Si necesitas desactivar el 2FA, usa la acción \textbf{"Desactivar 2FA"} y confirma también con un código temporal válido.
+    \item Si necesitas desactivar el 2FA, usa la acción \textbf{Desactivar 2FA} y confirma también con un código temporal válido.
 \end{enumerate}
 
 \subsubsection{Privacidad, exportación y suspensión temporal}
 
 \begin{enumerate}
-    \item En la pestaña \textbf{"Privacidad"}, puedes ajustar:
+    \item En la pestaña \textbf{Privacidad}, puedes ajustar:
     \begin{itemize}
         \item La visibilidad de tu perfil
         \item La posibilidad de recibir documentos compartidos
@@ -1023,8 +1047,8 @@ Desde ahora, al iniciar sesión se te pedirá código 2FA tras la contraseña.
 \subsubsection{Reactivar una cuenta suspendida}
 
 \begin{enumerate}
-    \item Si la cuenta está suspendida, el sistema te mantendrá en \texttt{/app/settings} y dejará accesible la pestaña \textbf{"Privacidad"}.
-    \item Pulsa \textbf{"Reactivar cuenta"}.
+    \item Si la cuenta está suspendida, el sistema te mantendrá en \texttt{/app/settings} y dejará accesible la pestaña \textbf{Privacidad}.
+    \item Pulsa \textbf{Reactivar cuenta}.
     \item Selecciona y conecta la \textbf{wallet principal} asociada a la cuenta.
     \item Firma la transacción de reactivación y espera la confirmación on-chain.
     \item Cuando el backend valide la operación, se restaurará el acceso normal al resto de vistas autenticadas.
@@ -1038,7 +1062,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 
 \begin{enumerate}
     \item Inicia sesión con tu cuenta de administrador.
-    \item En la barra lateral aparecerá la entrada \textbf{"Panel"}.
+    \item En la barra lateral aparecerá la entrada \textbf{Panel}.
     \item Haz clic para acceder a \texttt{/app/dashboard}.
 \end{enumerate}
 
@@ -1054,7 +1078,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \subsubsection{Ver lista de usuarios}
 
 \begin{enumerate}
-    \item En el panel de administración, entra en la pestaña \textbf{"Gestión de Usuarios"}.
+    \item En el panel de administración, entra en la pestaña \textbf{Gestión de Usuarios}.
     \item Verás dos bloques principales: \textbf{Administradores} y \textbf{Usuarios Regulares}.
     \item Información visible:
     \begin{itemize}
@@ -1077,7 +1101,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \subsubsection{Crear un nuevo administrador}
 
 \begin{enumerate}
-    \item En la pestaña \textbf{"Gestión de Usuarios"}, pulsa \textbf{"Crear Admin"}.
+    \item En la pestaña \textbf{Gestión de Usuarios}, pulsa \textbf{Crear Admin}.
     \item Completa username, email, contraseña y nombre completo.
     \item Confirma el alta.
     \item El sistema devolverá una \textbf{Recovery Key} que debe guardarse inmediatamente.
@@ -1114,7 +1138,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \subsection{Estadísticas del sistema}
 
 \begin{enumerate}
-    \item En \texttt{/app/dashboard}, revisa la pestaña \textbf{"Resumen"}.
+    \item En \texttt{/app/dashboard}, revisa la pestaña \textbf{Resumen}.
     
     \begin{figure}[H]
         \centering
@@ -1126,7 +1150,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
     \item Métricas disponibles:
     \begin{itemize}
         \item Tarjetas resumen con \textbf{usuarios totales}, \textbf{documentos totales}, \textbf{almacenamiento usado} y \textbf{estado general del sistema}
-        \item Estado operativo de \textbf{base de datos}, \textbf{API}, \textbf{clúster IPFS}, \textbf{blockchain}, \textbf{servicio de email} y \textbf{backend de almacenamiento}
+        \item Estado operativo de \textbf{base de datos}, \textbf{API}, \textbf{nodo IPFS}, \textbf{blockchain}, \textbf{servicio de email} y \textbf{backend de almacenamiento}
         \item Distribución de almacenamiento y promedio por usuario
         \item Distribución entre \textbf{administradores} y \textbf{usuarios regulares}
     \end{itemize}
@@ -1135,7 +1159,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \subsubsection{Revisar la actividad reciente}
 
 \begin{enumerate}
-    \item Dentro de \texttt{/app/dashboard}, abre la pestaña \textbf{"Actividad Reciente"}.
+    \item Dentro de \texttt{/app/dashboard}, abre la pestaña \textbf{Actividad Reciente}.
     \item La vista muestra los usuarios registrados más recientemente.
     \item Para cada entrada se presenta nombre de usuario, email, rol y fecha de alta.
     \item Esta pestaña resulta útil para detectar registros inesperados, comprobar altas recientes o revisar si una promoción a administrador se ha aplicado correctamente.
@@ -1165,7 +1189,7 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \subsubsection{Ver logs del sistema}
 
 \begin{enumerate}
-    \item En el panel de administración, abre la pestaña \textbf{"Logs del Sistema"}.
+    \item En el panel de administración, abre la pestaña \textbf{Logs del Sistema}.
     \item El visor permite alternar entre logs \textbf{combined}, \textbf{error} y \textbf{blockchain}.
     \item Puedes ajustar el número de líneas mostradas y activar la recarga automática.
     \item Cada entrada indica:
@@ -1196,7 +1220,12 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 
     \item Mozilla Developer Network. (2025). \textit{Web Crypto API}. \url{https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API}
 
-    \item Bitwarden. (2023). \textit{End-to-End Encryption Explained}. \url{https://bitwarden.com/resources/end-to-end-encryption/}
+    \item Bitwarden. (2023). \textit{End-to-End Encryption Explained}. \href{https://bitwarden.com/resources/end-to-end-encryption/}{bitwarden.com/resources/end-to-end-encryption}
 \end{enumerate}
 
 \end{document}
+
+
+
+
+

@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaClient, BlockchainStatus } from '@prisma/client';
@@ -6,6 +7,8 @@ import { ethers } from 'ethers';
 import { Argon2Service } from '../src/services/argon2Service';
 import { KeyManager } from '../src/lib/crypto/KeyManager';
 import { resolveDocumentRegistryAddressOrDefault } from '../src/config/contractAddress';
+
+dotenv.config({ path: path.resolve(__dirname, '../.env'), override: true });
 
 type ProfileName = 'qa-fast' | 'qa-max';
 

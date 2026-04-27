@@ -1,9 +1,9 @@
 @startgantt
 skinparam backgroundColor White
-printscale weekly
+printscale weekly zoom 2
 Project starts 2026-03-10
 
--- Fase Construccion - Iteracion 2 --
+-- Modulos avanzados y autenticacion --
 [T47: Panel de administracion de usuarios] lasts 8 days
 then [T48: Auditor blockchain e integridad] lasts 7 days
 [T49: Modulo de notificaciones en tiempo real] lasts 6 days
@@ -18,6 +18,8 @@ then [T53: Soporte autenticacion de dos factores] lasts 5 days
 then [T55: Revision de seguridad OWASP] lasts 7 days
 [M56: Feature Freeze - Construccion] happens at [T55: Revision de seguridad OWASP]'s end
 [M56: Feature Freeze - Construccion] is colored in Gold/DarkRed
+
+-- Cierre y correccion --
 then [T57: Correccion de defectos y deuda tecnica] lasts 5 days
 [M57: Fin Iteracion 2 - Construccion] happens at [T57: Correccion de defectos y deuda tecnica]'s end
 [M57: Fin Iteracion 2 - Construccion] is colored in Gold/DarkRed

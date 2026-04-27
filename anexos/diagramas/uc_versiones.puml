@@ -1,0 +1,33 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "IPFS" as IPFS
+actor "Blockchain" as SC
+
+rectangle "Gestion de Versiones" {
+  usecase "UC-0025: Crear Nueva Version" as UC29
+  usecase "UC-0026: Listar Versiones" as UC30
+  usecase "UC-0027: Establecer Version Operativa" as UC31
+  usecase "UC-0028: Restaurar Version Anterior" as UC32
+  usecase "UC-0029: Descargar Version Especifica" as UC33
+}
+
+UC29 -[hidden]down-> UC30
+UC30 -[hidden]down-> UC31
+UC31 -[hidden]down-> UC32
+UC32 -[hidden]down-> UC33
+
+USER --> UC29
+USER --> UC30
+USER --> UC31
+USER --> UC32
+USER --> UC33
+
+IPFS --> UC29
+IPFS --> UC33
+SC --> UC29
+SC --> UC31
+SC --> UC32
+@enduml

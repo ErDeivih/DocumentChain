@@ -1,5 +1,35 @@
 import { cleanEnv, str, port, url, num } from 'envalid';
 
+const SECRET_MIN_LENGTH = 32;
+const PRODUCTION_SECRET_PLACEHOLDER_PATTERNS = [
+  /change-this/i,
+  /your-secret-key/i,
+  /your-super-secret/i,
+  /genera_un_secret/i,
+  /otro_secret_diferente/i,
+  /secure-random-string/i,
+];
+
+function validateSecretLength(secretValue: string | undefined, secretName: string): void {
+  if (!secretValue) {
+    return;
+  }
+
+  if (secretValue.length < SECRET_MIN_LENGTH) {
+    throw new Error(`${secretName} debe tener al menos ${SECRET_MIN_LENGTH} caracteres`);
+  }
+}
+
+function validateProductionSecret(secretValue: string | undefined, secretName: string): void {
+  if (!secretValue) {
+    throw new Error(`${secretName} debe configurarse con un valor seguro en producción`);
+  }
+
+  if (PRODUCTION_SECRET_PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(secretValue))) {
+    throw new Error(`${secretName} no puede usar un placeholder en producción`);
+  }
+}
+
 /**
  * Validación y tipado de variables de entorno
  * Falla rápido al inicio si faltan variables críticas
@@ -25,6 +55,10 @@ export const env = cleanEnv(process.env, {
   JWT_REFRESH_EXPIRES_IN: str({
     desc: 'Refresh token expiration time',
     default: '7d'
+  }),
+  ADMIN_REGISTRATION_SECRET: str({
+    desc: 'Secret required to bootstrap the first admin account',
+    default: ''
   }),
   
   // Blockchain
@@ -88,3 +122,13 @@ export const env = cleanEnv(process.env, {
     default: 100
   })
 });
+
+validateSecretLength(env.JWT_SECRET, 'JWT_SECRET');
+validateSecretLength(env.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET');
+validateSecretLength(env.ADMIN_REGISTRATION_SECRET, 'ADMIN_REGISTRATION_SECRET');
+
+if (env.NODE_ENV === 'production') {
+  validateProductionSecret(env.JWT_SECRET, 'JWT_SECRET');
+  validateProductionSecret(env.JWT_REFRESH_SECRET, 'JWT_REFRESH_SECRET');
+  validateProductionSecret(env.ADMIN_REGISTRATION_SECRET, 'ADMIN_REGISTRATION_SECRET');
+}

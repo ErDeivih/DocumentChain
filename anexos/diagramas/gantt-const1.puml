@@ -1,18 +1,20 @@
 @startgantt
 skinparam backgroundColor White
-printscale weekly
+printscale weekly zoom 2
 Project starts 2026-01-05
 
--- Fase Construccion - Iteracion 1 --
+-- Backend: Autenticacion y usuarios --
 [T24: Configuracion backend base Node/Express/Prisma] lasts 10 days
 then [T25: Modulo autenticacion JWT y Argon2id] lasts 8 days
 then [T26: Modulo registro y gestion de usuario] lasts 5 days
 [T27: Desarrollo smart contract Solidity] lasts 10 days
 [T27: Desarrollo smart contract Solidity] starts at [T24: Configuracion backend base Node/Express/Prisma]'s end
 then [T28: Pruebas e integracion del smart contract] lasts 5 days
+
+-- Backend: Documentos, cifrado e IPFS --
 then [T29: Modulo cifrado hibrido AES-256-GCM y RSA-OAEP] lasts 8 days
 [T29: Modulo cifrado hibrido AES-256-GCM y RSA-OAEP] starts at [T26: Modulo registro y gestion de usuario]'s end
-then [T30: Integracion con proveedor IPFS] lasts 7 days
+then [T30: Integracion con nodo IPFS autoalojado] lasts 7 days
 then [T31: Servicio de documentos upload y download] lasts 10 days
 then [T32: Versionado de documentos] lasts 7 days
 [T33: Firmas digitales backend y blockchain] lasts 8 days
@@ -20,6 +22,7 @@ then [T32: Versionado de documentos] lasts 7 days
 [T34: Comparticion cifrada entre usuarios] lasts 8 days
 [T34: Comparticion cifrada entre usuarios] starts at [T31: Servicio de documentos upload y download]'s end
 then [T35: Gestion de carpetas y organizacion] lasts 5 days
+-- Frontend --
 [T37: Configuracion frontend React y Vite] lasts 8 days
 [T37: Configuracion frontend React y Vite] starts at [T25: Modulo autenticacion JWT y Argon2id]'s end
 then [T38: Interfaz autenticacion y registro] lasts 5 days
@@ -27,6 +30,7 @@ then [T39: Dashboard y listado de documentos] lasts 5 days
 then [T40: Vista detalle de documento] lasts 6 days
 then [T41: Interfaz firmas y comparticion] lasts 5 days
 then [T42: Interfaz carpetas y organizacion] lasts 4 days
+-- Pruebas --
 [T43: Pruebas unitarias backend] lasts 5 days
 [T43: Pruebas unitarias backend] starts at [T35: Gestion de carpetas y organizacion]'s end
 [T44: Pruebas unitarias frontend] lasts 5 days

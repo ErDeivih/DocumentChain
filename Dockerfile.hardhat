@@ -3,13 +3,25 @@
 
 FROM node:20-alpine
 
+ENV npm_config_fetch_retries=5 \
+  npm_config_fetch_retry_factor=2 \
+  npm_config_fetch_retry_mintimeout=20000 \
+  npm_config_fetch_retry_maxtimeout=120000 \
+  npm_config_fetch_timeout=300000 \
+  npm_config_prefer_offline=true \
+  npm_config_audit=false \
+  npm_config_fund=false
+
 WORKDIR /app
 
-# Copiar smart contracts y dependencias
-COPY smart-contracts/ .
+# Copiar dependencias primero para maximizar caché de build
+COPY smart-contracts/package*.json ./
 
 # Instalar dependencias
-RUN npm ci
+RUN npm ci --no-audit --prefer-offline
+
+# Copiar smart contracts y resto del código
+COPY smart-contracts/ .
 
 # Pre-compilar contratos
 RUN npm run compile || true

@@ -111,6 +111,8 @@ test.describe('Shared route coverage', () => {
     await page.getByLabel('Su Contraseña de Cuenta').fill(seedUsers.owner.password);
     await page.getByRole('button', { name: 'Compartir y Firmar' }).click();
     await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
+    await expect(page.getByText(/¡Documento compartido exitosamente!/i)).toBeVisible({ timeout: 30000 });
+    await expect(page.getByTestId('wallet-selector-modal')).not.toBeVisible({ timeout: 30000 });
 
     const recipientLogin = await request.post(`${API_BASE_URL}/auth/login`, {
       data: {
@@ -329,12 +331,13 @@ test.describe('Shared route coverage', () => {
     await page.goto('/app/notifications');
 
     await expect(page.getByRole('heading', { name: 'Notificaciones', exact: true })).toBeVisible();
-    await expect(page.getByText(sharedDocumentName)).toBeVisible({ timeout: 30000 });
+    const recipientSharedNotificationCard = page.locator('div.cursor-pointer').filter({ hasText: sharedDocumentName }).first();
+    await expect(recipientSharedNotificationCard).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('tab', { name: /Compartidos/i }).click();
-    await expect(page.getByText(sharedDocumentName)).toBeVisible({ timeout: 15000 });
+    await expect(recipientSharedNotificationCard).toBeVisible({ timeout: 15000 });
 
-    const sharedNotificationCard = page.locator('div.cursor-pointer').filter({ hasText: sharedDocumentName }).first();
+    const sharedNotificationCard = recipientSharedNotificationCard;
     await sharedNotificationCard.getByRole('button').click();
     await expect(page.getByText('Notificación eliminada')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText(sharedDocumentName)).not.toBeVisible({ timeout: 15000 });
@@ -350,10 +353,11 @@ test.describe('Shared route coverage', () => {
     await page.goto('/app/notifications');
     await expect(page.getByRole('heading', { name: 'Notificaciones', exact: true })).toBeVisible();
     await page.getByRole('tab', { name: /Documentos/i }).click();
-    await expect(page.getByText(sharedDocumentName)).toBeVisible({ timeout: 30000 });
+    const ownerDocumentNotification = page.locator('p.text-sm.text-muted-foreground').filter({ hasText: sharedDocumentName }).first();
+    await expect(ownerDocumentNotification).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('tab', { name: /No leídas/i }).click();
-    await expect(page.getByText(sharedDocumentName)).toBeVisible({ timeout: 15000 });
+    await expect(ownerDocumentNotification).toBeVisible({ timeout: 15000 });
   });
 
 });

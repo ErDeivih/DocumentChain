@@ -1,9 +1,8 @@
 /**
- * IPFS Configuration for the self-hosted runtime.
+ * IPFS configuration for the single self-hosted runtime.
  *
- * The application now targets a single self-hosted Kubo node exposed through the
- * HTTP API. Older provider names are still accepted as aliases during the
- * transition, but the canonical value is IPFS_PROVIDER="self-hosted".
+ * The application targets one self-hosted Kubo node exposed through the HTTP API.
+ * The canonical and supported provider value is IPFS_PROVIDER="self-hosted".
  */
 
 import logger from '../utils/logger';
@@ -32,18 +31,7 @@ function normalizeProvider(rawProvider: string): SupportedProvider {
     return 'self-hosted';
   }
 
-  if (provider === 'cluster') {
-    logger.warn('IPFS_PROVIDER="cluster" is deprecated. Using self-hosted node mode instead.');
-    return 'self-hosted';
-  }
-
-  if (provider === 'pinata') {
-    logger.warn('IPFS_PROVIDER="pinata" is no longer supported. Falling back to the self-hosted node.');
-    return 'self-hosted';
-  }
-
-  logger.warn(`Unknown IPFS_PROVIDER "${rawProvider}". Falling back to the self-hosted node.`);
-  return 'self-hosted';
+  throw new Error(`Unsupported IPFS_PROVIDER "${rawProvider}". Use "self-hosted".`);
 }
 
 function buildPinnedStatus(cid: string, pinType: string = 'recursive') {
@@ -179,12 +167,7 @@ export class SelfHostedIPFSClient implements IPFSAdapter {
 
 function getIPFSAdapter(): IPFSAdapter {
   const provider = normalizeProvider(IPFS_PROVIDER);
-
-  if (provider === 'self-hosted') {
-    logger.info('Using self-hosted IPFS node provider');
-    return new SelfHostedIPFSClient();
-  }
-
+  logger.info('Using self-hosted IPFS node provider');
   return new SelfHostedIPFSClient();
 }
 

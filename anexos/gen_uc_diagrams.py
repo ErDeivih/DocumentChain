@@ -36,10 +36,10 @@ packages = {
             ('UC_0026', 'Archivar Documento'),
             ('UC_0028', 'Eliminar Documento'),
         ],
-        'actors': ['Usuario', 'IPFSCluster', 'SmartContract'],
+        'actors': ['Usuario', 'NodoIPFS', 'SmartContract'],
         'connections': {
             'Usuario': ['UC_0019','UC_0020','UC_0021','UC_0022','UC_0023','UC_0025','UC_0026','UC_0028'],
-            'IPFSCluster': ['UC_0019','UC_0022'],
+            'NodoIPFS': ['UC_0019','UC_0022'],
             'SmartContract': ['UC_0019','UC_0028'],
         }
     },
@@ -147,7 +147,7 @@ packages = {
 
 actor_labels = {
     'SistemaEmail': 'Sistema Email',
-    'IPFSCluster': 'IPFS Cluster',
+    'NodoIPFS': 'Nodo IPFS autoalojado',
     'SmartContract': 'Smart Contract',
     'Usuario': 'Usuario',
     'Administrador': 'Administrador',

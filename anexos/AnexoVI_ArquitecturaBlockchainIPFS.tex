@@ -1,0 +1,301 @@
+% ============================================================
+%  Anexo VI - Arquitectura blockchain, Solidity e IPFS
+%  Sistema de Gestión Documental mediante Blockchain
+% ============================================================
+
+\documentclass[11pt, a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+
+\usepackage{geometry}
+\geometry{
+    left       = 2.5cm,
+    right      = 2.5cm,
+    top        = 3cm,
+    bottom     = 2.5cm,
+    headheight = 55pt,
+    headsep    = 0.8cm
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{\tituloInforme}\\[-1pt]\fontsize{10}{12}\selectfont\subtituloInforme}}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+
+\newcommand{\tituloInforme}{Anexo VI: Arquitectura blockchain, Solidity e IPFS}
+\newcommand{\subtituloInforme}{Sistema de Gestión Documental mediante Blockchain}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+\newcommand{\autorUno}{David Pérez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia González}
+\newcommand{\tutorDos}{Sergio García González}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingeniería Informática \par}
+    \vspace{1.5cm}
+
+    {\huge\bfseries \tituloInforme \par}
+    \vspace{0.5cm}
+    {\Large\bfseries \subtituloInforme \par}
+    \vspace{1.8cm}
+
+    \includegraphics[width=0.34\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{1.8cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{2cm}
+    
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vfill
+
+    \asignatura
+
+    \vspace{1cm}
+\end{titlepage}
+
+\setcounter{page}{2}
+\pagestyle{fancy}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+
+Este anexo se dedica a la capa tecnológica que diferencia al proyecto frente a una aplicación documental convencional. Su finalidad consiste en describir cómo se articulan la blockchain, el contrato inteligente en Solidity y el almacenamiento distribuido basado en IPFS dentro de una arquitectura que también depende de PostgreSQL y del backend Node.js. No se pretende duplicar el análisis de diseño general del Anexo II, sino detallar la lógica específica que justifica la elección de estas tecnologías y el reparto de responsabilidades entre ellas.
+
+La solución implantada no se limita a registrar hashes aislados. Se ha construido un modelo on-chain capaz de representar documentos, versiones, firmas, permisos y estados operativos, mientras que el contenido binario y la mayor parte de la información relacional permanecen fuera de la cadena. Esa separación permite conservar trazabilidad verificable sin trasladar a Ethereum cargas que pertenecen al plano operativo de la aplicación.
+
+\section{Papel de la blockchain en el sistema}
+
+La blockchain se utiliza como registro de evidencia y de estado compartido para operaciones cuya validez interesa poder comprobar sin depender exclusivamente de la base de datos interna. En este proyecto se persigue que la creación documental, la aparición de nuevas versiones, las firmas y los cambios de permisos dejen una huella inmutable y verificable por terceros.
+
+Desde un punto de vista técnico, una blockchain puede entenderse como una máquina de estados replicada en múltiples nodos, donde las transacciones aceptadas se agrupan en bloques enlazados criptográficamente. Lo que la hace singular frente a un repositorio centralizado no es solo la redundancia, sino el hecho de que el historial consensuado y la lógica de ejecución quedan expuestos a verificación pública. Para un sistema documental, esa propiedad convierte a la cadena en una capa de evidencia: no sustituye al almacén operativo, pero sí fija qué operaciones críticas ocurrieron, quién las emitió y en qué orden fueron confirmadas.
+
+No toda la información del sistema se beneficia de esa propiedad. Las preferencias de usuario, las notificaciones, la organización por carpetas o los filtros de búsqueda exigen consulta frecuente, actualización sencilla y baja latencia. Por esa razón se mantienen en PostgreSQL. La cadena se reserva para los hechos cuyo valor probatorio compensa el coste y la rigidez del almacenamiento on-chain.
+
+Desde esa perspectiva, Solidity no se incorpora como un elemento ornamental. Se adopta porque Ethereum ofrece un modelo de ejecución determinista, eventos auditables y una semántica de permisos suficientemente expresiva para representar el ciclo de vida documental. El contrato pasa a ser la fuente de verdad de la titularidad, del acceso efectivo y de la secuencia de operaciones críticas.
+
+\section{Contrato inteligente consolidado en Solidity}
+
+\subsection{Organización general del contrato}
+
+La implementación actual se concentra en un único contrato, \texttt{DocumentRegistry}, situado en \texttt{smart-contracts/contracts/DocumentRegistry.sol}. Se trata de un contrato consolidado que integra registro de documentos, versionado, firmas, control de acceso, suspensión de usuarios y pausa de emergencia. La elección de esta variante unificada reduce el número de transacciones necesarias por operación y simplifica la interacción desde el frontend y el backend.
+
+Para soportar esa lógica se utilizan utilidades de OpenZeppelin. \texttt{AccessControl} permite diferenciar roles administrativos globales; \texttt{Pausable} introduce un mecanismo de parada controlada; \texttt{ReentrancyGuard} limita ataques por reentrada; y \texttt{EnumerableSet} mantiene colecciones de documentos y usuarios con operaciones de consulta razonables. También se conserva la figura del propietario del contrato para tareas de gobierno del despliegue.
+
+En la capa de permisos aparecen dos niveles. Por un lado, existen roles globales como \texttt{ADMIN\_ROLE} y \texttt{OPERATOR\_ROLE}, pensados para administración de plataforma. Por otro, cada documento maneja su propio nivel de acceso mediante el enumerado \texttt{DocumentRole}, con los valores \texttt{NONE}, \texttt{VIEWER}, \texttt{EDITOR} y \texttt{OWNER}. Esa decisión evita depender de una jerarquía global para autorizar acciones que en realidad pertenecen al ámbito de cada documento.
+
+\subsection{Solidity y la EVM en el contexto del proyecto}
+
+Solidity es el lenguaje con el que se expresa la lógica ejecutable del contrato. Su sintaxis recuerda a otros lenguajes imperativos, pero su semántica está condicionada por el modelo transaccional de Ethereum: cada cambio de estado requiere gas, toda escritura es costosa y la ejecución debe ser determinista en cualquier nodo de la red. Estas restricciones condicionan el diseño de \texttt{DocumentRegistry} y explican por qué el contrato conserva solo el mínimo conjunto de datos necesario para verificar el ciclo de vida documental.
+
+La EVM (
+\textit{Ethereum Virtual Machine}) actúa como entorno de ejecución común. Cuando la aplicación llama a \texttt{createDocument}, \texttt{createVersion} o \texttt{signDocument}, no está invocando simplemente una API remota, sino una transición de estado validada por todos los nodos que participan en la red utilizada. De este modo, las reglas de autorización dejan de depender exclusivamente del backend. El servidor prepara la operación, pero la decisión final sobre si una cuenta puede firmar, compartir o transferir un documento queda fijada por el código desplegado y por la wallet que firma la transacción.
+
+Esta distinción tiene implicaciones arquitectónicas directas. El backend no debe custodiar claves privadas de usuario ni firmar en su nombre. Su función consiste en validar reglas de negocio off-chain, preparar datos, sincronizar estados y ofrecer una interfaz cómoda al frontend. La wallet del usuario asume la firma de la transacción y la blockchain asume la autoridad definitiva sobre la evidencia publicada.
+
+\subsection{Estructuras de datos on-chain}
+
+El contrato se apoya en tres \textit{structs} principales y en varios \textit{mappings} anidados. La Tabla~\ref{tab:estructuras-solidity} resume los elementos más relevantes.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{3.3cm}|p{4.2cm}|p{6.9cm}|}
+    \hline
+    \textbf{Elemento} & \textbf{Campos principales} & \textbf{Función dentro del sistema} \\
+    \hline
+    \texttt{Document} & \parbox[t]{4.1cm}{\texttt{docId}, \texttt{owner},\\ \texttt{createdAt}, \texttt{updatedAt},\\ \texttt{currentVersion}, \texttt{latestVersion},\\ \texttt{isArchived}, \texttt{isDeleted}} & Representa el estado documental mínimo que debe mantenerse en cadena: titularidad, versión operativa y marcas de estado. \\
+    \hline
+    \texttt{Version} & \parbox[t]{4.1cm}{\texttt{versionNumber}, \texttt{ipfsCid},\\ \texttt{encryptedKeyHash}, \texttt{createdBy},\\ \texttt{createdAt}, \texttt{isOperational},\\ \texttt{restoredFrom}} & Vincula cada versión con su CID de IPFS y reserva un campo para asociar metadatos criptográficos sin exponer la clave real, además de señalar si esa versión es la operativa. \\
+    \hline
+    \texttt{Signature} & \parbox[t]{4.1cm}{\texttt{signer}, \texttt{signature},\\ \texttt{message}, \texttt{comment},\\ \texttt{timestamp}} & Registra la evidencia de firma por dirección Ethereum, preservando el mensaje y el instante en el que se aceptó la firma. \\
+    \hline
+    \texttt{\_permissions} & \parbox[t]{4.1cm}{\texttt{docId} $\rightarrow$ \texttt{address}\\ $\rightarrow$ \texttt{DocumentRole}} & Determina el nivel de acceso efectivo de cada cuenta sobre cada documento. \\
+    \hline
+    \texttt{\_documentUsers} y \texttt{\_userDocuments} & Conjuntos enumerables & Permiten consultar usuarios vinculados a un documento y documentos vinculados a un usuario sin recorrer toda la cadena. \\
+    \hline
+    \end{tabular}
+    \caption{Estructuras de datos principales del contrato \texttt{DocumentRegistry}}
+    \label{tab:estructuras-solidity}
+\end{table}
+
+Se observa un criterio constante: la cadena no almacena el archivo ni las proyecciones de interfaz, sino el mínimo conjunto de datos necesario para probar la existencia de la versión, su propietario, el CID correspondiente y el estado del ciclo de vida. De este modo se limita el coste de gas y se evita duplicar información que el backend ya puede servir mejor.
+
+\subsection{Operaciones registradas en cadena}
+
+Las funciones públicas del contrato reproducen el núcleo funcional del sistema documental. Entre ellas destacan las siguientes:
+
+\begin{itemize}
+    \item \texttt{createDocument}: crea el documento inicial, registra la primera versión y concede al emisor el rol \texttt{OWNER}.
+    \item \texttt{createVersion}: añade una nueva versión, desactiva la versión operativa previa y actualiza el contador de versión actual.
+    \item \texttt{restoreVersion}: genera una versión nueva reutilizando el CID y el hash criptográfico de una versión anterior, sin reescribir el histórico.
+    \item \texttt{setOperationalVersion}: permite señalar otra versión ya existente como operativa cuando el caso de uso no requiere crear una nueva.
+    \item \texttt{shareDocument} y \texttt{revokePermission}: gestionan permisos de lectura y edición para terceros.
+    \item \texttt{signDocument}: registra firmas verificables por versión y evita duplicados mediante un control interno de firmas repetidas.
+    \item \texttt{transferOwnership}: transfiere la titularidad del documento y reajusta los roles del propietario saliente y del entrante.
+    \item \texttt{setArchiveStatus} y \texttt{deleteDocument}: expresan archivado y borrado lógico sin eliminar el rastro histórico ya publicado.
+\end{itemize}
+
+Cada una de estas operaciones emite eventos. Esa capa de eventos resulta útil por dos motivos. Primero, ofrece una auditoría natural a nivel de cadena. Segundo, alimenta los servicios de sincronización del backend, que pueden reconstruir o contrastar el estado observado en PostgreSQL a partir de lo sucedido on-chain.
+
+\subsection{Eventos, mappings y restricciones de seguridad}
+
+El contrato no solo almacena datos; también define cómo se observan y bajo qué condiciones pueden cambiar. Los eventos constituyen la interfaz de auditoría natural del sistema. \texttt{DocumentCreated} y \texttt{VersionCreated} registran altas y versionados; \texttt{DocumentShared} y \texttt{PermissionRevoked} reflejan cambios de permisos; \texttt{DocumentSigned} deja constancia de la firma emitida por una dirección concreta; y \texttt{OperationalVersionChanged}, \texttt{DocumentArchived} u \texttt{OwnershipTransferred} permiten seguir transiciones menos frecuentes pero relevantes para el ciclo de vida del documento. El backend puede consumir estos eventos para reconciliar estados o para verificar que una operación preparada ha terminado realmente consolidada en cadena.
+
+Los \textit{mappings} materializan el estado consultable con coste razonable. \texttt{\_documents} y \texttt{\_versions} enlazan cada identificador con sus metadatos mínimos; \texttt{\_permissions} resuelve el rol efectivo de una cuenta sobre un documento; \texttt{\_hasSigned} evita duplicidades de firma para una misma versión; y los conjuntos \texttt{\_documentUsers} y \texttt{\_userDocuments}, construidos con \texttt{EnumerableSet}, permiten recuperar relaciones de acceso sin recorrer toda la estructura de almacenamiento. Se observa un criterio de diseño claro: guardar relaciones esenciales y dejar fuera de la cadena las proyecciones ricas de interfaz que no justifican su coste on-chain.
+
+Las restricciones de seguridad se expresan mediante modificadores y controles internos. \texttt{whenNotPaused} permite detener la operativa en caso de incidente; \texttt{nonReentrant} reduce la superficie de ataques por reentrada; \texttt{notSuspended} impide operar a cuentas suspendidas; y \texttt{notDeleted} bloquea acciones incompatibles con el borrado lógico. A ello se añaden comprobaciones explícitas, como prohibir compartir con la cuenta propietaria, rechazar direcciones nulas, impedir transferencias a usuarios suspendidos o negar nuevas versiones cuando el documento está archivado. El contrato, por tanto, actúa como mecanismo de validación y no solo como registro pasivo.
+
+\section{Distribución de responsabilidades entre PostgreSQL, IPFS y blockchain}
+
+El sistema no podría operar únicamente con blockchain, ni tendría sentido construirlo solo sobre una base de datos relacional si se desea una huella de integridad externa. La arquitectura se apoya en tres capas de persistencia complementarias, resumidas en la Tabla~\ref{tab:capas-persistencia-anexo6}.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{3.1cm}|p{5.1cm}|p{6.1cm}|}
+    \hline
+    \textbf{Capa} & \textbf{Qué almacena} & \textbf{Por qué se almacena ahí} \\
+    \hline
+    PostgreSQL & Usuarios, sesiones, preferencias, metadatos, organización por carpetas y categorías, estados de sincronización, notificaciones y proyecciones de consulta & Permite búsquedas, filtros, actualización frecuente y relaciones complejas con bajo coste operativo. \\
+    \hline
+    IPFS & Ficheros documentales y sus versiones, en claro o cifrados según visibilidad & Proporciona direccionamiento por contenido y separación entre archivo binario y registro transaccional. \\
+    \hline
+    Blockchain & Identificador documental, CID, roles, firmas, cambios de titularidad y estados críticos del documento; además, un campo opcional para huella criptográfica asociada a la versión & Aporta inmutabilidad, trazabilidad compartida y posibilidad de verificación independiente. \\
+    \hline
+    \end{tabular}
+    \caption{Reparto de responsabilidades entre las tres capas de persistencia}
+    \label{tab:capas-persistencia-anexo6}
+\end{table}
+
+Ese reparto evita dos extremos poco convenientes. Si todo se conservara en PostgreSQL, la aplicación sería más simple pero perdería la dimensión de evidencia externa que justifica el proyecto. Si todo se intentara llevar a Ethereum, el sistema resultaría costoso, rígido y técnicamente desproporcionado para el tipo de operaciones que se ejecutan a diario.
+
+\section{Funcionamiento de IPFS en el proyecto}
+
+\subsection{Qué aporta IPFS frente a un almacenamiento convencional}
+
+IPFS no organiza la información mediante rutas estables administradas por un servidor central, sino mediante identificadores derivados del propio contenido. Internamente, el modelo se apoya en bloques enlazados criptográficamente y en una estructura de tipo \textit{Merkle DAG}, lo que permite verificar cada fragmento recuperado a partir de su hash. En términos prácticos, esto implica que un mismo archivo puede replicarse en varios nodos sin perder identidad y que cualquier modificación, por pequeña que sea, produce un nuevo CID. Para un sistema documental con versiones, esta propiedad elimina ambigüedades: cada versión queda asociada a un objeto inequívoco.
+
+Ese comportamiento hace especial a IPFS dentro de la aplicación porque desplaza la confianza desde la ruta de almacenamiento hacia la identidad criptográfica del binario. La pregunta deja de ser en qué servidor se guardó el fichero y pasa a ser si el contenido recuperado coincide con el identificador registrado en la blockchain y en PostgreSQL. Esta verificación por contenido es la pieza que permite enlazar almacenamiento distribuido y evidencia on-chain de forma coherente.
+
+\subsection{CID, publicación y persistencia}
+
+IPFS se emplea como capa de almacenamiento distribuido mediante un nodo Kubo autoalojado. El backend encapsula el acceso a esa API y mantiene así el direccionamiento por contenido sin depender de proveedores externos ni de una topología multi-nodo ajena a la entrega final.
+
+Esta materialización resulta coherente cuando se persigue soberanía operativa y trazabilidad completa del almacenamiento. En ese escenario se despliega un nodo Kubo persistente, respaldado por volúmenes propios y supervisado desde la misma composición Docker que sostiene el resto de servicios. Así se conserva el direccionamiento por contenido sin delegar la disponibilidad efectiva del binario en un proveedor ajeno al sistema.
+
+Cada archivo subido genera un \textit{Content Identifier} o CID. Ese identificador depende del contenido y no de una ruta lógica decidida por la aplicación. Cuando el documento cambia, aunque solo se altere un byte, se obtiene un CID distinto. Esa propiedad encaja de forma natural con el versionado documental: cada versión activa o restaurada queda asociada a un CID concreto, y la cadena registra precisamente esa referencia inmutable.
+
+No se produce un borrado estricto en el sentido tradicional. Cuando un documento deja de ser necesario, el sistema puede desanclar su CID en el nodo correspondiente, pero no reescribe la naturaleza inmutable del direccionamiento por contenido. El diseño asume esa característica y la incorpora al modelo de borrado lógico y de archivado.
+
+\subsection{Cifrado, visibilidad y metadatos criptográficos}
+
+El tratamiento del archivo depende de la visibilidad documental. Si el documento es privado, el backend recibe el fichero en bruto, lo cifra con AES-256-GCM, sube a IPFS el resultado cifrado y almacena en la base de datos la clave simétrica cifrada, el vector de inicialización y la etiqueta de autenticación. El frontend recibe esos metadatos cuando descarga el documento y puede proceder al descifrado en el contexto del usuario autorizado.
+
+Si el documento es público, no se aplica ese cifrado del binario y el archivo se conserva en claro. En ese caso se genera también un \texttt{publicId} para habilitar acceso verificable mediante enlace compartible. Aun así, la publicación en cadena sigue limitándose al CID y a los metadatos necesarios para comprobar integridad y autoría.
+
+La capa Solidity no expone la clave de descifrado. El contrato reserva para cada versión un campo \texttt{bytes32 encryptedKeyHash}, pensado para asociar una huella criptográfica al material gestionado fuera de la cadena sin hacer visible dicho material. En la implementación visible actual, el frontend utiliza el contrato con el valor por defecto de ese parámetro en los flujos ordinarios de alta y versionado, mientras que la clave cifrada efectiva, el IV y la etiqueta de autenticación permanecen en PostgreSQL y en las cabeceras/controladores de descarga.
+
+\section{Patrón \textit{prepare/confirm} y sincronización}
+
+\subsection{Fase de preparación}
+
+Las operaciones críticas no se resuelven en un único salto backend-cadena, porque la firma de la transacción debe realizarse con la wallet del usuario desde el frontend. Para coordinar ese comportamiento se ha adoptado un patrón \textit{prepare/confirm}. En la fase \textit{prepare}, el backend realiza todo aquello que no requiere firma blockchain: valida la operación, cifra el binario cuando corresponde, sube el contenido a IPFS, crea el registro en PostgreSQL y deja el estado en \texttt{PREPARING}.
+
+En esa respuesta de preparación se devuelven datos suficientes para que el frontend invoque la función Solidity adecuada. En el alta de documento, por ejemplo, se devuelven el \texttt{docId}, el \texttt{ipfsCid}, el identificador interno del documento y, cuando procede, el \texttt{publicId}. El usuario firma entonces con su wallet la transacción real contra \texttt{DocumentRegistry}.
+
+\subsection{Confirmación y reconciliación}
+
+Una vez enviada la transacción, el frontend llama a la fase \textit{confirm}. El backend recibe el hash de transacción y el identificador blockchain, actualiza el registro previamente preparado y mueve el estado hacia \texttt{TX\_SUBMITTED}. Más tarde, un trabajador de sincronización revisa si esa transacción ha sido minada y marca el elemento como \texttt{SYNCED} cuando la confirmación on-chain ya es verificable.
+
+El mismo esquema se ha aplicado a documentos, versiones, firmas, archivado, borrado y transferencia. La ventaja principal consiste en separar claramente la lógica de negocio previa a la firma y la consolidación posterior a la transacción. Se reducen así inconsistencias entre frontend, backend e infraestructura blockchain, y se dispone de un punto claro para gestionar reintentos, expiraciones o reconciliación de estados.
+
+\section{Flujo técnico de una operación representativa}
+
+El alta de un documento privado permite observar la cooperación entre todas las capas del sistema:
+
+\begin{enumerate}
+    \item El usuario selecciona un fichero y solicita su creación desde el frontend autenticado.
+    \item El backend valida tipo, tamaño y metadatos, genera el identificador lógico del documento y cifra el binario con AES-256-GCM.
+    \item El archivo cifrado se sube a IPFS, que devuelve un CID único para esa versión.
+    \item PostgreSQL guarda el registro documental con estado \texttt{PREPARING}, junto con los metadatos criptográficos necesarios para descifrar el archivo más adelante.
+    \item El backend responde al frontend con \texttt{docId}, \texttt{ipfsCid} e identificadores internos.
+    \item La wallet del usuario firma y envía la llamada a \texttt{createDocument} del contrato, aportando \texttt{docId} e \texttt{ipfsCid}; el tercer parámetro criptográfico queda actualmente en su valor por defecto dentro del flujo normal expuesto por la interfaz.
+    \item El frontend remite al backend el hash de transacción y el identificador blockchain para la fase de confirmación.
+    \item El backend actualiza el estado a \texttt{TX\_SUBMITTED}; después, el proceso de sincronización lo deja en \texttt{SYNCED} cuando la cadena confirma la operación.
+\end{enumerate}
+
+En ese recorrido ningún componente trabaja de manera aislada. PostgreSQL conserva el estado operativo, IPFS conserva el binario, la blockchain conserva la evidencia y el frontend aporta la firma que el backend no debe custodiar. La arquitectura resultante responde así al principio de minimizar privilegios sin perder trazabilidad.
+
+\section{Despliegue técnico con Docker y servidor Ubuntu}
+
+La materialización operativa de esta arquitectura se apoya en Docker Compose. El motivo principal no es únicamente la comodidad de arranque, sino la necesidad de conservar una topología estable entre servicios que dependen unos de otros: PostgreSQL para persistencia relacional, Hardhat como red EVM local, backend Node.js para la lógica de aplicación, frontend servido por Nginx, Postfix para correo transaccional y un nodo Kubo para almacenamiento distribuido. El uso de contenedores permite reproducir el mismo conjunto sobre equipos de desarrollo, sobre la máquina de demostración y sobre un servidor Ubuntu dedicado a pruebas continuas.
+
+En esta última modalidad se ha previsto un flujo de actualización automática inspirado en plataformas de despliegue gestionado, pero ejecutado íntegramente en infraestructura propia. El repositorio incorpora un \textit{workflow} de \textit{GitHub Actions} orientado a \textit{runners} autoalojados en Linux. Cuando llega un \textit{push} a la rama configurada, ese \textit{runner} actualiza el código, reconstruye las imágenes Docker necesarias, aplica migraciones Prisma con la imagen del backend y relanza el conjunto mediante Docker Compose. El resultado no debe interpretarse como un entorno productivo endurecido, sino como un servidor de pruebas que mantiene la aplicación alineada con el estado del repositorio sin depender de un proveedor PaaS externo.
+
+Desde el punto de vista operativo, la forma recomendada de ejecutar ese \textit{runner} en Ubuntu consiste en instalarlo como servicio del sistema y no dejarlo en primer plano dentro de una terminal interactiva. Si el \textit{runner} se encuentra todavía lanzado con \texttt{./run.sh}, basta con detener ese proceso con \texttt{Ctrl+C}. A continuación, desde el directorio \texttt{actions-runner}, puede instalarse y arrancarse como servicio mediante \texttt{sudo ./svc.sh install <usuario>} seguido de \texttt{sudo ./svc.sh start}. La comprobación inmediata se realiza con \texttt{sudo ./svc.sh status} o, de forma equivalente, con \texttt{systemctl status actions.runner.<organizacion>-<repositorio>.<host>.service}. Si el servicio figura como \texttt{active (running)}, el \textit{runner} está preparado para recibir ejecuciones del \textit{workflow}.
+
+La verificación del despliegue no debe limitarse al estado del servicio del \textit{runner}. Tras un \textit{push}, conviene confirmar que los contenedores principales han quedado levantados y saludables. Para ello resulta suficiente acceder al directorio de trabajo usado por GitHub Actions y ejecutar \texttt{docker compose ps}, comprobar la API con \texttt{curl http://localhost:3000/health} y verificar el frontend con \texttt{curl http://localhost:5173/health}. En la topología entregada, el contenedor del frontend escucha internamente en el puerto 80, pero se publica en el anfitrión como \texttt{5173:80}; por tanto, la URL correcta desde otro equipo de la red local es \texttt{http://<IP-LAN-DEL-SERVIDOR>:5173}. Si esa URL no carga, la causa más probable no es el puerto del contenedor, sino que el servicio frontend no haya arrancado, que el \textit{deploy} no haya terminado o que el cortafuegos del servidor no permita todavía conexiones entrantes a ese puerto.
+
+Desde el punto de vista académico, este esquema aporta dos ventajas. Primero, hace visible que blockchain e IPFS no se despliegan de manera aislada, sino integrados en una infraestructura de servicios donde la orquestación resulta determinante. Segundo, demuestra que la soberanía operativa perseguida en la capa de almacenamiento distribuido puede extenderse también al ciclo de despliegue: el mismo equipo Ubuntu que aloja los contenedores puede ejecutar el proceso de actualización continua, conservando localmente tanto los datos persistentes como la lógica de reconstrucción del sistema.
+
+\section{Conclusiones}
+
+La introducción de blockchain, Solidity e IPFS en el proyecto no responde a una búsqueda de complejidad adicional, sino a un reparto de responsabilidades coherente con el tipo de garantía que se desea ofrecer. La cadena aporta evidencia compartida; IPFS resuelve el almacenamiento direccionado por contenido; y PostgreSQL sostiene la operativa diaria y la consulta eficiente.
+
+También se observa que la solución elegida evita uno de los errores frecuentes en este tipo de sistemas: tratar la blockchain como una base de datos generalista. Aquí se reserva para lo que realmente justifica su coste, mientras que el resto de la aplicación continúa apoyándose en tecnologías más adecuadas para la interacción cotidiana. Esa combinación es la que hace viable un sistema documental verificable y utilizable al mismo tiempo.
+
+\section*{Bibliografía}
+\addcontentsline{toc}{section}{Bibliografía}
+
+\begin{enumerate}
+    \item Ethereum Foundation. (2025). \textit{Ethereum Developer Documentation}. \url{https://ethereum.org/en/developers/docs/}
+    \item Solidity Team. (2025). \textit{Solidity Documentation}. \url{https://docs.soliditylang.org/}
+    \item OpenZeppelin. (2025). \textit{Contracts for Secure Smart Contract Development}. \url{https://docs.openzeppelin.com/contracts/}
+    \item IPFS Project. (2025). \textit{IPFS Documentation}. \url{https://docs.ipfs.tech/}
+    \item Protocol Labs. (2025). \textit{IPFS Concepts}. \url{https://docs.ipfs.tech/concepts/}
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>shared-documents-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>shared-documents-wireframe</h1>
+      <p>Vista de documentos compartidos con la wallet activa y un listado reducido.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/shared</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item">Mis Documentos</div>
+          <div class="menu-item active">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Carpetas</div>
+          <div class="list-line">Recibidos</div>
+          <div class="list-line">Revisiones</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Mis Wallets</div>
+          <div class="list-line">Principal</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h2>Compartidos Conmigo</h2>
+            <p class="muted">Mostrando documentos compartidos con: Principal (0x8f...2a)</p>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search w-60">Buscar documento compartido...</div>
+          <div class="search w-20">Tipo de archivo</div>
+        </div>
+
+        <div class="shared-list">
+          <div class="doc-card">
+            <div class="doc-card-head"><div class="doc-icon"></div><div class="pill">Compartido</div></div>
+            <strong>informe_auditoria.pdf</strong>
+            <p>Propietario: admin_operaciones</p>
+            <p>PDF · 3.4 MB</p>
+          </div>
+          <div class="doc-card">
+            <div class="doc-card-head"><div class="doc-icon"></div><div class="pill">Compartido</div></div>
+            <strong>plan_implantacion.docx</strong>
+            <p>Propietario: diego_ortega</p>
+            <p>DOCX · 980 KB</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

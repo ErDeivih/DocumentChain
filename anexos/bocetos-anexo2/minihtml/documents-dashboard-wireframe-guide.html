@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>documents-dashboard-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>documents-dashboard-wireframe</h1>
+      <p>Vista Mis Documentos con sidebar de usuario, filtros y rejilla de tarjetas.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/documents</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item active">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Carpetas</div>
+          <div class="list-line">Contratos</div>
+          <div class="list-line">Evidencias</div>
+          <div class="list-line">Anexos</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Almacenamiento</div>
+          <div class="stat-bar w-70"></div>
+          <p class="mini">7.2 GB de 10 GB</p>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Mis Wallets</div>
+          <div class="list-line">Principal</div>
+          <div class="list-line">Firma secundaria</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h2>Mis Documentos</h2>
+            <p class="muted">Vista principal de documentos activos y archivados.</p>
+          </div>
+          <div class="top-actions">
+            <div class="action-pill">Nueva Carpeta</div>
+            <div class="action-pill dark">Subir Documento</div>
+          </div>
+        </div>
+
+        <div class="tab-row">
+          <div class="tab active">Activos</div>
+          <div class="tab">Archivados</div>
+        </div>
+
+        <div class="toolbar">
+          <div class="search w-60">Buscar por nombre...</div>
+          <div class="search w-20">Tipo de archivo</div>
+        </div>
+
+        <div class="doc-grid">
+          <div class="doc-card">
+            <div class="doc-card-head"><div class="doc-icon"></div><div class="pill">PDF</div></div>
+            <strong>contrato_colaboracion.pdf</strong>
+            <p>2.3 MB</p>
+            <p>Acuerdo principal del proyecto.</p>
+            <p>v3 · Privado</p>
+          </div>
+          <div class="doc-card">
+            <div class="doc-card-head"><div class="doc-icon"></div><div class="pill">DOCX</div></div>
+            <strong>memoria_tecnica.docx</strong>
+            <p>1.1 MB</p>
+            <p>Documento de trabajo con anexos.</p>
+            <p>v2 · Privado</p>
+          </div>
+          <div class="doc-card">
+            <div class="doc-card-head"><div class="doc-icon"></div><div class="pill">PNG</div></div>
+            <strong>evidencia_firma.png</strong>
+            <p>640 KB</p>
+            <p>Captura asociada a la auditoria.</p>
+            <p>v1 · Publico</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

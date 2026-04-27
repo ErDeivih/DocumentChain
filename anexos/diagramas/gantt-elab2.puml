@@ -1,17 +1,30 @@
 @startgantt
 skinparam backgroundColor White
-printscale daily zoom 2
+printscale daily zoom 3
 Project starts 2025-12-29
 
--- Fase Elaboracion - Iteracion 2 --
+[Iteracion 2 - Fase Elaboracion] lasts 15 days
+
+[Diseno tecnico avanzado] lasts 9 days
+[Diseno tecnico avanzado] starts at [Iteracion 2 - Fase Elaboracion]'s start
 [T16: Diseno del smart contract Solidity] lasts 3 days
-then [T17: Diseno del cifrado hibrido de documentos] lasts 3 days
-then [T18: Elaboracion de diagramas UML] lasts 3 days
+[T16: Diseno del smart contract Solidity] starts at [Diseno tecnico avanzado]'s start
+[T17: Diseno del cifrado hibrido de documentos] lasts 3 days
+[T17: Diseno del cifrado hibrido de documentos] starts at [T16: Diseno del smart contract Solidity]'s end
+[T18: Elaboracion de diagramas UML] lasts 3 days
+[T18: Elaboracion de diagramas UML] starts at [T17: Diseno del cifrado hibrido de documentos]'s end
+
+[Documentacion] lasts 6 days
+[Documentacion] starts at [Diseno tecnico avanzado]'s end
 [T19: Redaccion Anexo I - Especificaciones] lasts 4 days
-then [T22: Glosario y anexos complementarios] lasts 2 days
+[T19: Redaccion Anexo I - Especificaciones] starts at [Documentacion]'s start
 [T20: Redaccion Anexo II - Analisis y Diseno] lasts 4 days
-[T20: Redaccion Anexo II - Analisis y Diseno] starts at [T18: Elaboracion de diagramas UML]'s end
+[T20: Redaccion Anexo II - Analisis y Diseno] starts at [Documentacion]'s start
 [T21: Redaccion Anexo III - Estimacion] lasts 2 days
+[T21: Redaccion Anexo III - Estimacion] starts at [Documentacion]'s start
+[T22: Glosario y anexos complementarios] lasts 2 days
+[T22: Glosario y anexos complementarios] starts at [T19: Redaccion Anexo I - Especificaciones]'s end
+
 [M23: Fin Iteracion 2 - Elaboracion] happens at [T20: Redaccion Anexo II - Analisis y Diseno]'s end
 [M23: Fin Iteracion 2 - Elaboracion] is colored in Gold/DarkRed
 @endgantt

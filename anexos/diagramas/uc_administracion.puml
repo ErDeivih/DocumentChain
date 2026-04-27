@@ -1,0 +1,22 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Administrador" as ADMIN
+
+rectangle "AdministraciÃ³n" {
+  usecase "UC-0041: Listar Usuarios" as UC49
+  usecase "UC-0042: Gestionar Roles" as UC50
+}
+
+UC49 -[hidden]down-> UC50
+
+ADMIN --> UC49
+ADMIN --> UC50
+
+note right of UC50
+  Las acciones administrativas especializadas
+  UC-0051 a UC-0055 se ejecutan como
+  operaciones del panel de administracion.
+end note
+@enduml

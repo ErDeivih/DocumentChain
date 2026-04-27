@@ -192,7 +192,7 @@ NODE_ENV=development
 DATABASE_URL="postgresql://user:password@localhost:5432/documentchain"
 
 # JWT
-JWT_SECRET="your-secret-key-change-in-production"
+JWT_SECRET="documentchain-dev-jwt-secret-2026-change-before-production"
 JWT_EXPIRES_IN="7d"
 
 # SSL Certificates
@@ -526,6 +526,8 @@ NODE_ENV=production
 PORT=3000
 DATABASE_URL="postgresql://user:password@db-server:5432/documentchain"
 JWT_SECRET="generate-with-openssl-rand-base64-32"
+JWT_REFRESH_SECRET="generate-with-openssl-rand-base64-32"
+ADMIN_REGISTRATION_SECRET="generate-with-openssl-rand-base64-32"
 BLOCKCHAIN_RPC_URL="https://mainnet.infura.io/v3/YOUR_KEY"
 IPFS_API_URL="https://ipfs.your-domain.com:5001"
 IPFS_PROVIDER="self-hosted"

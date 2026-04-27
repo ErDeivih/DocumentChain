@@ -89,7 +89,7 @@ TABLE(blockchain, "Smart Contract\n(Ethereum)") {
   versions : array
 }
 
-TABLE(ipfs, "IPFS Cluster") {
+TABLE(ipfs, "Nodo IPFS autoalojado") {
   cid : string (CIDv1)
   content : bytes (encrypted)
   size : uint

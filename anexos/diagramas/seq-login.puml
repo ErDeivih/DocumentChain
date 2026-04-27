@@ -14,6 +14,9 @@ db --> srv: Datos de acceso
 alt Credenciales invalidas
   srv --> api: Error de autenticacion
   api --> ui: Mostrar credenciales invalidas
+else Correo no verificado
+  srv --> api: Error indicando verificacion pendiente
+  api --> ui: Mostrar bloqueo y acceso a reenviar verificacion
 else Credenciales validas con 2FA activo
   srv --> api: tempToken y contexto de 2FA
   api --> ui: Solicitar segundo factor

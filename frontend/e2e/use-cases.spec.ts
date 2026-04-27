@@ -534,13 +534,52 @@ test.describe('Expanded frontend use cases', () => {
     test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
-    await loginWithStoredSession(page, request, {
+    const ownerSession = await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
     });
     await installHardhatWallet(page, seedUsers.owner.walletIndex);
 
+    if (!uploadedDocumentId) {
+      uploadedDocumentName = `frontend-e2e-transfer-${Date.now()}.txt`;
+
+      const confirmCreateResponsePromise = page.waitForResponse(
+        (response) => response.url().includes('/api/documents/confirm') && response.request().method() === 'POST'
+      );
+
+      await page.goto('/app/documents');
+      await expect(page.getByRole('heading', { name: 'Mis Documentos' })).toBeVisible();
+      await page.getByRole('button', { name: 'Subir Documento' }).click();
+      await page.locator('input[type="file"]').setInputFiles({
+        name: uploadedDocumentName,
+        mimeType: 'text/plain',
+        buffer: Buffer.from(`Documento de transferencia E2E ${Date.now()}`),
+      });
+      await page.getByRole('button', { name: 'Subir y Firmar' }).click();
+      await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
+
+      await expect(page.getByText('¡Documento subido exitosamente!')).toBeVisible({ timeout: 45000 });
+
+      const confirmCreateResponse = await confirmCreateResponsePromise;
+      expect(confirmCreateResponse.ok()).toBeTruthy();
+      const confirmCreateBody = await confirmCreateResponse.json();
+      uploadedDocumentId = confirmCreateBody.document.id;
+
+      const createdDocument = await waitForDocumentStatus(
+        request,
+        ownerSession.accessToken,
+        uploadedDocumentId,
+        'SYNCED',
+        {
+          timeoutMs: 120000,
+        }
+      );
+
+      uploadedBlockchainId = createdDocument.blockchainId;
+    }
+
     await page.goto(`/app/documents/${uploadedDocumentId}`);
+    await expect(page.getByRole('heading', { name: uploadedDocumentName })).toBeVisible({ timeout: 30000 });
     await page.getByRole('button', { name: 'Transferir' }).click();
     await page.getByPlaceholder(/Buscar por nombre de usuario o email/i).fill(seedUsers.recipient.username);
     await page.getByPlaceholder(/Buscar por nombre de usuario o email/i).press('Enter');
@@ -640,7 +679,8 @@ test.describe('Expanded frontend use cases', () => {
       password: seedUsers.owner.password,
     });
     await page.goto(`/app/documents/${transferredDocument.id}`);
-    await expect(page.getByText(/Documento no encontrado|No tienes acceso|acceso denegado/i)).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: uploadedDocumentName })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('button', { name: 'Transferir' })).not.toBeVisible();
   });
 
   test('seed wallet user can suspend and reactivate the account from settings', async ({ page, request, browserName }) => {

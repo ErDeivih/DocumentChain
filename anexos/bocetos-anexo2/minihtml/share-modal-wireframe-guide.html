@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>share-modal-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>share-modal-wireframe</h1>
+      <p>Modal de comparticion sobre la vista de detalle atenuada.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser-square overlay">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/documents/demo-document-id</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item active">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="summary-card">
+          <strong>Documento privado sincronizado</strong>
+          <div class="tab-row">
+            <div class="tab">Detalles</div>
+            <div class="tab">Historial</div>
+            <div class="tab active">Versiones</div>
+            <div class="tab">Transferir</div>
+          </div>
+          <div class="version-list">
+            <div class="version-card"><strong>Version 3</strong><p>Activa · CID abreviado · Comentario</p></div>
+            <div class="version-card"><strong>Version 2</strong><p>Anterior · CID abreviado</p></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal">
+      <strong>Compartir Documento</strong>
+      <p class="muted">contrato_colaboracion.pdf</p>
+      <div class="field-stack">
+        <div class="field"><label>Nombre de Usuario</label><div class="input"></div></div>
+        <div class="field">
+          <label>Nivel de Permiso</label>
+          <div class="permission-grid">
+            <div class="permission-card active"><strong>Lectura</strong><p class="muted">Ver y descargar documento.</p></div>
+            <div class="permission-card"><strong>Escritura</strong><p class="muted">Crear versiones y editar segun permisos.</p></div>
+          </div>
+        </div>
+        <div class="field"><label>Su Contrasena de Cuenta</label><div class="input"></div></div>
+        <div class="info-card">
+          <strong>Operacion protegida</strong>
+          <p class="muted">El backend volvera a cifrar el acceso para el destinatario y solicitara firma blockchain.</p>
+        </div>
+        <div class="footer-actions">
+          <div class="button w-20">Cancelar</div>
+          <div class="button dark w-35">Compartir y Firmar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

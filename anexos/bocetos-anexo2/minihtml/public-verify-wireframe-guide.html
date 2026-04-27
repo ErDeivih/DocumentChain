@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>public-verify-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>public-verify-wireframe</h1>
+      <p>Pantalla publica de verificacion con tres paneles claros y sin sidebar.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser-compact">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/verify</div>
+    </div>
+    <div class="public-header">
+      <div class="brand"><span class="brand-mark"></span><span>DocumentChain</span></div>
+      <div class="public-nav">
+        <div class="nav-pill">Inicio</div>
+        <div class="nav-pill active">Verificar Documento</div>
+      </div>
+    </div>
+    <div class="public-content panel-grid">
+      <div class="section-card">
+        <strong>Verificar Documento</strong>
+        <p class="muted">Comprobacion publica de autenticidad mediante blockchain.</p>
+      </div>
+
+      <div class="section-card">
+        <strong>Elegir Metodo de Verificacion</strong>
+        <div class="method-grid">
+          <div class="method-card active"><strong>Subir Archivo</strong><p class="muted">Comparar el archivo original.</p></div>
+          <div class="method-card"><strong>Hash IPFS</strong><p class="muted">Introducir CID o hash.</p></div>
+          <div class="method-card"><strong>ID Blockchain</strong><p class="muted">Buscar por identificador on-chain.</p></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <strong>Introducir Datos de Verificacion</strong>
+        <div class="field-stack">
+          <div class="input">Area de carga de archivo</div>
+          <div class="button dark">Verificar Documento</div>
+        </div>
+      </div>
+
+      <div class="result-panel">
+        <strong>Resultado</strong>
+        <div class="result-grid">
+          <div class="result-row"><strong>Estado</strong><p>Document Verified</p></div>
+          <div class="result-row"><strong>Estado documental</strong><p>Activo</p></div>
+          <div class="result-row"><strong>Propietario</strong><p>davidpeve01</p></div>
+          <div class="result-row"><strong>Versiones</strong><p>3 registradas</p></div>
+          <div class="result-row"><strong>Integridad</strong><p>Coincidencia valida</p></div>
+          <div class="result-row"><strong>Firmas</strong><p>2 firmas visibles</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

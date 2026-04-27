@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>admin-dashboard-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>admin-dashboard-wireframe</h1>
+      <p>Panel de administracion en la pestana Resumen con KPI y estado del sistema.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/dashboard</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion admin</div>
+          <div class="menu-item active">Panel</div>
+          <div class="menu-item">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h2>Panel de Administracion</h2>
+            <p class="muted">Resumen general del sistema y servicios principales.</p>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi"><strong>Usuarios</strong><p class="muted">148</p></div>
+          <div class="kpi"><strong>Documentos</strong><p class="muted">862</p></div>
+          <div class="kpi"><strong>Almacenamiento</strong><p class="muted">78 GB</p></div>
+          <div class="kpi"><strong>Estado</strong><p class="muted">Operativo</p></div>
+        </div>
+
+        <div class="tab-row">
+          <div class="tab active">Resumen</div>
+          <div class="tab">Gestion de Usuarios</div>
+          <div class="tab">Logs del Sistema</div>
+          <div class="tab">Actividad Reciente</div>
+        </div>
+
+        <div class="section-card">
+          <strong>Informacion del Sistema</strong>
+          <div class="systems-grid three">
+            <div class="status-box"><strong>Base de datos</strong><p class="muted">Disponible</p></div>
+            <div class="status-box"><strong>API</strong><p class="muted">Activa</p></div>
+            <div class="status-box"><strong>Blockchain</strong><p class="muted">Sincronizada</p></div>
+            <div class="status-box"><strong>Email</strong><p class="muted">Operativo</p></div>
+            <div class="status-box"><strong>IPFS</strong><p class="muted">Disponible</p></div>
+            <div class="status-box"><strong>Backend almacenamiento</strong><p class="muted">Activo</p></div>
+          </div>
+        </div>
+
+        <div class="distribution-grid">
+          <div class="chart-box">
+            <strong>Distribucion de almacenamiento</strong>
+            <div class="chart-bars">
+              <div class="w-80"></div>
+              <div class="w-55"></div>
+              <div class="w-35"></div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <strong>Distribucion de usuarios</strong>
+            <div class="chart-columns">
+              <div class="h-80"></div>
+              <div class="h-130"></div>
+              <div class="h-60"></div>
+              <div class="h-110"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

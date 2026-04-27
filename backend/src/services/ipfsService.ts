@@ -260,14 +260,14 @@ export class IPFSService {
 
   /**
    * Garbage collection - Limpiar archivos unpinned
-   * Libera espacio en el cluster
+   * Libera espacio en el nodo IPFS autoalojado
    * ⚠️ Solo ejecutar manualmente o con cron job
    */
   async garbageCollect(): Promise<{ cleaned: number; freedBytes: number }> {
     try {
       logger.warn('Iniciando garbage collection de IPFS');
 
-      // IPFS Cluster maneja GC automáticamente
+      // El demonio Kubo gestiona GC sobre el repositorio local
       // Esta función es placeholder para futura implementación manual
       
       logger.info('Garbage collection completado (manejado por demonio IPFS)');

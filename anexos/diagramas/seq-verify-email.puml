@@ -3,16 +3,17 @@
 actor Usuario as user
 boundary "Pagina de verificacion de email" as ui
 control "Endpoints de email (/api/email)" as api
-control "EmailService" as srv
+control "EmailController" as srv
 database "PostgreSQL" as db
 
 user -> ui: Abre el enlace recibido por correo
 ui -> api: Verificar token
 api -> srv: Comprobar vigencia y destinatario
-srv -> db: Localizar token y marcar email verificado
+srv -> db: Localizar token pendiente
+db --> srv: Token y usuario asociados
+srv -> db: Marcar verificacion como usada
+srv -> db: Actualizar User.emailVerified = true
 db --> srv: Estado actualizado
-srv -> db: Invalidar token utilizado
-db --> srv: OK
 srv --> api: Verificacion completada
 api --> ui: Correo validado
 ui --> user: Acceso disponible sin avisos pendientes

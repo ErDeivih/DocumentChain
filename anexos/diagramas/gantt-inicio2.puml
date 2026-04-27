@@ -1,14 +1,24 @@
 @startgantt
 skinparam backgroundColor White
-printscale daily zoom 2
+printscale daily zoom 3
 Project starts 2025-12-08
 
--- Fase Inicio - Iteracion 2 --
+[Iteracion 2 - Fase Inicio] lasts 6 days
+
+[Especificacion inicial] lasts 4 days
+[Especificacion inicial] starts at [Iteracion 2 - Fase Inicio]'s start
 [T5: Definicion del alcance y objetivos] lasts 2 days
-then [T6: Identificacion de actores y UC] lasts 2 days
+[T5: Definicion del alcance y objetivos] starts at [Especificacion inicial]'s start
+[T6: Identificacion de actores y UC] lasts 2 days
+[T6: Identificacion de actores y UC] starts at [T5: Definicion del alcance y objetivos]'s end
+
+[Tecnologia y planificacion] lasts 4 days
+[Tecnologia y planificacion] starts at [T5: Definicion del alcance y objetivos]'s end
 [T7: Seleccion del stack tecnologico] lasts 2 days
-[T7: Seleccion del stack tecnologico] starts at [T5: Definicion del alcance y objetivos]'s end
-then [T8: Elaboracion de la planificacion] lasts 2 days
-[M9: Fin Iteracion 2 - Inicio] happens at [T8: Elaboracion de la planificacion]'s end
+[T7: Seleccion del stack tecnologico] starts at [Tecnologia y planificacion]'s start
+[T8: Elaboracion de la planificacion] lasts 2 days
+[T8: Elaboracion de la planificacion] starts at [T7: Seleccion del stack tecnologico]'s end
+
+[M9: Fin Iteracion 2 - Inicio] happens at [Iteracion 2 - Fase Inicio]'s end
 [M9: Fin Iteracion 2 - Inicio] is colored in Gold/DarkRed
 @endgantt

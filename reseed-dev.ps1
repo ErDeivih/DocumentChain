@@ -7,6 +7,18 @@ $ErrorActionPreference = 'Stop'
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
 Set-Location $PSScriptRoot
 
+function Get-DockerContainerStatus {
+    param([Parameter(Mandatory = $true)][string]$ContainerName)
+
+    $command = "docker inspect $ContainerName --format ""{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}"" 2>nul"
+    $status = cmd.exe /d /c $command
+    if ($LASTEXITCODE -ne 0) {
+        return $null
+    }
+
+    return ($status | Out-String).Trim()
+}
+
 function Wait-ForContainerHealth {
     param(
         [Parameter(Mandatory = $true)][string]$ContainerName,
@@ -15,7 +27,13 @@ function Wait-ForContainerHealth {
     )
 
     for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
-        $status = docker inspect $ContainerName --format "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" 2>$null
+        $status = Get-DockerContainerStatus -ContainerName $ContainerName
+
+        if (-not $status) {
+            Start-Sleep -Seconds $DelaySeconds
+            continue
+        }
+
         if ($status -eq 'healthy') {
             return
         }
@@ -28,7 +46,7 @@ function Wait-ForContainerHealth {
         Start-Sleep -Seconds $DelaySeconds
     }
 
-    $finalStatus = docker inspect $ContainerName --format "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" 2>$null
+    $finalStatus = Get-DockerContainerStatus -ContainerName $ContainerName
     $recentLogs = docker logs $ContainerName --tail 120 2>&1
     throw "El contenedor $ContainerName no alcanzo estado healthy (estado final: '$finalStatus'). Logs recientes:`n$recentLogs"
 }
@@ -208,7 +226,7 @@ if (-not $env:DATABASE_URL) {
 }
 Push-Location backend
 try {
-    & npm run data:seed:qa -- "--profile=$SeedProfile"
+    & npm run data:seed:qa
     if ($LASTEXITCODE -ne 0) {
         throw 'La seed QA fallo'
     }

@@ -46,8 +46,8 @@ describe('IPFS provider selection', () => {
     );
   });
 
-  it('accepts the legacy cluster provider value as an alias', async () => {
-    process.env.IPFS_PROVIDER = 'cluster';
+  it('accepts the node alias and routes requests to the self-hosted API', async () => {
+    process.env.IPFS_PROVIDER = 'node';
 
     let uploadToIPFS: (buffer: Buffer) => Promise<string>;
     jest.isolateModules(() => {
@@ -56,25 +56,22 @@ describe('IPFS provider selection', () => {
 
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({ Hash: 'bafy-cluster-alias' }),
+      json: async () => ({ Hash: 'bafy-node-alias' }),
     });
 
-    await expect(uploadToIPFS!(Buffer.from('alias'))).resolves.toBe('bafy-cluster-alias');
+    await expect(uploadToIPFS!(Buffer.from('alias'))).resolves.toBe('bafy-node-alias');
   });
 
-  it('falls back to the self-hosted node when the removed pinata value is present', async () => {
+  it('rejects removed legacy provider values', async () => {
     process.env.IPFS_PROVIDER = 'pinata';
 
-    let uploadToIPFS: (buffer: Buffer) => Promise<string>;
+    let uploadToIPFS: ((buffer: Buffer) => Promise<string>) | undefined;
     jest.isolateModules(() => {
       ({ uploadToIPFS } = require('../ipfs'));
     });
 
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({ Hash: 'bafy-self-hosted-fallback' }),
-    });
-
-    await expect(uploadToIPFS!(Buffer.from('fallback'))).resolves.toBe('bafy-self-hosted-fallback');
+    await expect(uploadToIPFS!(Buffer.from('fallback'))).rejects.toThrow(
+      'Unsupported IPFS_PROVIDER "pinata". Use "self-hosted".'
+    );
   });
 });

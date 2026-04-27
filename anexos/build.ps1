@@ -62,7 +62,8 @@ try {
         'AnexoIII_EstimacionPlanificacion.tex',
         'AnexoIV_PlanSeguridad.tex',
         'AnexoV_ManualesUsuario.tex',
-        'AnexoVI_GuiaProgramadorDefensa.tex'
+        'AnexoVI_ArquitecturaBlockchainIPFS.tex',
+        'AnexoVII_GuiaProgramadorDefensa.tex'
     )
 
     foreach ($tex in $annexes) {

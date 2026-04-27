@@ -1,12 +1,22 @@
 @startgantt
 skinparam backgroundColor White
-printscale daily zoom 2
+printscale daily zoom 3
 Project starts 2025-12-01
 
--- Fase Inicio - Iteracion 1 --
+[Iteracion 1 - Fase Inicio] lasts 5 days
+
+[Toma de contacto] lasts 1 day
+[Toma de contacto] starts at [Iteracion 1 - Fase Inicio]'s start
 [T1: Reunion inicial con tutores] lasts 1 day
-then [T2: Analisis del dominio del problema] lasts 2 days
-then [T3: Estudio de soluciones existentes] lasts 2 days
-[M4: Fin Iteracion 1 - Inicio] happens at [T3: Estudio de soluciones existentes]'s end
+[T1: Reunion inicial con tutores] starts at [Toma de contacto]'s start
+
+[Analisis inicial] lasts 4 days
+[Analisis inicial] starts at [Toma de contacto]'s end
+[T2: Analisis del dominio del problema] lasts 2 days
+[T2: Analisis del dominio del problema] starts at [Analisis inicial]'s start
+[T3: Estudio de soluciones existentes] lasts 2 days
+[T3: Estudio de soluciones existentes] starts at [T2: Analisis del dominio del problema]'s end
+
+[M4: Fin Iteracion 1 - Inicio] happens at [Iteracion 1 - Fase Inicio]'s end
 [M4: Fin Iteracion 1 - Inicio] is colored in Gold/DarkRed
 @endgantt

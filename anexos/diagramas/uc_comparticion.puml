@@ -1,0 +1,28 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "Blockchain" as SC
+
+rectangle "Gestion de Comparticion" {
+  usecase "UC-0033: Compartir Documento" as UC37
+  usecase "UC-0034: Revocar Acceso" as UC39
+  usecase "UC-0035: Ver Compartidos Conmigo" as UC40
+}
+
+UC37 -[hidden]down-> UC39
+UC39 -[hidden]down-> UC40
+
+USER --> UC37
+USER --> UC39
+USER --> UC40
+
+SC --> UC37
+SC --> UC39
+
+note right of UC37
+  UC-0038 se integra como ajuste fino
+  dentro del ciclo de comparticion.
+end note
+@enduml

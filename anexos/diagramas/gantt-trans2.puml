@@ -1,14 +1,26 @@
 @startgantt
 skinparam backgroundColor White
-printscale daily zoom 2
+printscale daily zoom 3
 Project starts 2026-05-01
 
--- Fase Transicion - Iteracion 2 --
+[Iteracion 2 - Fase Transicion] lasts 14 days
+
+[Documentacion final] lasts 10 days
+[Documentacion final] starts at [Iteracion 2 - Fase Transicion]'s start
 [T66: Redaccion de la memoria del TFG] lasts 5 days
-then [T67: Revision y correcciones con el tutor] lasts 3 days
-then [T68: Preparacion de los anexos definitivos] lasts 2 days
-then [T69: Preparacion de la presentacion TFG] lasts 3 days
-then [T70: Ensayo y revision final] lasts 1 day
-[M71: Entrega y Defensa del TFG] happens at [T70: Ensayo y revision final]'s end
+[T66: Redaccion de la memoria del TFG] starts at [Documentacion final]'s start
+[T67: Revision y correcciones con el tutor] lasts 3 days
+[T67: Revision y correcciones con el tutor] starts at [T66: Redaccion de la memoria del TFG]'s end
+[T68: Preparacion de los anexos definitivos] lasts 2 days
+[T68: Preparacion de los anexos definitivos] starts at [T67: Revision y correcciones con el tutor]'s end
+
+[Defensa y presentacion] lasts 4 days
+[Defensa y presentacion] starts at [Documentacion final]'s end
+[T69: Preparacion de la presentacion TFG] lasts 3 days
+[T69: Preparacion de la presentacion TFG] starts at [Defensa y presentacion]'s start
+[T70: Ensayo y revision final] lasts 1 day
+[T70: Ensayo y revision final] starts at [T69: Preparacion de la presentacion TFG]'s end
+
+[M71: Entrega y Defensa del TFG] happens at [Iteracion 2 - Fase Transicion]'s end
 [M71: Entrega y Defensa del TFG] is colored in Tomato/DarkRed
 @endgantt

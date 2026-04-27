@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>profile-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>profile-wireframe</h1>
+      <p>Vista de perfil con informacion de usuario, avatar, seguridad y wallets.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/profile</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Carpetas</div>
+          <div class="list-line">Contratos</div>
+          <div class="list-line">Evidencias</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Mis Wallets</div>
+          <div class="list-line">Principal</div>
+          <div class="list-line">Firma secundaria</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h2>Perfil</h2>
+            <p class="muted">Resumen de identidad, seguridad y wallets conectadas.</p>
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <div class="section-card">
+            <strong>Informacion del Usuario</strong>
+            <div class="field-stack">
+              <div class="input">Username: davidpeve01</div>
+              <div class="input">Email: david@example.com</div>
+              <div class="input">Fecha de alta: 17/04/2026</div>
+              <div class="input">Rol: USER</div>
+            </div>
+          </div>
+          <div class="section-card">
+            <strong>Foto de Perfil</strong>
+            <div class="avatar-box"></div>
+            <div class="button">Subir Foto</div>
+          </div>
+          <div class="section-card">
+            <strong>Seguridad</strong>
+            <p class="muted">La clave privada se protege mediante cifrado local y credenciales del usuario.</p>
+            <div class="button dark">Cambiar Contrasena</div>
+          </div>
+          <div class="section-card">
+            <strong>Gestion de Wallets</strong>
+            <div class="wallet-list">
+              <div class="wallet-row"><strong>Principal</strong><p>0x8f...2a</p></div>
+              <div class="wallet-row"><strong>Firma secundaria</strong><p>0x34...91</p></div>
+            </div>
+            <div class="button">Conectar Wallet</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

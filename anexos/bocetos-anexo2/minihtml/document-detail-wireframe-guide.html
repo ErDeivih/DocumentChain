@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>document-detail-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>document-detail-wireframe</h1>
+      <p>Detalle de documento con tarjeta resumen, acciones y foco en versiones.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/documents/demo-document-id</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item active">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Almacenamiento</div>
+          <div class="stat-bar w-70"></div>
+          <p class="mini">7.2 GB de 10 GB</p>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Mis Wallets</div>
+          <div class="list-line">Principal</div>
+          <div class="list-line">Firma secundaria</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="action-row">
+          <div class="action-pill">Volver</div>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-grid">
+            <div class="thumbnail"></div>
+            <div>
+              <strong>contrato_colaboracion.pdf</strong>
+              <div class="summary-stats">
+                <div class="stat-line">Tamano: 2.3 MB</div>
+                <div class="stat-line">Tipo MIME: application/pdf</div>
+                <div class="stat-line">Blockchain ID: 0x81...9c</div>
+                <div class="stat-line">Versiones: 3</div>
+                <div class="stat-line">Compartidos: 2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <div class="action-pill">Descargar</div>
+          <div class="action-pill">Compartir</div>
+          <div class="action-pill dark">Firmar Documento</div>
+          <div class="action-pill">Archivar</div>
+          <div class="action-pill">Eliminar</div>
+        </div>
+
+        <div class="tab-row">
+          <div class="tab">Detalles</div>
+          <div class="tab">Historial</div>
+          <div class="tab active">Versiones</div>
+          <div class="tab">Transferir</div>
+        </div>
+
+        <div class="page-header">
+          <div>
+            <h2>Versiones del documento</h2>
+            <p class="muted">Historial de versiones con acceso a firmantes y estado operativo.</p>
+          </div>
+          <div class="action-pill dark">Subir Nueva Version</div>
+        </div>
+
+        <div class="version-list">
+          <div class="version-card"><strong>Version 3</strong><p>Activa · Comentario de version · CID abreviado</p></div>
+          <div class="version-card"><strong>Version 2</strong><p>Anterior · CID abreviado · Ver firmantes</p></div>
+          <div class="version-card"><strong>Version 1</strong><p>Inicial · CID abreviado · Ver firmantes</p></div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

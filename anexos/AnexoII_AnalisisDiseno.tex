@@ -208,7 +208,7 @@ El diseño parte del modelo de análisis conceptual (qué hace el sistema) y evo
 
 \begin{itemize}
     \item \textbf{Diseño de datos}: Modelado conceptual y físico de entidades, relaciones y esquema de base de datos
-    \item \textbf{Diseño arquitectónico}: Patrones de arquitectura, distribución en capas, y componentes del sistema
+    \item \textbf{Diseño arquitectónico}: Patrones de arquitectura, distribución en capas y componentes del sistema
     \item \textbf{Diseño de interfaz}: Prototipos y flujos de usuario para frontend web
     \item \textbf{Diseño procedimental}: Diagramas de secuencia y colaboración para operaciones críticas
 \end{itemize}
@@ -220,11 +220,17 @@ DocumentChain implementa una arquitectura distribuida moderna basada en:
     \item \textbf{Backend API REST}: Node.js + Express + Prisma ORM
     \item \textbf{Base de datos relacional}: PostgreSQL con índices optimizados
     \item \textbf{Smart contracts}: Solidity + OpenZeppelin en Ethereum
-    \item \textbf{Almacenamiento distribuido}: backend IPFS compatible, desplegable sobre Pinata o clúster autoalojado
+    \item \textbf{Almacenamiento distribuido}: backend IPFS compatible sobre nodo Kubo autoalojado
     \item \textbf{Protección criptográfica}: Cifrado AES-256-GCM para documentos privados, RSA-OAEP para proteger claves simétricas y publicación pública controlada
 \end{itemize}
 
-El diseño prioriza seguridad, escalabilidad, y experiencia de usuario, aplicando patrones de diseño reconocidos y mejores prácticas de la industria.
+El diseño prioriza seguridad, escalabilidad y experiencia de usuario, aplicando patrones de diseño reconocidos y mejores prácticas de la industria.
+
+\subsection*{Criterio de correspondencia con el catálogo funcional}
+
+El diseño descrito en este anexo se alinea con el catálogo consolidado de \textbf{42 casos de uso principales} definido en el Anexo I. Para facilitar la lectura técnica, las secciones procedimentales enfatizan los flujos de mayor entidad funcional y tratan las acciones de apoyo como pasos internos, variantes o extensiones de esos UC principales, manteniendo la trazabilidad por identificador UC sin inflar artificialmente el catálogo.
+
+En consecuencia, funcionalidades presentes en la entrega como la organización mediante carpetas, categorías o etiquetas, la consulta de notificaciones, la configuración de preferencias, la gestión avanzada de wallets o determinadas operaciones administrativas se describen desde la perspectiva del flujo principal al que sirven. El criterio no elimina comportamiento del sistema, sino que reorganiza su documentación para que cada caso de uso represente una capacidad completa y defendible.
 
 \section{Ámbito del software}
 
@@ -281,12 +287,11 @@ Aplicación web de página única (SPA) que proporciona:
 API RESTful que coordina:
 
 \begin{itemize}
-    \item Autenticación y autorización (JWT, contraseñas y 2FA; wallets para firma de operaciones)
+    \item Autenticación y autorización (JWT y contraseñas; wallets para firma de operaciones)
     \item Comunicación con backend de almacenamiento IPFS compatible
     \item Preparación de transacciones blockchain
     \item Event listeners para sincronización
     \item Gestión de permisos y re-encriptación de claves
-    \item Sistema de notificaciones (in-app + email)
 \end{itemize}
 
 \textbf{Arquitectura en capas}:
@@ -305,19 +310,17 @@ Almacena:
     \item Usuarios, wallets, sesiones
     \item Metadatos de documentos (nombre, tamaño, hashes)
     \item Claves simétricas encriptadas por usuario
-    \item Estructura de carpetas y categorías
     \item Estadísticas agregadas
     \item Logs de eventos sincronizados de blockchain
-    \item Notificaciones y preferencias
 \end{itemize}
 
-\paragraph{Backend de almacenamiento IPFS compatible}
-Servicio IPFS desplegable sobre proveedor gestionado o sobre clúster autoalojado que:
+\paragraph{Backend de almacenamiento IPFS autoalojado}
+Servicio IPFS materializado mediante un nodo Kubo persistente que:
 \begin{itemize}
     \item Almacena archivos cifrados o en claro según la visibilidad seleccionada
     \item Genera CID content-addressable
-    \item Mantiene persistencia del contenido en el backend configurado
-    \item Proporciona alta disponibilidad mediante el proveedor seleccionado
+    \item Mantiene persistencia del contenido sobre volúmenes propios
+    \item Proporciona disponibilidad operativa dentro de la infraestructura autoalojada
     \item Permite unpinning al eliminar documentos
 \end{itemize}
 
@@ -430,6 +433,10 @@ La coexistencia de estos repositorios no constituye redundancia, sino separació
 
 El sistema utiliza tres mecanismos de persistencia complementarios, cada uno con responsabilidades bien diferenciadas y sin jerarquía conceptual entre ellos. La base de datos no sustituye a la blockchain, la blockchain no reemplaza a IPFS y IPFS no modela el estado operativo; juntos forman el subsistema de persistencia completo.
 
+Cuando en este trabajo se alude a blockchain no se está describiendo una simple base de datos replicada, sino un libro mayor distribuido en el que cada bloque enlaza criptográficamente con el anterior y cuyo estado se actualiza mediante transacciones validadas por la red. La propiedad diferencial de este modelo no reside solo en que los datos queden almacenados, sino en que cualquier cambio relevante pasa a formar parte de un historial compartido, difícil de alterar y verificable sin depender del servidor de la aplicación. Esa característica resulta especialmente adecuada para documentos, firmas y permisos cuya validez interesa poder contrastar incluso fuera del contexto operativo habitual.
+
+En consecuencia, la arquitectura se ha diseñado para reservar la blockchain a los hechos de mayor valor probatorio y dejar en PostgreSQL las consultas, relaciones y estados transitorios que cambian con frecuencia. IPFS completa ese reparto aportando un espacio de almacenamiento distribuido orientado a contenido, donde cada versión queda identificada por el hash de su binario y no por una ruta lógica mutable. La combinación de las tres capas permite que la aplicación mantenga usabilidad cotidiana sin perder capacidad de auditoría externa.
+
 \subsubsection{Base de datos relacional (PostgreSQL)}
 
 PostgreSQL almacena toda la información que requiere consultas relacionales eficientes y puede ser modificada con el tiempo:
@@ -448,19 +455,28 @@ PostgreSQL almacena toda la información que requiere consultas relacionales efi
 
 La capa de almacenamiento IPFS compatible conserva el contenido binario de los archivos de forma direccionable por contenido y persistente:
 
+IPFS (
+\textit{InterPlanetary File System}) funciona como una red de objetos enlazados por su huella criptográfica. En lugar de localizar un fichero por el servidor y la ruta donde se publicó, se localiza por el identificador derivado de su contenido. Esta diferencia es la que hace especial a IPFS dentro del proyecto: si dos nodos conservan el mismo bloque, ambos pueden servir exactamente el mismo contenido, y si el binario cambia se obtiene necesariamente un nuevo CID. Para un sistema con versionado documental, esta propiedad aporta una correspondencia directa entre versión lógica e identidad criptográfica del archivo.
+
 \begin{itemize}
     \item \textbf{Contenido según visibilidad}: los documentos privados se cifran con AES-256-GCM antes de subirse a IPFS; los documentos públicos se almacenan en claro porque se exponen deliberadamente mediante enlace compartible.
     \item \textbf{Contenido inmutable}: cada versión de un archivo genera un CID (Content Identifier) único derivado del hash SHA-256 de su contenido. Ningún CID puede modificarse una vez generado.
-    \item \textbf{Alta disponibilidad}: el sistema puede apoyarse en un proveedor gestionado como Pinata o en un clúster IPFS autoalojado cuando se requiere replicación local y control de nodos.
+    \item \textbf{Persistencia controlada}: el sistema conserva los binarios en un nodo Kubo autoalojado con almacenamiento persistente y control directo de la infraestructura.
     \item El CID generado por IPFS se almacena en PostgreSQL y se registra en la blockchain, creando el puente entre los tres sistemas de persistencia.
 \end{itemize}
+
+Desde el punto de vista arquitectónico, IPFS no sustituye a la base de datos. No mantiene por sí mismo usuarios, permisos, nombres amigables ni estados de sincronización. Su papel consiste en garantizar que el binario asociado a una versión pueda ser recuperado y verificado por contenido. De este modo, PostgreSQL conserva la semántica operativa, IPFS conserva el objeto digital y Ethereum conserva la evidencia de que ese objeto concreto fue asociado a un documento y a una operación determinadas.
 
 \subsubsection{Blockchain (Smart Contract en Ethereum)}
 
 La blockchain actúa como registro inmutable e infalsificable para operaciones de alta criticidad:
 
+En DocumentChain esa capacidad se materializa mediante un contrato inteligente escrito en Solidity y desplegado sobre una red compatible con la EVM. Solidity es el lenguaje de más uso en el ecosistema Ethereum para expresar reglas de negocio ejecutables dentro de la cadena. Su interés en este proyecto no es meramente tecnológico: permite definir, con semántica determinista, quién puede crear documentos, qué cuenta puede compartirlos, cómo se registra una firma y en qué condiciones una versión pasa a ser la operativa. La ejecución en la EVM asegura que esas reglas se apliquen del mismo modo para cualquier nodo que valide la transacción.
+
+Lo que hace especial a la blockchain dentro de la aplicación es, por tanto, la combinación de tres propiedades: historial compartido, ejecución determinista y verificabilidad independiente. Un tercero puede consultar directamente el contrato para comprobar titularidad, permisos activos, versiones y firmas sin necesitar acceso privilegiado a la base de datos del sistema. A cambio, el coste de gas y la rigidez del almacenamiento on-chain obligan a seleccionar cuidadosamente qué datos se publican y cuáles permanecen fuera de la cadena.
+
 \begin{itemize}
-    \item \textbf{Prueba de existencia de documentos}: para cada documento creado o nueva versión, el smart contract almacena el CID de IPFS, el hash del archivo, el identificador del propietario y la marca de tiempo. Estos datos no pueden alterarse ni eliminarse.
+    \item \textbf{Prueba de existencia de documentos}: para cada documento creado o nueva versión, el smart contract almacena el identificador documental, el CID de IPFS, la cuenta responsable y la marca temporal del bloque. Estos datos no pueden alterarse ni eliminarse una vez confirmados.
     \item \textbf{Registro de firmas digitales}: cada firma de documento queda inmutablemente registrada en la blockchain con la dirección Ethereum del firmante, el CID del documento firmado y la fecha/hora de la firma verificable criptográficamente.
     \item \textbf{Trazabilidad de propiedad}: el smart contract mantiene el histórico de transferencias de propiedad de documentos.
     \item \textbf{Validación independiente}: cualquier tercero puede verificar la autenticidad e integridad de un documento consultando directamente la blockchain, sin depender del sistema central.
@@ -470,6 +486,8 @@ La blockchain actúa como registro inmutable e infalsificable para operaciones d
 \subsubsection{Estructuras de datos del smart contract}
 
 El contrato \texttt{DocumentRegistry.sol} organiza sus datos en tres \textit{structs} principales, varios \textit{mappings} anidados y un sistema de roles granulares. A continuación se describe cada estructura:
+
+La decisión de concentrar el comportamiento en un único contrato simplifica la coordinación entre frontend, backend y wallet del usuario. En lugar de repartir la lógica entre varios contratos especializados, se ha preferido una autoridad on-chain única para el ciclo de vida documental: creación, versionado, compartición, firma, transferencia, archivado y borrado lógico. Esta organización reduce saltos entre contratos, disminuye el número de transacciones por operación y facilita la correspondencia con los casos de uso descritos en la aplicación.
 
 \paragraph{Tipos y roles}
 
@@ -597,6 +615,8 @@ El contrato utiliza mappings anidados para asociar eficientemente documentos con
 \caption{Mappings principales del smart contract DocumentRegistry}
 \end{table}
 
+Además de estas estructuras, el contrato apoya su comportamiento en eventos y restricciones de ejecución. Los eventos \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{DocumentSigned}, \texttt{DocumentShared}, \texttt{PermissionRevoked}, \texttt{OwnershipTransferred} u \texttt{OperationalVersionChanged} permiten reconstruir la secuencia de acciones críticas y sirven como punto de reconciliación para el backend. En paralelo, los modificadores \texttt{whenNotPaused}, \texttt{nonReentrant}, \texttt{notSuspended} y \texttt{notDeleted} restringen la ejecución cuando el sistema está pausado, cuando una cuenta ha sido suspendida o cuando el documento ya no admite determinadas operaciones. Se observa así una combinación de trazabilidad y control preventivo: la cadena no solo registra lo ocurrido, sino que impone condiciones previas antes de aceptar cada transición de estado.
+
 \paragraph{Modelo coordinado de verdad y operación}
 
 La arquitectura de DocumentChain establece una separación de responsabilidades que puede resumirse como sigue: \textbf{PostgreSQL gestiona el estado operativo mutable, IPFS conserva el contenido binario de cada versión y la blockchain garantiza la verdad inmutable y verificable}. PostgreSQL puede actualizar registros, recalcular agregados o mantener estados transitorios; IPFS preserva el objeto identificado por su CID, cifrado en los documentos privados y expuesto en claro en los públicos; Ethereum fija la evidencia de propiedad, permisos, firmas, versiones y transferencias. Este reparto permite operar con eficiencia sin renunciar a la auditabilidad externa.
@@ -610,6 +630,8 @@ Cuando un usuario sube un documento, los tres sistemas actúan en secuencia:
     \item El usuario firma la transacción con su wallet conectada; el smart contract registra el CID y el hash en la blockchain.
     \item El event listener detecta el evento blockchain, actualiza el estado en PostgreSQL a \textit{SYNCED} con el hash de la transacción y el identificador blockchain generado.
 \end{enumerate}
+
+Este flujo refleja el patrón \textit{prepare/confirm} adoptado por la aplicación. La fase de preparación permite validar, cifrar, subir y persistir el estado provisional sin custodiar la clave privada del usuario en el backend. La fase de confirmación incorpora la evidencia de la transacción firmada por la wallet y deja la operación lista para reconciliación posterior. El resultado es una separación nítida entre operación off-chain y consolidación on-chain, necesaria para mantener seguridad, trazabilidad y una experiencia de uso razonable.
 
 \section{Diseño arquitectónico}
 
@@ -647,7 +669,7 @@ DocumentChain implementa una arquitectura en capas con separación clara de resp
     \item \textbf{Capa de Infraestructura}
     \begin{itemize}
         \item Prisma ORM (acceso a PostgreSQL)
-        \item Adaptador de proveedor IPFS
+        \item Adaptador del nodo IPFS
         \item Cliente Ethereum (ethers.js)
         \item Event Listeners blockchain
         \item Sistema de email
@@ -663,7 +685,7 @@ DocumentChain implementa una arquitectura en capas con separación clara de resp
     
     \item \textbf{Capa de Almacenamiento}
     \begin{itemize}
-        \item Backend IPFS compatible (Pinata o clúster propio)
+        \item Backend IPFS compatible (nodo Kubo autoalojado)
         \item PostgreSQL database
     \end{itemize}
 \end{enumerate}
@@ -784,8 +806,8 @@ La interfaz de DocumentChain se diseñó con los siguientes principios:
 \begin{enumerate}
     \item \textbf{Layout Components}
     \begin{itemize}
-        \item Navbar: navegación principal con logo, búsqueda, notificaciones, perfil
-        \item Sidebar: navegación secundaria (carpetas, categorías, filtros)
+        \item Navbar: navegación principal con logo, perfil, campana de notificaciones y acceso a ajustes
+        \item Sidebar: navegación secundaria a documentos, compartidos, verificación, exploración blockchain y árbol contextual de carpetas
         \item Footer: links de ayuda, versión, estado del sistema
     \end{itemize}
     
@@ -818,14 +840,14 @@ La interfaz de DocumentChain se diseñó con los siguientes principios:
 
 \subsection{Prototipos de la interfaz de los componentes del sistema}
 
-A continuación se incluyen capturas reales de las vistas principales implementadas en la versión final del sistema.
+A continuación se incluyen bocetos de baja fidelidad de las vistas de mayor entidad funcional del sistema. Se han seleccionado únicamente las pantallas estructurales y los flujos principales cuya representación actual resulta suficientemente fiel al producto implementado, mientras que las capturas detalladas de la versión final se reservan para el Anexo V.
 
 \subsubsection{Vista de inicio de sesión}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.72\textwidth]{capturas-ui/login-page.png}
-    \caption{Pantalla de inicio de sesión}
+    \includegraphics[width=0.72\textwidth]{bocetos-anexo2/login-wireframe.png}
+    \caption{Boceto de la pantalla de inicio de sesión}
     \label{fig:login}
 \end{figure}
 
@@ -834,37 +856,37 @@ A continuación se incluyen capturas reales de las vistas principales implementa
     \item Formulario con nombre de usuario o email y contraseña.
     \item Recuperación de contraseña mediante enlace dedicado.
     \item Acceso al registro de nuevos usuarios.
-    \item Segunda fase de verificación 2FA cuando la cuenta la requiere.
 \end{itemize}
 
 \subsubsection{Vista de registro}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.72\textwidth]{capturas-ui/register-form.png}
-    \caption{Pantalla de registro de usuario}
+    \includegraphics[width=0.72\textwidth]{bocetos-anexo2/register-wireframe.png}
+    \caption{Boceto de la pantalla de registro de usuario}
     \label{fig:register}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
     \item Formulario con username, email, nombre completo opcional y doble confirmación de contraseña.
-    \item Opción para continuar hacia el flujo de vinculación de wallet tras el alta.
-    \item Continuación posterior mediante clave de recuperación y verificación de email.
+    \item Presentación obligatoria de la clave de recuperación al completar el alta.
+    \item Pantalla de confirmación que informa de la necesidad de verificar el correo antes del primer inicio de sesión.
+    \item Vinculación de wallet relegada al perfil una vez validado el acceso a la cuenta.
 \end{itemize}
 
 \subsubsection{Vista principal de documentos}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.94\textwidth]{capturas-ui/documents-page.png}
-    \caption{Vista principal de documentos propios}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/documents-dashboard-wireframe.png}
+    \caption{Boceto de la vista principal de documentos propios}
     \label{fig:dashboard}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Barra lateral con accesos a documentos propios, compartidos, verificación y explorador blockchain.
+    \item Barra lateral con accesos a documentos propios, compartidos, verificación, explorador blockchain y organización por carpetas cuando procede.
     \item Zona superior con acciones de crear carpeta y subir documento.
     \item Filtros por texto, tipo de archivo y estado archivado.
     \item Listado paginado de documentos del usuario autenticado.
@@ -874,29 +896,25 @@ A continuación se incluyen capturas reales de las vistas principales implementa
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.94\textwidth]{capturas-ui/document-detail.png}
-    \caption{Vista de detalle de documento}
-    \label{fig:document-detail}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/document-detail-wireframe.png}
+    \caption{Boceto de la vista de detalle de documento}
+    \label{fig:document-detail-wireframe}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Cabecera con metadatos esenciales, estado blockchain y acciones directas.
-    \item Operaciones disponibles según rol: descargar, firmar, compartir, archivar, eliminar y transferir.
-    \item En documentos públicos, acciones adicionales para copiar el enlace, abrir la página pública y generar el QR.
-    \item Navegación por secciones internas: detalles, historial, versiones y transferencia para propietarios.
-    \item En la sección de versiones, cada entrada puede abrir el modal de firmantes y mostrar un perfil reducido del firmante seleccionado sin exponer el perfil general de usuario.
-    \item Listado de usuarios compartidos integrado en la propia vista cuando procede.
+    \item Tarjeta de resumen con metadatos principales del documento seleccionado.
+    \item Fila de acciones de descarga, compartición, firma, archivado y eliminación.
+    \item Navegación por pestañas para detalles, historial, versiones y transferencia.
+    \item Zona central orientada al historial de versiones y a la activación de una nueva versión operativa.
 \end{itemize}
-
-La consulta de firmantes se resuelve desde la propia vista de versiones. El frontend solicita las firmas de la versión seleccionada, el backend valida el acceso documental y devuelve una proyección acotada a nombre mostrado, alias disponible, wallet utilizada, estado de sincronización y referencia blockchain. Con ello se evita reutilizar el perfil general del usuario y se mantiene el principio de mínimo dato expuesto.
 
 \subsubsection{Vista de compartir documento}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.76\textwidth]{capturas-ui/share-modal.png}
-    \caption{Modal de compartir documento}
+    \includegraphics[width=0.76\textwidth]{bocetos-anexo2/share-modal-wireframe.png}
+    \caption{Boceto del modal de compartir documento}
     \label{fig:share-modal}
 \end{figure}
 
@@ -912,25 +930,25 @@ La consulta de firmantes se resuelve desde la propia vista de versiones. El fron
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.94\textwidth]{capturas-ui/shared-page.png}
-    \caption{Vista de documentos compartidos con el usuario}
-    \label{fig:shared-documents-ui}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/shared-documents-wireframe.png}
+    \caption{Boceto de la vista de documentos compartidos}
+    \label{fig:shared-documents-wireframe}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Listado exclusivo de documentos recibidos mediante compartición.
-    \item Indicador de wallet activa, relevante para resolver permisos recibidos on-chain.
-    \item Filtros por nombre y tipo de archivo.
-    \item Navegación al detalle del documento compartido conservando restricciones de rol.
+    \item Misma barra lateral del usuario autenticado que en el resto de vistas principales.
+    \item Indicación de la wallet activa desde la que se muestran los documentos recibidos.
+    \item Búsqueda y filtro por tipo para reducir el conjunto compartido.
+    \item Tarjetas compactas con nombre, extensión, propietario y condición de recurso compartido.
 \end{itemize}
 
 \subsubsection{Vista de administración (Solo Admin)}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.94\textwidth]{capturas-ui/admin-dashboard.png}
-    \caption{Panel de administración}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/admin-dashboard-wireframe.png}
+    \caption{Boceto del panel de administración}
     \label{fig:admin-dashboard}
 \end{figure}
 
@@ -946,25 +964,25 @@ La consulta de firmantes se resuelve desde la propia vista de versiones. El fron
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.94\textwidth]{capturas-ui/blockchain-auditor.png}
-    \caption{Vista del auditor blockchain}
-    \label{fig:blockchain-auditor}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/blockchain-auditor-wireframe.png}
+    \caption{Boceto de la vista de auditoría blockchain}
+    \label{fig:blockchain-auditor-wireframe}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Filtros avanzados por tipo de evento, wallet, txHash, bloque y rango temporal.
-    \item Resumen superior con número total, mostrados y tipos activos.
-    \item Exportación CSV de eventos filtrados.
-    \item Expansión de eventos para inspeccionar metadatos y referencias técnicas.
+    \item Cabecera de la vista con métricas rápidas de eventos registrados y resultados visibles.
+    \item Acciones de filtrado, exportación y actualización del listado.
+    \item Panel expandido de filtros avanzados por tipo de evento, wallet, transacción, bloque y rango temporal.
+    \item Relación compacta de eventos de auditoría con usuario, documento, bloque y tx hash abreviado.
 \end{itemize}
 
 \subsubsection{Vista de verificación pública}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{capturas-ui/verify-page.png}
-    \caption{Vista de verificación de autenticidad}
+    \includegraphics[width=0.9\textwidth]{bocetos-anexo2/public-verify-wireframe.png}
+    \caption{Boceto de la vista de verificación de autenticidad}
     \label{fig:verify-ui}
 \end{figure}
 
@@ -980,52 +998,37 @@ La consulta de firmantes se resuelve desde la propia vista de versiones. El fron
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{capturas-ui/profile-page.png}
-    \caption{Perfil de usuario y gestión de wallets}
-    \label{fig:profile}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/profile-wireframe.png}
+    \caption{Boceto de la vista de perfil de usuario}
+    \label{fig:profile-wireframe}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Información personal básica del usuario autenticado.
-    \item Gestión de wallets guardadas: alta, etiquetado, selección de principal y eliminación.
-    \item Cambio de contraseña dentro del propio perfil.
-    \item Soporte para el flujo posterior al registro cuando se desea enlazar wallet inmediatamente.
+    \item Bloques separados para identidad del usuario, avatar, seguridad y wallets enlazadas.
+    \item Resumen de username, email, fecha de alta y rol actual.
+    \item Acciones principales de actualización de foto y cambio de contraseña.
+    \item Área de gestión simplificada de wallets conectadas al perfil.
 \end{itemize}
 
 \subsubsection{Vista de configuración}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{capturas-ui/settings-page.png}
-    \caption{Configuración del usuario}
-    \label{fig:settings-ui}
+    \includegraphics[width=0.94\textwidth]{bocetos-anexo2/settings-wireframe.png}
+    \caption{Boceto de la vista de configuración}
+    \label{fig:settings-wireframe}
 \end{figure}
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Pestañas de perfil, seguridad, notificaciones y privacidad.
-    \item Configuración de 2FA, regeneración de códigos de respaldo y cambio de contraseña.
-    \item Preferencias de notificaciones y opciones de privacidad de cuenta.
-    \item Exportación de datos y suspensión/reactivación voluntaria de la cuenta.
+    \item Cabecera de configuración con pestañas superiores para perfil, seguridad, notificaciones y privacidad.
+    \item Formulario principal de información de perfil con avatar, datos de cuenta y acciones de guardado.
+    \item Bloque diferenciado de wallets de blockchain con recuento de límite y filas de wallets registradas.
+    \item Reutilización de la misma navegación lateral del usuario autenticado para mantener consistencia estructural.
 \end{itemize}
 
-\subsubsection{Vista de notificaciones}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{capturas-ui/notifications-page.png}
-    \caption{Panel de notificaciones}
-    \label{fig:notifications}
-\end{figure}
-
-\textbf{Elementos}:
-\begin{itemize}
-    \item Listado de notificaciones agrupables por pestañas funcionales.
-    \item Acceso contextual al documento u operación relacionada.
-    \item Gestión de lectura y borrado de entradas individuales.
-    \item Cobertura de eventos de compartición, firma y actividad documental relevante.
-\end{itemize}
+Con esta regeneración, la selección de bocetos vuelve a cubrir las principales vistas estructurales del frontend implementado, mientras que el Anexo V sigue reservándose para las capturas finales de alta fidelidad y para los estados operativos más detallados. La cobertura visual se considera suficiente para explicar las vistas esenciales del sistema, por lo que no se incorporan más bocetos específicos en esta versión del anexo.
 
 \section{Diseño procedimental}
 
@@ -1044,33 +1047,13 @@ Los diagramas de secuencia muestran la interacción entre actores y componentes 
     \label{fig:seq-register}
 \end{figure}
 
-\subsubsection{Secuencia: Registro con contraseña y enlace posterior de wallet}
-
-En la versión final del sistema, el registro se realiza exclusivamente con credenciales tradicionales. La vinculación de wallet se desacopla del alta inicial y se ejecuta después de que el usuario ya dispone de sesión válida. Por ese motivo, el flujo de enlace queda representado en la secuencia \ref{fig:seq-connect-wallet}, mientras que el alta base se mantiene en la Figura \ref{fig:seq-register}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-register-wallet.png}
-    \caption{Diagrama de secuencia UC-0002: Registrar Usuario y Vincular Wallet Opcionalmente}
-    \label{fig:seq-register-wallet}
-\end{figure}
-
 \subsubsection{Secuencia: Iniciar Sesión}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-login.png}
-    \caption{Diagrama de secuencia UC-0003: Iniciar Sesión}
+    \caption{Diagrama de secuencia UC-0002: Iniciar Sesión}
     \label{fig:seq-login}
-\end{figure}
-
-\subsubsection{Secuencia: Verificación 2FA durante el inicio de sesión}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-2fa.png}
-    \caption{Diagrama de secuencia UC-0004: Validar Segundo Factor en el Inicio de Sesión}
-    \label{fig:seq-login-2fa}
 \end{figure}
 
 \subsubsection{Secuencia: Cerrar Sesión}
@@ -1078,7 +1061,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-logout.png}
-    \caption{Diagrama de secuencia UC-0005: Cerrar Sesión}
+    \caption{Diagrama de secuencia UC-0004: Cerrar Sesión}
     \label{fig:seq-logout}
 \end{figure}
 
@@ -1087,7 +1070,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-connect-wallet.png}
-    \caption{Diagrama de secuencia UC-0006: Conectar Wallet}
+    \caption{Diagrama de secuencia UC-0005: Conectar Wallet}
     \label{fig:seq-connect-wallet}
 \end{figure}
 %
@@ -1096,7 +1079,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-delete-wallet.png}
-    \caption{Diagrama de secuencia UC-0007: Eliminar Wallet}
+    \caption{Diagrama de secuencia UC-0006: Eliminar Wallet}
     \label{fig:seq-delete-wallet}
 \end{figure}
 %
@@ -1105,7 +1088,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-primary-wallet.png}
-    \caption{Diagrama de secuencia UC-0008: Establecer Wallet Principal}
+    \caption{Diagrama de secuencia UC-0007: Establecer Wallet Principal}
     \label{fig:seq-primary-wallet}
 \end{figure}
 %
@@ -1114,7 +1097,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-label-wallet.png}
-    \caption{Diagrama de secuencia UC-0009: Renombrar/Etiquetar Wallet}
+    \caption{Diagrama de secuencia UC-0008: Renombrar/Etiquetar Wallet}
     \label{fig:seq-label-wallet}
 \end{figure}
 
@@ -1123,7 +1106,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-profile.png}
-    \caption{Diagrama de secuencia UC-0010: Gestionar Perfil}
+    \caption{Diagrama de secuencia UC-0009: Gestionar Perfil}
     \label{fig:seq-profile}
 \end{figure}
 %
@@ -1132,7 +1115,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-self-suspend.png}
-    \caption{Diagrama de secuencia UC-0011: Desactivar Propia Cuenta}
+    \caption{Diagrama de secuencia UC-0010: Desactivar Propia Cuenta}
     \label{fig:seq-self-suspend}
 \end{figure}
 %
@@ -1141,7 +1124,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-self-unsuspend.png}
-    \caption{Diagrama de secuencia UC-0012: Reactivar Propia Cuenta}
+    \caption{Diagrama de secuencia UC-0011: Reactivar Propia Cuenta}
     \label{fig:seq-self-unsuspend}
 \end{figure}
 
@@ -1150,7 +1133,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-change-password.png}
-    \caption{Diagrama de secuencia UC-0013: Cambiar Contraseña}
+    \caption{Diagrama de secuencia UC-0012: Cambiar Contraseña}
     \label{fig:seq-change-password}
 \end{figure}
 
@@ -1159,7 +1142,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-recover-password.png}
-    \caption{Diagrama de secuencia UC-0014: Recuperar Contraseña}
+    \caption{Diagrama de secuencia UC-0013: Recuperar Contraseña}
     \label{fig:seq-recover-password}
 \end{figure}
 
@@ -1168,7 +1151,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-verify-email.png}
-    \caption{Diagrama de secuencia UC-0015: Verificar Email}
+    \caption{Diagrama de secuencia UC-0014: Verificar Email}
     \label{fig:seq-verify-email}
 \end{figure}
 %
@@ -1177,26 +1160,8 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-resend-verification.png}
-    \caption{Diagrama de secuencia UC-0016: Reenviar Email de Verificación}
+    \caption{Diagrama de secuencia UC-0015: Reenviar Email de Verificación}
     \label{fig:seq-resend-verification}
-\end{figure}
-
-\subsubsection{Secuencia: Configurar Autenticación de Dos Factores}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-2fa.png}
-    \caption{Diagrama de secuencia UC-0017: Configurar 2FA}
-    \label{fig:seq-2fa}
-\end{figure}
-%
-% === fin PlantUML ===
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-regen-backup-2fa.png}
-    \caption{Diagrama de secuencia UC-0018: Regenerar Códigos de Backup 2FA}
-    \label{fig:seq-regen-backup-2fa}
 \end{figure}
 
 \subsubsection{Secuencia: Subir documento}
@@ -1204,7 +1169,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-upload.png}
-    \caption{Diagrama de secuencia UC-0019: Subir Documento}
+    \caption{Diagrama de secuencia UC-0016: Subir Documento}
     \label{fig:seq-upload}
 \end{figure}
 
@@ -1213,7 +1178,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-list-documents.png}
-    \caption{Diagrama de secuencia UC-0020: Listar Documentos}
+    \caption{Diagrama de secuencia UC-0017: Listar Documentos}
     \label{fig:seq-list-documents}
 \end{figure}
 
@@ -1222,7 +1187,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-doc-detail.png}
-    \caption{Diagrama de secuencia UC-0021: Ver Detalle de Documento}
+    \caption{Diagrama de secuencia UC-0018: Ver Detalle de Documento}
     \label{fig:seq-doc-detail}
 \end{figure}
 
@@ -1231,7 +1196,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-download.png}
-    \caption{Diagrama de secuencia UC-0022: Descargar Documento}
+    \caption{Diagrama de secuencia UC-0019: Descargar Documento}
     \label{fig:seq-download}
 \end{figure}
 
@@ -1240,7 +1205,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-archive.png}
-    \caption{Diagrama de secuencia UC-0023: Archivar Documento}
+    \caption{Diagrama de secuencia UC-0020: Archivar Documento}
     \label{fig:seq-archive}
 \end{figure}
 %
@@ -1249,7 +1214,7 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-unarchive.png}
-    \caption{Diagrama de secuencia UC-0024: Desarchivar Documento}
+    \caption{Diagrama de secuencia UC-0021: Desarchivar Documento}
     \label{fig:seq-unarchive}
 \end{figure}
 
@@ -1258,27 +1223,16 @@ En la versión final del sistema, el registro se realiza exclusivamente con cred
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-delete.png}
-    \caption{Diagrama de secuencia UC-0025: Eliminar Documento}
+    \caption{Diagrama de secuencia UC-0022: Eliminar Documento}
     \label{fig:seq-delete}
 \end{figure}
 %
-% === fin PlantUML ===
-
-Este flujo se mantiene como referencia de diseño y como soporte de backend, pero no dispone todavía de una interacción específica expuesta en la vista principal de detalle del documento dentro de la entrega actual.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-edit-metadata.png}
-    \caption{Diagrama de secuencia UC-0026: Editar Metadatos de Documento}
-    \label{fig:seq-edit-metadata}
-\end{figure}
-
 \subsubsection{Secuencia: Transferir Documento}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-transfer.png}
-    \caption{Diagrama de secuencia UC-0027: Transferir Documento}
+    \caption{Diagrama de secuencia UC-0023: Transferir Documento}
     \label{fig:seq-transfer}
 \end{figure}
 
@@ -1287,7 +1241,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-search.png}
-    \caption{Diagrama de secuencia UC-0028: Buscar Documentos}
+    \caption{Diagrama de secuencia UC-0024: Buscar Documentos}
     \label{fig:seq-search}
 \end{figure}
 
@@ -1296,7 +1250,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-version.png}
-    \caption{Diagrama de secuencia UC-0029: Crear Nueva Versión}
+    \caption{Diagrama de secuencia UC-0025: Crear Nueva Versión}
     \label{fig:seq-version}
 \end{figure}
 \subsubsection{Secuencia: Listar Versiones}
@@ -1304,7 +1258,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-list-versions.png}
-    \caption{Diagrama de secuencia UC-0030: Listar Versiones}
+    \caption{Diagrama de secuencia UC-0026: Listar Versiones}
     \label{fig:seq-list-versions}
 \end{figure}
 
@@ -1313,7 +1267,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-activate-version.png}
-    \caption{Diagrama de secuencia UC-0031: Establecer Versión Operativa}
+    \caption{Diagrama de secuencia UC-0027: Establecer Versión Operativa}
     \label{fig:seq-activate-version}
 \end{figure}
 
@@ -1322,7 +1276,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-restore-version.png}
-    \caption{Diagrama de secuencia UC-0032: Restaurar Versión Anterior}
+    \caption{Diagrama de secuencia UC-0028: Restaurar Versión Anterior}
     \label{fig:seq-restore-version}
 \end{figure}
 
@@ -1331,7 +1285,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-download-version.png}
-    \caption{Diagrama de secuencia UC-0033: Descargar Versión Específica}
+    \caption{Diagrama de secuencia UC-0029: Descargar Versión Específica}
     \label{fig:seq-download-version}
 \end{figure}
 
@@ -1340,7 +1294,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-sign.png}
-    \caption{Diagrama de secuencia UC-0034: Firmar Documento}
+    \caption{Diagrama de secuencia UC-0030: Firmar Documento}
     \label{fig:seq-sign}
 \end{figure}
 
@@ -1349,7 +1303,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-view-signatures.png}
-    \caption{Diagrama de secuencia UC-0035: Ver Firmas de un Documento}
+    \caption{Diagrama de secuencia UC-0031: Ver Firmas de un Documento}
     \label{fig:seq-view-signatures}
 \end{figure}
 
@@ -1358,7 +1312,7 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-verify-signature.png}
-    \caption{Diagrama de secuencia UC-0036: Verificar Firma en Blockchain}
+    \caption{Diagrama de secuencia UC-0032: Verificar Firma en Blockchain}
     \label{fig:seq-verify-signature}
 \end{figure}
 
@@ -1367,19 +1321,8 @@ Este flujo se mantiene como referencia de diseño y como soporte de backend, per
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-share.png}
-    \caption{Diagrama de secuencia UC-0037: Compartir Documento}
+    \caption{Diagrama de secuencia UC-0033: Compartir Documento}
     \label{fig:seq-share}
-\end{figure}
-
-\subsubsection{Secuencia: Modificar Permisos de Acceso}
-
-Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz operativa entregada en esta versión. En la aplicación actual el cambio efectivo de nivel de acceso se resuelve revocando el permiso existente y realizando una nueva compartición con el rol deseado.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-modify-permissions.png}
-    \caption{Diagrama de secuencia UC-0038: Modificar Permisos de Acceso}
-    \label{fig:seq-modify-permissions}
 \end{figure}
 
 \subsubsection{Secuencia: Revocar Acceso a Documento}
@@ -1387,7 +1330,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-revoke-access.png}
-    \caption{Diagrama de secuencia UC-0039: Revocar Acceso a Documento}
+    \caption{Diagrama de secuencia UC-0034: Revocar Acceso a Documento}
     \label{fig:seq-revoke-access}
 \end{figure}
 
@@ -1396,35 +1339,8 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-shared-documents.png}
-    \caption{Diagrama de secuencia UC-0040: Ver Documentos Compartidos Conmigo}
+    \caption{Diagrama de secuencia UC-0035: Ver Documentos Compartidos Conmigo}
     \label{fig:seq-shared-documents}
-\end{figure}
-
-\subsubsection{Secuencia: Gestionar Carpetas}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-create-folder.png}
-    \caption{Diagrama de secuencia UC-0041: Gestionar Carpetas}
-    \label{fig:seq-create-folder}
-\end{figure}
-
-\subsubsection{Secuencia: Gestionar Categorías}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-categories.png}
-    \caption{Diagrama de secuencia UC-0042: Gestionar Categorías}
-    \label{fig:seq-categories}
-\end{figure}
-
-\subsubsection{Secuencia: Etiquetar Documento}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-tag-document.png}
-    \caption{Diagrama de secuencia UC-0043: Etiquetar Documento}
-    \label{fig:seq-tag-document}
 \end{figure}
 
 \subsubsection{Secuencia: Ver Timeline de Documento}
@@ -1432,7 +1348,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-timeline.png}
-    \caption{Diagrama de secuencia UC-0044: Ver Timeline de Documento}
+    \caption{Diagrama de secuencia UC-0036: Ver Timeline de Documento}
     \label{fig:seq-timeline}
 \end{figure}
 
@@ -1441,7 +1357,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-user-stats.png}
-    \caption{Diagrama de secuencia UC-0045: Ver Estadísticas Personales}
+    \caption{Diagrama de secuencia UC-0037: Ver Estadísticas Personales}
     \label{fig:seq-user-stats}
 \end{figure}
 
@@ -1450,7 +1366,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-global-stats.png}
-    \caption{Diagrama de secuencia UC-0046: Ver Estadísticas Globales del Sistema}
+    \caption{Diagrama de secuencia UC-0038: Ver Estadísticas Globales del Sistema}
     \label{fig:seq-global-stats}
 \end{figure}
 %
@@ -1459,7 +1375,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-verify-authenticity.png}
-    \caption{Diagrama de secuencia UC-0047: Verificar Autenticidad de Documento}
+    \caption{Diagrama de secuencia UC-0039: Verificar Autenticidad de Documento}
     \label{fig:seq-verify-authenticity}
 \end{figure}
 
@@ -1468,7 +1384,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-blockchain-audit.png}
-    \caption{Diagrama de secuencia UC-0048: Auditoría Blockchain}
+    \caption{Diagrama de secuencia UC-0040: Auditoría Blockchain}
     \label{fig:seq-blockchain-audit}
 \end{figure}
 
@@ -1477,7 +1393,7 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-list-users.png}
-    \caption{Diagrama de secuencia UC-0049: Listar Usuarios}
+    \caption{Diagrama de secuencia UC-0041: Listar Usuarios}
     \label{fig:seq-list-users}
 \end{figure}
 
@@ -1486,131 +1402,31 @@ Este flujo se conserva como diseño objetivo, pero no forma parte de la interfaz
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{diagramas/seq-manage-roles.png}
-    \caption{Diagrama de secuencia UC-0050: Gestionar Roles de Usuario}
+    \caption{Diagrama de secuencia UC-0042: Gestionar Roles de Usuario}
     \label{fig:seq-manage-roles}
-\end{figure}
-%
-% === fin PlantUML ===
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-create-admin.png}
-    \caption{Diagrama de secuencia UC-0051: Crear Usuario Administrador}
-    \label{fig:seq-create-admin}
-\end{figure}
-
-\subsubsection{Secuencia: Suspender Usuario (Admin)}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-suspend-user.png}
-    \caption{Diagrama de secuencia UC-0052: Suspender Usuario}
-    \label{fig:seq-suspend-user}
-\end{figure}
-
-\subsubsection{Secuencia: Eliminar Cuenta de Usuario (Admin)}
-
-% === PlantUML source (comentado) ===
-% @startuml
-% skinparam sequenceArrowThickness 2
-% skinparam roundcorner 5
-% skinparam sequenceParticipant underline
-% skinparam monochrome true
-%
-% actor "Administrador" as ADMIN
-% boundary "Frontend Admin" as FE
-% control "AdminController" as AC
-% entity "AdminUserService" as AUS
-% entity "UserRepository" as UR
-% entity "BlockchainAdminService" as BAS
-%
-% ADMIN -> FE: Selecciona usuario y pulsa Eliminar cuenta
-% FE -> FE: Muestra advertencia de irreversibilidad
-% ADMIN -> FE: Confirma la eliminacion
-% FE -> AC: DELETE /api/admin/users/:userId
-% AC -> AUS: checkNotSelfDelete(adminId, userId)
-% AUS --> AC: OK (no es auto-eliminacion)
-% AC -> AUS: deleteUser(userId)
-% AUS -> UR: deleteUserCascade(userId)
-% note right of UR
-%   Elimina en cascada:
-%   sessions, tokens, wallets,
-%   firmas, comparticiones,
-%   documentos propios
-% end note
-% UR --> AUS: usuario eliminado
-% AUS -> BAS: revokeAllWallets(userId)
-% BAS --> AUS: OK
-% AUS --> AC: usuario eliminado
-% AC --> FE: 200 OK
-% FE --> ADMIN: Listado de usuarios actualizado
-% @enduml
-% === fin PlantUML ===
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-delete-user-admin.png}
-    \caption{Diagrama de secuencia UC-0053: Eliminar Cuenta de Usuario (Admin)}
-    \label{fig:seq-delete-user-admin}
-\end{figure}
-
-\subsubsection{Secuencia: Pausar Sistema (Circuit Breaker)}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-pause-system.png}
-    \caption{Diagrama de secuencia UC-0054: Pausar Sistema (Circuit Breaker)}
-    \label{fig:seq-pause-system}
-\end{figure}
-%
-% === fin PlantUML ===
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-resume-system.png}
-    \caption{Diagrama de secuencia UC-0055: Reanudar Sistema}
-    \label{fig:seq-resume-system}
-\end{figure}
-
-\subsubsection{Secuencia: Ver Notificaciones}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-notifications.png}
-    \caption{Diagrama de secuencia UC-0056: Ver Notificaciones}
-    \label{fig:seq-notifications}
-\end{figure}
-
-\subsubsection{Secuencia: Configurar Preferencias de Notificación}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/seq-preferences.png}
-    \caption{Diagrama de secuencia UC-0057: Configurar Preferencias de Notificación}
-    \label{fig:seq-preferences}
 \end{figure}
 
 \subsection{Diagramas de caso de uso-diseño}
 
-La numeración de casos de uso concluye en UC-0057. Los diagramas que siguen no introducen nuevos casos de uso, sino variantes y flujos complementarios que detallan escenarios especialmente relevantes dentro de UC ya definidos en el Anexo I. En ellos se enfatiza la participación simultánea de la interfaz, los servicios, la persistencia operativa y la confirmación blockchain.
+La numeración de casos de uso conservada concluye en UC-0042. Los diagramas que siguen no introducen nuevos casos de uso, sino variantes y flujos complementarios que detallan escenarios especialmente relevantes dentro de UC ya definidos en el Anexo I. En ellos se enfatiza la participación simultánea de la interfaz, los servicios, la persistencia operativa y la confirmación blockchain.
 
-\subsubsection{Colaboración: UC-0019 Subir Documento}
+\subsubsection{Colaboración: UC-0016 Subir Documento}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{diagramas/collaboration-upload.png}
-    \caption{Diagrama de colaboración para UC-0019: Subir Documento}
+    \caption{Diagrama de colaboración para UC-0016: Subir Documento}
     \label{fig:collaboration-upload}
 \end{figure}
 
 Este diagrama resume la coordinación entre la interfaz de carga, el backend de documentos, IPFS, PostgreSQL y el contrato inteligente durante el alta inicial de un documento.
 
-\subsubsection{Colaboración: UC-0034 Firmar Documento}
+\subsubsection{Colaboración: UC-0030 Firmar Documento}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{diagramas/collaboration-sign.png}
-    \caption{Diagrama de colaboración para UC-0034: Firmar Documento}
+    \caption{Diagrama de colaboración para UC-0030: Firmar Documento}
     \label{fig:collaboration-sign}
 \end{figure}
 
@@ -1621,7 +1437,7 @@ El mismo patrón de colaboración se reutiliza en operaciones críticas con firm
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{diagramas/flow-public-upload.png}
-    \caption{Flujo complementario de publicación pública integrado en UC-0019}
+    \caption{Flujo complementario de publicación pública integrado en UC-0016}
     \label{fig:flow-public-upload}
 \end{figure}
 
@@ -1632,7 +1448,7 @@ Este flujo desarrolla la variante pública del alta documental: el contenido se 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{diagramas/flow-public-link-qr.png}
-    \caption{Flujo complementario de distribución por enlace y código QR integrado en UC-0021}
+    \caption{Flujo complementario de distribución por enlace y código QR integrado en UC-0018}
     \label{fig:flow-public-link-qr}
 \end{figure}
 
@@ -1678,28 +1494,24 @@ IRQ-0007 & Notificación, Email & notifications, email\_verifications, password\
 \begin{table}[H]
 \centering
 \footnotesize
-\begin{tabular}{|p{2.7cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|p{1.6cm}|p{1.4cm}|p{1.4cm}|p{1.4cm}|}
+\begin{tabular}{|p{3.1cm}|p{1.5cm}|p{1.4cm}|p{1.6cm}|p{1.6cm}|p{1.4cm}|}
 \hline
-\textbf{Caso de uso} & \textbf{Usuario} & \textbf{Wallet} & \textbf{Documento} & \textbf{Versión} & \textbf{Carpeta} & \textbf{Firma} & \textbf{Notif.} \\
+\textbf{Caso de uso} & \textbf{Usuario} & \textbf{Wallet} & \textbf{Documento} & \textbf{Versión} & \textbf{Firma} \\
 \hline
 \hline
-UC-0001 a UC-0018 (Acceso) & X & X & & & & & X \\
+UC-0001 a UC-0015 (Acceso) & X & X & & & \\
 \hline
-UC-0019 a UC-0028 (Documentos) & X & & X & X & X & & X \\
+UC-0016 a UC-0024 (Documentos) & X & & X & X & \\
 \hline
-UC-0029 a UC-0033 (Versionado) & X & & X & X & & & \\
+UC-0025 a UC-0029 (Versionado) & X & & X & X & \\
 \hline
-UC-0034 a UC-0036 (Firmas) & X & X & X & X & & X & X \\
+UC-0030 a UC-0032 (Firmas) & X & X & X & X & X \\
 \hline
-UC-0037 a UC-0040 (Compartición) & X & & X & X & X & & X \\
+UC-0033 a UC-0035 (Compartición) & X & & X & X & \\
 \hline
-UC-0041 a UC-0044 (Organización) & X & & X & & X & & \\
+UC-0036 a UC-0040 (Auditoría) & X & & X & X & \\
 \hline
-UC-0045 a UC-0048 (Auditoría) & X & & X & X & & & \\
-\hline
-UC-0049 a UC-0055 (Admin) & X & X & X & & & & X \\
-\hline
-UC-0056 a UC-0057 (Notificaciones) & X & & & & & & X \\
+UC-0041 a UC-0042 (Admin) & X & X & X & & \\
 \hline
 \end{tabular}
 \caption{Matriz de trazabilidad UC -- clases de análisis}
@@ -1722,7 +1534,7 @@ NFR-0002 (Rendimiento) & Índices en BD (userId, documentId, eventType), backend
 \hline
 NFR-0003 (Usabilidad) & Interfaz React responsive con Tailwind, feedback inmediato en operaciones async, prototipos validados por flujos de usuario \\
 \hline
-NFR-0004 (Disponibilidad) & Patrón Prepare/Confirm con reintentos, Circuit Breaker (Pausable), proveedor IPFS configurable con persistencia gestionada o clúster replicado \\
+NFR-0004 (Disponibilidad) & Patrón Prepare/Confirm con reintentos, Circuit Breaker (Pausable), nodo Kubo autoalojado con persistencia en volúmenes y supervisión operativa \\
 \hline
 NFR-0005 (Mantenibilidad) & TypeScript estricto, ESLint, arquitectura en capas con responsabilidades claras, cobertura de tests \\
 \hline
@@ -1790,7 +1602,6 @@ El diagrama de despliegue muestra la distribución física de los componentes de
 \textbf{IPFS}:
 \begin{itemize}
     \item IPFS Kubo (go-ipfs)
-    \item Pinata Cloud o IPFS Cluster 1.0+
     \item Docker Compose para despliegues autoalojados
 \end{itemize}
 
@@ -1807,8 +1618,7 @@ El diagrama de despliegue muestra la distribución física de los componentes de
     \item Evans, E. (2003). \textit{Domain-Driven Design: Tackling Complexity in the Heart of Software}. Addison-Wesley.
     \item OpenZeppelin. (2025). \textit{Smart Contract Patterns}. \url{https://docs.openzeppelin.com/contracts/}
     \item Ethereum Foundation. (2025). \textit{Solidity Documentation}. \url{https://docs.soliditylang.org/}
-    \item Protocol Labs. (2025). \textit{IPFS Cluster Documentation}. \url{https://ipfscluster.io/documentation/}
-    \item Pinata. (2025). \textit{Pinata Documentation}. \url{https://docs.pinata.cloud/}
+    \item Protocol Labs. (2025). \textit{IPFS Documentation}. \url{https://docs.ipfs.tech/}
     \item React Team. (2025). \textit{React Documentation}. \url{https://react.dev/}
     \item Prisma Team. (2025). \textit{Prisma Documentation}. \url{https://www.prisma.io/docs}
 \end{enumerate}

@@ -1,0 +1,30 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "Administrador" as ADMIN
+actor "Blockchain" as SC
+
+rectangle "Auditoria, Verificacion y Estadisticas" {
+  usecase "UC-0036: Ver Timeline" as UC44
+  usecase "UC-0037: Ver Estadisticas Personales" as UC45
+  usecase "UC-0038: Ver Estadisticas Globales" as UC46
+  usecase "UC-0039: Verificar Autenticidad" as UC47
+  usecase "UC-0040: Auditoria Blockchain" as UC48
+}
+
+UC44 -[hidden]down-> UC45
+UC45 -[hidden]down-> UC46
+UC46 -[hidden]down-> UC47
+UC47 -[hidden]down-> UC48
+
+USER --> UC44
+USER --> UC45
+USER --> UC47
+ADMIN --> UC46
+ADMIN --> UC48
+
+SC --> UC47
+SC --> UC48
+@enduml

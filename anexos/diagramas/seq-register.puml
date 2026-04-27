@@ -18,14 +18,9 @@ srv -> db: Comprobar unicidad y guardar usuario
 db --> srv: Usuario creado
 srv -> email: Enviar verificacion
 email --> srv: OK
-srv --> api: Sesion inicial y recovery key
-api --> ui: Registro completado
-
-alt El usuario decide enlazar wallet
-	ui --> user: Redirige a Perfil para conectar wallet
-else Registro sin wallet inicial
-	ui --> user: Redirige a Biblioteca
-end
+srv --> api: Recovery key y confirmacion de alta
+api --> ui: Mostrar recovery key y aviso de verificacion
+ui --> user: Guarda recovery key y espera el correo
 
 @enduml
 

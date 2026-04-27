@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>settings-wireframe</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="frame-page">
+  <div class="frame-meta">
+    <div>
+      <h1>settings-wireframe</h1>
+      <p>Configuracion con tabs superiores y bloque visible de wallets.</p>
+    </div>
+    <a class="back-link" href="index.html">Volver al indice</a>
+  </div>
+
+  <div class="browser">
+    <div class="browser-bar">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <div class="address">/app/settings</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-title">Navegacion</div>
+          <div class="menu-item">Mis Documentos</div>
+          <div class="menu-item">Compartidos Conmigo</div>
+          <div class="menu-item">Verificar Documento</div>
+          <div class="menu-item">Explorador Blockchain</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-title">Mis Wallets</div>
+          <div class="list-line">Principal</div>
+          <div class="list-line">Firma secundaria</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h2>Configuracion</h2>
+            <p class="muted">Ajustes generales de la cuenta autenticada.</p>
+          </div>
+        </div>
+
+        <div class="tab-row">
+          <div class="tab active">Perfil</div>
+          <div class="tab">Seguridad</div>
+          <div class="tab">Notificaciones</div>
+          <div class="tab">Privacidad</div>
+        </div>
+
+        <div class="section-card">
+          <strong>Informacion del Perfil</strong>
+          <div class="settings-grid">
+            <div class="avatar-box"></div>
+            <div class="field-stack">
+              <div class="button">Cambiar Avatar</div>
+              <div class="field"><label>Nombre de usuario</label><div class="input"></div></div>
+              <div class="field"><label>Email</label><div class="input"></div></div>
+              <div class="field"><label>Nombre</label><div class="input"></div></div>
+              <div class="field"><label>Apellidos</label><div class="input"></div></div>
+              <p class="muted">Informacion basica y preferencias visibles del usuario.</p>
+              <div class="footer-actions">
+                <div class="button">Cancelar</div>
+                <div class="button dark">Guardar Cambios</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <strong>Wallets de Blockchain</strong>
+          <p class="muted">5/5 Wallets</p>
+          <div class="wallet-list">
+            <div class="wallet-row"><strong>Principal</strong><p>0x8f...2a · Wallet principal</p></div>
+            <div class="wallet-row"><strong>Firma secundaria</strong><p>0x34...91 · Guardada</p></div>
+            <div class="wallet-row"><strong>Revision</strong><p>0x12...7c · Guardada</p></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

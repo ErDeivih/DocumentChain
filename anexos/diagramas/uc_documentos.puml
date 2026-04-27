@@ -1,0 +1,57 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "IPFS" as IPFS
+actor "Blockchain" as SC
+
+rectangle "Gestion de Documentos" {
+  usecase "UC-0016: Subir Documento" as UC19
+  usecase "UC-0017: Listar Documentos" as UC20
+  usecase "UC-0018: Ver Detalle de Documento" as UC21
+  usecase "UC-0019: Descargar Documento" as UC22
+  usecase "UC-0020: Archivar Documento" as UC23
+  usecase "UC-0021: Desarchivar Documento" as UC24
+  usecase "UC-0022: Eliminar Documento" as UC25
+  usecase "UC-0023: Transferir Documento" as UC27
+  usecase "UC-0024: Buscar Documentos" as UC28
+}
+
+UC19 -[hidden]down-> UC20
+UC20 -[hidden]down-> UC21
+UC21 -[hidden]down-> UC22
+UC22 -[hidden]down-> UC23
+UC23 -[hidden]down-> UC24
+UC24 -[hidden]down-> UC25
+UC25 -[hidden]down-> UC27
+UC27 -[hidden]down-> UC28
+
+USER --> UC19
+USER --> UC20
+USER --> UC21
+USER --> UC22
+USER --> UC23
+USER --> UC24
+USER --> UC25
+USER --> UC27
+USER --> UC28
+
+IPFS --> UC19
+IPFS --> UC22
+IPFS --> UC25
+SC --> UC19
+SC --> UC27
+
+note right of UC21
+  Integra como subflujo:
+  UC-0026 editar metadatos.
+end note
+
+note right of UC20
+  Integra la organizacion documental:
+  UC-0041 carpetas
+  UC-0042 categorias
+  UC-0043 etiquetas
+end note
+@enduml

@@ -12,6 +12,8 @@ BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
 BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
 IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-}"
 
+secret_placeholder_pattern='(change-this|your-secret-key|your-super-secret|genera_un_secret|otro_secret_diferente|secure-random-string)'
+
 log_step() {
   printf '\n[%s] %s\n' "$1" "$2"
 }
@@ -120,6 +122,26 @@ load_server_env() {
   set +a
 }
 
+require_secure_secret() {
+  local secret_name="$1"
+  local secret_value="${!secret_name:-}"
+
+  if [[ -z "$secret_value" ]]; then
+    printf 'Missing required secret in %s: %s\n' "$SERVER_ENV_FILE" "$secret_name" >&2
+    exit 1
+  fi
+
+  if (( ${#secret_value} < 32 )); then
+    printf 'Secret %s must be at least 32 characters long\n' "$secret_name" >&2
+    exit 1
+  fi
+
+  if [[ "$secret_value" =~ $secret_placeholder_pattern ]]; then
+    printf 'Secret %s still uses a placeholder value in %s\n' "$secret_name" "$SERVER_ENV_FILE" >&2
+    exit 1
+  fi
+}
+
 compose_cmd=(docker compose)
 
 if [[ -f "$SERVER_ENV_FILE" ]]; then
@@ -129,6 +151,10 @@ fi
 ensure_env_file "$ROOT_DIR/backend/.env" "$ROOT_DIR/backend/.env.example"
 ensure_env_file "$ROOT_DIR/frontend/.env" "$ROOT_DIR/frontend/.env.example"
 load_server_env
+
+require_secure_secret "JWT_SECRET"
+require_secure_secret "JWT_REFRESH_SECRET"
+require_secure_secret "ADMIN_REGISTRATION_SECRET"
 
 ENABLE_IPFS_NODE="${ENABLE_IPFS_NODE:-0}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
@@ -175,6 +201,10 @@ fi
 if [[ -n "${BLOCKCHAIN_RPC_URL:-}" ]]; then
   upsert_env_value "$ROOT_DIR/backend/.env" "BLOCKCHAIN_RPC_URL" "\"${BLOCKCHAIN_RPC_URL}\""
 fi
+
+upsert_env_value "$ROOT_DIR/backend/.env" "JWT_SECRET" "\"${JWT_SECRET}\""
+upsert_env_value "$ROOT_DIR/backend/.env" "JWT_REFRESH_SECRET" "\"${JWT_REFRESH_SECRET}\""
+upsert_env_value "$ROOT_DIR/backend/.env" "ADMIN_REGISTRATION_SECRET" "\"${ADMIN_REGISTRATION_SECRET}\""
 
 if [[ -n "${CONTRACT_DOCUMENT_REGISTRY:-}" ]]; then
   upsert_env_value "$ROOT_DIR/backend/.env" "CONTRACT_DOCUMENT_REGISTRY" "\"${CONTRACT_DOCUMENT_REGISTRY}\""

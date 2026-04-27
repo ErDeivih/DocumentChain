@@ -207,6 +207,7 @@ test.describe('Annex UI screenshots', () => {
 
     await page.getByRole('button', { name: 'Firmar Documento' }).click();
     await expect(page.getByText(/versi[oó]n a firmar/i)).toBeVisible();
+    const signModalTitle = page.getByRole('heading', { name: 'Firmar Documento', exact: true });
     const commentField = page.getByLabel('Comentario (opcional)');
     const alreadySignedAlert = page.getByRole('alert').filter({ hasText: /ya has firmado esta versi[oó]n/i });
     await expect(commentField.or(alreadySignedAlert)).toBeVisible({ timeout: 15000 });
@@ -221,7 +222,8 @@ test.describe('Annex UI screenshots', () => {
       await expect(page.getByTestId('wallet-selector-modal')).toBeVisible({ timeout: 15000 });
       await capture(page.getByTestId('wallet-selector-modal'), 'wallet-selector-modal.png');
       await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
-      await expect(page.getByText('¡Documento firmado!')).toBeVisible({ timeout: 45000 });
+      await expect(page.getByTestId('wallet-selector-modal')).not.toBeVisible({ timeout: 30000 });
+      await expect(signModalTitle).not.toBeVisible({ timeout: 45000 });
       await waitForDocumentStatus(request, ownerSession.accessToken, annexDocument.id, 'SYNCED', {
         timeoutMs: 120000,
       });

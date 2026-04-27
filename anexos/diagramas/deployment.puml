@@ -15,8 +15,8 @@ node "Persistencia" as db_node {
     database "PostgreSQL" as postgres
 }
 
-node "Almacenamiento distribuido" as ipfs_cluster {
-    component "IPFS compatible" as ipfs
+node "Almacenamiento distribuido" as ipfs_node {
+    component "Nodo Kubo autoalojado" as ipfs
 }
 
 cloud "Red blockchain" as ethereum {
