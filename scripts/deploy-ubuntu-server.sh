@@ -172,6 +172,102 @@ load_server_env() {
   set +a
 }
 
+load_repo_env_fallback() {
+  local repo_env_file="$1"
+
+  if [[ ! -f "$repo_env_file" ]]; then
+    return
+  fi
+
+  while IFS='=' read -r key raw_value; do
+    if [[ -z "$key" || "$key" =~ ^# ]]; then
+      continue
+    fi
+
+    if [[ "$key" =~ [[:space:]] ]]; then
+      continue
+    fi
+
+    if [[ -n "${!key:-}" ]]; then
+      continue
+    fi
+
+    local value="$raw_value"
+    value="${value%\"}"
+    value="${value#\"}"
+    value="${value%\'}"
+    value="${value#\'}"
+
+    export "$key=$value"
+  done < "$repo_env_file"
+}
+
+capture_runtime_env_overrides() {
+  RUNTIME_FRONTEND_URL="${FRONTEND_URL:-}"
+  RUNTIME_ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-}"
+  RUNTIME_VITE_API_URL="${VITE_API_URL:-}"
+  RUNTIME_VITE_BLOCKCHAIN_RPC_URL="${VITE_BLOCKCHAIN_RPC_URL:-}"
+  RUNTIME_EMAIL_FROM="${EMAIL_FROM:-}"
+  RUNTIME_EMAIL_FROM_NAME="${EMAIL_FROM_NAME:-}"
+  RUNTIME_SMTP_HOST="${SMTP_HOST:-}"
+  RUNTIME_SMTP_PORT="${SMTP_PORT:-}"
+  RUNTIME_SMTP_SECURE="${SMTP_SECURE:-}"
+  RUNTIME_SMTP_USER="${SMTP_USER:-}"
+  RUNTIME_SMTP_PASS="${SMTP_PASS:-}"
+  RUNTIME_SMTP_RELAYHOST="${SMTP_RELAYHOST:-}"
+  RUNTIME_SMTP_RELAYHOST_USERNAME="${SMTP_RELAYHOST_USERNAME:-}"
+  RUNTIME_SMTP_RELAYHOST_PASSWORD="${SMTP_RELAYHOST_PASSWORD:-}"
+  RUNTIME_POSTFIX_SMTP_TLS_SECURITY_LEVEL="${POSTFIX_SMTP_TLS_SECURITY_LEVEL:-}"
+  RUNTIME_POSTFIX_HOSTNAME="${POSTFIX_HOSTNAME:-}"
+  RUNTIME_ALLOWED_SENDER_DOMAINS="${ALLOWED_SENDER_DOMAINS:-}"
+  RUNTIME_MASQUERADED_DOMAINS="${MASQUERADED_DOMAINS:-}"
+  RUNTIME_BLOCKCHAIN_RPC_URL="${BLOCKCHAIN_RPC_URL:-}"
+  RUNTIME_CONTRACT_DOCUMENT_REGISTRY="${CONTRACT_DOCUMENT_REGISTRY:-}"
+  RUNTIME_IPFS_PROVIDER="${IPFS_PROVIDER:-}"
+  RUNTIME_IPFS_API_URL="${IPFS_API_URL:-}"
+  RUNTIME_IPFS_GATEWAY_URL="${IPFS_GATEWAY_URL:-}"
+  RUNTIME_IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-}"
+}
+
+apply_runtime_override() {
+  local var_name="$1"
+  local runtime_value="$2"
+
+  if [[ -z "$runtime_value" ]]; then
+    return
+  fi
+
+  export "$var_name=$runtime_value"
+  upsert_env_value "$SERVER_ENV_FILE" "$var_name" "$runtime_value"
+}
+
+apply_runtime_env_overrides() {
+  apply_runtime_override "FRONTEND_URL" "$RUNTIME_FRONTEND_URL"
+  apply_runtime_override "ALLOWED_ORIGINS" "$RUNTIME_ALLOWED_ORIGINS"
+  apply_runtime_override "VITE_API_URL" "$RUNTIME_VITE_API_URL"
+  apply_runtime_override "VITE_BLOCKCHAIN_RPC_URL" "$RUNTIME_VITE_BLOCKCHAIN_RPC_URL"
+  apply_runtime_override "EMAIL_FROM" "$RUNTIME_EMAIL_FROM"
+  apply_runtime_override "EMAIL_FROM_NAME" "$RUNTIME_EMAIL_FROM_NAME"
+  apply_runtime_override "SMTP_HOST" "$RUNTIME_SMTP_HOST"
+  apply_runtime_override "SMTP_PORT" "$RUNTIME_SMTP_PORT"
+  apply_runtime_override "SMTP_SECURE" "$RUNTIME_SMTP_SECURE"
+  apply_runtime_override "SMTP_USER" "$RUNTIME_SMTP_USER"
+  apply_runtime_override "SMTP_PASS" "$RUNTIME_SMTP_PASS"
+  apply_runtime_override "SMTP_RELAYHOST" "$RUNTIME_SMTP_RELAYHOST"
+  apply_runtime_override "SMTP_RELAYHOST_USERNAME" "$RUNTIME_SMTP_RELAYHOST_USERNAME"
+  apply_runtime_override "SMTP_RELAYHOST_PASSWORD" "$RUNTIME_SMTP_RELAYHOST_PASSWORD"
+  apply_runtime_override "POSTFIX_SMTP_TLS_SECURITY_LEVEL" "$RUNTIME_POSTFIX_SMTP_TLS_SECURITY_LEVEL"
+  apply_runtime_override "POSTFIX_HOSTNAME" "$RUNTIME_POSTFIX_HOSTNAME"
+  apply_runtime_override "ALLOWED_SENDER_DOMAINS" "$RUNTIME_ALLOWED_SENDER_DOMAINS"
+  apply_runtime_override "MASQUERADED_DOMAINS" "$RUNTIME_MASQUERADED_DOMAINS"
+  apply_runtime_override "BLOCKCHAIN_RPC_URL" "$RUNTIME_BLOCKCHAIN_RPC_URL"
+  apply_runtime_override "CONTRACT_DOCUMENT_REGISTRY" "$RUNTIME_CONTRACT_DOCUMENT_REGISTRY"
+  apply_runtime_override "IPFS_PROVIDER" "$RUNTIME_IPFS_PROVIDER"
+  apply_runtime_override "IPFS_API_URL" "$RUNTIME_IPFS_API_URL"
+  apply_runtime_override "IPFS_GATEWAY_URL" "$RUNTIME_IPFS_GATEWAY_URL"
+  apply_runtime_override "IPFS_DATA_ROOT" "$RUNTIME_IPFS_DATA_ROOT"
+}
+
 require_secure_secret() {
   local secret_name="$1"
   local secret_value="${!secret_name:-}"
@@ -231,7 +327,11 @@ fi
 ensure_env_file "$ROOT_DIR/backend/.env" "$ROOT_DIR/backend/.env.example"
 ensure_env_file "$ROOT_DIR/frontend/.env" "$ROOT_DIR/frontend/.env.example"
 ensure_env_file "$SERVER_ENV_FILE" "$ROOT_DIR/.env.server.example"
+capture_runtime_env_overrides
 load_server_env
+load_repo_env_fallback "$ROOT_DIR/.env"
+capture_runtime_env_overrides
+apply_runtime_env_overrides
 
 EMAIL_DOMAIN="$(extract_email_domain "${EMAIL_FROM:-}")"
 
