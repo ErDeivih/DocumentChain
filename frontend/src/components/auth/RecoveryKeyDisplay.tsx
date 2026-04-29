@@ -88,9 +88,9 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
         />
 
         {/* Instrucciones */}
-        <div className="space-y-2 rounded-xl border border-white/10 bg-secondary/40 p-4">
+        <div className="space-y-2 rounded-xl border border-[#fde68a] bg-[#fffaf0] p-4">
           <h3 className="flex items-center gap-2 font-semibold text-foreground">
-            <AlertTriangle className="w-5 h-5 text-warning-300" />
+            <AlertTriangle className="h-5 w-5 text-[#d97706]" />
             ¿Qué es una Clave de Recuperación?
           </h3>
           <ul className="ml-6 list-disc space-y-1 text-sm text-muted-foreground">
@@ -109,7 +109,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
           <div className="relative">
             <div
               data-testid="recovery-key-value"
-              className="rounded-xl border border-primary/20 bg-slate-950 p-4 pr-24 font-mono text-sm break-all text-primary-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
+              className="rounded-xl border border-border bg-[#f8fbff] p-4 pr-24 font-mono text-sm break-all text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]"
             >
               {showRecoveryKey ? recoveryKey : '•'.repeat(Math.max(recoveryKey.length, 32))}
             </div>
@@ -118,7 +118,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowRecoveryKey(prev => !prev)}
-                className="bg-secondary/70 px-2 text-foreground hover:bg-secondary"
+                className="bg-white/90 px-2 text-foreground hover:bg-secondary"
                 title={showRecoveryKey ? 'Ocultar clave' : 'Mostrar clave'}
               >
                 {showRecoveryKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -127,7 +127,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleCopy}
-                className="bg-secondary/70 px-2 text-foreground hover:bg-secondary"
+                className="bg-white/90 px-2 text-foreground hover:bg-secondary"
                 title={copied ? '¡Copiado!' : 'Copiar al portapapeles'}
               >
                 {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -151,7 +151,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
         </div>
 
         {/* Casilla de Confirmación */}
-        <div className="border-t border-white/10 pt-4">
+        <div className="border-t border-border pt-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"

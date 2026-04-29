@@ -56,7 +56,7 @@ export const SharedWithMe: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Compartidos Conmigo</h1>
+        <h1 className="text-3xl font-bold text-foreground">Compartidos Conmigo</h1>
         
         {/* Active Wallet Indicator */}
         {activeWallet && (
@@ -78,7 +78,7 @@ export const SharedWithMe: React.FC = () => {
         <CardContent className="p-4">
           <div className="flex gap-4 items-center">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Buscar por nombre..."
@@ -87,18 +87,18 @@ export const SharedWithMe: React.FC = () => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full rounded-lg border border-input bg-white py-2 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-400" />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <select
                 value={fileTypeFilter}
                 onChange={(e) => {
                   setFileTypeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="rounded-lg border border-input bg-white px-4 py-2 text-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
               >
                 <option value="">Todos los tipos</option>
                 <option value="pdf">PDF</option>
@@ -117,11 +117,11 @@ export const SharedWithMe: React.FC = () => {
       {!hasShares ? (
         <Card>
           <CardContent className="text-center py-12">
-            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <FileText className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold text-foreground">
               No hay documentos compartidos
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {searchTerm || fileTypeFilter
                 ? 'No se encontraron documentos con esos filtros'
                 : 'Los documentos compartidos con usted aparecerán aquí'}
@@ -148,11 +148,11 @@ export const SharedWithMe: React.FC = () => {
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-gray-900 truncate">
+                          <h3 className="truncate font-semibold text-foreground">
                             {doc.name || 'Documento Compartido'}
                           </h3>
                           {doc.fileExtension && (
-                            <p className="text-xs text-gray-500 uppercase">
+                            <p className="text-xs uppercase text-muted-foreground">
                               {doc.fileExtension}
                             </p>
                           )}
@@ -163,7 +163,7 @@ export const SharedWithMe: React.FC = () => {
                       </Badge>
                     </div>
 
-                    <div className="space-y-2 text-sm text-gray-600">
+                    <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
                         <span>Por: {doc.owner?.username || 'Desconocido'}</span>
@@ -190,17 +190,17 @@ export const SharedWithMe: React.FC = () => {
               <button
                 onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className="rounded-lg border border-border bg-white px-4 py-2 text-foreground disabled:cursor-not-allowed disabled:opacity-50 hover:bg-secondary/35"
               >
                 Anterior
               </button>
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">
                 Página {pagination.page} de {pagination.totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === pagination.totalPages}
-                className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                className="rounded-lg border border-border bg-white px-4 py-2 text-foreground disabled:cursor-not-allowed disabled:opacity-50 hover:bg-secondary/35"
               >
                 Siguiente
               </button>

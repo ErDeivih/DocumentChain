@@ -140,7 +140,7 @@ export const ResetPassword: React.FC = () => {
             <p className="text-sm text-green-600 font-medium">
               &#10003; Todos sus documentos siguen siendo accesibles
             </p>
-            <p className="text-gray-500 text-sm mt-4">
+            <p className="mt-4 text-sm text-muted-foreground">
               Redirigiendo a la página de inicio de sesión...
             </p>
           </CardContent>
@@ -161,7 +161,7 @@ export const ResetPassword: React.FC = () => {
           <CardTitle className="text-center text-2xl">
             Restablecer Su Contraseña
           </CardTitle>
-          <p className="mt-2 text-center text-sm text-slate-600">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             Introduzca su clave de recuperación y nueva contraseña
           </p>
         </CardHeader>
@@ -231,7 +231,7 @@ export const ResetPassword: React.FC = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               ¿Recuerda su contraseña?{' '}
               <Link to="/login" className="font-medium text-primary hover:text-blockchain-700">
                 Inicie sesión aquí

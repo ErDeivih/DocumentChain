@@ -77,26 +77,26 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
         />
 
         {/* Instructions */}
-        <div className="rounded-xl border border-white/10 bg-secondary/40 p-4">
+        <div className="rounded-xl border border-[#fde68a] bg-[#fffaf0] p-4">
           <h3 className="mb-2 flex items-center gap-2 font-semibold text-foreground">
-            <AlertTriangle className="w-5 h-5 text-warning-300" />
+            <AlertTriangle className="h-5 w-5 text-[#d97706]" />
             Información Crítica
           </h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
-              <span className="font-bold text-warning-300">•</span>
+              <span className="font-bold text-[#d97706]">•</span>
               <span>Necesita esta clave de recuperación para restablecer su contraseña</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="font-bold text-warning-300">•</span>
+              <span className="font-bold text-[#d97706]">•</span>
               <span>Si pierde esta clave Y olvida su contraseña, perderá acceso a todos sus documentos encriptados</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="font-bold text-warning-300">•</span>
+              <span className="font-bold text-[#d97706]">•</span>
               <span>Guárdela en un lugar seguro (gestor de contraseñas, caja de seguridad, etc.)</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="font-bold text-warning-300">•</span>
+              <span className="font-bold text-[#d97706]">•</span>
               <span>Nunca comparta esta clave con nadie</span>
             </li>
           </ul>
@@ -108,7 +108,7 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
             Su Clave de Recuperación
           </label>
           <div className="relative">
-            <div className="rounded-xl border border-primary/20 bg-slate-950 p-4 font-mono text-sm break-all text-primary-50 select-all shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+            <div className="rounded-xl border border-border bg-[#f8fbff] p-4 font-mono text-sm break-all text-foreground select-all shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
               {recoveryKey}
             </div>
           </div>
@@ -145,7 +145,7 @@ export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
         </div>
 
         {/* Acknowledgment Checkbox */}
-        <div className="rounded-xl border border-error-700/30 bg-error-900/20 p-4">
+        <div className="rounded-xl border border-[#fecaca] bg-[#fff5f5] p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"

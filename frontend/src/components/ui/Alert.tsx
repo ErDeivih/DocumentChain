@@ -9,13 +9,13 @@ const alertVariants = cva(
       variant: {
         default: 'border-white/10 bg-secondary/40 text-foreground',
         destructive:
-          'border-error-700/35 bg-error-900/20 text-error-100 [&>svg]:text-error-300',
+          'border-[#fecaca] bg-[#fff1f2] text-[#881337] [&>svg]:text-[#dc2626]',
         success:
-          'border-success-700/35 bg-success-900/20 text-success-100 [&>svg]:text-success-300',
+          'border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] [&>svg]:text-[#16a34a]',
         warning:
-          'border-warning-700/35 bg-warning-900/20 text-warning-100 [&>svg]:text-warning-300',
+          'border-[#fcd34d] bg-[#fffbeb] text-[#92400e] [&>svg]:text-[#d97706]',
         info:
-          'border-blockchain-700/35 bg-blockchain-900/20 text-foreground [&>svg]:text-blockchain-300',
+          'border-[#bae6fd] bg-[#f0f9ff] text-[#0f4c81] [&>svg]:text-[#0284c7]',
       },
     },
     defaultVariants: {

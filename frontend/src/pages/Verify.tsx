@@ -93,8 +93,8 @@ export const Verify: React.FC = () => {
   const content = (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Verificar Documento</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-foreground">Verificar Documento</h1>
+        <p className="mt-2 text-muted-foreground">
           Verifique la autenticidad del documento usando registros blockchain
         </p>
       </div>
@@ -110,13 +110,13 @@ export const Verify: React.FC = () => {
               onClick={() => setMethod('file')}
               className={`p-4 border-2 rounded-lg transition-colors ${
                 method === 'file'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/10 shadow-sm'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
-              <Upload className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">Subir Archivo</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <Upload className="mx-auto mb-2 h-8 w-8 text-primary" />
+              <h3 className="font-semibold text-foreground">Subir Archivo</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Verificar subiendo el archivo original
               </p>
             </button>
@@ -125,13 +125,13 @@ export const Verify: React.FC = () => {
               onClick={() => setMethod('ipfs')}
               className={`p-4 border-2 rounded-lg transition-colors ${
                 method === 'ipfs'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/10 shadow-sm'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
-              <Hash className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">Hash IPFS</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <Hash className="mx-auto mb-2 h-8 w-8 text-primary" />
+              <h3 className="font-semibold text-foreground">Hash IPFS</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Verificar usando el hash de contenido IPFS
               </p>
             </button>
@@ -140,13 +140,13 @@ export const Verify: React.FC = () => {
               onClick={() => setMethod('blockchain')}
               className={`p-4 border-2 rounded-lg transition-colors ${
                 method === 'blockchain'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/10 shadow-sm'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
-              <FileCheck className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">ID Blockchain</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <FileCheck className="mx-auto mb-2 h-8 w-8 text-primary" />
+              <h3 className="font-semibold text-foreground">ID Blockchain</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Verificar usando el ID de documento blockchain
               </p>
             </button>
@@ -167,16 +167,16 @@ export const Verify: React.FC = () => {
           <div className="space-y-4">
             {method === 'file' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-foreground">
                   Seleccionar Archivo a Verificar
                 </label>
                 <input
                   type="file"
                   onChange={handleFileChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full rounded-xl border border-input bg-white px-3 py-2 text-sm text-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-secondary/60 file:px-3 file:py-1.5 file:text-foreground"
                 />
                 {file && (
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     Seleccionado: {file.name} ({formatBytes(file.size)})
                   </p>
                 )}
@@ -231,20 +231,20 @@ export const Verify: React.FC = () => {
               {result.exists ? (
                 <>
                   <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h2 className="mb-2 text-2xl font-bold text-foreground">
                     Document Verified ✓
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     This document exists in the blockchain and is authentic
                   </p>
                 </>
               ) : (
                 <>
                   <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h2 className="mb-2 text-2xl font-bold text-foreground">
                     Document Not Found
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     This document does not exist in the blockchain records
                   </p>
                 </>
@@ -262,44 +262,44 @@ export const Verify: React.FC = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Nombre</p>
+                      <p className="text-sm text-muted-foreground">Nombre</p>
                       <p className="font-semibold">{result.document.name}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Propietario</p>
+                      <p className="text-sm text-muted-foreground">Propietario</p>
                       <p className="font-semibold flex items-center gap-2">
                         <User className="w-4 h-4" />
                         {result.document.ownerUsername}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Tamaño</p>
+                      <p className="text-sm text-muted-foreground">Tamaño</p>
                       <p className="font-semibold flex items-center gap-2">
                         <HardDrive className="w-4 h-4" />
                         {formatBytes(result.document.fileSize)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Subido</p>
+                      <p className="text-sm text-muted-foreground">Subido</p>
                       <p className="font-semibold flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
                         {formatDate(result.document.uploadedAt)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Versión Actual</p>
+                      <p className="text-sm text-muted-foreground">Versión Actual</p>
                       <p className="font-semibold">v{result.document.currentVersion}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Estado</p>
+                      <p className="text-sm text-muted-foreground">Estado</p>
                       <Badge variant={result.document.isArchived ? 'warning' : 'success'}>
                         {result.document.isArchived ? 'Archivado' : 'Activo'}
                       </Badge>
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 mb-1">Hash IPFS</p>
-                    <p className="font-mono text-sm bg-gray-50 p-2 rounded break-all">
+                    <p className="mb-1 text-sm text-muted-foreground">Hash IPFS</p>
+                    <p className="break-all rounded-lg border border-border bg-secondary/35 p-2 font-mono text-sm text-foreground">
                       {result.document.ipfsHash}
                     </p>
                   </div>
@@ -322,18 +322,18 @@ export const Verify: React.FC = () => {
                       {result.versions.map((version) => (
                         <div
                           key={version.versionNumber}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                          className="flex items-center justify-between rounded-lg border border-border bg-secondary/35 p-3"
                         >
                           <div>
                             <p className="font-semibold">
                               Versión {version.versionNumber}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               {version.createdBy && `Creado por ${version.createdBy} • `}
                               {formatDate(version.createdAt)}
                             </p>
                             {version.comment && (
-                              <p className="text-sm text-gray-500 italic mt-1">
+                              <p className="mt-1 text-sm italic text-muted-foreground">
                                 "{version.comment}"
                               </p>
                             )}
@@ -359,11 +359,11 @@ export const Verify: React.FC = () => {
                       {result.shares.map((share, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                          className="flex items-center justify-between rounded-lg border border-border bg-secondary/35 p-3"
                         >
                           <div>
                             <p className="font-semibold">{share.sharedWithUsername}</p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               Compartido {formatDate(share.sharedAt)}
                             </p>
                           </div>
@@ -387,19 +387,19 @@ export const Verify: React.FC = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {result.signatures.map((sig, idx) => (
-                        <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                        <div key={idx} className="rounded-lg border border-border bg-secondary/35 p-3">
                           <div className="flex items-center justify-between mb-2">
                             <p className="font-semibold">{sig.signedByUsername}</p>
                             <Badge variant="success">v{sig.versionNumber}</Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-1">
+                          <p className="mb-1 text-sm text-muted-foreground">
                             Firmado {formatDate(sig.signedAt)}
                           </p>
-                          <p className="text-xs font-mono text-gray-500 break-all">
+                          <p className="break-all font-mono text-xs text-muted-foreground">
                             {sig.walletAddress}
                           </p>
                           {sig.comment && (
-                            <p className="text-sm text-gray-600 italic mt-2">
+                            <p className="mt-2 text-sm italic text-muted-foreground">
                               "{sig.comment}"
                             </p>
                           )}
@@ -418,30 +418,30 @@ export const Verify: React.FC = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">ID del Documento</p>
-                      <p className="font-mono text-sm bg-gray-50 p-2 rounded break-all">
+                      <p className="mb-1 text-sm text-muted-foreground">ID del Documento</p>
+                      <p className="break-all rounded-lg border border-border bg-secondary/35 p-2 font-mono text-sm text-foreground">
                         {result.blockchain.documentId}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Hash de Metadatos</p>
-                      <p className="font-mono text-sm bg-gray-50 p-2 rounded break-all">
+                      <p className="mb-1 text-sm text-muted-foreground">Hash de Metadatos</p>
+                      <p className="break-all rounded-lg border border-border bg-secondary/35 p-2 font-mono text-sm text-foreground">
                         {result.blockchain.metadataHash}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Dirección del Propietario</p>
-                      <p className="font-mono text-sm bg-gray-50 p-2 rounded break-all">
+                      <p className="mb-1 text-sm text-muted-foreground">Dirección del Propietario</p>
+                      <p className="break-all rounded-lg border border-border bg-secondary/35 p-2 font-mono text-sm text-foreground">
                         {result.blockchain.owner}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-500">Número de Bloque</p>
+                        <p className="text-sm text-muted-foreground">Número de Bloque</p>
                         <p className="font-semibold">#{result.blockchain.blockNumber}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Estado</p>
+                        <p className="text-sm text-muted-foreground">Estado</p>
                         <Badge
                           variant={result.blockchain.isDeleted ? 'destructive' : 'success'}
                         >
@@ -464,7 +464,7 @@ export const Verify: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       <main className="px-4 py-8 sm:px-6 lg:px-8">
         <div className="pt-2 sm:pt-4">

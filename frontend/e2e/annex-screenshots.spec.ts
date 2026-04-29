@@ -256,6 +256,15 @@ test.describe('Annex UI screenshots', () => {
 
     await page.getByRole('button', { name: 'Historial' }).click();
     await expect(page.getByRole('button', { name: 'Historial' })).toHaveClass(/text-blue-600/, { timeout: 10000 });
+    await page.waitForFunction(() => {
+      const bodyText = document.body.innerText;
+      const hasLoadedTimelineState =
+        bodyText.includes('Historial del Documento') ||
+        bodyText.includes('No hay eventos en el historial de este documento') ||
+        bodyText.includes('Error');
+
+      return !document.querySelector('.animate-pulse') && hasLoadedTimelineState;
+    }, { timeout: 15000 });
     await capture(page, 'timeline-page.png');
 
     const notificationsResponsePromise = page.waitForResponse((response) => {

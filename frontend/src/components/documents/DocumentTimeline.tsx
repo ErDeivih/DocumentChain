@@ -159,7 +159,7 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-gray-500 text-center">
+          <p className="text-center text-muted-foreground">
             No hay eventos en el historial de este documento
           </p>
         </CardContent>
@@ -178,7 +178,7 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
       <CardContent>
         <div className="relative">
           {/* Línea vertical */}
-          <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
+          <div className="absolute bottom-0 left-5 top-0 w-0.5 bg-border" />
           
           <div className="space-y-6">
             {events.map((event) => {
@@ -193,7 +193,7 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
                   </div>
                   
                   {/* Contenido */}
-                  <div className="flex-1 rounded-lg border bg-white p-4 shadow-sm">
+                  <div className="flex-1 rounded-lg border border-border bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -208,24 +208,24 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
                           )}
                         </div>
                         
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-foreground">
                           {getEventDetails(event)}
                         </p>
                         
                         {event.actor.fullName && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             Por: {event.actor.fullName} (@{event.actor.username})
                           </p>
                         )}
                       </div>
                       
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {formatDate(event.timestamp)}
                         </p>
                         
                         {event.blockchainTx && (
-                          <p className="text-xs text-gray-600 mt-1">
+                          <p className="mt-1 text-xs text-muted-foreground">
                             TX: {event.blockchainTx.substring(0, 10)}...
                           </p>
                         )}

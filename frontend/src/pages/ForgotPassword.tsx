@@ -47,7 +47,7 @@ export const ForgotPassword: React.FC = () => {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_34%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.12),_transparent_28%),linear-gradient(135deg,#f4fbff_0%,#e7f3fb_48%,#eef7ff_100%)] p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
             <div className="flex items-center justify-center mb-4">
@@ -61,7 +61,7 @@ export const ForgotPassword: React.FC = () => {
             <p className="mb-4 text-muted-foreground">
               Si existe una cuenta con ese email, le hemos enviado un enlace para restablecer su contraseña.
             </p>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="mb-6 text-sm text-muted-foreground">
               El enlace expirará en 1 hora.
             </p>
             <Link to="/login">
@@ -77,7 +77,7 @@ export const ForgotPassword: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_34%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.12),_transparent_28%),linear-gradient(135deg,#f4fbff_0%,#e7f3fb_48%,#eef7ff_100%)] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
@@ -140,8 +140,8 @@ export const ForgotPassword: React.FC = () => {
             </Link>
           </div>
 
-          <div className="mt-6 rounded-xl border border-primary/15 bg-card/70 p-3 backdrop-blur-sm">
-            <p className="text-xs text-slate-300">
+          <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50/80 p-3 backdrop-blur-sm">
+            <p className="text-xs text-foreground">
               <strong>Nota de Seguridad:</strong> Para su protección, no confirmaremos si existe una cuenta 
               con este email. Si no recibe un email en unos minutos, compruebe su 
               carpeta de spam o verifique que está usando la dirección de email correcta.

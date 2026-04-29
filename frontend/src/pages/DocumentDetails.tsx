@@ -234,7 +234,7 @@ export const DocumentDetails: React.FC = () => {
               </div>
               <div>
                 <CardTitle className="text-2xl">{document.name}</CardTitle>
-                <p className="text-gray-600 mt-1">
+                <p className="mt-1 text-muted-foreground">
                   {formatBytes(Number(document.size))} • {document.mimeType}
                 </p>
               </div>
@@ -258,15 +258,15 @@ export const DocumentDetails: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <div>
-              <p className="text-sm text-gray-500">Blockchain ID</p>
+              <p className="text-sm text-muted-foreground">Blockchain ID</p>
               <p className="font-mono text-sm truncate">{document.blockchainId}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Versiones</p>
+              <p className="text-sm text-muted-foreground">Versiones</p>
               <p className="font-medium">{versions?.versions.length || 0}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Compartidos</p>
+              <p className="text-sm text-muted-foreground">Compartidos</p>
               <p className="font-medium">{shares?.shares.length || 0}</p>
             </div>
           </div>
@@ -351,7 +351,7 @@ export const DocumentDetails: React.FC = () => {
       </Card>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <nav className="flex space-x-8">
           {tabs.map((tab) => (
             <button
@@ -360,7 +360,7 @@ export const DocumentDetails: React.FC = () => {
               className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
               }`}
             >
               <tab.icon className="w-4 h-4" />

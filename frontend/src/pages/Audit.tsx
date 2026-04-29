@@ -185,11 +185,11 @@ export const Audit: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Shield className="w-8 h-8 text-blue-600" />
+          <h1 className="flex items-center gap-3 text-3xl font-bold text-foreground">
+            <Shield className="h-8 w-8 text-primary" />
             Auditoría Blockchain
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="mt-2 text-muted-foreground">
             Consulta pública de eventos y transacciones en la blockchain - Similar a Etherscan
           </p>
         </div>
@@ -207,7 +207,7 @@ export const Audit: React.FC = () => {
               <FileCheck className="w-8 h-8 text-blue-600" />
               <div>
                 <p className="text-2xl font-bold">{stats.totalDocuments}</p>
-                <p className="text-sm text-gray-500">Documentos</p>
+                <p className="text-sm text-muted-foreground">Documentos</p>
               </div>
             </div>
           </Card>
@@ -216,7 +216,7 @@ export const Audit: React.FC = () => {
               <Key className="w-8 h-8 text-green-600" />
               <div>
                 <p className="text-2xl font-bold">{stats.totalSignatures}</p>
-                <p className="text-sm text-gray-500">Firmas</p>
+                <p className="text-sm text-muted-foreground">Firmas</p>
               </div>
             </div>
           </Card>
@@ -225,7 +225,7 @@ export const Audit: React.FC = () => {
               <Eye className="w-8 h-8 text-purple-600" />
               <div>
                 <p className="text-2xl font-bold">{stats.totalShares}</p>
-                <p className="text-sm text-gray-500">Compartidos</p>
+                <p className="text-sm text-muted-foreground">Compartidos</p>
               </div>
             </div>
           </Card>
@@ -234,7 +234,7 @@ export const Audit: React.FC = () => {
               <Activity className="w-8 h-8 text-orange-600" />
               <div>
                 <p className="text-2xl font-bold">{stats.totalVersions}</p>
-                <p className="text-sm text-gray-500">Versiones</p>
+                <p className="text-sm text-muted-foreground">Versiones</p>
               </div>
             </div>
           </Card>
@@ -243,7 +243,7 @@ export const Audit: React.FC = () => {
               <Box className="w-8 h-8 text-indigo-600" />
               <div>
                 <p className="text-2xl font-bold">{stats.lastBlockSynced}</p>
-                <p className="text-sm text-gray-500">Último Bloque</p>
+                <p className="text-sm text-muted-foreground">Último Bloque</p>
               </div>
             </div>
           </Card>
@@ -262,7 +262,7 @@ export const Audit: React.FC = () => {
               )}
               <div>
                 <p className="font-semibold">Estado del Servicio: {health.status}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Blockchain: {health.blockchain.connected ? 'Conectado' : 'Desconectado'} - 
                   Bloque actual: #{health.blockchain.latestBlock}
                 </p>
@@ -297,13 +297,13 @@ export const Audit: React.FC = () => {
               onClick={() => { setSearchType('blockchainId'); clearResults(); }}
               className={`p-4 border-2 rounded-lg transition-colors ${
                 searchType === 'blockchainId'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
-              <Hash className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">Por ID Blockchain</h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <Hash className="mx-auto mb-2 h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-foreground">Por ID Blockchain</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Ver historial completo de eventos
               </p>
             </button>
@@ -312,13 +312,13 @@ export const Audit: React.FC = () => {
               onClick={() => { setSearchType('walletAddress'); clearResults(); }}
               className={`p-4 border-2 rounded-lg transition-colors ${
                 searchType === 'walletAddress'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
-              <User className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">Verificar Propiedad</h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <User className="mx-auto mb-2 h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-foreground">Verificar Propiedad</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Comprobar si una wallet es propietaria
               </p>
             </button>
@@ -327,13 +327,13 @@ export const Audit: React.FC = () => {
               onClick={() => { setSearchType('fileId'); clearResults(); }}
               className={`p-4 border-2 rounded-lg transition-colors ${
                 searchType === 'fileId'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
               }`}
             >
-              <Database className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">Verificar Integridad</h3>
-              <p className="text-xs text-gray-600 mt-1">
+              <Database className="mx-auto mb-2 h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-foreground">Verificar Integridad</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Comprobar integridad blockchain vs BD
               </p>
             </button>
@@ -409,27 +409,27 @@ export const Audit: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Propietario</p>
+                <p className="text-sm text-muted-foreground">Propietario</p>
                 <p className="font-mono text-sm">{formatAddress(metadataResult.owner)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Hash del Archivo</p>
+                <p className="text-sm text-muted-foreground">Hash del Archivo</p>
                 <p className="font-mono text-sm truncate">{metadataResult.fileHash?.substring(0, 20)}...</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">CID IPFS</p>
+                <p className="text-sm text-muted-foreground">CID IPFS</p>
                 <p className="font-mono text-sm truncate">{metadataResult.contentCid?.substring(0, 20)}...</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Creado</p>
+                <p className="text-sm text-muted-foreground">Creado</p>
                 <p className="font-semibold">{formatDate(metadataResult.createdAt)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Versión Actual</p>
+                <p className="text-sm text-muted-foreground">Versión Actual</p>
                 <p className="font-semibold">v{metadataResult.currentVersion}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Estado</p>
+                <p className="text-sm text-muted-foreground">Estado</p>
                 <Badge variant={metadataResult.isDeleted ? 'destructive' : 'success'}>
                   {metadataResult.isDeleted ? 'Eliminado' : 'Activo'}
                 </Badge>
@@ -453,7 +453,7 @@ export const Audit: React.FC = () => {
               {auditTrail.map((event, index) => (
                 <div
                   key={event.id || index}
-                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-border bg-white p-4 transition-colors hover:bg-secondary/35"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -461,30 +461,30 @@ export const Audit: React.FC = () => {
                         <Badge variant={getEventTypeColor(event.eventType)}>
                           {getEventTypeLabel(event.eventType)}
                         </Badge>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           Bloque #{event.blockNumber}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
-                          <span className="text-gray-500">Actor:</span>{' '}
+                          <span className="text-muted-foreground">Actor:</span>{' '}
                           <span className="font-mono">{formatAddress(event.actor)}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Fecha:</span>{' '}
+                          <span className="text-muted-foreground">Fecha:</span>{' '}
                           <span>{formatDate(event.timestamp)}</span>
                         </div>
                       </div>
                       {event.transactionHash && (
                         <div className="mt-2 text-sm">
-                          <span className="text-gray-500">TX:</span>{' '}
+                          <span className="text-muted-foreground">TX:</span>{' '}
                           <span className="font-mono text-xs break-all">
                             {event.transactionHash}
                           </span>
                         </div>
                       )}
                       {event.details && Object.keys(event.details).length > 0 && (
-                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                        <div className="mt-2 rounded border border-border bg-secondary/35 p-2 text-xs text-foreground">
                           <pre className="whitespace-pre-wrap">
                             {JSON.stringify(event.details, null, 2)}
                           </pre>
@@ -512,27 +512,27 @@ export const Audit: React.FC = () => {
             {ownershipResult.isOwner ? (
               <>
                 <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="mb-2 text-2xl font-bold text-foreground">
                   Propiedad Verificada
                 </h2>
-                <p className="text-gray-600 mb-4">
+                <p className="mb-4 text-muted-foreground">
                   La wallet <span className="font-mono">{formatAddress(ownershipResult.walletAddress)}</span> ES propietaria de este documento
                 </p>
               </>
             ) : (
               <>
                 <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="mb-2 text-2xl font-bold text-foreground">
                   Propiedad No Verificada
                 </h2>
-                <p className="text-gray-600 mb-4">
+                <p className="mb-4 text-muted-foreground">
                   La wallet <span className="font-mono">{formatAddress(ownershipResult.walletAddress)}</span> NO es propietaria de este documento
                 </p>
               </>
             )}
             {ownershipResult.documentInfo && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg text-left max-w-md mx-auto">
-                <p className="text-sm text-gray-500 mb-1">Propietario Real:</p>
+              <div className="mx-auto mt-4 max-w-md rounded-lg border border-border bg-secondary/35 p-4 text-left">
+                <p className="mb-1 text-sm text-muted-foreground">Propietario Real:</p>
                 <p className="font-mono text-sm">{formatAddress(ownershipResult.documentInfo.owner)}</p>
               </div>
             )}
@@ -575,19 +575,19 @@ export const Audit: React.FC = () => {
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Existe:</span>
+                    <span className="text-muted-foreground">Existe:</span>
                     <Badge variant={integrityResult.blockchainData?.exists ? 'success' : 'destructive'}>
                       {integrityResult.blockchainData?.exists ? 'Sí' : 'No'}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Propietario:</span>
+                    <span className="text-muted-foreground">Propietario:</span>
                     <span className="font-mono text-xs">
                       {formatAddress(integrityResult.blockchainData?.owner || '')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Eliminado:</span>
+                    <span className="text-muted-foreground">Eliminado:</span>
                     <span>{integrityResult.blockchainData?.isDeleted ? 'Sí' : 'No'}</span>
                   </div>
                 </div>
@@ -601,13 +601,13 @@ export const Audit: React.FC = () => {
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Existe:</span>
+                    <span className="text-muted-foreground">Existe:</span>
                     <Badge variant={integrityResult.databaseData?.exists ? 'success' : 'destructive'}>
                       {integrityResult.databaseData?.exists ? 'Sí' : 'No'}
                     </Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Nombre:</span>
+                    <span className="text-muted-foreground">Nombre:</span>
                     <span>{integrityResult.databaseData?.name || '-'}</span>
                   </div>
                 </div>
@@ -616,7 +616,7 @@ export const Audit: React.FC = () => {
 
             {/* Match Results */}
             {integrityResult.match && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-4 rounded-lg border border-border bg-secondary/35 p-4">
                 <h4 className="font-semibold mb-2">Comparación</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center justify-between">
@@ -643,14 +643,14 @@ export const Audit: React.FC = () => {
       )}
 
       {/* Info Section */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="border-[#cce4ff] bg-[#f7fbff]">
         <CardContent className="py-4">
-          <h3 className="font-semibold text-blue-800 mb-2">¿Qué es la Auditoría Blockchain?</h3>
-          <p className="text-sm text-blue-700 mb-3">
+          <h3 className="mb-2 font-semibold text-foreground">¿Qué es la Auditoría Blockchain?</h3>
+          <p className="mb-3 text-sm text-muted-foreground">
             Esta página permite a cualquier persona consultar información pública almacenada en la blockchain,
             similar a como Etherscan permite explorar transacciones de Ethereum.
           </p>
-          <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+          <ul className="list-inside list-disc space-y-1 text-sm text-foreground">
             <li><strong>Historial de Eventos:</strong> Ve todos los eventos relacionados con un documento</li>
             <li><strong>Verificación de Propiedad:</strong> Comprueba si una wallet es propietaria de un documento</li>
             <li><strong>Integridad:</strong> Verifica que los datos coinciden entre blockchain y base de datos</li>

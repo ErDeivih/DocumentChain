@@ -73,8 +73,8 @@ export const PublicDocument: React.FC = () => {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{document.name}</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">{document.name}</h1>
+          <p className="mt-2 text-muted-foreground">
             Documento público publicado sin cifrado. Cualquier persona con este enlace puede visualizarlo o descargarlo.
           </p>
         </div>
@@ -117,10 +117,10 @@ export const PublicDocument: React.FC = () => {
                 {(auditTrail?.events || []).map((event) => (
                   <div key={event.id} className="rounded-lg border p-3">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="font-medium text-gray-900">{event.eventType}</p>
-                      <span className="text-xs text-gray-500">{formatDate(event.timestamp)}</span>
+                      <p className="font-medium text-foreground">{event.eventType}</p>
+                      <span className="text-xs text-muted-foreground">{formatDate(event.timestamp)}</span>
                     </div>
-                    <p className="mt-1 text-sm text-gray-600">Actor: {event.actor || 'Sistema'}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Actor: {event.actor || 'Sistema'}</p>
                   </div>
                 ))}
               </div>
@@ -135,24 +135,24 @@ export const PublicDocument: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div>
-                <p className="text-gray-500">Propietario</p>
+                <p className="text-muted-foreground">Propietario</p>
                 <p className="font-medium">{document.owner.fullName || document.owner.username}</p>
               </div>
               <div>
-                <p className="text-gray-500">Tipo</p>
+                <p className="text-muted-foreground">Tipo</p>
                 <p className="font-medium">{document.mimeType}</p>
               </div>
               <div>
-                <p className="text-gray-500">Tamaño</p>
+                <p className="text-muted-foreground">Tamaño</p>
                 <p className="font-medium">{formatBytes(document.size)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Publicado el</p>
+                <p className="text-muted-foreground">Publicado el</p>
                 <p className="font-medium">{formatDate(document.createdAt)}</p>
               </div>
               {document.blockchainId ? (
                 <div>
-                  <p className="text-gray-500">Blockchain ID</p>
+                  <p className="text-muted-foreground">Blockchain ID</p>
                   <p className="break-all font-mono text-xs">{document.blockchainId}</p>
                 </div>
               ) : null}
@@ -174,18 +174,18 @@ export const PublicDocument: React.FC = () => {
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
                       version.versionNumber === selectedVersion.versionNumber
                         ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
                     }`}
                     onClick={() => navigate(`/public/d/${document.publicId}/v/${version.versionNumber}`)}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">Versión {version.versionNumber}</p>
-                        <p className="text-xs text-gray-500">{formatDate(version.createdAt)}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(version.createdAt)}</p>
                       </div>
                       {version.isOperational ? <Badge variant="success">Activa</Badge> : null}
                     </div>
-                    {version.comment ? <p className="mt-2 text-sm text-gray-600">{version.comment}</p> : null}
+                    {version.comment ? <p className="mt-2 text-sm text-muted-foreground">{version.comment}</p> : null}
                   </button>
                 ))}
               </div>
@@ -202,14 +202,14 @@ export const PublicDocument: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {document.signatures.length === 0 ? (
-                  <p className="text-sm text-gray-600">Todavía no hay firmas registradas para este documento.</p>
+                  <p className="text-sm text-muted-foreground">Todavía no hay firmas registradas para este documento.</p>
                 ) : (
                   document.signatures.map((signature) => (
                     <div key={signature.id} className="rounded-lg border p-3">
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {signature.signer?.fullName || signature.signer?.username || 'Firmante registrado'}
                       </p>
-                      <p className="text-xs text-gray-500">Versión {signature.versionNumber} · {formatDate(signature.signedAt)}</p>
+                      <p className="text-xs text-muted-foreground">Versión {signature.versionNumber} · {formatDate(signature.signedAt)}</p>
                     </div>
                   ))
                 )}
@@ -225,7 +225,7 @@ export const PublicDocument: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4 text-sm text-gray-600">
+              <p className="mb-4 text-sm text-muted-foreground">
                 Si dispone de una cuenta en DocumentChain, puede abrir este documento dentro de la aplicación para firmarlo o continuar desde el entorno autenticado.
               </p>
               {user ? (
