@@ -497,7 +497,11 @@ fi
 
 if [[ "$AUTO_RESEED_QA" == "1" ]]; then
   log_step "5/8" "Resetting database and generating QA seed profile (${SEED_PROFILE})"
-  "${compose_cmd[@]}" "${profile_args[@]}" run --rm -e SEED_PROFILE="$SEED_PROFILE" backend npm run data:seed:qa
+  "${compose_cmd[@]}" "${profile_args[@]}" run --rm \
+    -e SEED_PROFILE="$SEED_PROFILE" \
+    -v "$ROOT_DIR/backend/scripts:/app/scripts:ro" \
+    -v "$ROOT_DIR/backend/src:/app/src:ro" \
+    backend npm run data:seed:qa
 fi
 
 log_step "6/8" "Starting backend and frontend containers"
