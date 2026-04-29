@@ -128,7 +128,7 @@ Este anexo presenta la estimación de esfuerzo y la planificación temporal del 
 
 La estimación mediante UCP permite obtener una medida del tamaño funcional del sistema a partir de los actores y casos de uso identificados, ajustada a través de factores de complejidad técnica y del entorno. El Proceso Unificado organiza el desarrollo en cuatro fases principales (\textit{Inicio}, \textit{Elaboración}, \textit{Construcción} y \textit{Transición}), cada una dividida en iteraciones que permiten gestionar de forma progresiva la complejidad inherente a DocumentChain.
 
-La complejidad particular de este proyecto reside en la integración de cuatro subsistemas heterogéneos: un \textit{backend} REST en Node.js, una base de datos relacional PostgreSQL, una capa de almacenamiento IPFS con proveedor configurable para la persistencia descentralizada y un \textit{smart contract} en Solidity desplegado sobre la red Ethereum. Esta arquitectura multi-capa justifica tanto la elección del Proceso Unificado como la necesidad de una estimación de esfuerzo rigurosa y justificada.
+La complejidad particular de este proyecto reside en la integración de cuatro subsistemas heterogéneos: un \textit{backend} REST en Node.js, una base de datos relacional PostgreSQL, una capa de almacenamiento IPFS materializada mediante nodo Kubo autoalojado para la persistencia descentralizada y un \textit{smart contract} en Solidity desplegado sobre la red Ethereum. Esta arquitectura multi-capa justifica tanto la elección del Proceso Unificado como la necesidad de una estimación de esfuerzo rigurosa y justificada.
 
 Para mantener coherencia con el Anexo I, la estimación se realiza sobre un \textbf{catálogo consolidado de 42 casos de uso principales}. La reducción respecto al inventario funcional inicial responde a un criterio de agrupación: varias operaciones auxiliares o de soporte se documentan como subflujos dentro de UC más amplios y, por tanto, no se ponderan de forma independiente en el cálculo UCP para evitar doble contabilización del esfuerzo.
 
@@ -784,7 +784,7 @@ A continuación se presenta la relación completa de tareas, subtareas e hitos d
 \hline
 66 & Redacción de la memoria principal del TFG & 65 & Redacción completa del documento principal con introducción, estado del arte y conclusiones. \\
 \hline
-67 & Revisión y corrección de los anexos & 66 & Revisión final de los Anexos I--V y corrección de errores detectados. \\
+67 & Revisión y corrección de los anexos & 66 & Revisión final de los Anexos I--VI y corrección de errores detectados. \\
 \hline
 68 & Revisión final con los tutores & 67 & Reunión de revisión global del proyecto antes de la entrega oficial. \\
 \hline
@@ -984,7 +984,7 @@ La siguiente tabla constituye la \textbf{fuente de verdad} del calendario del pr
 \hline
 59 & Despliegue del backend y base de datos & Trans. I1 & 10/05/2026 & 2 & 11/05/2026 & 58 \\
 \hline
-60 & Despliegue del proveedor IPFS en producción & Trans. I1 & 10/05/2026 & 2 & 11/05/2026 & 58 \\
+60 & Despliegue del nodo IPFS autoalojado en producción & Trans. I1 & 10/05/2026 & 2 & 11/05/2026 & 58 \\
 \hline
 61 & Despliegue del smart contract en Sepolia & Trans. I1 & 10/05/2026 & 3 & 12/05/2026 & 58 \\
 \hline
@@ -1149,7 +1149,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
   \gantttitlecalendar{month=name, day} \\
   \ganttbar[bar label font=\scriptsize]{58.\ Preparación entorno producción}{2026-05-07}{2026-05-09} \\
   \ganttbar[bar label font=\scriptsize]{59.\ Despliegue backend y base de datos}{2026-05-10}{2026-05-11} \\
-  \ganttbar[bar label font=\scriptsize]{60.\ Despliegue proveedor IPFS}{2026-05-10}{2026-05-11} \\
+  \ganttbar[bar label font=\scriptsize]{60.\ Despliegue nodo IPFS autoalojado}{2026-05-10}{2026-05-11} \\
   \ganttbar[bar label font=\scriptsize]{61.\ Despliegue SC en Sepolia}{2026-05-10}{2026-05-12} \\
   \ganttbar[bar label font=\scriptsize]{62.\ Dominio y certificado SSL}{2026-05-12}{2026-05-13} \\
   \ganttbar[bar label font=\scriptsize]{63.\ Pruebas funcionales producción}{2026-05-13}{2026-05-15} \\
@@ -1177,7 +1177,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 
 Una vez definida la estimación del coste de desarrollo del proyecto DocumentChain y establecida la planificación temporal detallada mediante las distintas tablas de asignación de tiempos y el cronograma de iteraciones, se puede concluir que se trata de un proyecto de considerable complejidad tanto a nivel funcional como tecnológico. Esta complejidad viene determinada por los \textbf{42 casos de uso principales} utilizados en la estimación, por la agrupación de múltiples operaciones auxiliares dentro de esos flujos y por la integración de cuatro subsistemas heterogéneos que requieren tecnologías de naturaleza muy distinta.
 
-El proyecto DocumentChain combina un frontend React para la operación de usuario y la gestión local del material criptográfico, un backend Node.js con lógica de negocio compleja (cifrado AES-256-GCM, encapsulado RSA-OAEP de claves e integración blockchain), una capa de almacenamiento IPFS abstraída mediante un proveedor configurable y un smart contract Solidity que actúa como registro inmutable de la cadena de custodia documental. Cada uno de estos subsistemas ha requerido fases específicas de análisis, diseño, implementación y pruebas.
+El proyecto DocumentChain combina un frontend React para la operación de usuario y la gestión local del material criptográfico, un backend Node.js con lógica de negocio compleja (cifrado AES-256-GCM, encapsulado RSA-OAEP de claves e integración blockchain), una capa de almacenamiento IPFS materializada mediante nodo Kubo autoalojado y un smart contract Solidity que actúa como registro inmutable de la cadena de custodia documental. Cada uno de estos subsistemas ha requerido fases específicas de análisis, diseño, implementación y pruebas.
 
 La estimación obtenida mediante la herramienta EZEstimate, con un total de \textbf{1.500 horas} de trabajo efectivo, ha resultado coherente con el esfuerzo real finalmente dedicado al desarrollo. Es importante destacar que esta estimación debe entenderse como una referencia orientativa para la planificación, ya que durante el desarrollo han surgido tareas adicionales no siempre reflejadas explícitamente en los casos de uso, tales como investigación tecnológica sobre blockchain, resolución de problemas de sincronización de eventos, ajustes de arquitectura de cifrado y pruebas continuas de seguridad.
 

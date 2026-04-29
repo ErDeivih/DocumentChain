@@ -1,6 +1,6 @@
 \babel@toc {spanish}{}\relax 
 \contentsline {section}{\numberline {1}Introducción}{8}{section.1}%
-\contentsline {section}{\numberline {2}Ámbito del software}{8}{section.2}%
+\contentsline {section}{\numberline {2}Ámbito del software}{9}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Motivación y Problemática}{9}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Subsistemas Principales}{9}{subsection.2.2}%
 \contentsline {subsubsection}{\numberline {2.2.1}Subsistema de Usuario Final (Frontend Web)}{9}{subsubsection.2.2.1}%
@@ -20,7 +20,7 @@
 \contentsline {subsection}{\numberline {3.4}Diagrama conjunto: base de datos y blockchain}{13}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}Persistencia coordinada: PostgreSQL, IPFS y blockchain}{15}{subsection.3.5}%
 \contentsline {subsubsection}{\numberline {3.5.1}Base de datos relacional (PostgreSQL)}{16}{subsubsection.3.5.1}%
-\contentsline {subsubsection}{\numberline {3.5.2}Almacenamiento distribuido (backend IPFS compatible)}{16}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.2}Almacenamiento distribuido (nodo Kubo autoalojado)}{16}{subsubsection.3.5.2}%
 \contentsline {subsubsection}{\numberline {3.5.3}Blockchain (Smart Contract en Ethereum)}{17}{subsubsection.3.5.3}%
 \contentsline {subsubsection}{\numberline {3.5.4}Estructuras de datos del smart contract}{18}{subsubsection.3.5.4}%
 \contentsline {paragraph}{Tipos y roles}{18}{section*.12}%

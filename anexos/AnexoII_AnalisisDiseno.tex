@@ -220,7 +220,7 @@ DocumentChain implementa una arquitectura distribuida moderna basada en:
     \item \textbf{Backend API REST}: Node.js + Express + Prisma ORM
     \item \textbf{Base de datos relacional}: PostgreSQL con índices optimizados
     \item \textbf{Smart contracts}: Solidity + OpenZeppelin en Ethereum
-    \item \textbf{Almacenamiento distribuido}: backend IPFS compatible sobre nodo Kubo autoalojado
+    \item \textbf{Almacenamiento distribuido}: nodo Kubo autoalojado integrado mediante adaptador IPFS en el backend
     \item \textbf{Protección criptográfica}: Cifrado AES-256-GCM para documentos privados, RSA-OAEP para proteger claves simétricas y publicación pública controlada
 \end{itemize}
 
@@ -288,7 +288,7 @@ API RESTful que coordina:
 
 \begin{itemize}
     \item Autenticación y autorización (JWT y contraseñas; wallets para firma de operaciones)
-    \item Comunicación con backend de almacenamiento IPFS compatible
+    \item Comunicación con el nodo Kubo autoalojado mediante el adaptador IPFS del backend
     \item Preparación de transacciones blockchain
     \item Event listeners para sincronización
     \item Gestión de permisos y re-encriptación de claves
@@ -451,9 +451,9 @@ PostgreSQL almacena toda la información que requiere consultas relacionales efi
     \item \textbf{Estado de sincronización}: referencia al hash de transacción blockchain para cada documento/firma, facilitando la reconciliación de estados.
 \end{itemize}
 
-\subsubsection{Almacenamiento distribuido (backend IPFS compatible)}
+\subsubsection{Almacenamiento distribuido (nodo Kubo autoalojado)}
 
-La capa de almacenamiento IPFS compatible conserva el contenido binario de los archivos de forma direccionable por contenido y persistente:
+La capa de almacenamiento IPFS basada en nodo Kubo autoalojado conserva el contenido binario de los archivos de forma direccionable por contenido y persistente:
 
 IPFS (
 \textit{InterPlanetary File System}) funciona como una red de objetos enlazados por su huella criptográfica. En lugar de localizar un fichero por el servidor y la ruta donde se publicó, se localiza por el identificador derivado de su contenido. Esta diferencia es la que hace especial a IPFS dentro del proyecto: si dos nodos conservan el mismo bloque, ambos pueden servir exactamente el mismo contenido, y si el binario cambia se obtiene necesariamente un nuevo CID. Para un sistema con versionado documental, esta propiedad aporta una correspondencia directa entre versión lógica e identidad criptográfica del archivo.
@@ -776,7 +776,7 @@ El diagrama de clases de diseño incluye métodos, visibilidad y relaciones téc
 
 \subsubsection{Arquitectura del sistema por componentes}
 
-El diagrama siguiente muestra la comunicación entre todos los módulos del sistema: el servidor API (Node.js + Express) concentra los Blockchain Event Listeners, los Routers, el Auth Middleware JWT+RBAC y la capa de Services. Los clientes acceden mediante HTTPS REST y WebSocket (Socket.IO). Las tres capas de persistencia son PostgreSQL (vía Prisma ORM), el Smart Contract en Ethereum y la capa de almacenamiento IPFS abstraída mediante proveedor configurable.
+El diagrama siguiente muestra la comunicación entre todos los módulos del sistema: el servidor API (Node.js + Express) concentra los Blockchain Event Listeners, los Routers, el Auth Middleware JWT+RBAC y la capa de Services. Los clientes acceden mediante HTTPS REST y WebSocket (Socket.IO). Las tres capas de persistencia son PostgreSQL (vía Prisma ORM), el Smart Contract en Ethereum y el nodo IPFS autoalojado consumido mediante el adaptador de almacenamiento del backend.
 
 \begin{landscape}
 \vspace*{\fill}
@@ -1530,7 +1530,7 @@ UC-0041 a UC-0042 (Admin) & X & X & X & & \\
 \hline
 NFR-0001 (Seguridad) & Cifrado AES-256-GCM en IPFS, Argon2id para passwords, HTTPS forzoso, JWT con rotación, Rate Limiting, validación de entrada en todos los endpoints \\
 \hline
-NFR-0002 (Rendimiento) & Índices en BD (userId, documentId, eventType), backend IPFS configurable, pool de conexiones Prisma, streaming de archivos grandes \\
+NFR-0002 (Rendimiento) & Índices en BD (userId, documentId, eventType), nodo IPFS autoalojado con almacenamiento direccionado por contenido, pool de conexiones Prisma, streaming de archivos grandes \\
 \hline
 NFR-0003 (Usabilidad) & Interfaz React responsive con Tailwind, feedback inmediato en operaciones async, prototipos validados por flujos de usuario \\
 \hline

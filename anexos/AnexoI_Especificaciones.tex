@@ -977,7 +977,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
         \item Upload de documentos < 10 segundos para archivos de 10 MB
         \item Download/desencriptado < 5 segundos para archivos de 10 MB
         \item Concurrencia: mínimo 50 usuarios simultáneos
-        \item Backend de almacenamiento IPFS configurable, con soporte para redundancia cuando se despliega en clúster autoalojado
+        \item Integración con nodo IPFS autoalojado, con soporte de redundancia cuando se despliega en clúster propio
         \item Pool de conexiones PostgreSQL optimizado
         \item índices en campos frecuentemente consultados
         \item Lazy loading y paginación en listados
@@ -1073,7 +1073,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
         \item Rollback de operaciones fallidas
         \item No se pierden documentos si falla transacción blockchain
         \item Backup diario automatizado de PostgreSQL
-        \item Backend de almacenamiento IPFS con replicación o persistencia delegada según el proveedor configurado
+        \item Nodo IPFS autoalojado con persistencia local y opción de replicación cuando se despliega en clúster
         \item Monitoreo de salud de servicios
         \item Manejo graceful de desconexión de red
     \end{enumerate} \\
@@ -1155,7 +1155,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
     \hline
     \textbf{Restricciones} & 
     \begin{enumerate}
-        \item Docker Compose para servicios autoalojados opcionales, incluido el nodo IPFS propio
+        \item Docker Compose para la orquestación de servicios autoalojados, incluido el nodo IPFS propio
         \item Scripts PowerShell para desarrollo Windows
         \item Variables de entorno para configuración
         \item Sin hardcodeo de credenciales
