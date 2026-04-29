@@ -86,6 +86,20 @@ Cuando llegue un push a `main` o `master`, GitHub Actions ejecutara este proceso
 
 El script esta pensado para ser idempotente. Si no hay cambios en imagenes o configuracion, el redeploy sera rapido. Si quieres un reinicio completo del stack con borrado de volumenes, puedes activar `RESET_DOCKER_STATE=1` en el fichero del servidor, aunque eso elimina la base de datos y el estado persistente.
 
+Si quieres que cada despliegue deje el entorno completamente limpio para pruebas funcionales (sin usuarios ni datos previos), combina:
+
+- `RESET_DOCKER_STATE=1`
+- `AUTO_RESEED_QA=1`
+- `SEED_PROFILE=qa-fast` (o `qa-max`)
+
+Con esa combinacion, cada deploy borra volumenes, reconstruye servicios y regenera la base de datos con seed QA.
+
+Para evitar despliegues en los que el correo parezca funcionar pero no se entregue externamente, puedes forzar validacion estricta de SMTP:
+
+- `REQUIRE_SMTP_RELAY=1`
+
+Cuando este flag está activo, el script falla si falta `SMTP_RELAYHOST`, `SMTP_RELAYHOST_USERNAME`, `SMTP_RELAYHOST_PASSWORD` o si `EMAIL_FROM` usa dominio local (`.local`).
+
 ## Comprobaciones utiles
 
 Tras un despliegue, estas verificaciones suelen ser suficientes:

@@ -7,6 +7,9 @@ SERVER_ENV_FILE="${SERVER_ENV_FILE:-$ROOT_DIR/.env.server}"
 ENABLE_IPFS_NODE="${ENABLE_IPFS_NODE:-0}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
 AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
+AUTO_RESEED_QA="${AUTO_RESEED_QA:-0}"
+SEED_PROFILE="${SEED_PROFILE:-qa-fast}"
+REQUIRE_SMTP_RELAY="${REQUIRE_SMTP_RELAY:-0}"
 COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
 BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
 BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
@@ -189,6 +192,36 @@ require_secure_secret() {
   fi
 }
 
+require_mail_delivery_configuration() {
+  local smtp_host="${SMTP_HOST:-postfix}"
+  local email_from="${EMAIL_FROM:-}"
+  local sender_domain
+
+  sender_domain="$(extract_email_domain "$email_from")"
+
+  if [[ -z "$email_from" || -z "$sender_domain" ]]; then
+    printf 'EMAIL_FROM must be configured with a real sender address in %s\n' "$SERVER_ENV_FILE" >&2
+    exit 1
+  fi
+
+  if is_local_email_domain "$sender_domain"; then
+    printf 'EMAIL_FROM must not use a local domain when REQUIRE_SMTP_RELAY=1 (%s)\n' "$email_from" >&2
+    exit 1
+  fi
+
+  if [[ "$smtp_host" == "postfix" ]]; then
+    if [[ -z "${SMTP_RELAYHOST:-}" || -z "${SMTP_RELAYHOST_USERNAME:-}" || -z "${SMTP_RELAYHOST_PASSWORD:-}" ]]; then
+      printf 'SMTP relay is required but SMTP_RELAYHOST/SMTP_RELAYHOST_USERNAME/SMTP_RELAYHOST_PASSWORD are missing in %s\n' "$SERVER_ENV_FILE" >&2
+      exit 1
+    fi
+  else
+    if [[ -z "${SMTP_USER:-}" || -z "${SMTP_PASS:-}" ]]; then
+      printf 'Direct SMTP mode requires SMTP_USER and SMTP_PASS in %s\n' "$SERVER_ENV_FILE" >&2
+      exit 1
+    fi
+  fi
+}
+
 compose_cmd=(docker compose)
 
 if [[ -f "$SERVER_ENV_FILE" ]]; then
@@ -240,10 +273,17 @@ require_secure_secret "ADMIN_REGISTRATION_SECRET"
 ENABLE_IPFS_NODE="${ENABLE_IPFS_NODE:-0}"
 RESET_DOCKER_STATE="${RESET_DOCKER_STATE:-0}"
 AUTO_RUN_MIGRATIONS="${AUTO_RUN_MIGRATIONS:-1}"
+AUTO_RESEED_QA="${AUTO_RESEED_QA:-0}"
+SEED_PROFILE="${SEED_PROFILE:-qa-fast}"
+REQUIRE_SMTP_RELAY="${REQUIRE_SMTP_RELAY:-0}"
 COMPOSE_BUILD_PARALLEL_LIMIT="${COMPOSE_BUILD_PARALLEL_LIMIT:-1}"
 BUILD_RETRY_ATTEMPTS="${BUILD_RETRY_ATTEMPTS:-3}"
 BUILD_RETRY_DELAY_SECONDS="${BUILD_RETRY_DELAY_SECONDS:-15}"
 IPFS_DATA_ROOT="${IPFS_DATA_ROOT:-$ROOT_DIR/ipfs/runtime}"
+
+if [[ "$REQUIRE_SMTP_RELAY" == "1" ]]; then
+  require_mail_delivery_configuration
+fi
 
 profile_args=()
 if [[ "$ENABLE_IPFS_NODE" == "1" ]]; then
@@ -329,11 +369,11 @@ if [[ -n "${VITE_BLOCKCHAIN_RPC_URL:-}" ]]; then
 fi
 
 if [[ "$RESET_DOCKER_STATE" == "1" ]]; then
-  log_step "1/7" "Removing current stack and persistent volumes"
+  log_step "1/8" "Removing current stack and persistent volumes"
   "${compose_cmd[@]}" "${profile_args[@]}" down -v --remove-orphans
 fi
 
-log_step "1/7" "Building Docker images sequentially with retry protection"
+log_step "1/8" "Building Docker images sequentially with retry protection"
 for service in hardhat backend frontend; do
   build_service_with_retries "$service" "$BUILD_RETRY_ATTEMPTS" "$BUILD_RETRY_DELAY_SECONDS"
 done
@@ -343,26 +383,31 @@ if [[ "$ENABLE_IPFS_NODE" == "1" ]]; then
   base_services+=(ipfs-node)
 fi
 
-log_step "2/7" "Starting base infrastructure services"
+log_step "2/8" "Starting base infrastructure services"
 "${compose_cmd[@]}" "${profile_args[@]}" up -d --remove-orphans "${base_services[@]}"
 
-log_step "3/7" "Waiting for PostgreSQL and Hardhat to become healthy"
+log_step "3/8" "Waiting for PostgreSQL and Hardhat to become healthy"
 wait_for_health documentchain-postgres 30 4
 wait_for_health documentchain-hardhat 30 4
 
 if [[ "$AUTO_RUN_MIGRATIONS" == "1" ]]; then
-  log_step "4/7" "Applying Prisma migrations with the backend image"
+  log_step "4/8" "Applying Prisma migrations with the backend image"
   "${compose_cmd[@]}" "${profile_args[@]}" run --rm backend npx prisma migrate deploy --schema=./prisma/schema.prisma
 fi
 
-log_step "5/7" "Starting backend and frontend containers"
+if [[ "$AUTO_RESEED_QA" == "1" ]]; then
+  log_step "5/8" "Resetting database and generating QA seed profile (${SEED_PROFILE})"
+  "${compose_cmd[@]}" "${profile_args[@]}" run --rm -e SEED_PROFILE="$SEED_PROFILE" backend npm run data:seed:qa
+fi
+
+log_step "6/8" "Starting backend and frontend containers"
 "${compose_cmd[@]}" "${profile_args[@]}" up -d --remove-orphans backend frontend
 
-log_step "6/7" "Waiting for API and frontend health checks"
+log_step "7/8" "Waiting for API and frontend health checks"
 wait_for_health documentchain-backend 40 4
 wait_for_health documentchain-frontend 30 3
 
-log_step "7/7" "Printing deployed services"
+log_step "8/8" "Printing deployed services"
 "${compose_cmd[@]}" "${profile_args[@]}" ps
 
 printf '\nDocumentChain updated successfully on the Ubuntu server.\n'

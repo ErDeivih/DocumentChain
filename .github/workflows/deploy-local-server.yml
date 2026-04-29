@@ -37,4 +37,8 @@ jobs:
         env:
           SERVER_ENV_FILE: /opt/documentchain/.env.server
           ENABLE_IPFS_NODE: "1"
+          RESET_DOCKER_STATE: "1"
+          AUTO_RESEED_QA: "1"
+          SEED_PROFILE: "qa-fast"
+          REQUIRE_SMTP_RELAY: "1"
         run: bash scripts/deploy-ubuntu-server.sh
