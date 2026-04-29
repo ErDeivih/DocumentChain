@@ -122,7 +122,7 @@ export const Register: React.FC = () => {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_34%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.12),_transparent_28%),linear-gradient(135deg,#f4fbff_0%,#e7f3fb_48%,#eef7ff_100%)] p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8 space-y-4">
             <div className="flex items-center justify-center">
@@ -161,7 +161,7 @@ export const Register: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_35%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.16),_transparent_30%),linear-gradient(135deg,#0f172a_0%,#111c30_45%,#0b1324_100%)] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_34%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.12),_transparent_28%),linear-gradient(135deg,#f4fbff_0%,#e7f3fb_48%,#eef7ff_100%)] p-4">
       <Card className="w-full max-w-5xl">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">

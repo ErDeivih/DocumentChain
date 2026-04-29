@@ -122,8 +122,8 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
         <div
           className={`
             flex items-center gap-2 px-3 py-2.5 cursor-pointer
-            hover:bg-secondary/45 transition-colors
-            ${isSelected ? 'bg-blockchain-900/25 border-l-4 border-primary' : ''}
+            hover:bg-sky-50 transition-colors
+            ${isSelected ? 'border-l-4 border-primary bg-[linear-gradient(90deg,rgba(45,212,191,0.16),rgba(14,165,233,0.08))]' : ''}
           `}
           style={{ paddingLeft }}
           onClick={() => handleFolderClick(node.id)}
@@ -132,7 +132,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           {/* Línea vertical de conexión para mostrar jerarquía */}
           {node.level > 0 && (
             <div
-              className="absolute left-0 top-0 bottom-0 w-px bg-white/10"
+              className="absolute left-0 top-0 bottom-0 w-px bg-border"
               style={{ left: `${node.level * 24}px` }}
             />
           )}
@@ -140,7 +140,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           {/* Línea horizontal de conexión */}
           {node.level > 0 && (
             <div
-              className="absolute top-1/2 w-2 h-px bg-white/10"
+              className="absolute top-1/2 h-px w-2 bg-border"
               style={{ left: `${node.level * 24}px` }}
             />
           )}
@@ -166,7 +166,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           )}
 
           {/* Nombre de Carpeta con indicador de nivel */}
-          <span className={`flex-1 text-sm ${isSelected ? 'font-semibold text-primary-300' : 'text-foreground'}`}>
+          <span className={`flex-1 text-sm ${isSelected ? 'font-semibold text-foreground' : 'text-foreground'}`}>
             {node.name}
             {node.level > 0 && (
               <span className="ml-2 text-xs text-muted-foreground">
@@ -177,7 +177,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
           {/* Badge de contador de documentos */}
           {node.documentCount != null && node.documentCount > 0 && (
-            <span className="rounded-full border border-white/10 bg-secondary/60 px-2 py-1 text-xs text-muted-foreground">
+            <span className="rounded-full border border-border bg-sky-50 px-2 py-1 text-xs text-muted-foreground">
               {node.documentCount}
             </span>
           )}
@@ -191,7 +191,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                   onCreateFolder(node.id);
                 }
               }}
-              className="p-1 rounded transition-colors hover:bg-secondary/70 flex-shrink-0"
+              className="flex-shrink-0 rounded p-1 transition-colors hover:bg-sky-50"
               title={`Crear subcarpeta dentro de "${node.name}"`}
             >
               <Plus className="w-4 h-4 text-muted-foreground" />
@@ -207,7 +207,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 {/* Linea vertical que conecta con hermanos */}
                 {index < node.children.length - 1 && (
                   <div
-                    className="absolute left-0 top-0 bottom-0 w-px bg-white/10"
+                    className="absolute left-0 top-0 bottom-0 w-px bg-border"
                     style={{ left: `${(node.level + 1) * 24}px` }}
                   />
                 )}
@@ -245,19 +245,19 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
   const tree = buildTree(folders);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-card/90 backdrop-blur-sm">
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-white/92 backdrop-blur-sm">
       {/* Opción de carpeta raíz */}
       <div
         className={`
           flex items-center gap-2 px-3 py-2 cursor-pointer
-          hover:bg-secondary/45 transition-colors
-          ${selectedFolderId === null ? 'bg-blockchain-900/25 border-l-4 border-primary' : ''}
+          hover:bg-sky-50 transition-colors
+          ${selectedFolderId === null ? 'border-l-4 border-primary bg-[linear-gradient(90deg,rgba(45,212,191,0.16),rgba(14,165,233,0.08))]' : ''}
         `}
         onClick={() => onFolderSelect && onFolderSelect(null)}
       >
         <div className="w-4 h-4" /> {/* Espaciador */}
         <Folder className="w-5 h-5 text-muted-foreground" />
-        <span className={`flex-1 text-sm ${selectedFolderId === null ? 'font-semibold text-primary-300' : 'text-foreground'}`}>
+        <span className={`flex-1 text-sm ${selectedFolderId === null ? 'font-semibold text-foreground' : 'text-foreground'}`}>
           Todos los Documentos
         </span>
         {showCreateButton && selectedFolderId === null && (
@@ -268,7 +268,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
                 onCreateFolder(null);
               }
             }}
-            className="p-1 rounded transition-colors hover:bg-secondary/70"
+            className="p-1 rounded transition-colors hover:bg-sky-50"
             title="Crear carpeta"
           >
             <Plus className="w-4 h-4 text-muted-foreground" />

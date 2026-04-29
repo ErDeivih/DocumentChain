@@ -212,23 +212,23 @@ code {
   }
   
   .badge-success {
-    @apply badge bg-success-900/20 text-success-300 border border-success-700/30;
+    @apply badge border border-[#bbf7d0] bg-[#f0fdf4] text-[#166534];
   }
   
   .badge-warning {
-    @apply badge bg-warning-900/20 text-warning-300 border border-warning-700/30;
+    @apply badge border border-[#fcd34d] bg-[#fffbeb] text-[#92400e];
   }
   
   .badge-error {
-    @apply badge bg-error-900/20 text-error-300 border border-error-700/30;
+    @apply badge border border-[#fecaca] bg-[#fff1f2] text-[#881337];
   }
   
   .badge-blockchain {
-    @apply badge bg-blockchain-900/20 text-blockchain-300 border border-blockchain-700/30;
+    @apply badge border border-[#bae6fd] bg-[#f0f9ff] text-[#0f4c81];
   }
   
   .badge-secondary {
-    @apply badge bg-secondary-200/40 text-secondary-800 border border-white/10;
+    @apply badge border border-border bg-secondary/35 text-foreground;
   }
   
   /* Estados de carga */
@@ -250,15 +250,15 @@ code {
   }
   
   .alert-success {
-    @apply alert bg-success-900/20 border-success-500 text-success-100;
+    @apply alert border-[#bbf7d0] bg-[#f0fdf4] text-[#166534];
   }
   
   .alert-warning {
-    @apply alert bg-warning-900/20 border-warning-500 text-warning-100;
+    @apply alert border-[#fcd34d] bg-[#fffbeb] text-[#92400e];
   }
   
   .alert-error {
-    @apply alert bg-error-900/20 border-error-500 text-error-100;
+    @apply alert border-[#fecaca] bg-[#fff1f2] text-[#881337];
   }
   
   /* Tablas */

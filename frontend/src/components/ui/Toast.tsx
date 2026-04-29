@@ -8,12 +8,12 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-white/10 bg-card/95 text-foreground',
+        default: 'border-border bg-white text-foreground',
         destructive:
-          'destructive group border-error-700/35 bg-error-900/25 text-error-100',
-        success: 'border-success-700/35 bg-success-900/25 text-success-100',
-        warning: 'border-warning-700/35 bg-warning-900/25 text-warning-100',
-        info: 'border-blockchain-700/35 bg-blockchain-900/25 text-foreground',
+          'destructive group border-[#fecaca] bg-[#fff1f2] text-[#881337]',
+        success: 'border-[#bbf7d0] bg-[#f0fdf4] text-[#166534]',
+        warning: 'border-[#fcd34d] bg-[#fffbeb] text-[#92400e]',
+        info: 'border-[#bae6fd] bg-[#f0f9ff] text-[#0f4c81]',
       },
     },
     defaultVariants: {
@@ -43,7 +43,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100"
+            className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100"
           >
             <X className="h-4 w-4" />
           </button>

@@ -211,11 +211,11 @@ export const AdminPanel: React.FC = () => {
             </form>
 
             {recoveryKey && (
-              <div className="mt-4 rounded-xl border border-warning-700/30 bg-warning-900/20 p-4">
-                <p className="text-sm font-medium text-warning-800 mb-2">
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/90 p-4">
+                <p className="mb-2 text-sm font-medium text-amber-800">
                   ⚠️ Guarde esta clave de recuperación - no se volverá a mostrar!
                 </p>
-                <code className="block break-all rounded-lg border border-primary/20 bg-slate-950 p-2 text-xs text-primary-50">
+                <code className="block break-all rounded-lg border border-slate-200 bg-white/90 p-2 text-xs text-slate-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.45)]">
                   {recoveryKey}
                 </code>
                 <Button

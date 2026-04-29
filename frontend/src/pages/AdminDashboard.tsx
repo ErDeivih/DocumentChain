@@ -127,8 +127,8 @@ export const AdminDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
-          <p className="text-gray-500 mt-1">Resumen del sistema y gestión</p>
+          <h1 className="text-3xl font-bold text-foreground">Panel de Administración</h1>
+          <p className="mt-1 text-muted-foreground">Resumen del sistema y gestión</p>
         </div>
         <Badge variant="outline" className="px-4 py-2">
           <Shield className="w-4 h-4 mr-2" />
@@ -146,9 +146,9 @@ export const AdminDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-500">{card.title}</p>
-                  <h3 className="text-3xl font-bold text-gray-900">{card.value}</h3>
-                  <p className="text-xs text-gray-400">{card.subtitle}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+                  <h3 className="text-3xl font-bold text-foreground">{card.value}</h3>
+                  <p className="text-xs text-muted-foreground">{card.subtitle}</p>
                 </div>
                 <div
                   className={`p-3 rounded-xl bg-gradient-to-br ${card.bgGradient}`}
@@ -194,30 +194,30 @@ export const AdminDashboard: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Estado de Base de Datos</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
+                    <span className="text-sm font-medium text-foreground">Estado de Base de Datos</span>
                     <Badge variant="default" className="bg-green-500">En línea</Badge>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Estado de API</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
+                    <span className="text-sm font-medium text-foreground">Estado de API</span>
                     <Badge variant="default" className="bg-green-500">Ejecutándose</Badge>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Clúster IPFS</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
+                    <span className="text-sm font-medium text-foreground">Clúster IPFS</span>
                     <Badge variant="default" className="bg-green-500">Conectado</Badge>
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Blockchain</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
+                    <span className="text-sm font-medium text-foreground">Blockchain</span>
                     <Badge variant="default" className="bg-green-500">Activo</Badge>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Servicio de Email</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
+                    <span className="text-sm font-medium text-foreground">Servicio de Email</span>
                     <Badge variant="default" className="bg-green-500">Operativo</Badge>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Backend de Almacenamiento</span>
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
+                    <span className="text-sm font-medium text-foreground">Backend de Almacenamiento</span>
                     <Badge variant="default" className="bg-green-500">Disponible</Badge>
                   </div>
                 </div>
@@ -239,20 +239,20 @@ export const AdminDashboard: React.FC = () => {
                   <div>
                     <div className="flex justify-between mb-2">
                       <span className="text-sm font-medium">Total Usado</span>
-                      <span className="text-sm text-gray-500">{formatBytes(storageUsed)}</span>
+                      <span className="text-sm text-muted-foreground">{formatBytes(storageUsed)}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="h-2 w-full rounded-full bg-secondary/70">
                       <div
                         className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
                         style={{ width: `${Math.min((storageUsed / (5 * 1024 * 1024 * 1024)) * 100, 100)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Cuota por usuario: 5 GB
                     </p>
                   </div>
                   <div className="pt-4 border-t">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Promedio por usuario: <span className="font-semibold">
                         {stats.totalUsers > 0 ? formatBytes(storageUsed / stats.totalUsers) : '0 Bytes'}
                       </span>
@@ -272,29 +272,29 @@ export const AdminDashboard: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between rounded-lg border border-sky-200/70 bg-sky-50/85 p-4">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-lg">
+                      <div className="rounded-lg bg-white/90 p-2 shadow-sm">
                         <Shield className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Administradores</p>
-                        <p className="text-xs text-gray-500">Acceso total al sistema</p>
+                        <p className="text-sm font-medium text-foreground">Administradores</p>
+                        <p className="text-xs text-muted-foreground">Acceso total al sistema</p>
                       </div>
                     </div>
                     <span className="text-2xl font-bold text-blue-600">{stats.totalAdmins}</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between rounded-lg border border-border/80 bg-white/92 p-4">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-gray-100 rounded-lg">
-                        <Users className="w-5 h-5 text-gray-600" />
+                      <div className="rounded-lg bg-sky-50 p-2 shadow-sm">
+                        <Users className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Usuarios Regulares</p>
-                        <p className="text-xs text-gray-500">Acceso estándar</p>
+                        <p className="text-sm font-medium text-foreground">Usuarios Regulares</p>
+                        <p className="text-xs text-muted-foreground">Acceso estándar</p>
                       </div>
                     </div>
-                    <span className="text-2xl font-bold text-gray-600">{stats.totalRegularUsers}</span>
+                    <span className="text-2xl font-bold text-foreground">{stats.totalRegularUsers}</span>
                   </div>
                 </div>
               </CardContent>
@@ -327,26 +327,26 @@ export const AdminDashboard: React.FC = () => {
                   {stats.recentUsers.map((user, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="flex items-center justify-between rounded-lg border border-border/70 bg-white/92 p-4 transition-colors hover:bg-sky-50/35"
                     >
                       <div className="flex items-center space-x-4">
-                        <div className="p-2 bg-white rounded-lg border border-gray-200">
+                        <div className="rounded-lg border border-border bg-sky-50 p-2">
                           {user.role === 'ADMIN' ? (
                             <Shield className="w-5 h-5 text-blue-600" />
                           ) : (
-                            <Users className="w-5 h-5 text-gray-600" />
+                            <Users className="w-5 h-5 text-muted-foreground" />
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{user.username}</p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
+                          <p className="font-medium text-foreground">{user.username}</p>
+                          <p className="text-sm text-muted-foreground">{user.email}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <Badge variant={user.role === 'ADMIN' ? 'default' : 'outline'}>
                           {user.role}
                         </Badge>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           {formatDate(user.createdAt)}
                         </p>
                       </div>
@@ -354,7 +354,7 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500 py-8">No hay usuarios recientes</p>
+                <p className="py-8 text-center text-muted-foreground">No hay usuarios recientes</p>
               )}
             </CardContent>
           </Card>

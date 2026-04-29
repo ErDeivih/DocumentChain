@@ -35,7 +35,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/78 text-slate-900 shadow-[0_18px_38px_-28px_rgba(15,23,42,0.2)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/68">
+    <header className="sticky top-0 z-40 border-b border-border/90 bg-white/96 text-foreground shadow-[0_18px_38px_-28px_rgba(15,23,42,0.16)] supports-[backdrop-filter]:bg-white/92">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -44,8 +44,8 @@ export const Header: React.FC = () => {
               <Lock className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-950">DocumentChain</h1>
-              <p className="hidden text-xs text-slate-500 sm:block">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">DocumentChain</h1>
+              <p className="hidden text-xs font-medium text-muted-foreground sm:block">
                 Gestión de Documentos Blockchain
               </p>
             </div>
@@ -60,8 +60,8 @@ export const Header: React.FC = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">{user?.username}</p>
-                <p className="text-xs text-slate-500">{user?.email}</p>
+                <p className="text-sm font-semibold text-foreground">{user?.username}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               {user?.isAdmin && (
                 <Badge variant="default">
@@ -102,7 +102,7 @@ export const Header: React.FC = () => {
 
             {/* Botón Menú Móvil */}
             <button
-              className="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 md:hidden"
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -122,8 +122,8 @@ export const Header: React.FC = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">{user?.username}</p>
-                  <p className="text-xs text-slate-500">{user?.email}</p>
+                  <p className="text-sm font-semibold text-foreground">{user?.username}</p>
+                  <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 {user?.isAdmin && (
                   <Badge variant="default">

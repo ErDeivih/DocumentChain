@@ -230,10 +230,10 @@ export const TwoFactorSetup: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* 2FA Status */}
-        <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-white p-4">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full ${status?.enabled ? 'bg-green-100' : 'bg-gray-100'}`}>
-              <Shield className={`w-5 h-5 ${status?.enabled ? 'text-green-600' : 'text-muted-foreground'}`} />
+            <div className={`rounded-full p-2 ${status?.enabled ? 'bg-[#dcfce7]' : 'bg-secondary/45'}`}>
+              <Shield className={`h-5 w-5 ${status?.enabled ? 'text-[#16a34a]' : 'text-foreground'}`} />
             </div>
             <div>
               <p className="font-medium">Estado de 2FA</p>

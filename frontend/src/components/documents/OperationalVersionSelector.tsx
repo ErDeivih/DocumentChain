@@ -224,7 +224,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-gray-500 text-center">
+          <p className="text-center text-muted-foreground">
             No hay versiones disponibles
           </p>
         </CardContent>

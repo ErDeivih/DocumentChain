@@ -66,7 +66,7 @@ export const Profile: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Perfil</h1>
+      <h1 className="text-3xl font-bold text-foreground">Perfil</h1>
 
       {/* User Information */}
       <Card data-testid="profile-user-information-card">
@@ -75,26 +75,26 @@ export const Profile: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
-            <User className="w-5 h-5 text-gray-500" />
+            <User className="w-5 h-5 text-muted-foreground" />
             <div>
-              <p className="text-sm text-gray-500">Nombre de Usuario</p>
-              <p className="font-medium">{user.username}</p>
+              <p className="text-sm font-medium text-muted-foreground">Nombre de Usuario</p>
+              <p className="font-semibold text-foreground">{user.username}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Mail className="w-5 h-5 text-gray-500" />
+            <Mail className="w-5 h-5 text-muted-foreground" />
             <div>
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium">{user.email}</p>
+              <p className="text-sm font-medium text-muted-foreground">Email</p>
+              <p className="font-semibold text-foreground">{user.email}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-gray-500" />
+            <Calendar className="w-5 h-5 text-muted-foreground" />
             <div>
-              <p className="text-sm text-gray-500">Miembro Desde</p>
-              <p className="font-medium">
+              <p className="text-sm font-medium text-muted-foreground">Miembro Desde</p>
+              <p className="font-semibold text-foreground">
                 {new Date(user.createdAt).toLocaleDateString()}
               </p>
             </div>
@@ -102,7 +102,7 @@ export const Profile: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <div>
-              <p className="text-sm text-gray-500">Rol</p>
+              <p className="text-sm font-medium text-muted-foreground">Rol</p>
               <Badge variant={user.isAdmin ? 'default' : 'secondary'}>
                 {user.isAdmin ? 'Admin' : 'Usuario'}
               </Badge>
@@ -142,11 +142,11 @@ export const Profile: React.FC = () => {
         {!isChangingPassword && (
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg">
+              <div className="flex items-start gap-3 rounded-lg border border-sky-200/70 bg-sky-50/70 p-3">
                 <Key className="w-5 h-5 text-primary mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Protección de Contraseña</p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-sm font-medium text-foreground">Protección de Contraseña</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Su contraseña protege su clave de encriptación privada, que resguarda todos sus documentos.
                     Use una contraseña segura y manténgala protegida.
                   </p>
@@ -154,7 +154,7 @@ export const Profile: React.FC = () => {
                     to="/forgot-password"
                     className="text-xs text-primary hover:underline mt-2 inline-block"
                   >
-                    Forgot your password? Reset with recovery key →
+                    ¿Olvidó su contraseña? Restablézcala con la clave de recuperación →
                   </Link>
                 </div>
               </div>
@@ -182,9 +182,9 @@ export const Profile: React.FC = () => {
               />
             )}
 
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-1">🔐 Security Information</p>
-              <p className="text-xs text-blue-700">
+            <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50/85 p-3">
+              <p className="mb-1 text-sm font-medium text-sky-900">🔐 Información de seguridad</p>
+              <p className="text-xs text-sky-800">
                 Your private key is encrypted with both your password and your recovery key. 
                 Changing your password is safe - all your documents remain accessible, and your recovery key still works.
               </p>

@@ -112,7 +112,7 @@ export const CategoryBadgeList: React.FC<CategoryBadgeListProps> = ({
         />
       ))}
       {remainingCount > 0 && (
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted-foreground">
           +{remainingCount} más
         </span>
       )}

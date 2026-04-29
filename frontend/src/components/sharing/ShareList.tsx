@@ -97,7 +97,7 @@ export const ShareList: React.FC<ShareListProps> = ({
   if (shares.length === 0) {
     return (
       <Card>
-        <div className="p-6 text-center text-gray-600">
+        <div className="p-6 text-center text-muted-foreground">
           Aún no hay compartidos. Haga clic en "Compartir" para compartir este documento con otros.
         </div>
       </Card>
@@ -114,14 +114,14 @@ export const ShareList: React.FC<ShareListProps> = ({
             <div className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-gray-100 p-2 rounded-full">
-                  <User className="w-5 h-5 text-gray-600" />
+                <div className="rounded-full bg-secondary/45 p-2">
+                  <User className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">
+                  <h4 className="font-semibold text-foreground">
                     {share.user?.username || 'Usuario Desconocido'}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Compartido {formatDate(share.createdAt)}
                   </p>
                 </div>

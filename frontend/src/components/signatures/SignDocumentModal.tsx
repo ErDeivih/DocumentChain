@@ -159,21 +159,21 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
         {step === 'form' && (
           <>
             {/* Document Info */}
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="space-y-2 rounded-lg border border-border bg-secondary/35 p-4">
               <div>
-                <p className="text-sm text-gray-600">Documento</p>
-                <p className="font-medium">{document.name}</p>
+                <p className="text-sm text-muted-foreground">Documento</p>
+                <p className="font-medium text-foreground">{document.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Versión a firmar</p>
+                <p className="text-sm text-muted-foreground">Versión a firmar</p>
                 <Badge variant="info">Versión {operationalVersionNumber}</Badge>
               </div>
             </div>
 
             {checkingSignature ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-                <span className="ml-2 text-sm text-gray-600">Verificando estado de firma...</span>
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">Verificando estado de firma...</span>
               </div>
             ) : hasAlreadySigned ? (
               <AlertMessage
@@ -196,7 +196,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
                     maxLength={200}
                     disabled={isProcessing}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {comment.length}/200 caracteres
                   </p>
                 </div>
@@ -251,10 +251,10 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
           <div className="py-8 text-center">
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Firmando documento...</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Confirma la firma en tu wallet y espera a que se complete la transacción.
             </p>
-            <div className="mt-4 space-y-2 text-xs text-gray-500">
+            <div className="mt-4 space-y-2 text-xs text-muted-foreground">
               <p>✓ Preparando firma</p>
               <p>✓ Firmando mensaje con wallet</p>
               <p className="text-primary font-medium">→ Esperando confirmación blockchain...</p>
@@ -267,7 +267,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
           <div className="py-8 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">¡Documento firmado!</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Tu firma ha sido registrada en blockchain exitosamente.
             </p>
           </div>
@@ -279,8 +279,8 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Error al firmar</h3>
             {error && (
-              <div className="mt-4 p-3 bg-red-50 rounded-lg">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="mt-4 rounded-lg border border-[#fecaca] bg-[#fff5f5] p-3">
+                <p className="text-sm text-[#b91c1c]">{error}</p>
               </div>
             )}
             <div className="flex justify-center gap-3 mt-6">

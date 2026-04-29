@@ -49,7 +49,7 @@ export const PublicDocumentPreview: React.FC<PublicDocumentPreviewProps> = ({
           <CardTitle>Previsualización</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             No hay previsualización inline para <strong>{fileName}</strong>. Use la descarga para abrir este formato en su aplicación correspondiente.
           </p>
         </CardContent>

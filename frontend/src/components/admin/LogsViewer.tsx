@@ -45,13 +45,13 @@ const LogEntryComponent: React.FC<{ log: LogEntry }> = ({ log }) => {
   const getLevelColor = (level: string) => {
     switch (level.toUpperCase()) {
       case 'ERROR':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'border-[#fecaca] bg-[#fff1f2] text-[#b91c1c]';
       case 'WARN':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'border-[#fcd34d] bg-[#fffbeb] text-[#92400e]';
       case 'INFO':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'border-[#bae6fd] bg-[#f0f9ff] text-[#0f4c81]';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'border-border bg-secondary/35 text-foreground';
     }
   };
 
@@ -82,11 +82,11 @@ const LogEntryComponent: React.FC<{ log: LogEntry }> = ({ log }) => {
               <Badge variant="outline" className="text-xs">
                 {log.level}
               </Badge>
-              <span className="text-xs text-gray-500 font-mono">
+              <span className="font-mono text-xs text-muted-foreground">
                 {formatDate(log.timestamp)}
               </span>
             </div>
-            <p className="text-sm font-medium text-gray-900 break-words">
+            <p className="break-words text-sm font-medium text-foreground">
               {log.message}
             </p>
             {log.metadata && Object.keys(log.metadata).length > 0 && (
@@ -109,7 +109,7 @@ const LogEntryComponent: React.FC<{ log: LogEntry }> = ({ log }) => {
       </div>
       {expanded && log.metadata && (
         <div className="mt-3 pl-7">
-          <div className="bg-gray-900 text-gray-100 p-3 rounded-md overflow-x-auto">
+          <div className="overflow-x-auto rounded-md border border-border bg-secondary/35 p-3 text-foreground">
             <pre className="text-xs font-mono whitespace-pre-wrap">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
@@ -202,19 +202,19 @@ export const LogsViewer: React.FC = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">
+                    <p className="text-sm font-medium text-muted-foreground">
                       {stat.file === 'combined.log' && 'Logs Combinados'}
                       {stat.file === 'error.log' && 'Logs de Errores'}
                       {stat.file === 'blockchain.log' && 'Logs Blockchain'}
                     </p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {stat.lines.toLocaleString()} líneas
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Tamaño: {formatBytes(stat.size)}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         Modificado: {new Date(stat.modified).toLocaleDateString('es-ES')}
                       </p>
                     </div>
@@ -259,7 +259,7 @@ export const LogsViewer: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             {/* Log Type Selector */}
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 Tipo de Log
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -280,13 +280,13 @@ export const LogsViewer: React.FC = () => {
 
             {/* Lines Selector */}
             <div className="w-full sm:w-48">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 Número de Líneas
               </label>
               <select
                 value={lines}
                 onChange={(e) => setLines(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-input bg-white px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value={50}>50 líneas</option>
                 <option value={100}>100 líneas</option>
@@ -318,8 +318,8 @@ export const LogsViewer: React.FC = () => {
             )}
 
             {logsError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
+              <div className="rounded-lg border border-[#fecaca] bg-[#fff5f5] p-4">
+                <p className="text-sm text-[#b91c1c]">
                   Error al cargar los logs. Por favor, intenta de nuevo.
                 </p>
               </div>
@@ -328,14 +328,14 @@ export const LogsViewer: React.FC = () => {
             {!logsLoading && !logsError && logsData && (
               <>
                 {!logsData.logs || logsData.logs.length === 0 ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">
+                  <div className="rounded-lg border border-border bg-secondary/35 py-12 text-center">
+                    <FileText className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">
                       No hay logs disponibles para el tipo seleccionado.
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-[600px] overflow-y-auto">
+                  <div className="max-h-[600px] overflow-y-auto rounded-lg border border-border bg-secondary/35 p-4">
                     <div className="space-y-2">
                       {logsData.logs.map((log: LogEntry, index: number) => (
                         <LogEntryComponent key={index} log={log} />
@@ -343,7 +343,7 @@ export const LogsViewer: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <div className="mt-4 text-sm text-gray-500 text-center">
+                <div className="mt-4 text-center text-sm text-muted-foreground">
                   Mostrando {logsData.logs?.length || 0} de {lines} líneas solicitadas
                 </div>
               </>

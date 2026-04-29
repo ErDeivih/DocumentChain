@@ -51,14 +51,14 @@ export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b">
-        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+      <div className="flex items-center gap-2 border-b border-border bg-secondary/35 px-4 py-2">
+        <div className="h-4 w-32 animate-pulse rounded bg-secondary" />
       </div>
     );
   }
 
   return (
-    <nav className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b overflow-x-auto">
+    <nav className="flex items-center gap-2 overflow-x-auto border-b border-border bg-secondary/35 px-4 py-3">
       {/* Inicio / Raíz */}
       <button
         onClick={() => handleClick(null)}
@@ -67,8 +67,8 @@ export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
           transition-colors text-sm
           ${
             !folderId
-              ? 'bg-blue-100 text-blue-700 font-semibold'
-              : 'text-gray-600 hover:bg-gray-200'
+              ? 'bg-primary/10 font-semibold text-primary'
+              : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
           }
         `}
       >
@@ -81,15 +81,15 @@ export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
         const isLast = index === path.length - 1;
         return (
           <React.Fragment key={folder.id}>
-            <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <button
               onClick={() => handleClick(folder.id)}
               className={`
                 px-2 py-1 rounded transition-colors text-sm whitespace-nowrap
                 ${
                   isLast
-                    ? 'bg-blue-100 text-blue-700 font-semibold'
-                    : 'text-gray-600 hover:bg-gray-200'
+                    ? 'bg-primary/10 font-semibold text-primary'
+                    : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
                 }
               `}
             >

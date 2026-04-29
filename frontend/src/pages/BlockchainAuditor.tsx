@@ -196,10 +196,10 @@ export const BlockchainAuditor: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="w-7 h-7 text-blue-600" />
+            <Shield className="h-7 w-7 text-primary" />
             Auditoría Blockchain
           </h1>
-          <p className="text-gray-600 text-sm mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             Explorador técnico de transacciones y eventos on-chain.
           </p>
         </div>
@@ -292,11 +292,11 @@ export const BlockchainAuditor: React.FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
-              <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400" />
-              <p className="text-gray-600 mt-2">Cargando eventos...</p>
+              <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="mt-2 text-muted-foreground">Cargando eventos...</p>
             </div>
           ) : events.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">No se encontraron eventos con los filtros actuales</div>
+            <div className="py-8 text-center text-muted-foreground">No se encontraron eventos con los filtros actuales</div>
           ) : (
             <div className="space-y-2">
               {events.map((event) => {
@@ -304,7 +304,7 @@ export const BlockchainAuditor: React.FC = () => {
                 const isExpanded = expandedEvent === event.id;
 
                 return (
-                  <div key={event.id} className="border rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors">
+                  <div key={event.id} className="rounded-lg border border-border bg-white px-3 py-2 transition-colors hover:bg-secondary/35">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -315,7 +315,7 @@ export const BlockchainAuditor: React.FC = () => {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-1 text-xs text-gray-600">
+                        <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground md:grid-cols-2 xl:grid-cols-4">
                           <div className="flex items-center gap-1">
                             <User className="w-3 h-3" />
                             <span className="truncate">{event.user?.username || event.userId || 'Sistema'}</span>
@@ -343,13 +343,13 @@ export const BlockchainAuditor: React.FC = () => {
                     {isExpanded && (
                       <div className="mt-2 pt-2 border-t space-y-2 text-xs">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          <div className="p-2 bg-gray-100 rounded">
+                          <div className="rounded border border-border bg-secondary/35 p-2 text-foreground">
                             <p className="font-semibold mb-1">Transacción</p>
                             <p><strong>Hash:</strong> {event.transactionHash || '-'}</p>
                             <p><strong>Bloque:</strong> {event.blockNumber ?? '-'}</p>
                             <p><strong>Timestamp:</strong> {formatDate(event.blockTimestamp ?? event.createdAt)}</p>
                           </div>
-                          <div className="p-2 bg-gray-100 rounded">
+                          <div className="rounded border border-border bg-secondary/35 p-2 text-foreground">
                             <p className="font-semibold mb-1">Entidades</p>
                             <p><strong>Usuario:</strong> {event.user?.username || event.userId || 'Sistema'}</p>
                             <p><strong>Documento:</strong> {event.document?.name || event.documentId || '-'}</p>
@@ -366,7 +366,7 @@ export const BlockchainAuditor: React.FC = () => {
                             <Copy className="w-3 h-3 mr-1" /> Copiar Metadata
                           </Button>
                         </div>
-                        <pre className="bg-gray-100 p-2 rounded text-[11px] overflow-auto max-h-48">
+                        <pre className="max-h-48 overflow-auto rounded border border-border bg-secondary/35 p-2 text-[11px] text-foreground">
 {JSON.stringify(event.metadata, null, 2)}
                         </pre>
                       </div>
@@ -382,7 +382,7 @@ export const BlockchainAuditor: React.FC = () => {
               <Button variant="outline" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0}>
                 Anterior
               </Button>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Mostrando {offset + 1} - {offset + events.length} de {total}
               </span>
               <Button variant="outline" onClick={() => setOffset(offset + limit)} disabled={!hasMore}>

@@ -46,7 +46,7 @@ const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
     <div
       ref={ref}
       className={cn(
-        'inline-flex h-11 items-center justify-center rounded-xl border border-border/80 bg-white/80 p-1 text-muted-foreground shadow-[0_12px_30px_-24px_rgba(15,23,42,0.2)] backdrop-blur-sm',
+        'inline-flex h-11 items-center justify-center rounded-xl border border-border/80 bg-white p-1 text-muted-foreground shadow-[0_12px_30px_-24px_rgba(15,23,42,0.14)]',
         className
       )}
       {...props}
@@ -79,8 +79,8 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         className={cn(
           'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
           isActive
-            ? 'bg-[linear-gradient(90deg,rgba(45,212,191,0.16),rgba(14,165,233,0.12))] text-foreground shadow-[0_10px_30px_-18px_rgba(14,165,233,0.28)]'
-            : 'text-muted-foreground hover:bg-secondary/65 hover:text-foreground',
+            ? 'bg-[linear-gradient(90deg,rgba(45,212,191,0.18),rgba(14,165,233,0.14))] text-foreground shadow-[0_10px_30px_-18px_rgba(14,165,233,0.24)]'
+            : 'text-muted-foreground hover:bg-sky-50 hover:text-foreground',
           className
         )}
         {...props}

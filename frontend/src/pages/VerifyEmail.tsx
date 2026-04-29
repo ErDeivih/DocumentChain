@@ -140,7 +140,7 @@ export const VerifyEmail: React.FC = () => {
           ) : null}
 
           {status === 'loading' ? (
-            <div className="flex items-center justify-center gap-2 py-2 text-center text-sm text-slate-600">
+            <div className="flex items-center justify-center gap-2 py-2 text-center text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
               Procesando el enlace de verificación...
             </div>

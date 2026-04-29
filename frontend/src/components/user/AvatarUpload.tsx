@@ -120,14 +120,14 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
           <div className="relative">
             <Avatar className="h-24 w-24">
               <AvatarImage src={previewUrl || undefined} alt={username} />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="bg-[linear-gradient(135deg,#ccfbf1_0%,#e0f2fe_100%)] text-lg font-semibold text-slate-900">
                 {getInitials(username)}
               </AvatarFallback>
             </Avatar>
             
             {/* Indicador de carga */}
             {(uploading || removing) && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/35">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />
               </div>
             )}
@@ -135,7 +135,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
           {/* Mensaje de error */}
           {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
+            <p className="text-center text-sm text-error-600">{error}</p>
           )}
 
           {/* Botones de acción */}
@@ -174,7 +174,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
           </div>
 
           {/* Información */}
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-center text-xs text-muted-foreground">
             Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 2MB
           </p>
         </div>

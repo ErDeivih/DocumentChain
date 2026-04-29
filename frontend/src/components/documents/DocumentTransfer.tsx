@@ -256,7 +256,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Shield className="h-5 w-5" />
             <span>Solo el propietario puede transferir este documento</span>
           </div>
@@ -277,14 +277,14 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
         <CardContent>
           {/* Mensajes de estado */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#fecaca] bg-[#fff5f5] p-3 text-[#b91c1c]">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">{error}</span>
             </div>
           )}
           
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#bbf7d0] bg-[#f0fdf4] p-3 text-[#166534]">
               <CheckCircle className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm">{success}</span>
               {txHash && (
@@ -295,8 +295,8 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
 
           {/* Processing indicator */}
           {isProcessing && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
-              <div className="flex items-center gap-2 text-blue-700">
+            <div className="mb-4 space-y-2 rounded-lg border border-[#bae6fd] bg-[#f0f9ff] p-3">
+              <div className="flex items-center gap-2 text-[#0f4c81]">
                 {step === 'preparing' && <Loader2 className="h-4 w-4 animate-spin" />}
                 {step === 'signing' && <Wallet className="h-4 w-4" />}
                 {step === 'confirming' && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -326,13 +326,13 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
               </div>
 
               {/* Usuario seleccionado */}
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-200">
-                  <User className="h-5 w-5 text-gray-600" />
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/35 p-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/60">
+                  <User className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium">{selectedUser.fullName || selectedUser.username}</p>
-                  <p className="text-sm text-gray-500">@{selectedUser.username}</p>
+                  <p className="font-medium text-foreground">{selectedUser.fullName || selectedUser.username}</p>
+                  <p className="text-sm text-muted-foreground">@{selectedUser.username}</p>
                 </div>
               </div>
 
@@ -409,20 +409,20 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
 
               {/* Resultados de búsqueda */}
               {searchResults.length > 0 && (
-                <div className="border rounded-lg divide-y">
+                <div className="divide-y rounded-lg border border-border bg-white">
                   {searchResults.map((user) => (
                     <button
                       key={user.id}
                       onClick={() => selectUser(user)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
+                      className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-secondary/35"
                       disabled={isProcessing}
                     >
-                      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-200">
-                        <User className="h-5 w-5 text-gray-600" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/60">
+                        <User className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium">{user.fullName || user.username}</p>
-                        <p className="text-sm text-gray-500">@{user.username}</p>
+                        <p className="font-medium text-foreground">{user.fullName || user.username}</p>
+                        <p className="text-sm text-muted-foreground">@{user.username}</p>
                       </div>
                       <Badge variant="outline">Seleccionar</Badge>
                     </button>
@@ -432,13 +432,13 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
 
               {/* Sin resultados */}
               {searchQuery && searchResults.length === 0 && !searching && (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className="py-4 text-center text-sm text-muted-foreground">
                   No se encontraron usuarios con ese criterio
                 </p>
               )}
 
               {/* Información */}
-              <div className="text-xs text-gray-500 space-y-1">
+              <div className="space-y-1 text-xs text-muted-foreground">
                 <p>La transferencia de propiedad incluye:</p>
                 <ul className="list-disc list-inside ml-2">
                   <li>Cambio de propietario en blockchain (requiere firma)</li>

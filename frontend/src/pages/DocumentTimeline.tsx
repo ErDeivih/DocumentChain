@@ -107,7 +107,7 @@ export const DocumentTimeline: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Línea Temporal del Documento</h1>
+          <h1 className="text-3xl font-bold text-foreground">Línea Temporal del Documento</h1>
           <Button asChild variant="outline">
             <Link to={`/app/documents/${id}`}>
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -129,8 +129,8 @@ export const DocumentTimeline: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Línea Temporal del Documento</h1>
-          <p className="text-gray-500 mt-1">Historial completo de eventos y cambios</p>
+          <h1 className="text-3xl font-bold text-foreground">Línea Temporal del Documento</h1>
+          <p className="mt-1 text-muted-foreground">Historial completo de eventos y cambios</p>
         </div>
         <Button asChild variant="outline">
           <Link to={`/app/documents/${id}`}>
@@ -146,8 +146,8 @@ export const DocumentTimeline: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total de Eventos</p>
-                <p className="text-2xl font-bold text-gray-900">{data.events.length}</p>
+                <p className="text-sm text-muted-foreground">Total de Eventos</p>
+                <p className="text-2xl font-bold text-foreground">{data.events.length}</p>
               </div>
               <Clock className="w-8 h-8 text-blue-600" />
             </div>
@@ -157,8 +157,8 @@ export const DocumentTimeline: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Primer Evento</p>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm text-muted-foreground">Primer Evento</p>
+                <p className="text-sm font-medium text-foreground">
                   {new Date(data.events[data.events.length - 1]?.timestamp).toLocaleDateString('es-ES')}
                 </p>
               </div>
@@ -170,8 +170,8 @@ export const DocumentTimeline: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Último Evento</p>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm text-muted-foreground">Último Evento</p>
+                <p className="text-sm font-medium text-foreground">
                   {new Date(data.events[0]?.timestamp).toLocaleDateString('es-ES')}
                 </p>
               </div>
@@ -184,7 +184,7 @@ export const DocumentTimeline: React.FC = () => {
       {/* Timeline */}
       <div className="relative space-y-4">
         {/* Vertical line */}
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
+        <div className="absolute bottom-0 left-6 top-0 w-0.5 bg-border" />
 
         {data.events.map((event: TimelineEvent) => {
           const Icon = eventIcons[event.type] || Clock;
@@ -194,8 +194,8 @@ export const DocumentTimeline: React.FC = () => {
           return (
             <Card key={event.id} className="relative ml-14 hover:shadow-md transition-shadow">
               {/* Timeline dot */}
-              <div className="absolute -left-[3.25rem] top-6 w-12 h-12 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center z-10">
-                <Icon className="w-6 h-6 text-gray-600" />
+              <div className="absolute -left-[3.25rem] top-6 z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-white">
+                <Icon className="h-6 w-6 text-muted-foreground" />
               </div>
 
               <CardContent className="p-6">
@@ -204,7 +204,7 @@ export const DocumentTimeline: React.FC = () => {
                     <Badge variant={color} className="text-sm">
                       {label}
                     </Badge>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {formatDate(event.timestamp)}
                     </span>
                   </div>
@@ -212,8 +212,8 @@ export const DocumentTimeline: React.FC = () => {
 
                 {/* Actor */}
                 <div className="flex items-center gap-2 mb-3">
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-700">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-foreground">
                     <span className="font-medium">
                       {event.actor.fullName || event.actor.username}
                     </span>
@@ -222,14 +222,14 @@ export const DocumentTimeline: React.FC = () => {
 
                 {/* Details */}
                 {event.details && Object.keys(event.details).length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                    <p className="text-xs font-medium text-gray-500 mb-2">Detalles:</p>
+                  <div className="mb-3 rounded-lg border border-border bg-secondary/35 p-3">
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Detalles:</p>
                     {Object.entries(event.details).map(([key, value]) => (
                       <div key={key} className="flex items-center justify-between py-1">
-                        <span className="text-sm text-gray-600 capitalize">
+                        <span className="text-sm capitalize text-muted-foreground">
                           {key.replace(/_/g, ' ')}:
                         </span>
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-foreground">
                           {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                         </span>
                       </div>
@@ -239,7 +239,7 @@ export const DocumentTimeline: React.FC = () => {
 
                 {/* Blockchain TX */}
                 {event.blockchainTx && (
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Hash className="w-3 h-3" />
                     <span className="font-mono truncate">
                       TX: {event.blockchainTx}
