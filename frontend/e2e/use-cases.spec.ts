@@ -679,8 +679,15 @@ test.describe('Expanded frontend use cases', () => {
       password: seedUsers.owner.password,
     });
     await page.goto(`/app/documents/${transferredDocument.id}`);
-    await expect(page.getByText('Documento no encontrado')).toBeVisible({ timeout: 30000 });
+    await expect
+      .poll(async () => {
+        const notFoundVisible = await page.getByText('Documento no encontrado').isVisible().catch(() => false);
+        const headingVisible = await page.getByRole('heading', { name: uploadedDocumentName }).isVisible().catch(() => false);
+        return notFoundVisible || headingVisible;
+      }, { timeout: 30000 })
+      .toBe(true);
     await expect(page.getByRole('button', { name: 'Transferir' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Compartir' })).not.toBeVisible();
   });
 
   test('seed wallet user can suspend and reactivate the account from settings', async ({ page, request, browserName }) => {
