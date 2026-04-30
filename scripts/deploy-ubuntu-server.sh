@@ -501,7 +501,7 @@ if [[ "$AUTO_RESEED_QA" == "1" ]]; then
     -e SEED_PROFILE="$SEED_PROFILE" \
     -v "$ROOT_DIR/backend/scripts:/app/scripts:ro" \
     -v "$ROOT_DIR/backend/src:/app/src:ro" \
-    backend node -r ts-node/register/transpile-only scripts/generate-test-data.ts
+    backend npx ts-node --transpile-only --skip-project --compiler-options '{"module":"CommonJS","moduleResolution":"node"}' scripts/generate-test-data.ts
 fi
 
 log_step "6/8" "Starting backend and frontend containers"
