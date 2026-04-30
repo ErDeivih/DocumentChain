@@ -40,29 +40,17 @@ jobs:
           RESET_DOCKER_STATE: "1"
           AUTO_RESEED_QA: "1"
           SEED_PROFILE: "qa-fast"
-          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
-          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
-          VITE_BLOCKCHAIN_RPC_URL: ${{ vars.VITE_BLOCKCHAIN_RPC_URL }}
-          BLOCKCHAIN_RPC_URL: ${{ vars.BLOCKCHAIN_RPC_URL }}
-          CONTRACT_DOCUMENT_REGISTRY: ${{ vars.CONTRACT_DOCUMENT_REGISTRY }}
-          IPFS_PROVIDER: ${{ vars.IPFS_PROVIDER }}
-          IPFS_API_URL: ${{ vars.IPFS_API_URL }}
-          IPFS_GATEWAY_URL: ${{ vars.IPFS_GATEWAY_URL }}
-          IPFS_DATA_ROOT: ${{ vars.IPFS_DATA_ROOT }}
-          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
-          EMAIL_FROM_NAME: ${{ vars.EMAIL_FROM_NAME }}
-          SMTP_HOST: ${{ vars.SMTP_HOST }}
-          SMTP_PORT: ${{ vars.SMTP_PORT }}
-          SMTP_SECURE: ${{ vars.SMTP_SECURE }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          SMTP_RELAYHOST: ${{ secrets.SMTP_RELAYHOST }}
-          SMTP_RELAYHOST_USERNAME: ${{ secrets.SMTP_RELAYHOST_USERNAME }}
-          SMTP_RELAYHOST_PASSWORD: ${{ secrets.SMTP_RELAYHOST_PASSWORD }}
-          POSTFIX_SMTP_TLS_SECURITY_LEVEL: ${{ vars.POSTFIX_SMTP_TLS_SECURITY_LEVEL }}
-          POSTFIX_HOSTNAME: ${{ vars.POSTFIX_HOSTNAME }}
-          ALLOWED_SENDER_DOMAINS: ${{ vars.ALLOWED_SENDER_DOMAINS }}
-          MASQUERADED_DOMAINS: ${{ vars.MASQUERADED_DOMAINS }}
-          REQUIRE_SMTP_RELAY: ${{ vars.EMAIL_FROM != '' && secrets.SMTP_RELAYHOST != '' && secrets.SMTP_RELAYHOST_USERNAME != '' && secrets.SMTP_RELAYHOST_PASSWORD != '' && '1' || '0' }}
+          EMAIL_FROM: "a791e9001@smtp-brevo.com"
+          EMAIL_FROM_NAME: "DocumentChain"
+          SMTP_HOST: "postfix"
+          SMTP_PORT: "587"
+          SMTP_SECURE: "false"
+          SMTP_RELAYHOST: "[smtp-relay.brevo.com]:587"
+          SMTP_RELAYHOST_USERNAME: "a791e9001@smtp-brevo.com"
+          SMTP_RELAYHOST_PASSWORD: "xsmtpsib-809dabaa5a340f35db3767877202b9891fc2ba27009334b4e2bd877cb6611098-P93oF2P0v5sSyMuh"
+          POSTFIX_SMTP_TLS_SECURITY_LEVEL: "encrypt"
+          POSTFIX_HOSTNAME: "mail.documentchain.local"
+          ALLOWED_SENDER_DOMAINS: "smtp-brevo.com"
+          MASQUERADED_DOMAINS: "smtp-brevo.com"
+          REQUIRE_SMTP_RELAY: "1"
         run: bash scripts/deploy-ubuntu-server.sh

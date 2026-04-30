@@ -330,7 +330,6 @@ ensure_env_file "$SERVER_ENV_FILE" "$ROOT_DIR/.env.server.example"
 capture_runtime_env_overrides
 load_server_env
 load_repo_env_fallback "$ROOT_DIR/.env"
-capture_runtime_env_overrides
 apply_runtime_env_overrides
 
 EMAIL_DOMAIN="$(extract_email_domain "${EMAIL_FROM:-}")"
