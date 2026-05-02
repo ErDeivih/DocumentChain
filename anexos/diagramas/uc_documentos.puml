@@ -45,13 +45,13 @@ SC --> UC27
 
 note right of UC21
   Integra como subflujo:
-  UC-0026 editar metadatos.
+  edicion de metadatos
+  (nombre, descripcion, tags).
 end note
 
 note right of UC20
-  Integra la organizacion documental:
-  UC-0041 carpetas
-  UC-0042 categorias
-  UC-0043 etiquetas
+  Integra la organizacion documental
+  (carpetas y etiquetas) como subflujos
+  de consulta y edicion de metadatos.
 end note
 @enduml

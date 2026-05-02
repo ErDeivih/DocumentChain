@@ -16,7 +16,7 @@ notifApi --> ui: Panel cargado
 ui --> user: Muestra listado de notificaciones
 
 == Marcar como leida ==
-user -> ui: Click en notificaciÃ³n especÃ­fica
+user -> ui: Click en notificacion especifica
 ui -> notifApi: Marcar notificacion como leida
 notifApi -> srv: Actualizar estado de lectura
 srv -> db: Persistir cambio y recalcular contador

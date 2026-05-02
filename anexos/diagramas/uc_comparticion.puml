@@ -22,7 +22,8 @@ SC --> UC37
 SC --> UC39
 
 note right of UC37
-  UC-0038 se integra como ajuste fino
-  dentro del ciclo de comparticion.
+  Los ajustes de permisos se integran
+  como pasos dentro del ciclo de
+  comparticion y revocacion.
 end note
 @enduml

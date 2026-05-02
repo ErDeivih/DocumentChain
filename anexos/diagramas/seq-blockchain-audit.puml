@@ -2,7 +2,7 @@
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Vista Auditoria blockchain" as ui
-control "Endpoints blockchain (/api/blockchain/events/:docId)" as api
+control "Endpoints de auditoria (/api/audit)" as api
 control "BlockchainService" as srv
 entity "Smart Contract" as sc
 

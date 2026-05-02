@@ -66,8 +66,9 @@ UC_F ..> SC : verificacion y auditoria
 
 note right of UC_F
   Subflujos integrados en el catalogo consolidado:
-  UC-0002, UC-0017, UC-0018, UC-0026,
-  UC-0038, UC-0041 a UC-0043 y UC-0051 a UC-0057.
+  regenerar codigos 2FA, editar metadatos,
+  crear carpetas, etiquetar documentos,
+  notificaciones y preferencias.
 end note
 @enduml
 

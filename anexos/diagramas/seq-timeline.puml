@@ -2,7 +2,7 @@
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Detalle / Actividad" as ui
-control "Endpoints de eventos (/api/documents/:id/events)" as api
+control "Endpoints de timeline (/api/timeline/documents/:id)" as api
 control "EventService" as srv
 database "PostgreSQL" as db
 

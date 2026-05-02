@@ -23,7 +23,7 @@ package "Base de datos (PostgreSQL)" <<pg>> {
     * id : CUID <<PK>>
     --
     owner_id : CUID <<FK>>
-    title : TEXT
+    name : TEXT
     blockchain_id : TEXT
     public_id : TEXT?
     visibility : ENUM

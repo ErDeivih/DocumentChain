@@ -2,7 +2,7 @@
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Biblioteca / Busqueda" as ui
-control "Endpoints de documentos (/api/documents/search)" as api
+control "Endpoints de documentos (/api/documents)" as api
 control "DocumentService" as srv
 database "PostgreSQL" as db
 

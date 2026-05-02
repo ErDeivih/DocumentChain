@@ -1,38 +1,20 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Biblioteca / Categorias" as ui
-control "Endpoints de categorias\n(/api/categories)" as categoryApi
-control "Servicio de categorias" as srv
+boundary "Biblioteca / Etiquetas" as ui
+control "Endpoints de documentos\n(/api/documents/:id)" as docApi
+control "DocumentService" as srv
 database "PostgreSQL" as db
 
-== Crear ==
-user -> ui: Crea una nueva categoria
-ui -> categoryApi: Guardar categoria
-categoryApi -> srv: Validar nombre y atributos
-srv -> db: Persistir categoria
-db --> srv: Categoria creada
-srv --> categoryApi: Alta completada
-categoryApi --> ui: Lista actualizada
-
-== Editar ==
-user -> ui: Modifica una categoria existente
-ui -> categoryApi: Actualizar categoria
-categoryApi -> srv: Validar cambios
-srv -> db: Persistir modificacion
-db --> srv: Categoria actualizada
-srv --> categoryApi: Cambio completado
-categoryApi --> ui: Lista actualizada
-
-== Eliminar ==
-user -> ui: Elimina una categoria sin uso
-ui -> categoryApi: Borrar categoria
-categoryApi -> srv: Validar eliminacion
-srv -> db: Suprimir categoria
+== Anadir o editar tags ==
+user -> ui: Edita las etiquetas del documento
+ui -> docApi: Guardar tags
+docApi -> srv: Validar permisos y actualizar tags
+srv -> db: Actualizar campo tags del documento
 db --> srv: OK
-srv --> categoryApi: Eliminacion completada
-categoryApi --> ui: Lista actualizada
-ui --> user: Gestion de categorias sincronizada
+srv --> docApi: Tags actualizados
+docApi --> ui: Vista refrescada
+ui --> user: Etiquetas sincronizadas
 
 @enduml
 

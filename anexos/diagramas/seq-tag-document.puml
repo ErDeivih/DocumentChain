@@ -1,17 +1,17 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Detalle / Categorias" as ui
-control "Endpoints de documentos (/api/documents/:id/categories)" as api
+boundary "Detalle / Etiquetas" as ui
+control "Endpoints de documentos (/api/documents/:id)" as api
 control "DocumentService" as srv
 database "PostgreSQL" as db
 
-user -> ui: Cambia las categorias del documento
-ui -> api: Guardar categorias seleccionadas
-api -> srv: Validar permisos y sincronizar relaciones
-srv -> db: Sustituir categorias activas del documento
+user -> ui: Edita las etiquetas (tags) del documento
+ui -> api: Guardar tags
+api -> srv: Validar permisos y actualizar tags
+srv -> db: Actualizar campo tags del documento
 db --> srv: OK
-srv --> api: Categorias actualizadas
+srv --> api: Tags actualizados
 api --> ui: Vista refrescada
 ui --> user: Etiquetas visibles en el detalle
 

@@ -9,6 +9,7 @@ TABLE(users, "users") {
   email : String UNIQUE
   username : String UNIQUE
   passwordHash : String
+  avatarUrl : String
   role : Enum
   createdAt : DateTime
 }
@@ -24,16 +25,16 @@ TABLE(documents, "documents") {
   PK(id) : String CUID
   FK(ownerId) : String
   FK(folderId) : String
-  ipfsCid : String
   blockchainId : String
   blockchainStatus : Enum
-  encryptedKey : String
+  tags : String[]
+  encryptedSymmetricKey : String
 }
 
 TABLE(versions, "versions") {
   PK(id) : String CUID
   FK(documentId) : String
-  FK(createdById) : String
+  FK(userId) : String
   ipfsCid : String
   versionNumber : Int
 }
@@ -78,7 +79,6 @@ users "1" -- "0..*" events : generates
 users "1" -- "0..*" notifications : receives
 users "1" -- "0..1" user_stats : has
 documents "1" -- "0..1" document_stats : has
-documents "0..*" -- "0..*" categories : tagged with
 
 TABLE(blockchain, "Smart Contract\n(Ethereum)") {
   documentId : bytes32 (hash)
@@ -97,7 +97,7 @@ TABLE(ipfs, "Nodo IPFS autoalojado") {
 
 documents "1" ..> blockchain : registra en
 documents "1" ..> ipfs : almacena en
-versions "1" ..> ipfs : versiÃ³n en
+versions "1" ..> ipfs : version en
 versions "1" ..> blockchain : hash en
 
 @enduml

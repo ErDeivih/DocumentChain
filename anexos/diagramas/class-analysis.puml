@@ -8,6 +8,7 @@ class User {
     - email: String {unique}
     - passwordHash: String
     - fullName: String?
+    - avatarUrl: String?
     - role: UserRole
     - publicKey: String
     - encryptedPrivateKey: String
@@ -34,6 +35,7 @@ class Document {
     - blockchainId: String?
     - name: String
     - description: String?
+    - tags: String[]
     - mimeType: String
     - size: BigInt
     - contentHash: String
@@ -65,13 +67,6 @@ class Folder {
     - description: String?
     - color: String?
     - isShared: Boolean
-}
-
-class Category {
-    - id: String
-    - name: String
-    - description: String?
-    - isPredefined: Boolean
 }
 
 class Event {
@@ -107,7 +102,6 @@ User "1" -- "*" Notification : receives >
 
 Document "*" -- "1" User : belongs to
 Document "*" -- "0..1" Folder : contained in
-Document "*" -- "0..1" Category : categorized by
 Document "1" -- "*" Version : has >
 Document "1" -- "*" DocumentSignature : signed by >
 Document "1" -- "*" Event : generates >
@@ -120,7 +114,6 @@ DocumentSignature "*" -- "1" User : signed by
 DocumentSignature "*" -- "0..1" Wallet : from wallet
 
 Folder "*" -- "0..1" Folder : parent
-Category "*" -- "0..1" User : custom for
 
 @enduml
 

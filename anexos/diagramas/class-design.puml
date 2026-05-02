@@ -1,6 +1,6 @@
 ﻿@startuml
 !include _structure-style.puml
-title Diagrama de Clases de DiseÃ±o - DocumentChain (Capa de Negocio)
+title Diagrama de Clases de Diseno - DocumentChain (Capa de Negocio)
 
 skinparam classAttributeIconSize 0
 skinparam classFontSize 11
@@ -44,7 +44,7 @@ package "Controllers (Express.js)" #DDEEFF {
     }
 }
 
-package "Services (LÃ³gica de Negocio)" #DFFFDF {
+package "Services (Logica de Negocio)" #DFFFDF {
     class AuthService {
         -jwtSecret: string
         +register(data): Promise<User>

@@ -4,7 +4,7 @@ left to right direction
 
 actor "Administrador" as ADMIN
 
-rectangle "AdministraciÃ³n" {
+rectangle "Administracion" {
   usecase "UC-0041: Listar Usuarios" as UC49
   usecase "UC-0042: Gestionar Roles" as UC50
 }
@@ -16,7 +16,8 @@ ADMIN --> UC50
 
 note right of UC50
   Las acciones administrativas especializadas
-  UC-0051 a UC-0055 se ejecutan como
+  (pausar sistema, suspender usuarios,
+  crear administradores) se ejecutan como
   operaciones del panel de administracion.
 end note
 @enduml

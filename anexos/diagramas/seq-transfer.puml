@@ -2,7 +2,7 @@
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Detalle / Transferir" as ui
-control "Endpoints de transferencias (/api/documents/:id/transfer)" as api
+control "Endpoints de transferencias (/api/transfers)" as api
 control "TransferService" as srv
 database "PostgreSQL" as db
 participant "Wallet del usuario (navegador o WalletConnect)" as wallet

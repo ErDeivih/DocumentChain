@@ -68,7 +68,10 @@ anexos/*.out
 anexos/*.toc
 anexos/*.lof
 anexos/*.lot
-anexos/diagramas/*.png
+# anexos/diagramas/*.png  # Los PNGs se versionan para permitir compilacion directa
+anexos/diagramas/Usuario*.png
+anexos/diagramas/test_puml.png
+"anexos/diagramas/to right direction.png"
 anexos/diagramas/diagram_*.puml
 anexos/temp_anexo*.md
 /matrices_data.json

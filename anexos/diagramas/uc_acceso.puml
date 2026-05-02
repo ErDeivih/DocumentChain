@@ -63,12 +63,13 @@ SC --> UC12
 
 note right of UC10
   Integra como subflujos:
-  UC-0017 configuracion avanzada de 2FA
-  UC-0018 regeneracion de backup 2FA
+  configuracion avanzada de 2FA
+  y regeneracion de codigos de respaldo.
 end note
 
 note right of UC1
-  UC-0002 queda absorbido como variante
-  de registro con wallet opcional.
+  El registro con wallet opcional
+  queda como variante dentro del
+  flujo principal de registro.
 end note
 @enduml
