@@ -500,13 +500,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
 
 \begin{enumerate}
     \item En la barra de búsqueda del Navbar, escribe palabras clave.
-    \item La búsqueda encuentra coincidencias en:
-    \begin{itemize}
-        \item Nombre del documento
-        \item Descripción
-        \item Tags
-        \item Nombre de carpeta
-    \end{itemize}
+    \item La búsqueda encuentra coincidencias en el nombre del documento. Para acotar por carpeta, utiliza el árbol lateral; para filtrar por etiquetas o tipo de archivo, expande los filtros avanzados.
     \item Presiona Enter o haz clic en el icono de lupa.
     \item Los resultados se mostrarán en el Área principal.
 \end{enumerate}
@@ -554,6 +548,8 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
         \item \textbf{Versiones}: historial de versiones y activación de versión operativa
         \item \textbf{Transferir}: disponible únicamente para el propietario
     \end{itemize}
+    
+    \item \textbf{Nota}: El bloque superior del detalle muestra el avatar y el nombre del propietario cuando éste ha configurado una imagen de perfil.
 \end{enumerate}
 
 \subsubsection{Descargar un documento}
@@ -715,7 +711,7 @@ Para \textbf{desarchivar}:
     \item Pulsa \textbf{Ver firmantes}.
     \item El sistema abrirá un modal con la lista de firmas registradas para esa versión.
     \item Selecciona cualquiera de los firmantes para ver su ficha resumida.
-    \item En esa ficha se muestran el nombre visible, el alias disponible, la wallet utilizada para la firma, la fecha registrada y el estado de sincronización blockchain.
+    \item En esa ficha se muestran el avatar, el nombre visible, el alias disponible, la wallet utilizada para la firma, la fecha registrada y el estado de sincronización blockchain.
     \item Si la cuenta original ya no está disponible, la aplicación seguirá mostrando la identidad histórica conservada junto a la firma.
 \end{enumerate}
 
@@ -759,7 +755,7 @@ La comprobación detallada de la validez blockchain continúa disponible desde l
     
     \item El sistema solicitará una wallet para firmar la transacción blockchain correspondiente.
     
-    \item Una vez confirmada, el usuario aparecerá en la lista de accesos compartidos del detalle.
+    \item Una vez confirmada, el usuario aparecerá en la lista de accesos compartidos del detalle, mostrando su avatar si lo tiene configurado.
     
     \item El destinatario recibirá una notificación in-app y por email.
 \end{enumerate}
@@ -812,7 +808,7 @@ Solo el OWNER puede transferir la propiedad:
 
 \begin{enumerate}
     \item Abre el detalle del documento y entra en la pestaña \textbf{Transferir}.
-    \item Busca al nuevo propietario por nombre de usuario.
+    \item Busca al nuevo propietario por nombre de usuario; los resultados muestran el avatar de cada usuario cuando está disponible.
     \item Introduce la contraseña de tu cuenta para descifrar localmente la clave del documento.
     \item El sistema preparará la transferencia y te solicitará la wallet principal para firmar la transacción blockchain.
     \item \textbf{Advertencia}: la operación es irreversible; una vez confirmada, el nuevo propietario pasará a controlar el documento y tú abandonarás el rol OWNER.
@@ -868,7 +864,7 @@ La clasificación complementaria se realiza durante la subida o la creación de 
         \item Firmas
         \item Comparticiones y cambios de permisos
         \item Transferencias
-        \item Descargas (si el propietario activó tracking)
+        \item Descargas
     \end{itemize}
 \end{enumerate}
 
@@ -987,10 +983,11 @@ Si se mantienen activadas las notificaciones por email, estos eventos también p
 
 \begin{enumerate}
     \item Accede a \textbf{Configuración} desde el icono de engranaje.
-    \item Ve a la pestaña \textbf{Notificaciones}.
+    \item Dentro de la pestaña \textbf{Seguridad y Cuenta}, localiza la sección Notificaciones.
     \item Activa/desactiva:
     \begin{itemize}
         \item Notificaciones in-app
+        \item Notificaciones push
         \item Emails
         \item Por tipo de evento
     \end{itemize}
@@ -1069,7 +1066,7 @@ La ruta \texttt{/app/profile} complementa a \texttt{/app/settings} y concentra l
 \subsubsection{Cambiar contraseña}
 
 \begin{enumerate}
-    \item Ve a la pestaña \textbf{Seguridad}.
+    \item Ve a la pestaña \textbf{Seguridad y Cuenta}.
     \item Introduce:
     \begin{itemize}
         \item Contraseña actual

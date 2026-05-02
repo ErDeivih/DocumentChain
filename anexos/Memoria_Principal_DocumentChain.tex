@@ -250,7 +250,7 @@ En el Anexo I se definen seis objetivos principales que ordenan el alcance del s
 
 \subsection{Alcance y límites}
 
-El sistema cubre el ciclo de vida principal del documento digital dentro de un entorno controlado. Entre las operaciones soportadas se encuentran el alta de documentos, el versionado, la firma, la compartición con roles, la transferencia de propiedad, la auditoría pública, la organización mediante carpetas y categorías, la administración del sistema y el envío de notificaciones asociadas a eventos relevantes. La especificación consolidada alcanza 42 casos de uso principales, suficientes para estructurar la estimación y la validación del prototipo.
+El sistema cubre el ciclo de vida principal del documento digital dentro de un entorno controlado. Entre las operaciones soportadas se encuentran el alta de documentos, el versionado, la firma, la compartición con roles, la transferencia de propiedad, la auditoría pública, la organización mediante carpetas y etiquetas (tags), la administración del sistema y el envío de notificaciones asociadas a eventos relevantes. La especificación consolidada alcanza 42 casos de uso principales, suficientes para estructurar la estimación y la validación del prototipo.
 
 El alcance del trabajo no incluye una implantación empresarial completa ni una explotación sobre una red pública de producción. Tampoco se plantea una sustitución integral de soluciones documentales consolidadas. El objetivo académico se centra en demostrar que una arquitectura híbrida bien delimitada permite combinar operatividad cotidiana con evidencia verificable. Las limitaciones de reputación SMTP, despliegue real sobre dominio propio o escalado sobre redes blockchain distintas del entorno de desarrollo forman parte del análisis, pero no se presentan como elementos cerrados en esta entrega.
 
@@ -532,7 +532,7 @@ Prisma actúa como capa de acceso a datos entre el backend y PostgreSQL. Su esqu
 
 \subsubsection{PostgreSQL}
 
-PostgreSQL es la base de datos elegida para el estado operativo del sistema. Su solidez como motor relacional, su soporte nativo para tipos JSON cuando conviene, su integración con Prisma y su compatibilidad con el despliegue dockerizado lo convierten en la alternativa más natural para el contexto del proyecto. El esquema mantiene tablas explícitas para usuarios, wallets, documentos, versiones, firmas sincronizadas, permisos, notificaciones, carpetas, categorías y estados de transacción. La Figura~\ref{fig:er-diagram-herramienta} muestra el modelo entidad-relación.
+PostgreSQL es la base de datos elegida para el estado operativo del sistema. Su solidez como motor relacional, su soporte nativo para tipos JSON cuando conviene, su integración con Prisma y su compatibilidad con el despliegue dockerizado lo convierten en la alternativa más natural para el contexto del proyecto. El esquema mantiene tablas explícitas para usuarios, wallets, documentos, versiones, firmas sincronizadas, notificaciones y carpetas. La Figura~\ref{fig:er-diagram-herramienta} muestra el modelo entidad-relación.
 
 \begin{figure}[H]
     \centering
@@ -646,7 +646,7 @@ La referencia utilizada para orientar esta memoria concede un peso importante a 
 
 Un storyboard captura en secuencia la experiencia de uso de un actor desde su perspectiva narrativa, antes de entrar en el detalle técnico. Para DocumentChain se han definido dos storyboards principales que representan los recorridos de mayor valor desde el punto de vista funcional.
 
-\textbf{Storyboard 1: Alta y firma de un documento por parte del propietario.} El usuario necesita registrar un contrato en la plataforma y dejar constancia de su firma. Accede a la plataforma con sus credenciales, activa su wallet si no lo ha hecho previamente y selecciona la opción de subir documento. Completa el formulario de alta con título, descripción, categoría y opción de visibilidad. La plataforma le solicita la firma de la transacción desde MetaMask. Una vez confirmada, el documento aparece en su listado con el CID de IPFS, el hash de la transacción y la opción de consultar la evidencia en el explorador blockchain. Desde el detalle del documento, el usuario accede a la pestaña de firmas y suscribe el documento con su wallet, añadiendo un comentario visible para los usuarios compartidos.
+\textbf{Storyboard 1: Alta y firma de un documento por parte del propietario.} El usuario necesita registrar un contrato en la plataforma y dejar constancia de su firma. Accede a la plataforma con sus credenciales, activa su wallet si no lo ha hecho previamente y selecciona la opción de subir documento. Completa el formulario de alta con título, descripción, carpeta (opcional), etiquetas y opción de visibilidad. La plataforma le solicita la firma de la transacción desde MetaMask. Una vez confirmada, el documento aparece en su listado con el CID de IPFS, el hash de la transacción y la opción de consultar la evidencia en el explorador blockchain. Desde el detalle del documento, el usuario accede a la pestaña de firmas y suscribe el documento con su wallet, añadiendo un comentario visible para los usuarios compartidos.
 
 \textbf{Storyboard 2: Verificación pública por parte de un tercero.} Un auditor externo ha recibido por correo un enlace de verificación pública de un documento. Sin necesidad de registro, accede a la URL pública del sistema y visualiza los metadatos del documento, la fecha de alta, el CID y el historial de firmas registrado en blockchain. Puede confirmar por sí mismo que el hash del documento que tiene en local coincide con el CID almacenado. Si el propietario ha habilitado la auditoría pública completa, también puede consultar el historial de versiones y los eventos de permisos registrados en el contrato. El proceso completo no requiere cuenta en la plataforma ni conocimiento técnico de blockchain.
 
@@ -890,7 +890,7 @@ La especificación completa del sistema se desarrolla en el Anexo I, donde se ca
     \hline
     \textbf{Nombre} & Ciclo de vida documental con versionado \\
     \hline
-    \textbf{Descripción} & El sistema debe soportar el ciclo de vida completo del documento digital: alta, versionado, archivado lógico, restauración de versiones anteriores y organización mediante carpetas y categorías. Cada operación relevante debe quedar registrada en el historial de actividad asociado al documento. \\
+    \textbf{Descripción} & El sistema debe soportar el ciclo de vida completo del documento digital: alta, versionado, archivado lógico, restauración de versiones anteriores y organización mediante carpetas y etiquetas (tags). Cada operación relevante debe quedar registrada en el historial de actividad asociado al documento. \\
     \hline
     \textbf{Importancia} & Alta \\
     \hline
@@ -1051,7 +1051,7 @@ Los requisitos funcionales se agrupan en varios bloques coherentes: acceso y seg
     \hline
     Acceso y cuenta & Registro, autenticación y perfil & Alta de usuario, verificación por correo, recuperación de contraseña, gestión de wallets y 2FA opcional. \\
     \hline
-    Gestión documental & Alta, descarga y organización & Subida de documentos, clasificación por carpetas y categorías, listados y búsquedas. \\
+    Gestión documental & Alta, descarga y organización & Subida de documentos, clasificación por carpetas y etiquetas, listados y búsquedas. \\
     \hline
     Versionado y ciclo de vida & Evolución controlada del documento & Creación de versiones, restauración, archivado y reactivación de versión operativa. \\
     \hline
@@ -1111,7 +1111,7 @@ La especificación completa contempla 42 casos de uso principales, pero la memor
     \hline
     RF-01 & Gestión de acceso e identidad & Registro, inicio de sesión, verificación por correo, recuperación de contraseña, configuración de perfil y vinculación de wallets. \\
     \hline
-    RF-02 & Gestión documental & Alta de documentos, organización por carpetas o categorías, consulta, descarga y archivado lógico. \\
+    RF-02 & Gestión documental & Alta de documentos, organización por carpetas y etiquetas, consulta, descarga y archivado lógico. \\
     \hline
     RF-03 & Versionado y ciclo de vida & Creación de nuevas versiones, restauración de versiones anteriores y selección de versión operativa. \\
     \hline
@@ -1348,7 +1348,7 @@ El frontend constituye la capa visible para usuarios y administradores. Desde es
     \hline
     Backend API & Express, Prisma, Node.js & Lógica de negocio, control de acceso, cifrado, integración IPFS y coordinación de confirmaciones blockchain. \\
     \hline
-    Persistencia relacional & PostgreSQL & Usuarios, sesiones, carpetas, categorías, notificaciones, sincronización y proyecciones de consulta. \\
+    Persistencia relacional & PostgreSQL & Usuarios, sesiones, carpetas, notificaciones y proyecciones de consulta. \\
     \hline
     Almacenamiento documental & IPFS con nodo Kubo autoalojado & Conservación del binario, generación de CID y soporte de documentos públicos o privados. \\
     \hline
@@ -1405,7 +1405,7 @@ El modelo de acceso se completa con permisos documentales granulares y con una c
 
 El núcleo de la solución se articula alrededor del ciclo de vida documental. Un documento puede nacer como privado o público, incorporar nuevas versiones, cambiar su versión operativa, compartirse con terceros, firmarse, archivarse, reactivarse o transferirse a otro usuario. Cada una de estas transiciones conserva una dimensión operativa en PostgreSQL y, cuando corresponde, una dimensión verificable en blockchain. IPFS actúa como soporte del contenido asociado a cada versión.
 
-El listado principal de documentos ofrece filtrado por categoría, carpeta, estado y búsqueda textual. La Figura~\ref{fig:docs-page-mem} muestra el estado del panel documental con varios documentos.
+El listado principal de documentos ofrece filtrado por carpeta y búsqueda textual, con opción de incluir documentos archivados. La Figura~\ref{fig:docs-page-mem} muestra el estado del panel documental con varios documentos.
 
 \begin{figure}[H]
     \centering
@@ -1776,7 +1776,7 @@ Una de las decisiones centrales del proyecto consiste en no jerarquizar artifici
     \hline
     \textbf{Capa} & \textbf{Qué conserva} & \textbf{Motivo principal} \\
     \hline
-    PostgreSQL & Usuarios, sesiones, preferencias, estados de sincronización, carpetas, categorías, notificaciones y proyecciones de consulta & Permite modelado rico, búsquedas, filtros y actualización frecuente con bajo coste operativo. \\
+    PostgreSQL & Usuarios, sesiones, preferencias de notificación, carpetas, notificaciones y proyecciones de consulta & Permite modelado rico, búsquedas, filtros y actualización frecuente con bajo coste operativo. \\
     \hline
     IPFS & Ficheros documentales y versiones, cifrados o en claro según su visibilidad & Aporta direccionamiento por contenido y desacopla el binario del backend principal. \\
     \hline

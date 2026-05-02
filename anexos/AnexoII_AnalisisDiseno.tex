@@ -445,7 +445,7 @@ PostgreSQL almacena toda la información que requiere consultas relacionales efi
 
 \begin{itemize}
     \item \textbf{Datos de identidad}: cuentas de usuario, credenciales cifradas, configuración de perfil, preferencias de notificación.
-    \item \textbf{Metadatos de documentos}: nombre, descripción, estado de blockchain (\textit{PREPARING / TX\_SUBMITTED / SYNCED}), referencia al CID de IPFS, visibilidad, \texttt{publicId} cuando aplica, y marcas de tiempo de creación y modificación.
+    \item \textbf{Metadatos de documentos}: nombre, descripción, estado de blockchain (\textit{PREPARING / TX\_SUBMITTED / SYNCED / FAILED}), referencia al CID de IPFS, visibilidad, \texttt{publicId} cuando aplica, y marcas de tiempo de creación y modificación.
     \item \textbf{Control de versiones}: historial de versiones por documento, referencia a cada CID en IPFS, autor y fecha de cada versión.
     \item \textbf{Estructura organizativa}: carpetas y etiquetas para la organización jerárquica de documentos.
     \item \textbf{Compartición y auditoría operativa}: eventos de preparación, confirmación y revocación, notificaciones y datos auxiliares para la interfaz y la trazabilidad interna.
@@ -502,7 +502,7 @@ El contrato define un tipo enumerado \texttt{DocumentRole} para expresar el nive
     \item \texttt{OWNER} (3): control total; puede compartir, firmar, transferir y eliminar.
 \end{itemize}
 
-Adicionalmente, el sistema de control de acceso basado en roles (RBAC) de OpenZeppelin gestiona dos roles globales: \texttt{ADMIN\_ROLE} para administradores de la plataforma, y \texttt{OPERATOR\_ROLE} para operadores de sistema.
+Adicionalmente, el sistema de control de acceso basado en roles (RBAC) de OpenZeppelin gestiona \texttt{ADMIN\_ROLE} para administradores de la plataforma. El contrato también define \texttt{OPERATOR\_ROLE}, pero en el modelo relacional de PostgreSQL solo existen los roles \texttt{ADMIN} y \texttt{USER}, por lo que \texttt{OPERATOR\_ROLE} no tiene representación operativa en la base de datos.
 
 \paragraph{Struct Document}
 
@@ -1024,7 +1024,7 @@ A continuación se incluyen bocetos de baja fidelidad de las vistas de mayor ent
 
 \textbf{Elementos}:
 \begin{itemize}
-    \item Cabecera de configuración con pestañas superiores para perfil, seguridad, notificaciones y privacidad.
+    \item Cabecera de configuración con pestañas superiores para perfil y seguridad y cuenta; las preferencias de notificación se gestionan dentro de la pestaña de seguridad.
     \item Formulario principal de información de perfil con avatar, datos de cuenta y acciones de guardado.
     \item Bloque diferenciado de wallets de blockchain con recuento de límite y filas de wallets registradas.
     \item Reutilización de la misma navegación lateral del usuario autenticado para mantener consistencia estructural.
