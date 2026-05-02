@@ -185,6 +185,7 @@ describe('SignatureService signer profile support', () => {
           fullName: 'Marina Prieto',
           walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
           source: 'snapshot',
+          avatarUrl: null,
         },
       }),
     ]);

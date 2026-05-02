@@ -127,6 +127,7 @@ const shareNotificationTypes: Notification['type'][] = [
 export const Notifications: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const autoReadTimers = React.useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Obtener notificaciones
   const { data: notificationsData, isLoading } = useQuery({
@@ -134,11 +135,16 @@ export const Notifications: React.FC = () => {
     queryFn: () => getNotifications({ limit: 100 }),
   });
 
+  const invalidateNotificationQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
+  };
+
   // Mutación para marcar como leída
   const markAsReadMutation = useMutation({
     mutationFn: markAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      invalidateNotificationQueries();
     },
     onError: () => {
       toast({
@@ -153,7 +159,7 @@ export const Notifications: React.FC = () => {
   const markAllAsReadMutation = useMutation({
     mutationFn: markAllAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      invalidateNotificationQueries();
       toast({
         title: 'Éxito',
         description: 'Todas las notificaciones marcadas como leídas',
@@ -198,6 +204,45 @@ export const Notifications: React.FC = () => {
   const unreadCount = notificationsData?.unread || 0;
   const allNotifications = notificationsData?.notifications || [];
   const unreadNotifications = allNotifications.filter(n => !n.isRead);
+
+  // Auto-mark-as-read: las notificaciones no leídas se marcan automáticamente
+  // como leídas tras 3 segundos de estar visibles en la página.
+  const pendingAutoReadRef = React.useRef<Set<string>>(new Set());
+
+  React.useEffect(() => {
+    const unreadIds = allNotifications.filter((n) => !n.isRead).map((n) => n.id);
+    const newIds = unreadIds.filter((id) => !pendingAutoReadRef.current.has(id));
+
+    newIds.forEach((id) => {
+      pendingAutoReadRef.current.add(id);
+      const timer = setTimeout(() => {
+        markAsReadMutation.mutate(id);
+        pendingAutoReadRef.current.delete(id);
+      }, 3000);
+      autoReadTimers.current.set(id, timer);
+    });
+
+    // Cancelar timers de notificaciones que ya no están en la lista (ej. eliminadas)
+    autoReadTimers.current.forEach((timer, id) => {
+      if (!unreadIds.includes(id)) {
+        clearTimeout(timer);
+        autoReadTimers.current.delete(id);
+        pendingAutoReadRef.current.delete(id);
+      }
+    });
+
+    return () => {
+      // No limpiamos timers aquí para que sigan corriendo entre renders
+    };
+  }, [allNotifications, markAsReadMutation]);
+
+  React.useEffect(() => {
+    return () => {
+      autoReadTimers.current.forEach((timer) => clearTimeout(timer));
+      autoReadTimers.current.clear();
+      pendingAutoReadRef.current.clear();
+    };
+  }, []);
 
   if (isLoading) {
     return (

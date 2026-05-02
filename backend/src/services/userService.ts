@@ -32,6 +32,7 @@ export class UserService {
         fullName: true,
         role: true,
         publicKey: true,
+        avatarUrl: true,
         createdAt: true,
         wallets: {
           select: {
@@ -143,7 +144,7 @@ export class UserService {
     // Usar any temporalmente hasta que se regenere el cliente Prisma
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl } as any,
+      data: { avatarUrl },
       select: {
         id: true,
         username: true,
@@ -151,11 +152,12 @@ export class UserService {
         fullName: true,
         role: true,
         publicKey: true,
+        avatarUrl: true,
         createdAt: true,
       }
     });
 
-    return { ...user, avatarUrl };
+    return user;
   }
 
   /**
@@ -165,7 +167,7 @@ export class UserService {
     // Usar any temporalmente hasta que se regenere el cliente Prisma
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl: null } as any,
+      data: { avatarUrl: null },
       select: {
         id: true,
         username: true,
@@ -173,11 +175,12 @@ export class UserService {
         fullName: true,
         role: true,
         publicKey: true,
+        avatarUrl: true,
         createdAt: true,
       }
     });
 
-    return { ...user, avatarUrl: null };
+    return user;
   }
 
   /**
@@ -188,6 +191,8 @@ export class UserService {
     id: string;
     username: string;
     fullName: string | null;
+    email: string;
+    avatarUrl: string | null;
   }>> {
     const users = await prisma.user.findMany({
       where: {
@@ -199,7 +204,9 @@ export class UserService {
       select: {
         id: true,
         username: true,
-        fullName: true
+        fullName: true,
+        email: true,
+        avatarUrl: true,
       },
       take: limit
     });

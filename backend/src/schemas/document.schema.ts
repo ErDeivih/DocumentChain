@@ -28,9 +28,6 @@ export const createDocumentSchema = z.object({
   folderId: z.string()
     .uuid('ID de carpeta inválido')
     .optional(),
-  categoryId: z.string()
-    .uuid('ID de categoría inválido')
-    .optional(),
   tags: z.array(z.string().max(50).trim())
     .max(20, 'Máximo 20 etiquetas permitidas')
     .optional()
@@ -95,6 +92,5 @@ export const listDocumentsQuerySchema = z.object({
   page: z.string().optional().transform(val => parseInt(val || '1')),
   limit: z.string().optional().transform(val => Math.min(parseInt(val || '50'), 100)),
   folderId: z.string().uuid().optional(),
-  categoryId: z.string().uuid().optional(),
   search: z.string().max(255).optional()
 });

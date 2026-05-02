@@ -373,7 +373,7 @@ test.describe('Annex UI screenshots', () => {
     await expect(page).toHaveURL(/\/app\/documents$/);
 
     await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Seguridad' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
     await page.getByRole('button', { name: 'Configurar 2FA' }).click();
     await expect(page.getByAltText('QR Code')).toBeVisible();
     await capture(page, 'two-factor-setup.png');
@@ -388,9 +388,9 @@ test.describe('Annex UI screenshots', () => {
       })
     );
     await page.getByRole('button', { name: 'Verificar y Activar' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo!')).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).toBeVisible({ timeout: 20000 });
     await page.getByRole('button', { name: 'He guardado los códigos' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo!')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).not.toBeVisible({ timeout: 10000 });
 
     await clearStoredSession(page);
     await page.goto('/login');

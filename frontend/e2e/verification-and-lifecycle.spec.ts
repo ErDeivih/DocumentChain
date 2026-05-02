@@ -79,6 +79,7 @@ test.describe('Verification and document lifecycle coverage', () => {
       mimeType: 'text/plain',
       buffer: fileContents,
     });
+    await expect(page.getByRole('button', { name: 'Verificar Documento' })).toBeEnabled({ timeout: 10000 });
     await page.getByRole('button', { name: 'Verificar Documento' }).click();
 
     await expect(page.getByText('Document Verified ✓')).toBeVisible({ timeout: 30000 });

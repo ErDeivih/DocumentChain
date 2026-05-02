@@ -228,9 +228,9 @@ La especificación se estructura en tres tipos de requisitos:
 
 \subsection*{Criterio de consolidación funcional del catálogo UC}
 
-El catálogo funcional de referencia del proyecto queda fijado en \textbf{42 casos de uso principales}. La reducción respecto al inventario inicial no implica la eliminación de capacidades implementadas, sino la \textbf{agrupación de operaciones auxiliares, variantes y acciones de soporte} dentro de casos de uso de mayor entidad funcional para evitar atomizar el catálogo con UC de alcance demasiado pequeño o dependiente.
+El catálogo funcional de referencia del proyecto queda fijado en \textbf{42 casos de uso principales} (Tabla~\ref{tab:consolidacion-uc}). La reducción respecto al inventario inicial no implica la eliminación de capacidades implementadas, sino la \textbf{agrupación de operaciones auxiliares, variantes y acciones de soporte} dentro de casos de uso de mayor entidad funcional para evitar atomizar el catálogo con UC de alcance demasiado pequeño o dependiente.
 
-Siguiendo este criterio, operaciones como el registro con wallet opcional, la configuración avanzada de segundo factor, la edición puntual de metadatos, la organización documental mediante carpetas, categorías o etiquetas, la consulta y configuración de notificaciones y determinadas acciones administrativas especializadas se documentan como \textbf{subflujos o extensiones} de casos de uso principales ya retenidos. Así, las funcionalidades siguen formando parte del sistema entregado, pero no se mantienen como UC independientes a efectos de especificación, trazabilidad y correspondencia con los anexos posteriores.
+Siguiendo este criterio, operaciones como el registro con wallet opcional, la configuración avanzada de segundo factor, la edición puntual de metadatos, la organización documental mediante carpetas y etiquetas, la consulta y configuración de notificaciones y determinadas acciones administrativas especializadas se documentan como \textbf{subflujos o extensiones} de casos de uso principales ya retenidos. Así, las funcionalidades siguen formando parte del sistema entregado, pero no se mantienen como UC independientes a efectos de especificación, trazabilidad y correspondencia con los anexos posteriores.
 
 \begin{table}[H]
     \centering
@@ -247,7 +247,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
     \hline
     UC-0038 & Ajuste fino de permisos sobre accesos ya concedidos & UC-0033 Compartir Documento y UC-0034 Revocar Acceso a Documento \\
     \hline
-    UC-0041, UC-0042, UC-0043 & Organización documental mediante carpetas, categorías y etiquetas & UC-0017 Listar Documentos y UC-0018 Ver Detalle de Documento \\
+    UC-0041, UC-0042 & Organización documental mediante carpetas y etiquetas & UC-0017 Listar Documentos y UC-0018 Ver Detalle de Documento \\
     \hline
     UC-0051 a UC-0055 & Operaciones administrativas especializadas sobre usuarios y estado global del sistema & UC-0038 Ver Estadísticas Globales del Sistema, UC-0041 Listar Usuarios y UC-0042 Gestionar Roles de Usuario \\
     \hline
@@ -610,7 +610,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
     \begin{itemize}
         \item ID único, Blockchain ID, Nombre, Descripción
         \item Tipo MIME, Tamaño, Hash de contenido, Extensión
-        \item Carpeta (FK), Categoría (FK), Etiquetas, Propietario (FK)
+        \item Carpeta (FK), Etiquetas, Propietario (FK)
         \item Clave simétrica encriptada, IV y Auth tag de cifrado
         \item Estado blockchain (PREPARING/TX\_SUBMITTED/SYNCED/FAILED), TxHash
         \item Archivado (boolean), Timestamps (creación)
@@ -636,14 +636,14 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
     \caption{Especificación del requisito IRQ-0002}
 \end{table}
 
-\subsubsection{IRQ-0003: Organización y categorización}
+\subsubsection{IRQ-0003: Organización y etiquetado}
 
 \begin{table}[H]
     \centering
     \small
     \begin{tabular}{|p{4cm}|p{10cm}|}
     \hline
-    \textbf{IRQ-0003} & Organización y categorización \\
+    \textbf{IRQ-0003} & Organización y etiquetado \\
     \hline
     \textbf{Versión} & 1.0 \\
     \hline
@@ -651,7 +651,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
     \hline
     \textbf{Fuentes} & A. Durán, B. Bernárdez \\
     \hline
-    \textbf{Descripción} & Estructuras para organizar documentos mediante carpetas jerárquicas y categorías. \\
+    \textbf{Descripción} & Estructuras para organizar documentos mediante carpetas jerárquicas y etiquetas (tags) libres. \\
     \hline
     \textbf{Datos específicos} & 
     \textbf{Carpeta:}
@@ -667,17 +667,11 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
         \item Timestamps (creación, actualización)
     \end{itemize}
     
-    \textbf{Categoría:}
+    \textbf{Etiquetas (tags):}
     \begin{itemize}
-        \item ID único
-        \item ID de usuario (FK, nullable para predefinidas)
-        \item Nombre
-        \item Descripción
-        \item Color (hex)
-        \item Icono
-        \item Es predefinida (boolean)
-        \item Está activa (boolean)
-        \item Timestamp de creación
+        \item Array de cadenas de texto libre asociadas al documento
+        \item Máximo 20 etiquetas por documento
+        \item Longitud máxima 50 caracteres por etiqueta
     \end{itemize} \\
     \hline
     \textbf{Importancia} & Alta \\
@@ -686,7 +680,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
     \hline
     \textbf{Estabilidad} & Alta \\
     \hline
-    \textbf{Comentarios} & Carpetas soportan jerarquéa multinivel. Categorías pueden ser del sistema o del usuario. \\
+    \textbf{Comentarios} & Carpetas soportan jerarquía multinivel. Las etiquetas son texto libre sin restricciones de color ni icono. \\
     \hline
     \end{tabular}
     \caption{Especificación del requisito IRQ-0003}
@@ -1205,7 +1199,7 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
         \item Registrarse y autenticarse en el sistema
         \item Conectar múltiples wallets de Ethereum
         \item Subir y descargar documentos
-        \item Crear y gestionar carpetas y categorías
+        \item Crear y gestionar carpetas
         \item Crear nuevas versiones de documentos
         \item Firmar documentos digitalmente
         \item Compartir documentos con otros usuarios
@@ -1369,135 +1363,11 @@ Siguiendo este criterio, operaciones como el registro con wallet opcional, la co
 
 \textbf{NOTA}: Los diagramas se incluirán en formato PlantUML. Ejecutar los archivos .puml separados para generar las imágenes.
 
-% === PlantUML source (comentado) ===
-% \begin{lstlisting}[caption={Diagrama general de casos de uso - Ver archivo diagramas/usecase\_general.puml}]
-% @startuml
-% left to right direction
-% skinparam packageStyle rectangle
-%
-% actor "Usuario" as USER
-% actor "Administrador" as ADMIN
-% actor "Smart Contract" as SC
-% actor "Nodo IPFS autoalojado" as IPFS
-% actor "Sistema Email" as EMAIL
-% actor "Público" as PUB
-%
-% rectangle "DocumentChain" {
-%   package "Gestión de Acceso (01-18)" {
-%     usecase "UC-0001: Registrar Usuario" as UC1
-%     usecase "UC-0002: Registrar con Wallet" as UC2
-%     usecase "UC-0002: Iniciar Sesión" as UC3
-%     usecase "UC-0003: Validar Segundo Factor en el Inicio de Sesión" as UC4
-%     usecase "UC-0004: Cerrar Sesión" as UC5
-%     usecase "UC-0005: Conectar Wallet" as UC6
-%     usecase "UC-0006: Eliminar Wallet" as UC7
-%     usecase "UC-0007: Wallet Principal" as UC8
-%     usecase "UC-0008: Renombrar Wallet" as UC9
-%     usecase "UC-0009: Gestionar Perfil" as UC10
-%     usecase "UC-0010: Desactivar Cuenta" as UC11
-%     usecase "UC-0011: Reactivar Cuenta" as UC12
-%     usecase "UC-0012: Cambiar Contraseña" as UC13
-%     usecase "UC-0013: Recuperar Contraseña" as UC14
-%     usecase "UC-0014: Verificar Email" as UC15
-%     usecase "UC-0015: Reenviar Verificación" as UC16
-%     usecase "UC-0017: Configurar 2FA" as UC17
-%     usecase "UC-0018: Regenerar Backup 2FA" as UC18
-%   }
-%   package "Gestión de Documentos (19-28)" {
-%     usecase "UC-0016: Subir Documento" as UC19
-%     usecase "UC-0017: Listar Documentos" as UC20
-%     usecase "UC-0018: Ver Detalle" as UC21
-%     usecase "UC-0019: Descargar Documento" as UC22
-%     usecase "UC-0020: Archivar Documento" as UC23
-%     usecase "UC-0021: Desarchivar Documento" as UC24
-%     usecase "UC-0022: Eliminar Documento" as UC25
-%     usecase "UC-0026: Editar Metadatos" as UC26
-%     usecase "UC-0023: Transferir Documento" as UC27
-%     usecase "UC-0024: Buscar Documentos" as UC28
-%   }
-%   package "Versionado (29-33)" {
-%     usecase "UC-0025: Crear Nueva Versión" as UC29
-%     usecase "UC-0026: Listar Versiones" as UC30
-%     usecase "UC-0027: Versión Operativa" as UC31
-%     usecase "UC-0028: Restaurar Versión" as UC32
-%     usecase "UC-0029: Descargar Versión" as UC33
-%   }
-%   package "Firmas (34-36)" {
-%     usecase "UC-0030: Firmar Documento" as UC34
-%     usecase "UC-0031: Ver Firmas" as UC35
-%     usecase "UC-0032: Verificar Firma" as UC36
-%   }
-%   package "Compartición (37-40)" {
-%     usecase "UC-0033: Compartir Documento" as UC37
-%     usecase "UC-0038: Modificar Permisos" as UC38
-%     usecase "UC-0034: Revocar Acceso" as UC39
-%     usecase "UC-0035: Docs. Compartidos" as UC40
-%   }
-%   package "Organización (41-44)" {
-%     usecase "UC-0041: Gestionar Carpetas" as UC41
-%     usecase "UC-0042: Gestionar Categorías" as UC42
-%     usecase "UC-0043: Etiquetar Documento" as UC43
-%     usecase "UC-0036: Ver Timeline" as UC44
-%   }
-%   package "Auditoría y Estadísticas (45-48)" {
-%     usecase "UC-0037: Estadísticas Propias" as UC45
-%     usecase "UC-0038: Estadísticas Globales" as UC46
-%     usecase "UC-0039: Verificar Autenticidad" as UC47
-%     usecase "UC-0040: Auditoría Blockchain" as UC48
-%   }
-%   package "Administración (49-55)" {
-%     usecase "UC-0041: Listar Usuarios" as UC49
-%     usecase "UC-0042: Gestionar Roles" as UC50
-%     usecase "UC-0051: Crear Admin" as UC51
-%     usecase "UC-0052: Suspender Usuario" as UC52
-%     usecase "UC-0053: Eliminar Cuenta" as UC53
-%     usecase "UC-0054: Pausar Sistema" as UC54
-%     usecase "UC-0055: Reanudar Sistema" as UC55
-%   }
-%   package "Notificaciones (56-57)" {
-%     usecase "UC-0056: Ver Notificaciones" as UC56
-%     usecase "UC-0057: Config. Preferencias" as UC57
-%   }
-% }
-%
-% USER --> UC1 ; USER --> UC2 ; USER --> UC3 ; USER --> UC4 ; USER --> UC5
-% USER --> UC6 ; USER --> UC7 ; USER --> UC8 ; USER --> UC9 ; USER --> UC10
-% USER --> UC11 ; USER --> UC12 ; USER --> UC13 ; USER --> UC14 ; USER --> UC15
-% USER --> UC16 ; USER --> UC17 ; USER --> UC18
-% USER --> UC19 ; USER --> UC20 ; USER --> UC21 ; USER --> UC22 ; USER --> UC23
-% USER --> UC24 ; USER --> UC25 ; USER --> UC26 ; USER --> UC27 ; USER --> UC28
-% USER --> UC29 ; USER --> UC30 ; USER --> UC31 ; USER --> UC32 ; USER --> UC33
-% USER --> UC34 ; USER --> UC35 ; USER --> UC36
-% USER --> UC37 ; USER --> UC38 ; USER --> UC39 ; USER --> UC40
-% USER --> UC41 ; USER --> UC42 ; USER --> UC43 ; USER --> UC44
-% USER --> UC45 ; USER --> UC56 ; USER --> UC57
-% PUB --> UC47
-%
-% ADMIN --> UC46 ; ADMIN --> UC48
-% ADMIN --> UC49 ; ADMIN --> UC50 ; ADMIN --> UC51 ; ADMIN --> UC52
-% ADMIN --> UC53 ; ADMIN --> UC54 ; ADMIN --> UC55
-%
-% UC1 ..> SC : registra ; UC1 ..> EMAIL : envía verificación
-% UC2 ..> SC : verifica firma ; UC2 ..> EMAIL : envía verificación
-% UC4 ..> SC : verifica desafío
-% UC6 ..> SC : verifica firma
-% UC19 ..> IPFS : almacena ; UC19 ..> SC : registra
-% UC22 ..> IPFS : descarga
-% UC27 ..> SC : transferOwnership
-% UC29 ..> IPFS : almacena ; UC29 ..> SC : registra
-% UC34 ..> SC : registra firma
-% UC37 ..> SC : otorga permisos
-% UC39 ..> SC : revoca permisos
-% UC47 ..> SC : consulta ; UC47 ..> IPFS : verifica
-% UC54 ..> SC : pause() ; UC55 ..> SC : unpause()
-% @enduml
-% \end{lstlisting}
-%
-% === fin PlantUML ===
+
 
 \textit{Los diagramas detallados de cada paquete se encuentran en los archivos PlantUML separados en la carpeta diagramas/.}
 
-\textbf{NOTA PARA COMPILACIÓN}: Coloque aquí las imágenes generadas desde PlantUML. Ejemplo:
+\textbf{NOTA PARA COMPILACIÓN}: Coloque aquí las imágenes generadas desde PlantUML. Ejemplo: el diagrama general de casos de uso se muestra en la Figura~\ref{fig:usecase-general}.
 
 \begin{figure}[H]
     \centering
@@ -1882,7 +1752,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \hline
 \textbf{Estabilidad} & Alta \\
 \hline
-\textbf{Comentarios} & El username admite únicamente caracteres alfanuméricos, guiones y guiones bajos. El avatar se redimensiona automáticamente a 200?-200 px en el backend. \\
+\textbf{Comentarios} & El username admite únicamente caracteres alfanuméricos, guiones y guiones bajos. El avatar se redimensiona automáticamente a 200x200 px en el backend. \\
 \hline
 \caption{Especificación del caso de uso UC-0009}
 \end{longtable}
@@ -2486,14 +2356,14 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \hline
 \textbf{Dependencias} & OBJ-0003, IRQ-0002, NFR-0003, UC-0017 \\
 \hline
-\textbf{Descripción} & Permite al usuario buscar documentos propios y compartidos aplicando múltiples filtros simultáneos: texto libre en nombre y descripción, tipo de archivo, categoría, carpeta, estado blockchain, firmante, etiquetas y rango de fechas. \\
+    \textbf{Descripción} & Permite al usuario buscar documentos propios y compartidos aplicando múltiples filtros simultáneos: texto libre en nombre y descripción, tipo de archivo, carpeta, estado blockchain, firmante, etiquetas y rango de fechas. \\
 \hline
 \textbf{Precondición} & Usuario autenticado con JWT válido. \\
 \hline
 \textbf{Secuencia normal} &
 \textbf{Paso 1:} El usuario introduce un término en la barra de búsqueda global o accede al panel de búsqueda avanzada.\newline
 \textbf{Paso 2:} El frontend aplica debounce de 300ms antes de enviar la petición.\newline
-\textbf{Paso 3:} El frontend envía con los parámetros: q (texto libre), type (tipo MIME), category, folderId, blockchainStatus, signedBy, tags, dateFrom, dateTo, page, limit.\newline
+\textbf{Paso 3:} El frontend envía con los parámetros: q (texto libre), type (tipo MIME), folderId, blockchainStatus, signedBy, tags, dateFrom, dateTo, page, limit.\newline
 \textbf{Paso 4:} El backend construye la consulta Prisma filtrando únicamente documentos accesibles por el usuario (propios o compartidos).\newline
 \textbf{Paso 5:} El backend ejecuta la búsqueda de texto sobre campos name y description usando búsqueda insensible a mayúsculas.\newline
 \textbf{Paso 6:} El backend aplica los filtros adicionales especificados.\newline
@@ -3788,6 +3658,8 @@ Los tres subsistemas de persistencia operan coordinadamente y al mismo nivel den
 
 \subsection{Diagrama de arquitectura}
 
+La arquitectura del sistema se ilustra en la Figura~\ref{fig:arquitectura}.
+
 \clearpage
 \begin{landscape}
 \begin{figure}[p]
@@ -3825,16 +3697,11 @@ Los tres subsistemas de persistencia operan coordinadamente y al mismo nivel den
 
 \section*{Bibliografía}
 \addcontentsline{toc}{section}{Bibliografía}
-
 \begin{enumerate}
-    \item Durán, A., \& Bernárdez, B. (2000). \textit{A Requirements Elicitation Approach Based in Templates and Patterns}. Universidad de Sevilla.
-    \item NIST. (2001). \textit{FIPS 197: Advanced Encryption Standard (AES)}. National Institute of Standards and Technology.
-    \item NIST. (2020). \textit{FIPS 186-5: Digital Signature Standard (DSS)}. National Institute of Standards and Technology.
-    \item OWASP Foundation. (2021). \textit{OWASP Top 10: 2021}. \url{https://owasp.org/Top10/}
-    \item OpenZeppelin. (2025). \textit{OpenZeppelin Contracts Documentation}. \url{https://docs.openzeppelin.com/}
-    \item Ethereum Foundation. (2025). \textit{Ethereum Developer Documentation}. \url{https://ethereum.org/en/developers/docs/}
-    \item Protocol Labs. (2025). \textit{IPFS Documentation}. \url{https://docs.ipfs.tech/}
-    \item Prisma. (2025). \textit{Prisma ORM Documentation}. \url{https://www.prisma.io/docs}
+  \item Durán, A. y Bernárdez, B. (2001). \textit{Metodología de elicitación de requisitos software}. Universidad de Sevilla.
+  \item OpenZeppelin. (2024). \textit{OpenZeppelin Contracts}. https://docs.openzeppelin.com/contracts
+  \item Protocol Labs. (2024). \textit{IPFS Documentation}. https://docs.ipfs.io
+  \item Buterin, V. (2014). \textit{Ethereum White Paper}. https://ethereum.org
 \end{enumerate}
 
 \end{document}

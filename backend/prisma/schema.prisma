@@ -24,11 +24,11 @@ model User {
   twoFactorBackupCodes        String?
   twoFactorEnabled            Boolean                 @default(false)
   twoFactorSecret             String?
+  avatarUrl                   String?
   isSuspended                 Boolean                 @default(false)
   suspendReason               String?
   suspendedAt                 DateTime?
   emailVerified               Boolean                 @default(false)
-  categories                  Category[]
   documents                   Document[]              @relation("UserDocuments")
   signatures                  DocumentSignature[]
   emailVerifications          EmailVerification[]
@@ -101,24 +101,6 @@ model Folder {
   @@index([parentId])
 }
 
-model Category {
-  id           String     @id @default(cuid())
-  userId       String?
-  name         String
-  description  String?
-  color        String?
-  icon         String?
-  isPredefined Boolean    @default(false)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  user         User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documents    Document[]
-
-  @@unique([userId, name])
-  @@index([userId])
-  @@index([isPredefined])
-}
-
 model Document {
   id                    String              @id @default(cuid())
   blockchainId          String?             @unique
@@ -129,8 +111,7 @@ model Document {
   contentHash           String
   metadataHash          String
   fileExtension         String?
-  folderId              String?
-  categoryId            String?
+  folderId            String?
   tags                  String[]            @default([])
   ownerId               String
   encryptedSymmetricKey String
@@ -148,7 +129,6 @@ model Document {
   isDeleted             Boolean             @default(false)
   publicId              String?             @unique
   visibility            DocumentVisibility  @default(PRIVATE)
-  category              Category?           @relation(fields: [categoryId], references: [id])
   creatorWallet         Wallet?             @relation("DocumentCreator", fields: [creatorWalletId], references: [id])
   folder                Folder?             @relation(fields: [folderId], references: [id])
   owner                 User                @relation("UserDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
@@ -162,7 +142,6 @@ model Document {
   @@index([publicId])
   @@index([visibility])
   @@index([folderId])
-  @@index([categoryId])
   @@index([fileExtension])
   @@index([blockchainStatus])
   @@index([isArchived])

@@ -5,6 +5,8 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import AlertMessage from '../components/ui/AlertMessage';
 import { copyToClipboard, formatDate } from '../lib/utils';
+import { TransactionDetailModal } from '../components/audit/TransactionDetailModal';
+import { auditApi } from '../api/audit';
 import {
   Search,
   Filter,
@@ -19,6 +21,7 @@ import {
   RefreshCw,
   X,
   Copy,
+  ExternalLink,
 } from 'lucide-react';
 
 interface BlockchainEvent {
@@ -85,6 +88,10 @@ export const BlockchainAuditor: React.FC = () => {
   const [limit] = useState(20);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+
+  const [txModalOpen, setTxModalOpen] = useState(false);
+  const [txModalDetails, setTxModalDetails] = useState<any>(null);
+  const [txModalLoading, setTxModalLoading] = useState(false);
 
   const activeTypesCount = selectedTypes.length || EVENT_TYPES.length;
 
@@ -170,6 +177,20 @@ export const BlockchainAuditor: React.FC = () => {
     await copyToClipboard(text);
   };
 
+  const openTxModal = async (hash: string) => {
+    setTxModalOpen(true);
+    setTxModalLoading(true);
+    setTxModalDetails(null);
+    try {
+      const data = await auditApi.getTransactionByHash(hash);
+      setTxModalDetails(data);
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar detalles de la transacción');
+    } finally {
+      setTxModalLoading(false);
+    }
+  };
+
   const exportToCSV = () => {
     const csv = [
       ['Tipo', 'Usuario', 'Documento', 'Tx Hash', 'Bloque', 'Fecha'].join(','),
@@ -202,6 +223,26 @@ export const BlockchainAuditor: React.FC = () => {
           <p className="mt-1 text-sm text-muted-foreground">
             Explorador técnico de transacciones y eventos on-chain.
           </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Buscar por Tx Hash 0x..."
+              value={txHash}
+              onChange={(e) => setTxHash(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-64"
+            />
+            <Button variant="outline" onClick={handleSearch} className="shrink-0">
+              <Search className="w-4 h-4" />
+            </Button>
+            {txHash && (
+              <Button variant="ghost" size="sm" onClick={() => { setTxHash(''); handleSearch(); }} className="shrink-0 px-2">
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
           <Badge variant="outline">Total: {statsInline.total}</Badge>
@@ -330,7 +371,21 @@ export const BlockchainAuditor: React.FC = () => {
                           </div>
                           <div className="flex items-center gap-1 min-w-0">
                             <Hash className="w-3 h-3" />
-                            <span className="truncate">{event.transactionHash || '-'}</span>
+                            {event.transactionHash ? (
+                              <button
+                                className="truncate text-blue-600 hover:underline cursor-pointer bg-transparent border-none p-0 text-left flex items-center gap-1"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  void openTxModal(event.transactionHash!);
+                                }}
+                                title="Ver detalles de la transacción"
+                              >
+                                {event.transactionHash}
+                                <ExternalLink className="w-3 h-3 inline" />
+                              </button>
+                            ) : (
+                              <span className="truncate">-</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -392,6 +447,13 @@ export const BlockchainAuditor: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <TransactionDetailModal
+        open={txModalOpen}
+        onClose={() => setTxModalOpen(false)}
+        details={txModalDetails}
+        isLoading={txModalLoading}
+      />
     </div>
   );
 };

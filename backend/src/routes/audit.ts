@@ -263,6 +263,49 @@ router.get('/health', async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /audit/transaction/:txHash
+ * Obtener detalles de una transacción por su hash
+ * Decodifica eventos del contrato DocumentRegistry
+ * 
+ * @public - No requiere autenticación
+ * @param txHash - Hash de la transacción (0x...)
+ * @returns Detalles de la transacción y eventos decodificados
+ */
+router.get('/transaction/:txHash', async (req: Request, res: Response) => {
+  try {
+    const { txHash } = req.params;
+
+    if (typeof txHash !== 'string' || !txHash.startsWith('0x') || txHash.length !== 66) {
+      return res.status(400).json({
+        error: 'Formato de txHash inválido. Se esperaba una cadena hexadecimal de 32 bytes con prefijo 0x.'
+      });
+    }
+
+    logger.info(`[PUBLIC] Transaction details requested for: ${txHash}`);
+
+    const details = await AuditService.getTransactionDetails(txHash);
+
+    res.json({
+      success: true,
+      ...details
+    });
+
+  } catch (error) {
+    logger.error('Error en endpoint de detalles de transacción:', error);
+
+    if (error instanceof Error && error.message.includes('no encontrada')) {
+      return res.status(404).json({
+        error: error.message
+      });
+    }
+
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Error al obtener detalles de transacción'
+    });
+  }
+});
+
+/**
  * GET /audit/events
  * Consultar eventos de blockchain con filtros avanzados
  * Permite auditoría completa del sistema

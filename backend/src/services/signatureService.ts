@@ -37,6 +37,7 @@ export interface SignerSummary {
   fullName: string | null;
   walletAddress: string;
   source: 'live' | 'snapshot';
+  avatarUrl: string | null;
 }
 
 export interface SignatureView {
@@ -124,6 +125,10 @@ export class SignatureService {
 
     if (!document.blockchainId) {
       throw new Error('El documento no tiene ID de blockchain aún');
+    }
+
+    if (document.isArchived) {
+      throw new Error('No se pueden firmar documentos archivados');
     }
 
     // Check if user has access (owner or shared) using the same wallet-aware
@@ -350,6 +355,7 @@ export class SignatureService {
             id: true,
             username: true,
             fullName: true,
+            avatarUrl: true,
           },
         },
         signerWallet: {
@@ -409,6 +415,7 @@ export class SignatureService {
             id: true,
             username: true,
             fullName: true,
+            avatarUrl: true,
           },
         },
         signerWallet: {
@@ -545,6 +552,7 @@ export class SignatureService {
         fullName: signature.user?.fullName ?? signature.signerFullNameSnapshot ?? null,
         walletAddress: signature.signerWallet?.walletAddress ?? signature.signerWalletAddressSnapshot ?? '',
         source: signature.user ? 'live' : 'snapshot',
+        avatarUrl: signature.user?.avatarUrl ?? null,
       },
     };
   }

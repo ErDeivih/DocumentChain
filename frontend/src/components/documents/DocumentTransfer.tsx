@@ -23,10 +23,10 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle,
-  User,
   Shield,
   Wallet
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
 
 interface UserSearchResult {
   id: string;
@@ -327,9 +327,14 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
 
               {/* Usuario seleccionado */}
               <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/35 p-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/60">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                </div>
+                <Avatar className="h-10 w-10">
+                  {selectedUser.avatarUrl ? (
+                    <AvatarImage src={selectedUser.avatarUrl} alt={selectedUser.username} />
+                  ) : null}
+                  <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-sm text-slate-950">
+                    {(selectedUser.fullName || selectedUser.username).slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-medium text-foreground">{selectedUser.fullName || selectedUser.username}</p>
                   <p className="text-sm text-muted-foreground">@{selectedUser.username}</p>
@@ -417,9 +422,14 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
                       className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-secondary/35"
                       disabled={isProcessing}
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/60">
-                        <User className="h-5 w-5 text-muted-foreground" />
-                      </div>
+                      <Avatar className="h-10 w-10">
+                        {user.avatarUrl ? (
+                          <AvatarImage src={user.avatarUrl} alt={user.username} />
+                        ) : null}
+                        <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-sm text-slate-950">
+                          {(user.fullName || user.username).slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex-1">
                         <p className="font-medium text-foreground">{user.fullName || user.username}</p>
                         <p className="text-sm text-muted-foreground">@{user.username}</p>

@@ -312,6 +312,7 @@ export class AuthController {
           role: true,
           publicKey: true,
           encryptedPrivateKey: true,
+          avatarUrl: true,
           createdAt: true,
           isSuspended: true,
           suspendedAt: true,
@@ -583,9 +584,12 @@ export class AuthController {
         ? TwoFactorService.countRemainingBackupCodes(user.twoFactorBackupCodes)
         : 0;
 
+      const hasBackupCodes = Boolean(user.twoFactorBackupCodes) && backupCodesRemaining > 0;
+
       res.status(200).json({
         enabled: user.twoFactorEnabled,
-        backupCodesRemaining
+        hasBackupCodes,
+        remainingBackupCodes: backupCodesRemaining
       });
     } catch (error: any) {
       logger.error('Error al obtener estado de 2FA:', error);

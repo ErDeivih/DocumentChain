@@ -170,7 +170,6 @@ export interface UploadTransactionData {
   file: File;
   password: string;
   folderId?: string;
-  categoryId?: string;
   tags?: string[];
 }
 

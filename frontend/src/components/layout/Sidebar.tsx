@@ -43,7 +43,12 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => {
   );
 };
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -63,10 +68,11 @@ export const Sidebar: React.FC = () => {
   const handleFolderSelect = (folderId: string | null) => {
     setSelectedFolder(folderId);
     window.dispatchEvent(new CustomEvent('folderSelected', { detail: folderId }));
+    if (onClose) onClose();
   };
 
   return (
-    <aside className="scrollbar-thin sticky top-0 h-screen w-64 overflow-y-auto border-r border-border/90 bg-white/96 p-4 text-foreground shadow-[18px_0_40px_-34px_rgba(15,23,42,0.14)]">
+    <aside className={`scrollbar-thin fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto border-r border-border/90 bg-white/96 p-4 text-foreground shadow-[18px_0_40px_-34px_rgba(15,23,42,0.14)] transition-transform duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <nav className="space-y-1">
         <div className="mb-4">
           <p className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

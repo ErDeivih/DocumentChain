@@ -14,7 +14,6 @@ import { Label } from '../ui/Label';
 import { Alert, AlertDescription } from '../ui/Alert';
 import { Switch } from '../ui/Switch';
 import { FolderSelector } from '../folders/FolderSelector';
-import { CategorySelector } from '../categories/CategorySelector';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { Upload, File, X, AlertCircle, Info, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -45,7 +44,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [folderId, setFolderId] = useState<string | null>(defaultFolderId || null);
-  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [tags, setTags] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +63,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     setFile(null);
     setIsPublic(false);
     setFolderId(null);
-    setCategoryId(null);
     setTags('');
     setError(null);
     setStep('form');
@@ -170,7 +167,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         walletId: wallet.id,
         visibility: isPublic ? 'PUBLIC' : 'PRIVATE',
         folderId: folderId || undefined,
-        categoryId: categoryId || undefined,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : undefined,
       });
       
@@ -357,15 +353,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               onChange={setFolderId}
               label="Carpeta (opcional)"
               placeholder="Sin carpeta"
-              disabled={isProcessing}
-            />
-
-            {/* Category Selection */}
-            <CategorySelector
-              value={categoryId}
-              onChange={setCategoryId}
-              label="Categoría (opcional)"
-              placeholder="Sin categoría"
               disabled={isProcessing}
             />
 

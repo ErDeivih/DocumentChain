@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import https from 'https';
 import http from 'http';
 import fs from 'fs';
+import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
@@ -28,7 +29,6 @@ import signatureRoutes from './routes/signatures';
 import shareRoutes from './routes/shares';
 import statsRoutes from './routes/stats';
 import folderRoutes from './routes/folderRoutes';
-import categoryRoutes from './routes/categoryRoutes';
 import verificationRoutes from './routes/verificationRoutes';
 import logRoutes from './routes/logRoutes';
 import auditRoutes from './routes/audit'; // Auditoría pública (sin autenticación)
@@ -88,11 +88,12 @@ app.use(cors({
 // Middleware
 app.use(express.json({ limit: '250mb' }));
 app.use(express.urlencoded({ extended: true, limit: '250mb' }));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Swagger API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'DecentralizedFS API Documentation'
+  customSiteTitle: 'DocumentChain API Documentation'
 }));
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
@@ -121,7 +122,6 @@ app.use('/api/signatures', signatureRoutes);
 app.use('/api/shares', shareRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/folders', folderRoutes);
-app.use('/api/categories', categoryRoutes);
 app.use('/api/verify', verificationRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/audit', auditLimiter, auditRoutes); // Auditoría pública (SIN autenticación requerida)

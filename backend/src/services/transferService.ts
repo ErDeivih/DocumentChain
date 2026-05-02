@@ -93,6 +93,10 @@ export class TransferService {
       throw new Error('No se pueden transferir documentos eliminados');
     }
 
+    if (document.isArchived) {
+      throw new Error('No se pueden transferir documentos archivados');
+    }
+
     // 2. Validate current owner's wallet
     const currentWallet = await prisma.wallet.findFirst({
       where: {

@@ -12,7 +12,7 @@ import { User, Mail, Calendar, Key } from 'lucide-react';
 import { changePassword } from '../api/auth';
 
 export const Profile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -115,9 +115,8 @@ export const Profile: React.FC = () => {
       <AvatarUpload
         currentAvatarUrl={user.avatarUrl}
         username={user.username}
-        onAvatarChange={(newAvatarUrl) => {
-          // Actualizar el contexto de autenticación si es necesario
-          console.log('Avatar actualizado:', newAvatarUrl);
+        onAvatarChange={() => {
+          void refreshUser();
         }}
       />
 

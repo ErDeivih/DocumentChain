@@ -110,7 +110,6 @@ export class DocumentController {
         walletId,
         visibility,
         folderId,
-        categoryId,
         tags,
         fileExtension,
       } = req.body;
@@ -135,7 +134,6 @@ export class DocumentController {
         walletId,
         visibility,
         folderId,
-        categoryId,
         tags: tags ? (typeof tags === 'string' ? JSON.parse(tags) : tags) : undefined,
         fileExtension,
       });
@@ -302,7 +300,7 @@ export class DocumentController {
         return;
       }
 
-      const { walletId, includeArchived, onlyArchived, folderId, categoryId, search, fileType } = req.query;
+      const { walletId, includeArchived, onlyArchived, folderId, search, fileType } = req.query;
       const page = req.pagination?.page ?? (parseInt(req.query.page as string) || 1);
       const limit = req.pagination?.limit ?? (parseInt(req.query.limit as string) || 10);
 
@@ -315,7 +313,6 @@ export class DocumentController {
           includeArchived: includeArchived === 'true',
           onlyArchived: onlyArchived === 'true',
           folderId: folderId as string,
-          categoryId: categoryId as string,
           search: search as string,
           fileType: fileType as string,
         }

@@ -1,0 +1,31 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Pagina Registro" as ui
+control "Endpoints de autenticacion (/api/auth)" as api
+control "AuthService" as srv
+control "Criptografia local" as crypto
+database "PostgreSQL" as db
+control "EmailService" as email
+
+user -> ui: Introduce datos personales y contrasena
+ui -> ui: Valida el formulario
+ui -> crypto: Generar claves del usuario
+crypto --> ui: publicKey y encryptedPrivateKey
+
+alt Usuario proporciona wallet opcional
+    ui -> ui: Solicitar firma EIP-191 con wallet
+    ui --> ui: Recuperar direccion wallet firmada
+end
+
+ui -> api: Solicitar registro (datos + wallet opcional)
+api -> srv: Validar y crear cuenta
+srv -> db: Comprobar unicidad y guardar usuario
+db --> srv: Usuario creado
+srv -> email: Enviar verificacion
+email --> srv: OK
+srv --> api: Recovery key y confirmacion de alta
+api --> ui: Mostrar recovery key y aviso de verificacion
+ui --> user: Guarda recovery key y espera el correo
+
+@enduml

@@ -130,6 +130,10 @@ export const usersApi = {
     const response = await api.post('/users/me/unsuspend/confirm', { txHash });
     return response.data;
   },
+
+  deleteAccount: async (txHash: string): Promise<void> => {
+    await api.delete('/users/me', { data: { txHash } });
+  },
 };
 
 export default usersApi;

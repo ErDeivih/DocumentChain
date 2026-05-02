@@ -47,3 +47,21 @@ export const uploadMultiple = upload.array('files', 10); // Max 10 files
 
 // Encrypted file upload middleware
 export const uploadEncrypted = uploadEncryptedMiddleware.single('encryptedFile');
+
+// Avatar upload: images only, max 2MB
+const avatarFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (!file.mimetype.startsWith('image/')) {
+    return cb(new Error('Solo se permiten archivos de imagen'));
+  }
+  cb(null, true);
+};
+
+export const uploadAvatarMiddleware = multer({
+  storage,
+  fileFilter: avatarFileFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2 MB
+  }
+});
+
+export const uploadAvatar = uploadAvatarMiddleware.single('avatar');

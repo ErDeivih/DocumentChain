@@ -169,7 +169,7 @@ En este apartado se presenta el esquema de acceso a las distintas vistas y funci
 \hline
 \texttt{/app/profile} & Perfil básico del usuario y conexión guiada de wallet. & Autenticado \\
 \hline
-\texttt{/app/settings} & Configuración de cuenta, seguridad, wallets y privacidad. & Autenticado \\
+\texttt{/app/settings} & Configuración de cuenta: perfil (avatar, datos, wallets) y seguridad (contraseña, 2FA, notificaciones, suspensión/eliminación). & Autenticado \\
 \hline
 \texttt{/app/notifications} & Centro de notificaciones del usuario. & Autenticado \\
 \hline
@@ -203,8 +203,26 @@ La aplicación presenta una portada pública accesible desde \texttt{/}. En esa 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/landing-public.png}
-    \caption{Portada pública de DocumentChain}
+    \caption{Portada pública de DocumentChain (escritorio)}
     \label{fig:landing-public}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-landing.png}
+    \caption{Portada pública de DocumentChain (móvil)}
+    \label{fig:landing-public-mobile}
+\end{figure}
+
+\subsection{Adaptación a dispositivos móviles}
+
+La interfaz de DocumentChain está diseñada con enfoque \textit{responsive}, lo que permite su uso completo desde navegadores móviles. En pantallas pequeñas, la barra lateral de navegación se oculta y se accede a ella mediante el botón de menú hamburguesa situado en la esquina superior derecha. El contenido principal se reestructura en una única columna, los modales ocupan toda la pantalla y las pestañas permiten desplazamiento horizontal cuando es necesario.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-sidebar-open.png}
+    \caption{Menú de navegación desplegado en dispositivo móvil}
+    \label{fig:mobile-sidebar-open}
 \end{figure}
 
 \subsection{Primeros pasos}
@@ -219,8 +237,15 @@ La aplicación presenta una portada pública accesible desde \texttt{/}. En esa 
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.95\textwidth]{capturas-ui/login-page.png}
-        \caption{Pantalla de inicio de sesión}
+        \caption{Pantalla de inicio de sesión (escritorio)}
         \label{fig:login-page}
+    \end{figure}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-login.png}
+        \caption{Pantalla de inicio de sesión (móvil)}
+        \label{fig:login-page-mobile}
     \end{figure}
     
     \item Completa el formulario de registro:
@@ -235,8 +260,15 @@ La aplicación presenta una portada pública accesible desde \texttt{/}. En esa 
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.95\textwidth]{capturas-ui/register-form.png}
-        \caption{Formulario de registro}
+        \caption{Formulario de registro (escritorio)}
         \label{fig:register-form}
+    \end{figure}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-register.png}
+        \caption{Formulario de registro (móvil)}
+        \label{fig:register-form-mobile}
     \end{figure}
     
     \item \textbf{Importante}: Tras hacer clic en \textbf{Crear Cuenta}, el sistema generará un par de claves criptográficas. Se te mostrará una \textit{Recovery Key} (clave de recuperación). 
@@ -353,8 +385,15 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/documents-page.png}
-    \caption{Vista principal de documentos}
-    \label{fig:dashboard}
+    \caption{Panel principal con listado de documentos (escritorio)}
+    \label{fig:documents-page}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-documents-list.png}
+    \caption{Panel principal con listado de documentos (móvil)}
+    \label{fig:documents-page-mobile}
 \end{figure}
 
 \subsubsection{Elementos principales}
@@ -403,14 +442,20 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.85\textwidth]{capturas-ui/upload-modal.png}
-        \caption{Modal de subida de documento}
+        \caption{Modal de subida de documento (escritorio)}
         \label{fig:upload-modal}
+    \end{figure}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-upload-modal.png}
+        \caption{Modal de subida de documento (móvil)}
+        \label{fig:upload-modal-mobile}
     \end{figure}
     
     \item Completa la información disponible en el formulario:
     \begin{itemize}
         \item \textbf{Archivo}: documento a registrar
-        \item \textbf{Categoría} (opcional): Selecciona una categoría
         \item \textbf{Carpeta} (opcional): Ubica el documento en una carpeta
         \item \textbf{Etiquetas} (opcional): añade términos separados por comas
         \item \textbf{Visibilidad}: decide si el documento será privado o público
@@ -425,8 +470,15 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.72\textwidth]{capturas-ui/wallet-selector-modal.png}
-        \caption{Selector de wallet utilizado para firmar operaciones blockchain}
-        \label{fig:wallet-selector-modal}
+        \caption{Selector de wallet para firmar la transacción blockchain (escritorio)}
+        \label{fig:wallet-selector}
+    \end{figure}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-wallet-selector.png}
+        \caption{Selector de wallet para firmar la transacción blockchain (móvil)}
+        \label{fig:wallet-selector-mobile}
     \end{figure}
     
     \item Haz clic en \textbf{Subir y Firmar}.
@@ -453,7 +505,7 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
         \item Nombre del documento
         \item Descripción
         \item Tags
-        \item Nombre de carpeta/categoría
+        \item Nombre de carpeta
     \end{itemize}
     \item Presiona Enter o haz clic en el icono de lupa.
     \item Los resultados se mostrarán en el Área principal.
@@ -475,8 +527,15 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.95\textwidth]{capturas-ui/document-detail.png}
-        \caption{Vista de detalles del documento}
+        \caption{Vista de detalle de un documento (escritorio)}
         \label{fig:document-detail}
+    \end{figure}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-document-detail.png}
+        \caption{Vista de detalle de un documento (móvil)}
+        \label{fig:document-detail-mobile}
     \end{figure}
     
     \item Verás la información completa:
@@ -714,15 +773,22 @@ La comprobación detallada de la validez blockchain continúa disponible desde l
     \item Accede a \texttt{/app/shared} desde la barra lateral mediante la entrada \textbf{Compartidos Conmigo}.
     \item La vista mostrará únicamente los documentos asociados a la \textbf{wallet activa} del usuario.
     \item Puedes buscar por nombre y filtrar por tipo de archivo.
-    \item Cada tarjeta indica el propietario del documento y, cuando procede, la categoría asociada.
+    \item Cada tarjeta indica el propietario del documento y, cuando procede, las etiquetas asociadas.
     \item Si cambias la wallet activa, el listado se actualizará para reflejar los accesos compartidos con esa dirección concreta.
 \end{enumerate}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/shared-page.png}
-    \caption{Vista de documentos compartidos con la wallet activa}
+    \caption{Vista de documentos compartidos con la wallet activa (escritorio)}
     \label{fig:shared-page}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-shared-documents.png}
+    \caption{Vista de documentos compartidos con la wallet activa (móvil)}
+    \label{fig:shared-page-mobile}
 \end{figure}
 
 En la versión entregada no existe todavía una acción directa para cambiar el rol de un usuario ya compartido. Si es necesario pasar de lectura a escritura, o al revés, el procedimiento disponible consiste en \textbf{revocar} primero el acceso actual y volver a \textbf{compartir} después el documento con el nuevo nivel.
@@ -778,13 +844,12 @@ Solo el OWNER puede transferir la propiedad:
     \label{fig:create-folder}
 \end{figure}
 
-La clasificación complementaria se realiza durante la subida o la creación de nuevas versiones, donde es posible asociar \textbf{carpeta}, \textbf{categoría} y \textbf{etiquetas} para facilitar búsquedas posteriores.
+La clasificación complementaria se realiza durante la subida o la creación de nuevas versiones, donde es posible asociar \textbf{carpeta} y \textbf{etiquetas} para facilitar búsquedas posteriores.
 
-\subsubsection{Clasificar con categorías y etiquetas}
+\subsubsection{Clasificar con etiquetas}
 
 \begin{enumerate}
-    \item Durante la subida de un documento o la publicación de una nueva versión, utiliza los campos \textbf{Categoría} y \textbf{Etiquetas} del formulario.
-    \item La categoría permite agrupar documentos por temática o tipo de expediente.
+    \item Durante la subida de un documento o la publicación de una nueva versión, utiliza el campo \textbf{Etiquetas} del formulario.
     \item Las etiquetas admiten varios términos separados por comas y mejoran la búsqueda posterior.
     \item Una vez guardado el documento, esos metadatos aparecerán también en la vista de detalle y en los resultados de búsqueda.
 \end{enumerate}
@@ -828,8 +893,15 @@ La clasificación complementaria se realiza durante la subida o la creación de 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/verify-page.png}
-    \caption{Pantalla de verificación autenticada de documentos}
+    \caption{Página de verificación pública de documentos (escritorio)}
     \label{fig:verify-page}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-verify.png}
+    \caption{Página de verificación pública de documentos (móvil)}
+    \label{fig:verify-page-mobile}
 \end{figure}
 
 \subsubsection{Consultar la auditoría pública}
@@ -880,8 +952,15 @@ La clasificación complementaria se realiza durante la subida o la creación de 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/notifications-page.png}
-    \caption{Centro de notificaciones}
-    \label{fig:notifications-panel}
+    \caption{Centro de notificaciones (escritorio)}
+    \label{fig:notifications-page}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-notifications.png}
+    \caption{Centro de notificaciones (móvil)}
+    \label{fig:notifications-page-mobile}
 \end{figure}
 
 \subsubsection{Gestionar notificaciones}
@@ -923,22 +1002,32 @@ Si se mantienen activadas las notificaciones por email, estos eventos también p
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/settings-page.png}
-    \caption{Pantalla de configuración de cuenta}
+    \caption{Página de configuración de la cuenta (escritorio)}
     \label{fig:settings-page}
 \end{figure}
 
-\subsubsection{Editar información personal}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-settings.png}
+    \caption{Página de configuración de la cuenta (móvil)}
+    \label{fig:settings-page-mobile}
+\end{figure}
+
+\subsubsection{Editar información personal y avatar}
 
 \begin{enumerate}
     \item Accede a \textbf{Configuración}.
-    \item En la pestaña \textbf{Perfil}, puedes editar:
+    \item En la pestaña \textbf{Perfil}, puedes:
     \begin{itemize}
-        \item Nombre completo
-        \item Email (requiere re-verificación)
-        \item Nombre y apellidos
+        \item Subir o eliminar tu \textbf{foto de perfil} (JPG, PNG o GIF, máximo 2\,MB)
+        \item Editar nombre y apellidos
+        \item Editar email (requiere re-verificación)
+        \item Consultar el nombre de usuario (no editable)
     \end{itemize}
     \item Haz clic en \textbf{Guardar cambios}.
 \end{enumerate}
+
+La foto de perfil se almacena localmente en el servidor y se muestra tanto en la cabecera de la aplicación como en la vista de perfil. Cualquier usuario que consulte tu perfil podrá ver la imagen.
 
 \begin{figure}[H]
     \centering
@@ -1016,8 +1105,15 @@ Tras completarse el cambio, se envía un correo de confirmación con la fecha y 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/two-factor-setup.png}
-    \caption{Configuración de autenticación de dos factores desde Ajustes}
+    \caption{Configuración de segundo factor (2FA) (escritorio)}
     \label{fig:two-factor-setup}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-2fa-setup.png}
+    \caption{Configuración de segundo factor (2FA) (móvil)}
+    \label{fig:two-factor-setup-mobile}
 \end{figure}
 
 Desde ahora, al iniciar sesión se te pedirá código 2FA tras la contraseña.
@@ -1031,23 +1127,25 @@ Desde ahora, al iniciar sesión se te pedirá código 2FA tras la contraseña.
     \item Si necesitas desactivar el 2FA, usa la acción \textbf{Desactivar 2FA} y confirma también con un código temporal válido.
 \end{enumerate}
 
-\subsubsection{Privacidad, exportación y suspensión temporal}
+\subsubsection{Seguridad, notificaciones y zona de peligro}
+
+La pestaña \textbf{Seguridad y Cuenta} agrupa todas las opciones relacionadas con la protección y gestión de la cuenta:
 
 \begin{enumerate}
-    \item En la pestaña \textbf{Privacidad}, puedes ajustar:
+    \item \textbf{Contraseña}: cambia la contraseña actual. Tras el cambio se envía un email de confirmación y se cierra la sesión.
+    \item \textbf{Autenticación de dos factores (2FA)}: configura, regenera códigos de respaldo o desactiva el 2FA.
+    \item \textbf{Notificaciones}: activa o desactiva avisos por email (documentos compartidos, nuevas versiones) y notificaciones push en la aplicación.
+    \item \textbf{Zona de Peligro}:
     \begin{itemize}
-        \item La visibilidad de tu perfil
-        \item La posibilidad de recibir documentos compartidos
-        \item La solicitud de exportación de datos
+        \item \textbf{Suspender cuenta}: bloquea temporalmente tu wallet en blockchain. Requiere firma con la wallet principal. Puedes reactivarla cuando quieras.
+        \item \textbf{Eliminar cuenta}: elimina permanentemente tu usuario y todos tus datos de la base de datos. Desancla los archivos de IPFS y deja inmutables los registros en blockchain. Requiere firmar \texttt{suspendMyself} con la wallet principal.
     \end{itemize}
-    \item En la \textbf{Zona de Peligro} puedes suspender temporalmente la cuenta o iniciar el proceso de eliminación.
-    \item La suspensión voluntaria requiere firmar con la wallet principal para bloquear también la capacidad de operar en blockchain.
 \end{enumerate}
 
 \subsubsection{Reactivar una cuenta suspendida}
 
 \begin{enumerate}
-    \item Si la cuenta está suspendida, el sistema te mantendrá en \texttt{/app/settings} y dejará accesible la pestaña \textbf{Privacidad}.
+    \item Si la cuenta está suspendida, el sistema te mantendrá en \texttt{/app/settings} y dejará accesible la pestaña \textbf{Seguridad y Cuenta}.
     \item Pulsa \textbf{Reactivar cuenta}.
     \item Selecciona y conecta la \textbf{wallet principal} asociada a la cuenta.
     \item Firma la transacción de reactivación y espera la confirmación on-chain.
@@ -1069,8 +1167,15 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\textwidth]{capturas-ui/admin-dashboard.png}
-    \caption{Panel de administración}
+    \caption{Panel de administración con estadísticas globales (escritorio)}
     \label{fig:admin-dashboard}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-admin-dashboard.png}
+    \caption{Panel de administración con estadísticas globales (móvil)}
+    \label{fig:admin-dashboard-mobile}
 \end{figure}
 
 \subsection{Gestión de usuarios}
@@ -1168,21 +1273,38 @@ Solo usuarios con rol \textbf{ADMIN} pueden acceder.
 \subsection{Auditoría blockchain}
 
 \begin{enumerate}
-    \item Accede a \texttt{/app/blockchain} desde la barra lateral.
+    \item Accede a \texttt{/app/blockchain} desde la barra lateral, o usa la página pública \texttt{/audit} sin necesidad de autenticación.
     
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.95\textwidth]{capturas-ui/blockchain-auditor.png}
-        \caption{Herramienta de auditoría blockchain}
+        \caption{Explorador blockchain con filtros y eventos (escritorio)}
         \label{fig:blockchain-auditor}
+    \end{figure}
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{capturas-ui/mobile-blockchain-auditor.png}
+        \caption{Explorador blockchain con filtros y eventos (móvil)}
+        \label{fig:blockchain-auditor-mobile}
     \end{figure}
     
     \item Verás:
     \begin{itemize}
         \item Tarjetas de resumen con el total disponible, los eventos mostrados y el número de tipos de evento filtrados
         \item Un panel de \textbf{filtros avanzados} por tipo de evento, wallet, hash de transacción, rango de bloques y rango temporal
-        \item Un listado expandible de \textbf{eventos recientes} con tipo, fecha, bloque, hash de transacción y metadatos asociados
+        \item Un listado de \textbf{eventos recientes} en formato tabla compacta con tipo, documento, actor, bloque, fecha y hash de transacción
+        \item Al hacer clic en cualquier \textbf{hash de transacción}, se abre un modal con el detalle completo de la transacción decodificada: estado, gas usado, bloque, fecha, y todos los eventos del contrato \texttt{DocumentRegistry} con sus argumentos
+        \item Desde cada evento se puede navegar al documento asociado: si es público se abre la vista pública; si tienes permisos, accedes al detalle autenticado
         \item Exportación directa a \textbf{CSV}
+    \end{itemize}
+    
+    \item \textbf{Búsqueda por hash de transacción} (también disponible en \texttt{/audit}):
+    \begin{itemize}
+        \item Introduce un hash de transacción válido (\texttt{0x...})
+        \item El sistema consulta directamente la blockchain, recupera el \textit{receipt} y decodifica los logs usando el ABI del contrato
+        \item Muestra los argumentos de cada evento de forma legible (\textit{docId}, \textit{owner}, \textit{versionNumber}, etc.)
+        \item Enriquece los eventos con metadata de la base de datos: nombre del documento, \textit{publicId} y visibilidad
     \end{itemize}
 \end{enumerate}
 

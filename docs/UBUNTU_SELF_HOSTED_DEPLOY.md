@@ -64,6 +64,59 @@ Para el modo self-hosted con IPFS propio, la configuracion recomendada en un sol
 
 Ese directorio guardara el datastore del nodo IPFS entre redeploys.
 
+Plantilla recomendada lista para pegar en `/opt/documentchain/.env.server`:
+
+```dotenv
+# URLs de acceso
+FRONTEND_URL=http://192.168.1.50:5173
+ALLOWED_ORIGINS=http://192.168.1.50:5173,https://192.168.1.50:5173
+VITE_API_URL=/api
+VITE_BLOCKCHAIN_RPC_URL=http://192.168.1.50:8545
+
+# Remitente visible en emails
+EMAIL_FROM=tu-remitente-verificado@tu-dominio.com
+EMAIL_FROM_NAME=DocumentChain
+
+# Backend -> Postfix local
+SMTP_HOST=postfix
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+
+# Postfix -> Brevo (relay)
+SMTP_RELAYHOST=[smtp-relay.brevo.com]:587
+SMTP_RELAYHOST_USERNAME=tu-usuario-smtp-brevo
+SMTP_RELAYHOST_PASSWORD=tu-clave-smtp-brevo
+POSTFIX_SMTP_TLS_SECURITY_LEVEL=encrypt
+POSTFIX_HOSTNAME=mail.tu-dominio.com
+ALLOWED_SENDER_DOMAINS=tu-dominio.com
+MASQUERADED_DOMAINS=tu-dominio.com
+
+# Secretos backend (minimo 32 caracteres)
+JWT_SECRET=reemplazar-con-secreto-largo-1
+JWT_REFRESH_SECRET=reemplazar-con-secreto-largo-2
+ADMIN_REGISTRATION_SECRET=reemplazar-con-secreto-largo-3
+
+# Blockchain e IPFS
+BLOCKCHAIN_RPC_URL=http://localhost:8545
+CONTRACT_DOCUMENT_REGISTRY=0x5FbDB2315678afecb367f032d93F642f64180aa3
+IPFS_PROVIDER=self-hosted
+IPFS_API_URL=http://ipfs-node:5001
+IPFS_GATEWAY_URL=http://ipfs-node:8080
+IPFS_DATA_ROOT=/opt/documentchain/ipfs
+
+# Toggles de despliegue
+ENABLE_IPFS_NODE=1
+RESET_DOCKER_STATE=1
+AUTO_RUN_MIGRATIONS=1
+AUTO_RESEED_QA=1
+SEED_PROFILE=qa-fast
+REQUIRE_SMTP_RELAY=1
+```
+
+Si ya tienes un remitente y credenciales SMTP funcionando en otro entorno de DocumentChain, reutiliza exactamente esos valores en `EMAIL_FROM`, `SMTP_RELAYHOST`, `SMTP_RELAYHOST_USERNAME` y `SMTP_RELAYHOST_PASSWORD`.
+
 ## Runner self-hosted
 
 Desde GitHub, entra en `Settings > Actions > Runners > New self-hosted runner` y sigue los pasos para Linux x64. Durante la configuracion conviene usar un usuario dedicado y mantener el runner como servicio del sistema.

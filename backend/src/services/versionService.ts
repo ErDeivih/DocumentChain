@@ -144,6 +144,10 @@ export class VersionService {
         throw new Error('No se pueden crear versiones en documentos eliminados');
       }
 
+      if (document.isArchived) {
+        throw new Error('No se pueden crear versiones en documentos archivados');
+      }
+
       // Check if user has access (owner or write access)
       const isOwner = document.ownerId === userId;
       
@@ -362,6 +366,7 @@ export class VersionService {
         id: true,
         ownerId: true,
         isDeleted: true,
+        isArchived: true,
       },
     });
 
@@ -375,6 +380,10 @@ export class VersionService {
 
     if (document.isDeleted) {
       throw new Error('No se pueden cambiar versiones en documentos eliminados');
+    }
+
+    if (document.isArchived) {
+      throw new Error('No se pueden cambiar versiones en documentos archivados');
     }
 
     const targetVersion = await prisma.version.findFirst({
@@ -681,6 +690,10 @@ export class VersionService {
     }
     if (document.isDeleted) {
       throw new Error('No se pueden restaurar versiones en documentos eliminados');
+    }
+
+    if (document.isArchived) {
+      throw new Error('No se pueden restaurar versiones en documentos archivados');
     }
 
     // 3. Find the source version to restore

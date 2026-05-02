@@ -1,0 +1,66 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+
+actor "Usuario" as USER
+actor "Administrador" as ADMIN
+actor "Blockchain" as SC
+actor "IPFS" as IPFS
+actor "Sistema de email" as EMAIL
+
+rectangle "DocumentChain" {
+  package "Acceso y cuenta" {
+    usecase "UC-0001 a UC-0015\nRegistro, acceso, wallet,\nperfil y seguridad" as UC_A
+  }
+
+  package "Gestion documental" {
+    usecase "UC-0016 a UC-0024\nCarga, consulta, descarga,\narchivo y busqueda" as UC_B
+  }
+
+  package "Versionado" {
+    usecase "UC-0025 a UC-0029\nVersiones y estado operativo" as UC_C
+  }
+
+  package "Firmas" {
+    usecase "UC-0030 a UC-0032\nFirma y verificacion de firmas" as UC_D
+  }
+
+  package "Comparticion" {
+    usecase "UC-0033 a UC-0035\nPermisos y acceso compartido" as UC_E
+  }
+
+  package "Auditoria, verificacion\ny estadisticas" {
+    usecase "UC-0036 a UC-0040\nTimeline, verificacion\ny supervision" as UC_F
+  }
+
+  package "Administracion" {
+    usecase "UC-0041 a UC-0042\nUsuarios y roles" as UC_G
+  }
+}
+
+USER --> UC_A
+USER --> UC_B
+USER --> UC_C
+USER --> UC_D
+USER --> UC_E
+USER --> UC_F
+
+ADMIN --> UC_F
+ADMIN --> UC_G
+
+UC_A -[hidden]down-> UC_B
+UC_B -[hidden]down-> UC_C
+UC_C -[hidden]down-> UC_D
+UC_D -[hidden]down-> UC_E
+UC_E -[hidden]down-> UC_F
+UC_F -[hidden]down-> UC_G
+
+UC_A ..> EMAIL : verificaciones y avisos
+UC_B ..> IPFS : almacenamiento de contenido
+UC_B ..> SC : registro documental
+UC_C ..> IPFS : nuevas versiones
+UC_C ..> SC : trazabilidad de versiones
+UC_D ..> SC : firmas
+UC_E ..> SC : permisos
+UC_F ..> SC : verificacion y auditoria
+@enduml

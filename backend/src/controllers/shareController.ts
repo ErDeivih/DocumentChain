@@ -312,7 +312,6 @@ export class ShareController {
 
       const whereClause: any = {
         ownerId: { not: req.user.userId }, // Only shared documents, not owned
-        isArchived: false,
         blockchainId: {
           not: null,
         },
@@ -340,7 +339,6 @@ export class ShareController {
               email: true,
             },
           },
-          category: true,
           folder: true,
         },
         orderBy: {

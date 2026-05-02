@@ -110,7 +110,7 @@ La arquitectura del sistema se apoya en dos capas de persistencia que no compite
 
 En la práctica, la blockchain conserva la parte mínima cuya alteración resultaría más sensible desde el punto de vista de trazabilidad: identificadores de documentos, relaciones de propiedad, permisos efectivos, operaciones de compartición, cambios de versión operativa y firmas digitales. Esa información tiene valor porque puede ser contrastada de forma independiente y porque permite demostrar que un evento existió y quedó registrado en un instante determinado.
 
-La base de datos, por su parte, mantiene el estado de trabajo que la interfaz necesita para ser utilizable. Se almacenan usuarios, sesiones, preferencias, notificaciones, carpetas, categorías, métricas, relaciones auxiliares, estados de sincronización y proyecciones pensadas para consulta. También se guardan datos derivados o históricos que sería ineficiente, costoso o directamente improcedente mantener en cadena. Un ejemplo claro es la proyección de firmantes enriquecida con instantáneas de perfil, que permite seguir mostrando nombre visible, alias o wallet incluso si la relación viva con el usuario cambia más adelante.
+La base de datos, por su parte, mantiene el estado de trabajo que la interfaz necesita para ser utilizable. Se almacenan usuarios, sesiones, preferencias, notificaciones, carpetas, etiquetas, métricas, relaciones auxiliares, estados de sincronización y proyecciones pensadas para consulta. También se guardan datos derivados o históricos que sería ineficiente, costoso o directamente improcedente mantener en cadena. Un ejemplo claro es la proyección de firmantes enriquecida con instantáneas de perfil, que permite seguir mostrando nombre visible, alias o wallet incluso si la relación viva con el usuario cambia más adelante.
 
 Desde la defensa conviene transmitir que la blockchain no sustituye a la base de datos generalista. Se emplea como capa de confianza y de no repudio, mientras que PostgreSQL actúa como capa operativa y de servicio. Si todo se dejara en blockchain, la aplicación sería cara, rígida y lenta para casos de uso cotidianos. Si todo se dejara en la base de datos, se perdería la garantía externa de inmutabilidad que da sentido al sistema.
 
@@ -239,6 +239,16 @@ En la defensa puede explicarse que esa secuencia permitió localizar con precisi
 \section{Argumento de defensa recomendado}
 
 Si se pregunta por la motivación global de la arquitectura, puede defenderse que el sistema separa deliberadamente lo que necesita confianza externa de lo que necesita operatividad. Blockchain se reserva para evidencia, permisos y trazabilidad fuerte. PostgreSQL se reserva para consultas, relaciones auxiliares y rendimiento. Docker se utiliza para asegurar repetibilidad del entorno. Nginx se usa para publicar el frontend de forma coherente con una SPA real. El correo se abstrae a través de SMTP y Postfix para no acoplar la lógica del backend a un proveedor concreto. Esa combinación permite explicar que el proyecto no es una simple demo de blockchain, sino una aplicación completa que intenta equilibrar verificabilidad, rendimiento y capacidad de despliegue.
+
+\section{Nuevas funcionalidades consolidadas}
+
+Durante la fase final de desarrollo se han incorporado tres capacidades que completan la experiencia de usuario y la transparencia del sistema:
+
+\begin{itemize}
+    \item \textbf{Avatar de perfil con almacenamiento local}. El backend expone \texttt{PUT /users/me/avatar} y \texttt{DELETE /users/me/avatar}. La imagen se almacena en disco (\texttt{uploads/avatars/}) y se sirve como recurso estático. El campo \texttt{avatarUrl} se añadió al modelo \texttt{User} de Prisma. El frontend muestra la imagen en la cabecera y en la vista de perfil, y refresca el contexto de autenticación tras cada cambio.
+    \item \textbf{Eliminación de cuenta con firma blockchain}. El endpoint \texttt{DELETE /users/me} recibe un \texttt{txHash} correspondiente a una transacción \texttt{suspendMyself} firmada por la wallet principal. El backend valida la transacción on-chain, desancla los CIDs de IPFS asociados a los documentos del usuario, elimina el avatar del disco y ejecuta \texttt{prisma.user.delete()} en cascada. Esta operación es irreversible y mantiene inmutables los registros ya existentes en blockchain.
+    \item \textbf{Auditoría por hash de transacción}. El endpoint público \texttt{GET /audit/transaction/:txHash} consulta el \textit{provider} de Ethereum, recupera el \textit{receipt}, decodifica los logs con el ABI del contrato y enriquece los eventos con metadata de PostgreSQL (nombre del documento, visibilidad, \texttt{publicId}). Esto permite a cualquier usuario explorar una transacción concreta sin autenticación, de forma similar a Etherscan pero especializada en el dominio documental.
+\end{itemize}
 
 \section{Evolución prevista del anexo}
 

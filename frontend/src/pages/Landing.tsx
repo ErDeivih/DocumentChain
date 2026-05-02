@@ -31,11 +31,11 @@ export const Landing: React.FC = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-center">
                             <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left lg:mx-0">
-                                <h1 data-testid="landing-hero-heading" className="text-4xl tracking-tight font-extrabold text-foreground sm:text-5xl md:text-6xl">
+                                <h1 data-testid="landing-hero-heading" className="text-4xl tracking-tight font-extrabold text-slate-900 sm:text-5xl md:text-6xl">
                                     <span className="block">Custodia verificable</span>
                                     <span className="block text-primary">de documentos distribuidos</span>
                                 </h1>
-                                <p className="mt-3 text-base text-slate-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                                <p className="mt-3 text-base text-slate-600 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
                                     Gestione, verifique y comparta documentos con trazabilidad blockchain, control de versiones y almacenamiento distribuido basado en IPFS.
                                 </p>
                                 <div className="mt-8 sm:max-w-lg sm:mx-auto sm:text-center lg:text-left lg:mx-0">
@@ -83,7 +83,7 @@ export const Landing: React.FC = () => {
                                         <Shield className="h-6 w-6" aria-hidden="true" />
                                     </div>
                                     <p className="ml-16 text-lg leading-6 font-medium text-foreground">Registro blockchain</p>
-                                    <p className="mt-2 ml-16 text-base text-slate-300">
+                                    <p className="mt-2 ml-16 text-base text-slate-600">
                                         Los documentos son hasheados y almacenados en la blockchain, garantizando inmutabilidad y prueba de existencia.
                                     </p>
                                 </div>
@@ -93,7 +93,7 @@ export const Landing: React.FC = () => {
                                         <FileText className="h-6 w-6" aria-hidden="true" />
                                     </div>
                                     <p className="ml-16 text-lg leading-6 font-medium text-foreground">Versionado operativo</p>
-                                    <p className="mt-2 ml-16 text-base text-slate-300">
+                                    <p className="mt-2 ml-16 text-base text-slate-600">
                                         Mantenga un seguimiento de los cambios en documentos con un historial de versiones transparente e inmutable.
                                     </p>
                                 </div>
@@ -103,7 +103,7 @@ export const Landing: React.FC = () => {
                                         <Share2 className="h-6 w-6" aria-hidden="true" />
                                     </div>
                                     <p className="ml-16 text-lg leading-6 font-medium text-foreground">Intercambio controlado</p>
-                                    <p className="mt-2 ml-16 text-base text-slate-300">
+                                    <p className="mt-2 ml-16 text-base text-slate-600">
                                         Comparta documentos de forma segura con otros usuarios usando controles de permisos granulares.
                                     </p>
                                 </div>

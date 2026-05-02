@@ -141,6 +141,11 @@ contract DocumentRegistry is
         _;
     }
 
+    modifier notArchived(bytes32 docId) {
+        require(!_documents[docId].isArchived, "Document is archived");
+        _;
+    }
+
     // ============================================
     // ADMIN FUNCTIONS
     // ============================================
@@ -260,7 +265,7 @@ contract DocumentRegistry is
         emit VersionCreated(_docId, newVersionNum, _ipfsCid, _msgSender(), block.timestamp);
     }
     
-    function shareDocument(bytes32 _docId, address _user, DocumentRole _role) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) {
+    function shareDocument(bytes32 _docId, address _user, DocumentRole _role) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) notArchived(_docId) {
         require(_isOwner(_docId, _msgSender()), "Only owner can share");
         require(_user != address(0), "Invalid user address");
         require(!_suspendedUsers[_user], "Cannot share with suspended user");
@@ -274,7 +279,7 @@ contract DocumentRegistry is
         emit DocumentShared(_docId, _msgSender(), _user, _role, block.timestamp);
     }
     
-    function signDocument(bytes32 _docId, uint256 _versionNumber, bytes calldata _signature, string calldata _message, string calldata _comment) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) {
+    function signDocument(bytes32 _docId, uint256 _versionNumber, bytes calldata _signature, string calldata _message, string calldata _comment) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) notArchived(_docId) {
         require(_canView(_docId, _msgSender()), "No read permission");
         require(_versionNumber > 0 && _versionNumber <= _documents[_docId].latestVersion, "Invalid version");
         require(_signature.length > 0, "Invalid signature");
@@ -293,7 +298,7 @@ contract DocumentRegistry is
         emit DocumentSigned(_docId, _versionNumber, _msgSender(), _message, block.timestamp);
     }
     
-    function transferOwnership(bytes32 _docId, address _newOwner) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) {
+    function transferOwnership(bytes32 _docId, address _newOwner) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) notArchived(_docId) {
         require(_isOwner(_docId, _msgSender()), "Only owner can transfer");
         require(_newOwner != address(0), "Invalid new owner");
         require(!_suspendedUsers[_newOwner], "Cannot transfer to suspended user");
@@ -333,7 +338,7 @@ contract DocumentRegistry is
         emit DocumentDeleted(_docId, _msgSender(), block.timestamp);
     }
     
-    function restoreVersion(bytes32 _docId, uint256 _versionToRestore) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) {
+    function restoreVersion(bytes32 _docId, uint256 _versionToRestore) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) notArchived(_docId) {
         require(_canEdit(_docId, _msgSender()), "No write permission");
         require(_versionToRestore > 0 && _versionToRestore <= _documents[_docId].latestVersion, "Invalid version");
         
@@ -360,7 +365,7 @@ contract DocumentRegistry is
         emit VersionRestored(_docId, newVersionNum, _versionToRestore, _msgSender(), block.timestamp);
     }
     
-    function setOperationalVersion(bytes32 _docId, uint256 _versionNumber) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) {
+    function setOperationalVersion(bytes32 _docId, uint256 _versionNumber) external nonReentrant whenNotPaused notSuspended(_msgSender()) notDeleted(_docId) notArchived(_docId) {
         require(_canEdit(_docId, _msgSender()), "No write permission");
         require(_versionNumber > 0 && _versionNumber <= _documents[_docId].latestVersion, "Invalid version");
         
@@ -375,7 +380,7 @@ contract DocumentRegistry is
         emit OperationalVersionChanged(_docId, oldVersion, _versionNumber, _msgSender(), block.timestamp);
     }
     
-    function revokePermission(bytes32 _docId, address _user) external nonReentrant whenNotPaused notSuspended(_msgSender()) {
+    function revokePermission(bytes32 _docId, address _user) external nonReentrant whenNotPaused notSuspended(_msgSender()) notArchived(_docId) {
         require(_isOwner(_docId, _msgSender()), "Only owner");
         require(_user != _documents[_docId].owner, "Cannot revoke owner");
         require(_permissions[_docId][_user] != DocumentRole.NONE, "User has no permission");

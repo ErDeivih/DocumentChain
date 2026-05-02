@@ -1,0 +1,248 @@
+@startuml
+!include _structure-style.puml
+!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define PK(x) <b>x</b>
+!define FK(x) <i>x</i>
+
+TABLE(User, "users") {
+  PK(id) : String CUID
+  email : String UNIQUE
+  username : String UNIQUE
+  passwordHash : String
+  role : Enum
+  emailVerified : Boolean
+  twoFactorSecret : String
+  publicKey : String
+  encryptedPrivateKey : String
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+TABLE(Wallet, "wallets") {
+  PK(id) : String CUID
+  FK(userId) : String
+  walletAddress : String UNIQUE
+  nickname : String
+  isPrimary : Boolean
+  isConnected : Boolean
+}
+
+TABLE(Session, "sessions") {
+  PK(id) : String CUID
+  FK(userId) : String
+  accessToken : String UNIQUE
+  refreshToken : String UNIQUE
+  expiresAt : DateTime
+  createdAt : DateTime
+}
+
+TABLE(Folder, "folders") {
+  PK(id) : String CUID
+  FK(ownerId) : String
+  FK(parentId) : String
+  name : String
+  description : String
+  color : String
+  icon : String
+  isShared : Boolean
+}
+
+TABLE(Document, "documents") {
+  PK(id) : String CUID
+  FK(ownerId) : String
+  FK(folderId) : String
+  name : String
+  description : String
+  mimeType : String
+  size : Int
+  contentHash : String
+  ipfsCid : String
+  blockchainId : String
+  blockchainStatus : Enum
+  blockchainTxHash : String
+  encryptedKey : String
+  encryptionIv : String
+  encryptionAuthTag : String
+  isPublic : Boolean
+  publicId : String
+  isArchived : Boolean
+  isDeleted : Boolean
+  createdAt : DateTime
+  updatedAt : DateTime
+}
+
+TABLE(Version, "versions") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  FK(createdById) : String
+  versionNumber : Int
+  ipfsCid : String
+  contentHash : String
+  encryptedKey : String
+  encryptionIv : String
+  encryptionAuthTag : String
+  comment : String
+  isActive : Boolean
+  blockchainStatus : Enum
+  blockchainTxHash : String
+  createdAt : DateTime
+}
+
+TABLE(DocumentSignature, "document_signatures") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  FK(versionId) : String
+  FK(userId) : String
+  FK(walletId) : String
+  signatureHash : String
+  blockchainTxHash : String
+  signedAt : DateTime
+  retryCount : Int
+}
+
+TABLE(Event, "events") {
+  PK(id) : String CUID
+  FK(userId) : String
+  FK(documentId) : String
+  eventType : Enum
+  metadata : JSON
+  transactionHash : String
+  blockNumber : Int
+  blockTimestamp : DateTime
+  gasUsed : Int
+  createdAt : DateTime
+}
+
+TABLE(Notification, "notifications") {
+  PK(id) : String CUID
+  FK(userId) : String
+  type : Enum
+  title : String
+  message : String
+  link : String
+  metadata : JSON
+  isRead : Boolean
+  readAt : DateTime
+  createdAt : DateTime
+}
+
+TABLE(NotificationPreference, "notification_preferences") {
+  PK(id) : String CUID
+  FK(userId) : String
+  emailOnDocumentShared : Boolean
+  emailOnNewVersion : Boolean
+  emailOnSignature : Boolean
+  emailOnTransfer : Boolean
+  inAppEnabled : Boolean
+  emailDigest : Enum
+}
+
+TABLE(UserStats, "user_stats") {
+  PK(id) : String CUID
+  FK(userId) : String
+  totalDocuments : Int
+  totalStorage : Int
+  totalDownloads : Int
+  totalShares : Int
+  totalSignatures : Int
+  totalTransfers : Int
+  totalRestores : Int
+  lastActivityAt : DateTime
+  updatedAt : DateTime
+}
+
+TABLE(DocumentStats, "document_stats") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  totalVersions : Int
+  totalSignatures : Int
+  totalDownloads : Int
+  totalShares : Int
+  totalViews : Int
+  totalRestores : Int
+  lastActivityAt : DateTime
+  updatedAt : DateTime
+}
+
+TABLE(SystemStats, "system_stats") {
+  PK(id) : String CUID
+  periodType : Enum
+  periodStart : DateTime
+  periodEnd : DateTime
+  newUsers : Int
+  activeUsers : Int
+  totalUsers : Int
+  newDocuments : Int
+  totalDocuments : Int
+  newStorage : Int
+  totalStorage : Int
+  totalEvents : Int
+  lastSyncedBlock : Int
+}
+
+TABLE(EmailVerification, "email_verifications") {
+  PK(id) : String CUID
+  FK(userId) : String
+  email : String
+  token : String
+  expiresAt : DateTime
+  isVerified : Boolean
+}
+
+TABLE(PasswordReset, "password_resets") {
+  PK(id) : String CUID
+  FK(userId) : String
+  token : String
+  expiresAt : DateTime
+  isUsed : Boolean
+}
+
+TABLE(SystemConfig, "system_config") {
+  PK(id) : String CUID
+  key : String UNIQUE
+  value : String
+  description : String
+  updatedAt : DateTime
+}
+
+' Relaciones
+User "1" -- "0..*" Wallet : owns
+User "1" -- "0..*" Session : has
+User "1" -- "0..*" Document : owns
+User "1" -- "0..*" Event : generates
+User "1" -- "0..*" Notification : receives
+User "1" -- "0..1" UserStats : has
+User "1" -- "0..1" NotificationPreference : configures
+User "1" -- "0..*" EmailVerification : requests
+User "1" -- "0..*" PasswordReset : requests
+
+Document "1" -- "0..*" Version : has
+Document "1" -- "0..*" DocumentSignature : has
+Document "1" -- "0..1" DocumentStats : tracks
+Document "0..*" -- "0..1" Folder : in
+
+Version "1" -- "0..*" DocumentSignature : signed
+
+' Blockchain e IPFS (no son tablas BD, son sistemas externos)
+TABLE(Blockchain, "Smart Contract\n(Ethereum)") {
+  documentId : bytes32
+  ipfsCid : string
+  contentHash : bytes32
+  owner : address
+  roles : mapping
+  versions : array
+}
+
+TABLE(IPFS, "Nodo IPFS\nKubo autoalojado") {
+  cid : string
+  content : bytes
+  size : uint
+}
+
+Document "1" ..> Blockchain : registra_en
+Document "1" ..> IPFS : almacena_en
+Version "1" ..> IPFS : version_en
+Version "1" ..> Blockchain : hash_en
+DocumentSignature "1" ..> Blockchain : firma_en
+
+@enduml

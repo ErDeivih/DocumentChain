@@ -7,6 +7,7 @@ import { listVersions } from '../api/versions';
 import { getMyRole, listShares } from '../api/shares';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
@@ -205,7 +206,7 @@ export const DocumentDetails: React.FC = () => {
     { id: 'details' as TabType, label: 'Detalles', icon: FileText },
     { id: 'timeline' as TabType, label: 'Historial', icon: Clock },
     { id: 'versions' as TabType, label: 'Versiones', icon: GitBranch },
-    ...(isOwner ? [{ id: 'transfer' as TabType, label: 'Transferir', icon: ArrowRightLeft }] : []),
+    ...(isOwner && !document?.isArchived ? [{ id: 'transfer' as TabType, label: 'Transferir', icon: ArrowRightLeft }] : []),
   ];
 
   return (
@@ -237,6 +238,24 @@ export const DocumentDetails: React.FC = () => {
                 <p className="mt-1 text-muted-foreground">
                   {formatBytes(Number(document.size))} • {document.mimeType}
                 </p>
+                {document.owner && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      {document.owner.avatarUrl ? (
+                        <AvatarImage src={document.owner.avatarUrl} alt={document.owner.username} />
+                      ) : null}
+                      <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-[10px] text-slate-950">
+                        {(document.owner.fullName || document.owner.username).slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm text-muted-foreground">
+                      {document.owner.fullName || document.owner.username}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      • {new Date(document.createdAt).toLocaleDateString('es-ES')}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -318,6 +337,7 @@ export const DocumentDetails: React.FC = () => {
                     variant="secondary"
                     onClick={() => unarchiveMutation.mutate()}
                     isLoading={unarchiveMutation.isPending}
+                    title="Los documentos archivados permanecen visibles para quienes tienen acceso, pero bloquean modificaciones"
                   >
                     <ArchiveRestore className="w-4 h-4 mr-2" />
                     Desarchivar
@@ -327,6 +347,7 @@ export const DocumentDetails: React.FC = () => {
                     variant="secondary"
                     onClick={() => archiveMutation.mutate()}
                     isLoading={archiveMutation.isPending}
+                    title="Al archivar, el documento seguirá visible para quienes tienen acceso, pero no se podrá modificar"
                   >
                     <Archive className="w-4 h-4 mr-2" />
                     Archivar
@@ -371,15 +392,72 @@ export const DocumentDetails: React.FC = () => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'details' && shares && shares.shares.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Compartido Con</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ShareList shares={shares.shares} documentId={id!} />
-          </CardContent>
-        </Card>
+      {activeTab === 'details' && (
+        <div className="space-y-4">
+          {shares && shares.shares.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Compartido Con</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ShareList shares={shares.shares} documentId={id!} />
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                <Share2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Este documento no ha sido compartido con otros usuarios.</p>
+                {isOwner && !document.isArchived && (
+                  <p className="text-sm mt-1">Use el botón "Compartir" arriba para dar acceso.</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Información adicional del documento */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Información del Documento</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">ID</p>
+                  <p className="font-mono">{document.id}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Blockchain ID</p>
+                  <p className="font-mono break-all">{document.blockchainId || 'Pendiente'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Estado</p>
+                  <Badge variant={document.blockchainStatus === 'SYNCED' ? 'success' : document.blockchainStatus === 'FAILED' ? 'destructive' : 'warning'}>
+                    {document.blockchainStatus}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Visibilidad</p>
+                  <p>{document.visibility === 'PUBLIC' ? 'Público' : 'Privado'}</p>
+                </div>
+                {document.publicId && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">Enlace Público</p>
+                    <p className="font-mono text-xs">{publicDocumentUrl}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-muted-foreground">Creado</p>
+                  <p>{new Date(document.createdAt).toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Actualizado</p>
+                  <p>{new Date(document.updatedAt).toLocaleString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {activeTab === 'timeline' && (
@@ -403,6 +481,7 @@ export const DocumentDetails: React.FC = () => {
           <OperationalVersionSelector
             documentId={id!}
             isOwner={isOwner}
+            isArchived={document.isArchived}
             versions={versionsArray}
             isPublic={isPublicDocument}
             publicId={document.publicId}

@@ -1,0 +1,28 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Pantalla 2FA" as ui
+control "Endpoints de autenticacion (/api/auth/2fa)" as api
+control "TwoFactorService" as srv
+database "PostgreSQL" as db
+
+user -> ui: Introduce codigo TOTP o codigo de respaldo
+ui -> api: Validar segundo factor
+api -> srv: Comprobar desafio pendiente y credenciales 2FA
+srv -> db: Leer secreto y codigos vigentes
+db --> srv: Datos de verificacion
+srv -> srv: Validar codigo recibido
+
+alt Codigo valido
+	srv -> db: Marcar acceso confirmado
+	db --> srv: OK
+	srv --> api: Segundo factor superado
+	api --> ui: Sesion completa
+	ui --> user: Acceso concedido
+else Codigo invalido
+	srv --> api: Intento rechazado
+	api --> ui: Error de validacion
+	ui --> user: Solicita un nuevo codigo
+end
+
+@enduml

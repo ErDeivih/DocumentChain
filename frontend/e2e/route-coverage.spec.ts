@@ -100,13 +100,13 @@ test.describe('Route coverage gaps', () => {
     test.skip(browserName !== 'chromium');
 
     await loginWithStoredSession(page, request, {
-      username: seedUsers.owner.username,
-      password: seedUsers.owner.password,
+      username: seedUsers.recipient.username,
+      password: seedUsers.recipient.password,
     });
 
     await page.goto('/app/dashboard');
 
-    await expect(page).toHaveURL(/\/app\/documents$/);
+    await expect(page).toHaveURL(/\/app\/documents$/, { timeout: 15000 });
     await expect(page.getByRole('heading', { name: 'Mis Documentos' })).toBeVisible();
   });
 
@@ -136,7 +136,7 @@ test.describe('Route coverage gaps', () => {
 
     if ((await eventRows.count()) > 0) {
       const eventRow = eventRows.first();
-      await eventRow.getByRole('button').click();
+      await eventRow.locator('button').filter({ has: page.locator('svg') }).last().click();
       await expect(page.getByText('Transacción')).toBeVisible({ timeout: 15000 });
       await expect(page.getByRole('button', { name: /Copiar Metadata/i })).toBeVisible();
     } else {

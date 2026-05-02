@@ -58,6 +58,7 @@ export interface AuthResponse {
     publicKey: string;
     encryptedPrivateKey?: string;
     emailVerified: boolean;
+    avatarUrl: string | null;
     createdAt: Date;
     lastLogin: null;
   };
@@ -190,6 +191,7 @@ export class AuthService {
         role: user.role,
         publicKey: user.publicKey,
         emailVerified: user.emailVerified,
+        avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
         lastLogin: null
       }
@@ -273,6 +275,7 @@ export class AuthService {
           role: user.role,
           publicKey: user.publicKey,
           emailVerified: user.emailVerified,
+          avatarUrl: user.avatarUrl,
           createdAt: user.createdAt,
           lastLogin: null
         }
@@ -296,6 +299,7 @@ export class AuthService {
         role: user.role,
         publicKey: user.publicKey,
         emailVerified: user.emailVerified,
+        avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
         lastLogin: null
       }
@@ -437,6 +441,7 @@ export class AuthService {
         publicKey: user.publicKey,
         encryptedPrivateKey: user.encryptedPrivateKey,
         emailVerified: user.emailVerified,
+        avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
         lastLogin: null
       }
@@ -546,6 +551,7 @@ export class AuthService {
           publicKey: finalUser.publicKey,
           encryptedPrivateKey: finalUser.encryptedPrivateKey,
           emailVerified: finalUser.emailVerified,
+          avatarUrl: finalUser.avatarUrl,
           createdAt: finalUser.createdAt,
           lastLogin: null
         }
@@ -570,6 +576,7 @@ export class AuthService {
         publicKey: finalUser.publicKey,
         encryptedPrivateKey: finalUser.encryptedPrivateKey,
         emailVerified: finalUser.emailVerified,
+        avatarUrl: finalUser.avatarUrl,
         createdAt: finalUser.createdAt,
         lastLogin: null
       }

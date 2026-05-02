@@ -152,6 +152,12 @@ export const Documents: React.FC = () => {
           </button>
         </div>
 
+        {activeTab === 'archived' && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+            Los documentos archivados permanecen visibles para quienes tienen acceso, pero no se pueden modificar ni crear nuevas versiones hasta que se desarchiven.
+          </div>
+        )}
+
         {/* Search and Filters */}
         <Card>
           <CardContent className="p-4">

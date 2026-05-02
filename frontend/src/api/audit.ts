@@ -93,6 +93,33 @@ export interface AuditHealth {
   timestamp: string;
 }
 
+export interface TransactionDetails {
+  success: boolean;
+  transaction: {
+    hash: string;
+    from: string;
+    to: string | null;
+    value: string;
+    gasPrice: string | null;
+    gasUsed: string | null;
+    status: number | null;
+    blockNumber: number | null;
+    timestamp: string | null;
+  };
+  events: Array<{
+    name: string;
+    args: Record<string, any>;
+    blockchainId: string;
+    document?: {
+      id: string;
+      name: string;
+      publicId: string | null;
+      visibility: string;
+      ownerUsername: string;
+    } | null;
+  }>;
+}
+
 export const auditApi = {
   /**
    * Obtener historial completo de auditoría de un documento
@@ -139,6 +166,14 @@ export const auditApi = {
    */
   getHealth: async (): Promise<AuditHealth> => {
     const response = await publicApi.get('/audit/health');
+    return response.data;
+  },
+
+  /**
+   * Obtener detalles de una transacción por su hash
+   */
+  getTransactionByHash: async (txHash: string): Promise<TransactionDetails> => {
+    const response = await publicApi.get(`/audit/transaction/${txHash}`);
     return response.data;
   },
 };

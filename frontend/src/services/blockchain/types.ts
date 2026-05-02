@@ -6,7 +6,6 @@ export interface UploadDocumentInput {
     name: string;
     description?: string;
     folderId?: string;
-    categoryId?: string;
     tags?: string[];
   };
   shouldEncrypt: boolean;

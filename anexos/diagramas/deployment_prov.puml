@@ -1,0 +1,38 @@
+@startuml
+!include _structure-style.puml
+node "Cliente" as cliente {
+    component "Aplicacion web" as frontend
+    component "Wallet del usuario" as wallet
+}
+
+node "Servidor de aplicacion" as backend_node {
+    component "API backend" as backend
+    component "Sincronizador blockchain" as listeners
+    component "Canal tiempo real" as ws
+    component "Servidor SMTP (Postfix)" as postfix
+}
+
+node "Persistencia" as db_node {
+    database "PostgreSQL" as postgres
+}
+
+node "Almacenamiento distribuido (opcional)" as ipfs_node {
+    component "Nodo Kubo autoalojado" as ipfs
+}
+
+node "Red blockchain" as ethereum {
+    component "Nodo Hardhat (JSON-RPC)" as hardhat
+    component "Contrato inteligente" as contract
+}
+
+frontend --> backend : HTTPS
+frontend --> wallet : firma de operaciones
+wallet --> hardhat : JSON-RPC
+hardhat --> contract : EVM
+backend --> postgres
+backend --> ipfs
+backend --> postfix : SMTP localhost:587
+listeners --> contract : eventos
+listeners --> postgres
+ws --> frontend : WebSocket notificaciones
+@enduml

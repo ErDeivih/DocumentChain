@@ -154,7 +154,7 @@ El desarrollo de DocumentChain sigue las cuatro fases fundamentales del Proceso 
 
 \subsubsection{Factores de complejidad técnica}
 
-El método UCP define 13 factores técnicos (T1--T13) que impactan la complejidad del proyecto. Cada factor se puntúa de 0 (sin impacto) a 5 (máximo impacto) y se multiplica por su peso predefinido para obtener el subtotal.
+El método UCP define 13 factores técnicos (T1--T13) que impactan la complejidad del proyecto, detallados en la Tabla~\ref{tab:factores-tecnicos}. Cada factor se puntúa de 0 (sin impacto) a 5 (máximo impacto) y se multiplica por su peso predefinido para obtener el subtotal.
 
 \begin{longtable}{|p{0.8cm}|p{7.5cm}|p{1.3cm}|p{1.8cm}|p{2cm}|}
 \hline
@@ -193,7 +193,7 @@ T13 & Facilidades de formación para usuarios & 1.0 & 3 & 3.0 \\
 \hline
 \multicolumn{4}{|r|}{\textbf{Total Factor Técnico (TF):}} & \textbf{59.5} \\
 \hline
-\caption{Factores de complejidad técnica (T1--T13)}
+\caption{Factores de complejidad técnica (T1--T13)}\label{tab:factores-tecnicos}
 \end{longtable}
 
 \vspace{0.5em}
@@ -207,7 +207,7 @@ Un TCF superior a 1,0 indica complejidad técnica elevada, consecuencia directa 
 
 \subsubsection{Factores del entorno}
 
-El método UCP define 8 factores del entorno (E1--E8) relacionados con el equipo y el contexto de desarrollo. Los factores E7 y E8 tienen peso negativo, penalizando escenarios desfavorables.
+El método UCP define 8 factores del entorno (E1--E8) relacionados con el equipo y el contexto de desarrollo, recogidos en la Tabla~\ref{tab:factores-entorno}. Los factores E7 y E8 tienen peso negativo, penalizando escenarios desfavorables.
 
 \begin{longtable}{|p{0.8cm}|p{7.5cm}|p{1.3cm}|p{1.8cm}|p{2cm}|}
 \hline
@@ -236,7 +236,7 @@ E8 & Dificultad del lenguaje (TypeScript + Solidity) & -1.0 & 3 & -3.0 \\
 \hline
 \multicolumn{4}{|r|}{\textbf{Total Factor Ambiental (EF):}} & \textbf{18.0} \\
 \hline
-\caption{Factores del entorno (E1--E8)}
+\caption{Factores del entorno (E1--E8)}\label{tab:factores-entorno}
 \end{longtable}
 
 \vspace{0.5em}
@@ -250,7 +250,7 @@ Un ECF inferior a 1,0 refleja factores negativos como la curva de aprendizaje en
 
 \subsection{Lista de casos de uso y representación de actores}
 
-El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo consolidado de 42 casos de uso principales}. Para el cálculo UCP de este anexo se ponderan esos mismos 42 UC, mientras que las operaciones complementarias quedan absorbidas como variantes de los flujos principales. Para facilitar la lectura, los diagramas de actores se presentan agrupados por áreas funcionales.
+El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo consolidado de 42 casos de uso principales}. Para el cálculo UCP de este anexo se ponderan esos mismos 42 UC, mientras que las operaciones complementarias quedan absorbidas como variantes de los flujos principales. Para facilitar la lectura, los diagramas de casos de uso se presentan agrupados por áreas funcionales. La Figura~\ref{fig:uc_acceso} muestra el paquete de Gestión de Acceso.
 
 \begin{figure}[H]
     \centering
@@ -259,6 +259,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
     \label{fig:uc_acceso}
 \end{figure}
 
+La Figura~\ref{fig:uc_documentos} presenta el paquete de Gestión de Documentos.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.98\linewidth]{diagramas/uc_documentos.png}
@@ -266,6 +267,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
     \label{fig:uc_documentos}
 \end{figure}
 
+La Figura~\ref{fig:uc_versiones} ilustra el paquete de Gestión de Versiones.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{diagramas/uc_versiones.png}
@@ -273,6 +275,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
     \label{fig:uc_versiones}
 \end{figure}
 
+En la Figura~\ref{fig:uc_firmas} se detalla el paquete de Gestión de Firmas.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\linewidth]{diagramas/uc_firmas.png}
@@ -280,6 +283,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
     \label{fig:uc_firmas}
 \end{figure}
 
+La Figura~\ref{fig:uc_comparticion} corresponde al paquete de Gestión de Compartición.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{diagramas/uc_comparticion.png}
@@ -287,6 +291,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
     \label{fig:uc_comparticion}
 \end{figure}
 
+La Figura~\ref{fig:uc_auditoria} recoge el paquete de Auditoría y Estadísticas.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.98\linewidth]{diagramas/uc_auditoria.png}
@@ -294,6 +299,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
     \label{fig:uc_auditoria}
 \end{figure}
 
+Finalmente, la Figura~\ref{fig:uc_administracion} muestra el paquete de Administración.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\linewidth]{diagramas/uc_administracion.png}
@@ -303,7 +309,7 @@ El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo co
 
 \subsection{Actores del sistema}
 
-Los actores del sistema se clasifican según su complejidad de interacción:
+Los actores del sistema se clasifican según su complejidad de interacción, como se resume en la Tabla~\ref{tab:actores}:
 
 \begin{itemize}
     \item \textbf{Simple} (peso 1): Sistema externo con API definida
@@ -330,9 +336,10 @@ ACT-05 & Sistema de Email SMTP & Medio & 2 \\
 \multicolumn{3}{|r|}{\textbf{Total Peso de Actores (UAW):}} & \textbf{10} \\
 \hline
 \end{tabular}
-\caption{Clasificación de actores del sistema}
+    \caption{Clasificación de actores del sistema}\label{tab:actores}
 \end{table}
 
+La herramienta EZEstimate refleja esta clasificación de actores, como se observa en la Figura~\ref{fig:ezestimate-actors}.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\linewidth]{ezestimate-actors.png}
@@ -393,7 +400,7 @@ UC-0015 & Reenviar Email de Verificación & Simple (2) & 5 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Gestión de Acceso y Cuenta:}} & \textbf{130} \\
 \hline
-\caption{Casos de uso --- Gestión de Acceso y Cuenta}
+\caption{Casos de uso --- Gestión de Acceso y Cuenta}\label{tab:uc-acceso}
 \end{longtable}
 
 \subsubsection*{Paquete: Gestión de Documentos}
@@ -427,7 +434,7 @@ UC-0024 & Buscar Documentos & Complejo (8) & 15 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Gestión de Documentos:}} & \textbf{105} \\
 \hline
-\caption{Casos de uso --- Gestión de Documentos}
+\caption{Casos de uso --- Gestión de Documentos}\label{tab:uc-documentos}
 \end{longtable}
 
 \subsubsection*{Paquete: Gestión de Versiones}
@@ -453,7 +460,7 @@ UC-0029 & Descargar Versión Específica & Medio (5) & 10 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Gestión de Versiones:}} & \textbf{45} \\
 \hline
-\caption{Casos de uso --- Gestión de Versiones}
+\caption{Casos de uso --- Gestión de Versiones}\label{tab:uc-versiones}
 \end{longtable}
 
 \subsubsection*{Paquete: Gestión de Firmas}
@@ -475,7 +482,7 @@ UC-0032 & Verificar Firma en Blockchain & Medio (6) & 10 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Gestión de Firmas:}} & \textbf{30} \\
 \hline
-\caption{Casos de uso --- Gestión de Firmas}
+\caption{Casos de uso --- Gestión de Firmas}\label{tab:uc-firmas}
 \end{longtable}
 
 \subsubsection*{Paquete: Gestión de Compartición}
@@ -497,7 +504,7 @@ UC-0035 & Ver Documentos Compartidos Conmigo & Medio (4) & 10 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Gestión de Compartición:}} & \textbf{35} \\
 \hline
-\caption{Casos de uso --- Gestión de Compartición}
+\caption{Casos de uso --- Gestión de Compartición}\label{tab:uc-comparticion}
 \end{longtable}
 
 \subsubsection*{Paquete: Auditoría, Verificación y Estadísticas}
@@ -523,7 +530,7 @@ UC-0040 & Auditoría Blockchain & Medio (6) & 10 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Auditoría, Verificación y Estadísticas:}} & \textbf{50} \\
 \hline
-\caption{Casos de uso --- Auditoría, Verificación y Estadísticas}
+\caption{Casos de uso --- Auditoría, Verificación y Estadísticas}\label{tab:uc-auditoria}
 \end{longtable}
 
 \subsubsection*{Paquete: Administración}
@@ -543,11 +550,12 @@ UC-0042 & Gestionar Roles de Usuario & Medio (5) & 10 \\
 \hline
 \multicolumn{3}{|r|}{\textbf{Subtotal Administración:}} & \textbf{25} \\
 \hline
-\caption{Casos de uso --- Administración}
+\caption{Casos de uso --- Administración}\label{tab:uc-administracion}
 \end{longtable}
 
 \subsubsection*{Resumen de clasificación}
 
+El resumen de la clasificación de los 42 casos de uso se presenta en la Tabla~\ref{tab:uucw-resumen}.
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|c|c|c|}
@@ -563,9 +571,10 @@ Complejo (8+ Tx) & 8 & 15 & 120 \\
 \textbf{Total ponderado (UCP)} & \textbf{42} & --- & \textbf{420} \\
 \hline
 \end{tabular}
-\caption{Resumen de Pesos de Casos de Uso (UUCW)}
+    \caption{Resumen de Pesos de Casos de Uso (UUCW)}\label{tab:uucw-resumen}
 \end{table}
 
+La Figura~\ref{fig:ezestimate-uc} muestra la pantalla de EZEstimate con la clasificación de los 42 casos de uso por complejidad.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\linewidth]{ezestimate-uc-1.png}
@@ -582,7 +591,7 @@ A partir de los factores y clasificaciones anteriores, se aplica la metodología
 \text{UCP} &= \text{UUCP} \times \text{TCF} \times \text{ECF} = 430 \times 1{,}195 \times 0{,}86 \approx \mathbf{442}
 \end{align}
 
-Estos valores han sido introducidos en la herramienta \textbf{EZEstimate}, que proporciona una estimación del esfuerzo total considerando los factores de complejidad técnica y del entorno. El resultado obtenido se muestra en la siguiente ilustración:
+Estos valores han sido introducidos en la herramienta \textbf{EZEstimate}, que proporciona una estimación del esfuerzo total considerando los factores de complejidad técnica y del entorno. El resultado obtenido se muestra en la Figura~\ref{fig:ezestimate}.
 
 \begin{figure}[H]
     \centering
@@ -591,6 +600,7 @@ Estos valores han sido introducidos en la herramienta \textbf{EZEstimate}, que p
     \label{fig:ezestimate}
 \end{figure}
 
+El resumen numérico de la estimación se recoge en la Tabla~\ref{tab:estimacion-final}.
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|r|}
@@ -616,7 +626,7 @@ Duración efectiva & 6 meses \\
 Período de ejecución & 1 dic.\ 2025 -- 15 may.\ 2026 \\
 \hline
 \end{tabular}
-\caption{Resumen de la estimación de esfuerzo mediante EZEstimate}
+\caption{Resumen de la estimación de esfuerzo mediante EZEstimate}\label{tab:estimacion-final}
 \end{table}
 
 El cómputo de 1.500 horas de trabajo efectivo se ha obtenido aplicando un factor de productividad de \textbf{3,4 h/UCP}, recogido por la herramienta EZEstimate como valor de referencia para proyectos académicos con un único desarrollador y tecnologías parcialmente novedosas. El resultado teórico de la herramienta representa el esfuerzo bruto del proyecto. En la práctica, este esfuerzo se ha materializado en un período de \textbf{aproximadamente seis meses de trabajo intensivo} (del 1 de diciembre de 2025 a mediados de mayo de 2026), con una dedicación media de \textbf{10 horas diarias} que incluye fines de semana y adaptada a los compromisos académicos concurrentes, lo que equivale en cómputo global a las 1.500 horas estimadas.
@@ -625,7 +635,7 @@ El cómputo de 1.500 horas de trabajo efectivo se ha obtenido aplicando un facto
 
 \subsection{Descripción de tareas, subtareas e hitos}
 
-A continuación se presenta la relación completa de tareas, subtareas e hitos del proyecto DocumentChain, organizada según las fases del Proceso Unificado. Los hitos aparecen en negrita y están identificados por el símbolo $\blacklozenge$.
+A continuación se presenta, en la Tabla~\ref{tab:tareas-hitos}, la relación completa de tareas, subtareas e hitos del proyecto DocumentChain, organizada según las fases del Proceso Unificado. Los hitos aparecen en negrita y están identificados por el símbolo $\blacklozenge$.
 
 \begin{longtable}{|p{1cm}|p{5.5cm}|p{1.5cm}|p{5.5cm}|}
 \hline
@@ -716,7 +726,7 @@ A continuación se presenta la relación completa de tareas, subtareas e hitos d
 \hline
 35 & Implementación de la compartición y permisos & 31 & Desarrollo del sistema de compartición con re-encriptación de clave por destinatario. \\
 \hline
-36 & Implementación de carpetas y categorías & 35 & Desarrollo de la gestión de carpetas, categorías y asignación de etiquetas a documentos. \\
+36 & Implementación de carpetas y etiquetas & 35 & Desarrollo de la gestión de carpetas y asignación de etiquetas a documentos. \\
 \hline
 37 & Implementación del frontend base (React) & 24 & Setup de Vite + React + Tailwind, layout, rutas protegidas y componentes reutilizables. \\
 \hline
@@ -728,7 +738,7 @@ A continuación se presenta la relación completa de tareas, subtareas e hitos d
 \hline
 41 & Implementación del frontend de firmas y compartición & 40 & Desarrollo de la interfaz de firma criptográfica, gestión de permisos y compartición. \\
 \hline
-42 & Implementación del frontend de organización & 41 & Desarrollo de la interfaz de carpetas, categorías, etiquetas y búsqueda avanzada. \\
+42 & Implementación del frontend de organización & 41 & Desarrollo de la interfaz de carpetas, etiquetas y búsqueda avanzada. \\
 \hline
 43 & Pruebas unitarias del backend (Jest) & 35 & Verificación individual de los servicios, controladores y utilidades del servidor. \\
 \hline
@@ -794,14 +804,14 @@ A continuación se presenta la relación completa de tareas, subtareas e hitos d
 \hline
 71 & \textbf{$\blacklozenge$ Fin Transición y Fin del Proyecto} & 70 & Hito final que marca la conclusión del proyecto DocumentChain. \\
 \hline
-\caption{Tareas, subtareas e hitos del proyecto (Proceso Unificado)}
+\caption{Tareas, subtareas e hitos del proyecto (Proceso Unificado)}\label{tab:tareas-hitos}
 \end{longtable}
 
 \subsection{Asignación de tiempo y recursos}
 
 El proyecto DocumentChain ha sido desarrollado por un único desarrollador con una dedicación media de aproximadamente \textbf{10 horas diarias} (incluyendo fines de semana) durante \textbf{6 meses} (de diciembre de 2025 a mayo de 2026). La asignación de tiempos a las distintas fases e iteraciones del Proceso Unificado se ha realizado en base a los resultados de la estimación con EZEstimate, ajustando la duración de cada iteración a la complejidad real de las tareas abordadas.
 
-La fase de Construcción concentra, como es habitual en el Proceso Unificado, la mayor parte del esfuerzo total del proyecto, correspondiente a la implementación incremental de las principales áreas funcionales del sistema. Las fases de Inicio y Transición, más breves, se dedican respectivamente al análisis inicial y al cierre y despliegue del sistema.
+La fase de Construcción concentra, como es habitual en el Proceso Unificado, la mayor parte del esfuerzo total del proyecto, correspondiente a la implementación incremental de las principales áreas funcionales del sistema. Las fases de Inicio y Transición, más breves, se dedican respectivamente al análisis inicial y al cierre y despliegue del sistema. La distribución detallada de tiempo por fase e iteración se muestra en la Tabla~\ref{tab:tiempos}.
 
 \begin{table}[H]
 \centering
@@ -828,7 +838,7 @@ La fase de Construcción concentra, como es habitual en el Proceso Unificado, la
 \multicolumn{2}{|r|}{\textbf{TOTAL}} & \textbf{$\sim$26 semanas (6 meses)} & \textbf{1.500 horas} \\
 \hline
 \end{tabular}
-\caption{Asignación de tiempos a las distintas iteraciones}
+\caption{Asignación de tiempos a las distintas iteraciones}\label{tab:tiempos}
 \end{table}
 
 \subsection{Calendario de trabajo}
@@ -841,7 +851,7 @@ La fase de Construcción, con el grueso de la implementación de las principales
 
 \subsection{Tabla de planificación detallada}
 
-La siguiente tabla constituye la \textbf{fuente de verdad} del calendario del proyecto: recoge cada tarea e hito con su fecha exacta de inicio, su duración en días naturales (a razón de $\sim$10\,h/día), su fecha de finalización y las tareas predecesoras. Los diagramas de Gantt del apartado siguiente se derivan directamente de estos valores. Los hitos aparecen en negrita y están señalados con~$\blacklozenge$.
+La Tabla~\ref{tab:planificacion-detalle} constituye la \textbf{fuente de verdad} del calendario del proyecto: recoge cada tarea e hito con su fecha exacta de inicio, su duración en días naturales (a razón de $\sim$10\,h/día), su fecha de finalización y las tareas predecesoras. Los diagramas de Gantt del apartado siguiente se derivan directamente de estos valores. Los hitos aparecen en negrita y están señalados con~$\blacklozenge$.
 
 \begin{longtable}{|p{0.6cm}|p{5.2cm}|p{2.5cm}|p{1.9cm}|p{0.9cm}|p{1.9cm}|p{1.4cm}|}
 \hline
@@ -932,7 +942,7 @@ La siguiente tabla constituye la \textbf{fuente de verdad} del calendario del pr
 \hline
 35 & Implementación de la compartición y permisos & Const. I1 & 08/03/2026 & 10 & 17/03/2026 & 32 \\
 \hline
-36 & Implementación de carpetas y categorías & Const. I1 & 18/03/2026 & 7 & 24/03/2026 & 35 \\
+36 & Implementación de carpetas y etiquetas & Const. I1 & 18/03/2026 & 7 & 24/03/2026 & 35 \\
 \hline
 37 & Implementación del frontend base (React) & Const. I1 & 15/01/2026 & 9 & 23/01/2026 & 24 \\
 \hline
@@ -1010,7 +1020,7 @@ La siguiente tabla constituye la \textbf{fuente de verdad} del calendario del pr
 \hline
 71 & \textbf{$\blacklozenge$ Fin Transición y Fin del Proyecto} & Trans. I2 & 25/05/2026 & --- & 25/05/2026 & 70 \\
 \hline
-\caption{Tabla de planificación detallada: fechas, duraciones y dependencias de todas las tareas e hitos}
+\caption{Tabla de planificación detallada: fechas, duraciones y dependencias de todas las tareas e hitos}\label{tab:planificacion-detalle}
 \end{longtable}
 
 \subsection{Diagramas de Gantt}
@@ -1031,6 +1041,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
   group/.style={fill=gray!30, draw=gray!60}
 }
 
+La Figura~\ref{fig:gantt_inicio1} detalla el calendario de la primera iteración de la fase de Inicio.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Inicio, Iteración 1 (01/12 -- 04/12/2025)}
@@ -1044,6 +1055,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+La Figura~\ref{fig:gantt_inicio2} muestra la planificación de la segunda iteración de Inicio.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Inicio, Iteración 2 (05/12 -- 11/12/2025)}
@@ -1058,6 +1070,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+En la Figura~\ref{fig:gantt_elab1} se presenta la iteración 1 de la fase de Elaboración.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Elaboración, Iteración 1 (12/12 -- 22/12/2025)}
@@ -1073,6 +1086,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+La Figura~\ref{fig:gantt_elab2} corresponde a la segunda iteración de Elaboración.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Elaboración, Iteración 2 (23/12/2025 -- 06/01/2026)}
@@ -1090,6 +1104,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+La Figura~\ref{fig:gantt_const1} recoge el extenso cronograma de la primera iteración de Construcción.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Construcción, Iteración 1 (07/01 -- 01/04/2026)}
@@ -1108,7 +1123,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
   \ganttbar[bar label font=\tiny]{33.\ Versionado documentos}{2026-02-24}{2026-03-07} \\
   \ganttbar[bar label font=\tiny]{34.\ Firmas digitales}{2026-03-04}{2026-03-14} \\
   \ganttbar[bar label font=\tiny]{35.\ Compartición y permisos}{2026-03-08}{2026-03-17} \\
-  \ganttbar[bar label font=\tiny]{36.\ Carpetas y categorías}{2026-03-18}{2026-03-24} \\
+  \ganttbar[bar label font=\tiny]{36.\ Carpetas y etiquetas}{2026-03-18}{2026-03-24} \\
   \ganttbar[bar label font=\tiny]{37.\ Frontend base (React)}{2026-01-15}{2026-01-23} \\
   \ganttbar[bar label font=\tiny]{38.\ Páginas autenticación}{2026-01-24}{2026-01-30} \\
   \ganttbar[bar label font=\tiny]{39.\ Dashboard y listado}{2026-01-31}{2026-02-07} \\
@@ -1122,6 +1137,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+La Figura~\ref{fig:gantt_const2} detalla la segunda iteración de Construcción.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Construcción, Iteración 2 (02/04 -- 06/05/2026)}
@@ -1141,6 +1157,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+En la Figura~\ref{fig:gantt_trans1} se muestra la primera iteración de Transición.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Transición, Iteración 1 (07/05 -- 17/05/2026)}
@@ -1158,6 +1175,7 @@ Los diagramas de Gantt siguientes se generan directamente a partir de la tabla a
 \end{ganttchart}
 \end{figure}
 
+Por último, la Figura~\ref{fig:gantt_trans2} ilustra la iteración final de Transición y cierre del proyecto.
 \begin{figure}[H]
 \centering
 \caption{Diagrama de Gantt~--- Fase Transición, Iteración 2 (18/05 -- 25/05/2026)}
@@ -1181,8 +1199,7 @@ El proyecto DocumentChain combina un frontend React para la operación de usuari
 
 La estimación obtenida mediante la herramienta EZEstimate, con un total de \textbf{1.500 horas} de trabajo efectivo, ha resultado coherente con el esfuerzo real finalmente dedicado al desarrollo. Es importante destacar que esta estimación debe entenderse como una referencia orientativa para la planificación, ya que durante el desarrollo han surgido tareas adicionales no siempre reflejadas explícitamente en los casos de uso, tales como investigación tecnológica sobre blockchain, resolución de problemas de sincronización de eventos, ajustes de arquitectura de cifrado y pruebas continuas de seguridad.
 
-Este análisis pone de manifiesto la importancia de definir con precisión los requisitos y objetivos durante las fases iniciales del proyecto (Inicio y Elaboración), ya que estas fases han servido como base para minimizar esfuerzos y garantizar la coherencia del sistema durante la fase de Construcción. La correcta estructuración de las iteraciones y la separación clara de responsabilidades entre los subsistemas han permitido abordar el desarrollo de forma progresiva y controlada.
-
+Este análisis pone de manifiesto la importancia de definir con precisión los requisitos y objetivos durante las fases iniciales del proyecto (Inicio y Elaboración), ya que estas fases han servido como base para minimizar esfuerzos y garantizar la coherencia del sistema durante la fase de Construcción. La correcta estructuración de las iteraciones y la separación clara de responsabilidades entre los subsistemas han permitido abordar el desarrollo de forma progresiva y controlada. A modo de resumen, la Tabla~\ref{tab:fases-descripcion} describe cada fase e iteración del proyecto.
 \begin{table}[H]
 \centering
 \begin{tabular}{|p{4cm}|p{10cm}|}
@@ -1214,8 +1231,23 @@ Se configuró y desplegó el sistema completo en un VPS con Docker Compose, incl
 Cierre del proyecto académico. Se redactó la memoria principal del TFG, se revisaron los anexos, se preparó la presentación de la defensa oral y se realizó la entrega oficial del proyecto a los tutores. \\
 \hline
 \end{tabular}
-\caption{Descripción de las fases por iteraciones}
+\caption{Descripción de las fases por iteraciones}\label{tab:fases-descripcion}
 \end{table}
+
+\section{Glosario}
+
+\begin{description}
+    \item[UCP] Use Case Points, método de estimación de esfuerzo basado en puntos de caso de uso.
+    \item[UUCP] Unadjusted Use Case Points, puntos de caso de uso sin ajustar.
+    \item[UAW] Unadjusted Actor Weight, peso de actores sin ajustar.
+    \item[UUCW] Unadjusted Use Case Weight, peso de casos de uso sin ajustar.
+    \item[TCF] Technical Complexity Factor, factor de complejidad técnica.
+    \item[ECF] Environmental Complexity Factor, factor de complejidad del entorno.
+    \item[EZEstimate] Herramienta de estimación basada en UCP desarrollada para proyectos académicos.
+    \item[Proceso Unificado] Metodología de desarrollo software iterativa e incremental (Inicio, Elaboración, Construcción, Transición).
+    \item[Transacción] Interacción completa entre actor y sistema para completar un caso de uso.
+    \item[Hito] Punto de control del proyecto que marca el final de una iteración o fase.
+\end{description}
 
 \section*{Bibliografía}
 \addcontentsline{toc}{section}{Bibliografía}

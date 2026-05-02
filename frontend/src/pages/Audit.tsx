@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import AlertMessage from '../components/ui/AlertMessage';
-import { auditApi, AuditEvent, PublicStats, AuditHealth } from '../api/audit';
+import { auditApi, AuditEvent, PublicStats, AuditHealth, TransactionDetails } from '../api/audit';
 import { formatDate } from '../lib/utils';
 import {
   Search,
@@ -21,9 +21,10 @@ import {
   Globe,
   Eye,
   Key,
+  FileText,
 } from 'lucide-react';
 
-type SearchType = 'blockchainId' | 'walletAddress' | 'fileId';
+type SearchType = 'blockchainId' | 'walletAddress' | 'fileId' | 'txHash';
 
 export const Audit: React.FC = () => {
   const [searchType, setSearchType] = useState<SearchType>('blockchainId');
@@ -38,6 +39,7 @@ export const Audit: React.FC = () => {
   const [ownershipResult, setOwnershipResult] = useState<any | null>(null);
   const [integrityResult, setIntegrityResult] = useState<any | null>(null);
   const [metadataResult, setMetadataResult] = useState<any | null>(null);
+  const [txDetails, setTxDetails] = useState<TransactionDetails | null>(null);
   
   // Public stats
   const [stats, setStats] = useState<PublicStats | null>(null);
@@ -118,6 +120,12 @@ export const Audit: React.FC = () => {
             ? 'La integridad del documento está VERIFICADA' 
             : 'ALERTA: La integridad del documento NO coincide');
           break;
+
+        case 'txHash':
+          const txRes = await auditApi.getTransactionByHash(searchValue.trim());
+          setTxDetails(txRes);
+          setSuccess(`Transacción encontrada en bloque #${txRes.transaction.blockNumber ?? '?'} con ${txRes.events.length} eventos`);
+          break;
       }
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'Error en la búsqueda');
@@ -131,6 +139,7 @@ export const Audit: React.FC = () => {
     setOwnershipResult(null);
     setIntegrityResult(null);
     setMetadataResult(null);
+    setTxDetails(null);
   };
 
   const getEventTypeLabel = (type: string) => {
@@ -292,7 +301,7 @@ export const Audit: React.FC = () => {
           )}
 
           {/* Search Type Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <button
               onClick={() => { setSearchType('blockchainId'); clearResults(); }}
               className={`p-4 border-2 rounded-lg transition-colors ${
@@ -335,6 +344,21 @@ export const Audit: React.FC = () => {
               <h3 className="font-semibold text-foreground">Verificar Integridad</h3>
               <p className="mt-1 text-xs text-muted-foreground">
                 Comprobar integridad blockchain vs BD
+              </p>
+            </button>
+
+            <button
+              onClick={() => { setSearchType('txHash'); clearResults(); }}
+              className={`p-4 border-2 rounded-lg transition-colors ${
+                searchType === 'txHash'
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border bg-white hover:border-primary/40 hover:bg-primary/5'
+              }`}
+            >
+              <Activity className="mx-auto mb-2 h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-foreground">Por Tx Hash</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Explorar transacción y eventos decodificados
               </p>
             </button>
           </div>
@@ -381,6 +405,17 @@ export const Audit: React.FC = () => {
                 onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
                 helperText="ID del archivo en la base de datos para verificar integridad"
+              />
+            )}
+
+            {searchType === 'txHash' && (
+              <Input
+                label="Hash de Transacción"
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="0x... (66 caracteres hexadecimales)"
+                helperText="Introduzca el hash de la transacción para ver sus eventos decodificados"
               />
             )}
 
@@ -638,6 +673,66 @@ export const Audit: React.FC = () => {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Transaction Details Result */}
+      {txDetails && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              Detalles de Transacción
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Transaction Info */}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              <h3 className="text-sm font-semibold">Información de Transacción</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div><span className="text-muted-foreground">Hash:</span> <code className="text-xs bg-muted px-1 rounded">{txDetails.transaction.hash}</code></div>
+                <div><span className="text-muted-foreground">Estado:</span> {txDetails.transaction.status === 1 ? <Badge variant="success">Éxito</Badge> : <Badge variant="destructive">Fallido</Badge>}</div>
+                <div><span className="text-muted-foreground">Bloque:</span> {txDetails.transaction.blockNumber ?? '-'}</div>
+                <div><span className="text-muted-foreground">Fecha:</span> {txDetails.transaction.timestamp ? formatDate(txDetails.transaction.timestamp) : '-'}</div>
+                <div><span className="text-muted-foreground">From:</span> <code className="text-xs">{formatAddress(txDetails.transaction.from)}</code></div>
+                <div><span className="text-muted-foreground">To:</span> <code className="text-xs">{txDetails.transaction.to ? formatAddress(txDetails.transaction.to) : '-'}</code></div>
+                {txDetails.transaction.gasUsed && <div><span className="text-muted-foreground">Gas:</span> {txDetails.transaction.gasUsed}</div>}
+              </div>
+            </div>
+
+            {/* Decoded Events */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Eventos Decodificados ({txDetails.events.length})</h3>
+              {txDetails.events.length === 0 && (
+                <p className="text-sm text-muted-foreground">No hay eventos del contrato DocumentRegistry en esta transacción.</p>
+              )}
+              {txDetails.events.map((event, idx) => (
+                <div key={idx} className="rounded-lg border p-4 space-y-2">
+                  <Badge variant="default">{event.name}</Badge>
+                  {event.document && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-medium">{event.document.name}</span>
+                      <span className="text-xs text-muted-foreground">por {event.document.ownerUsername}</span>
+                      {event.document.visibility === 'PUBLIC' && event.document.publicId ? (
+                        <a href={`/public/d/${event.document.publicId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Ver público →</a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Privado</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="bg-muted/40 rounded p-2 text-xs font-mono space-y-1">
+                    {Object.entries(event.args).map(([key, value]) => (
+                      <div key={key} className="flex justify-between gap-4">
+                        <span className="text-muted-foreground">{key}:</span>
+                        <span className="text-right break-all max-w-[60%]">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

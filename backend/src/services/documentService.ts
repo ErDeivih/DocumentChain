@@ -68,7 +68,6 @@ export interface DocumentInfo {
   size: number;
   fileExtension?: string | null;
   folderId?: string | null;
-  categoryId?: string | null;
   tags?: string[];
   contentHash: string;
   metadataHash: string;
@@ -86,6 +85,12 @@ export interface DocumentInfo {
   role?: 'OWNER' | 'SHARED_WRITE' | 'SHARED_READ' | null;
   createdAt: Date;
   updatedAt: Date;
+  owner?: {
+    id: string;
+    username: string;
+    fullName: string | null;
+    avatarUrl: string | null;
+  } | null;
 }
 
 export interface PrepareDocumentInput {
@@ -97,7 +102,6 @@ export interface PrepareDocumentInput {
   walletId: string;
   visibility?: 'PRIVATE' | 'PUBLIC';
   folderId?: string;
-  categoryId?: string;
   tags?: string[];
   fileExtension?: string;
 }
@@ -190,7 +194,6 @@ export class DocumentService {
       walletId,
       visibility = 'PRIVATE',
       folderId,
-      categoryId,
       tags,
       fileExtension,
     } = input;
@@ -280,7 +283,6 @@ export class DocumentService {
           blockchainStatus: BlockchainStatus.PREPARING,
           fileExtension: deriveFileExtension(name, fileExtension),
           folderId: folderId || null,
-          categoryId: categoryId || null,
           tags: tags || [],
           // Store encryption metadata
           encryptionIV: encryptionResult?.iv ?? null,
@@ -566,6 +568,16 @@ export class DocumentService {
 
     const document = await prisma.document.findUnique({
       where: { id: documentId },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+      },
     });
 
     if (!document || document.isDeleted) return null;
@@ -577,7 +589,7 @@ export class DocumentService {
 
   /**
    * List documents for a user
-   * Can filter by wallet, folder, category, and archived status
+   * Can filter by wallet, folder, and archived status
    */
   static async listDocuments(
     userId: string,
@@ -588,7 +600,6 @@ export class DocumentService {
       includeArchived?: boolean;
       onlyArchived?: boolean;
       folderId?: string;
-      categoryId?: string;
       search?: string;
       fileType?: string;
     }
@@ -600,7 +611,6 @@ export class DocumentService {
       includeArchived = false,
       onlyArchived = false,
       folderId,
-      categoryId,
       search,
       fileType,
     } = options || {};
@@ -624,10 +634,6 @@ export class DocumentService {
 
     if (folderId !== undefined) {
       where.folderId = folderId;
-    }
-
-    if (categoryId) {
-      where.categoryId = categoryId;
     }
 
     // Search by name
@@ -656,6 +662,16 @@ export class DocumentService {
         },
         skip,
         take: safeLimit,
+        include: {
+          owner: {
+            select: {
+              id: true,
+              username: true,
+              fullName: true,
+              avatarUrl: true,
+            },
+          },
+        },
       }),
     ]);
 
@@ -832,6 +848,16 @@ export class DocumentService {
       orderBy: {
         name: 'asc',
       },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatarUrl: true,
+          },
+        },
+      },
     });
 
     return documents.map(d => this.toDocumentInfo(d));
@@ -850,6 +876,7 @@ export class DocumentService {
             id: true,
             username: true,
             fullName: true,
+            avatarUrl: true,
           },
         },
         versions: {
@@ -1033,7 +1060,6 @@ export class DocumentService {
       size: typeof document.size === 'string' ? Number(document.size) : Number(document.size),
       fileExtension: document.fileExtension ?? null,
       folderId: document.folderId ?? null,
-      categoryId: document.categoryId ?? null,
       tags: document.tags ?? [],
       contentHash: document.contentHash,
       metadataHash: document.metadataHash,
@@ -1051,6 +1077,14 @@ export class DocumentService {
       role,
       createdAt: document.createdAt,
       updatedAt: document.updatedAt,
+      owner: document.owner
+        ? {
+            id: document.owner.id,
+            username: document.owner.username,
+            fullName: document.owner.fullName,
+            avatarUrl: document.owner.avatarUrl ?? null,
+          }
+        : null,
     };
   }
 

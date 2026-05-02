@@ -38,7 +38,6 @@ export interface PrepareDocumentInput {
   walletId: string;                   // Wallet used for signing
   visibility?: 'PRIVATE' | 'PUBLIC';
   folderId?: string;
-  categoryId?: string;
   tags?: string[];
 }
 
@@ -83,9 +82,6 @@ export const documentsApi = {
     }
     if (input.folderId) {
       formData.append('folderId', input.folderId);
-    }
-    if (input.categoryId) {
-      formData.append('categoryId', input.categoryId);
     }
     if (input.tags && input.tags.length > 0) {
       formData.append('tags', JSON.stringify(input.tags));
@@ -147,7 +143,6 @@ export const documentsApi = {
     options?: {
       description?: string;
       folderId?: string;
-      categoryId?: string;
       tags?: string[];
     }
   ): Promise<{ document: Document }> => {
@@ -161,9 +156,6 @@ export const documentsApi = {
     }
     if (options?.folderId) {
       formData.append('folderId', options.folderId);
-    }
-    if (options?.categoryId) {
-      formData.append('categoryId', options.categoryId);
     }
     if (options?.tags && options.tags.length > 0) {
       formData.append('tags', JSON.stringify(options.tags));
@@ -321,7 +313,6 @@ export const uploadDocument = async (
   password: string,
   options?: {
     folderId?: string;
-    categoryId?: string;
     tags?: string[];
   }
 ): Promise<Document> => {

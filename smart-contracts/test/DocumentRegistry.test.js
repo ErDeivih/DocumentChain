@@ -314,6 +314,16 @@ describe("DocumentRegistry - Complete Test Suite", function () {
           registry.connect(owner).restoreVersion(docId, 99)
         ).to.be.revertedWith("Invalid version");
       });
+
+      it("3.2.6 Should revert if document archived", async function () {
+        const { registry, owner, docId } = await loadFixture(deployWithVersionsFixture);
+        
+        await registry.connect(owner).setArchiveStatus(docId, true);
+        
+        await expect(
+          registry.connect(owner).restoreVersion(docId, 1)
+        ).to.be.revertedWith("Document is archived");
+      });
     });
 
     describe("3.3 Setting Operational Version", function () {
@@ -348,6 +358,16 @@ describe("DocumentRegistry - Complete Test Suite", function () {
         await expect(
           registry.connect(owner).setOperationalVersion(docId, 99)
         ).to.be.revertedWith("Invalid version");
+      });
+
+      it("3.3.5 Should revert if document archived", async function () {
+        const { registry, owner, docId } = await loadFixture(deployWithVersionsFixture);
+        
+        await registry.connect(owner).setArchiveStatus(docId, true);
+        
+        await expect(
+          registry.connect(owner).setOperationalVersion(docId, 2)
+        ).to.be.revertedWith("Document is archived");
       });
     });
   });
@@ -452,6 +472,17 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       ).to.be.revertedWith("Invalid signature");
     });
 
+    it("4.9 Should revert if document archived", async function () {
+      const { registry, owner, user1, docId } = await loadFixture(deployWithDocumentFixture);
+      
+      await registry.connect(owner).shareDocument(docId, user1.address, 1);
+      await registry.connect(owner).setArchiveStatus(docId, true);
+      
+      await expect(
+        registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "")
+      ).to.be.revertedWith("Document is archived");
+    });
+
     // Test removed: Contract does not validate message field
   });
 
@@ -540,8 +571,9 @@ describe("DocumentRegistry - Complete Test Suite", function () {
         
         await registry.connect(owner).setArchiveStatus(docId, true);
         
-        // Note: Contract does not check archived status in shareDocument
-        // This test would fail as contract allows sharing archived documents
+        await expect(
+          registry.connect(owner).shareDocument(docId, user1.address, 1)
+        ).to.be.revertedWith("Document is archived");
       });
     });
 
@@ -598,6 +630,17 @@ describe("DocumentRegistry - Complete Test Suite", function () {
         await expect(
           registry.connect(owner).revokePermission(docId, user1.address)
         ).to.be.revertedWith("User has no permission");
+      });
+
+      it("5.2.7 Should revert if document archived", async function () {
+        const { registry, owner, user1, docId } = await loadFixture(deployWithDocumentFixture);
+        
+        await registry.connect(owner).shareDocument(docId, user1.address, 1);
+        await registry.connect(owner).setArchiveStatus(docId, true);
+        
+        await expect(
+          registry.connect(owner).revokePermission(docId, user1.address)
+        ).to.be.revertedWith("Document is archived");
       });
     });
 
@@ -722,6 +765,16 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       await expect(
         registry.connect(user1)['transferOwnership(bytes32,address)'](docId, user2.address)
       ).to.be.revertedWith("Only owner can transfer");
+    });
+
+    it("6.6 Should revert if document archived", async function () {
+      const { registry, owner, user1, docId } = await loadFixture(deployWithDocumentFixture);
+      
+      await registry.connect(owner).setArchiveStatus(docId, true);
+      
+      await expect(
+        registry.connect(owner)['transferOwnership(bytes32,address)'](docId, user1.address)
+      ).to.be.revertedWith("Document is archived");
     });
   });
 

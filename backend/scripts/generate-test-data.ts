@@ -745,22 +745,10 @@ async function createDocumentsAndEvents(
     { ext: 'png', mime: 'image/png', name: 'plano_instalacion' },
     { ext: 'zip', mime: 'application/zip', name: 'expediente_firmas' },
   ];
-  const categoryNames = ['Contratacion', 'Finanzas', 'Legal', 'Operaciones', 'Clientes', 'Recursos Humanos'];
   const folderNames = ['Expedientes', 'Facturacion', 'Firmas', 'Proyectos', 'Archivo', 'Seguimiento'];
 
   for (let u = 0; u < users.length; u += 1) {
     const owner = users[u];
-
-    const category = await prisma.category.create({
-      data: {
-        userId: owner.id,
-        name: `${categoryNames[u % categoryNames.length]} ${u + 1}`,
-        description: 'Categoria de pruebas automatizadas',
-        color: '#2B6CB0',
-        icon: 'folder',
-        isPredefined: false,
-      },
-    });
 
     const rootFolder = await prisma.folder.create({
       data: {
@@ -847,7 +835,6 @@ async function createDocumentsAndEvents(
           fileExtension: docKind.ext,
           ownerId: owner.id,
           folderId: targetFolder.id,
-          categoryId: category.id,
           tags: ['demo', 'qa', targetFolder.name.toLowerCase(), d % 2 === 0 ? 'legal' : 'finanzas', docKind.ext],
           encryptedSymmetricKey: randomHash('sym', blockchainCounter),
           encryptionIV: Buffer.from(`iv-${blockchainCounter}`).toString('base64'),

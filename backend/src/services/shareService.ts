@@ -41,6 +41,7 @@ export interface ShareInfo {
     username: string;
     fullName: string | null;
     email: string;
+    avatarUrl: string | null;
   };
 }
 
@@ -182,6 +183,7 @@ export class ShareService {
         username: true,
         fullName: true,
         email: true,
+        avatarUrl: true,
       },
     });
 
@@ -203,11 +205,13 @@ export class ShareService {
               username: user.username,
               fullName: user.fullName,
               email: user.email,
+              avatarUrl: user.avatarUrl ?? null,
             }
           : {
               username: entry.recipientId,
               fullName: null,
               email: '',
+              avatarUrl: null,
             },
       };
     });
@@ -245,6 +249,10 @@ export class ShareService {
 
     if (!document.blockchainId) {
       throw new Error('El documento no tiene ID de blockchain aún');
+    }
+
+    if (document.isArchived) {
+      throw new Error('No se pueden compartir documentos archivados');
     }
 
     // 2. Validate sharer's wallet
@@ -469,6 +477,7 @@ export class ShareService {
             username: true,
             fullName: true,
             email: true,
+            avatarUrl: true,
           },
         },
       },
@@ -496,11 +505,13 @@ export class ShareService {
               username: wallet.user.username,
               fullName: wallet.user.fullName,
               email: wallet.user.email,
+              avatarUrl: wallet.user.avatarUrl ?? null,
             }
           : {
               username: entry.address,
               fullName: null,
               email: '',
+              avatarUrl: null,
             },
       };
     });

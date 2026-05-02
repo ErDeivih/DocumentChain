@@ -4,12 +4,12 @@ const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'DecentralizedFS API',
+      title: 'DocumentChain API',
       version: '1.0.0',
-      description: 'Documentación de la API para DecentralizedFS - Sistema de Almacenamiento de Archivos Descentralizado con Integración Blockchain',
+      description: 'Documentación de la API para DocumentChain - Sistema de Gestión Documental Descentralizado con Integración Blockchain',
       contact: {
-        name: 'Equipo DecentralizedFS',
-        email: 'support@decentralizedfs.com'
+        name: 'Equipo DocumentChain',
+        email: 'support@documentchain.io'
       },
       license: {
         name: 'MIT',
@@ -22,7 +22,7 @@ const options: swaggerJSDoc.Options = {
         description: 'Servidor de desarrollo'
       },
       {
-        url: 'https://api.decentralizedfs.com',
+        url: 'https://api.documentchain.io',
         description: 'Servidor de producción'
       }
     ],

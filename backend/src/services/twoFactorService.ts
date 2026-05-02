@@ -43,7 +43,7 @@ export interface TwoFactorVerification {
 }
 
 export class TwoFactorService {
-  private static readonly ISSUER = 'DecentralizedFS';
+  private static readonly ISSUER = 'DocumentChain';
   private static readonly WINDOW = 1; // ±1 ventana (±60 segundos)
   private static readonly BACKUP_CODE_LENGTH = 8;
   private static readonly BACKUP_CODE_COUNT = 10;

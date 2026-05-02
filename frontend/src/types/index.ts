@@ -76,7 +76,6 @@ export interface Document {
   fileExtension: string;
   ownerId: string;
   folderId: string | null;
-  categoryId: string | null;
   tags: string[];
   visibility: 'PRIVATE' | 'PUBLIC';
   isEncrypted: boolean;
@@ -93,13 +92,18 @@ export interface Document {
   // Metadata de sincronización
   blockchainStatus: 'PREPARING' | 'TX_SUBMITTED' | 'SYNCED' | 'FAILED';
   
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+
   // Relaciones (populated desde DB)
   owner?: {
+    id: string;
     username: string;
     fullName: string | null;
+    avatarUrl?: string | null;
   };
   folder?: Folder;
-  category?: Category;
   role?: DocumentRole;
 }
 
@@ -152,6 +156,7 @@ export interface Signature {
     fullName: string | null;
     walletAddress: string;
     source: 'live' | 'snapshot';
+    avatarUrl?: string | null;
   };
 }
 
@@ -173,6 +178,7 @@ export interface PublicDocumentSignature {
   signer: {
     username: string;
     fullName: string | null;
+    avatarUrl?: string | null;
   } | null;
 }
 
@@ -195,6 +201,7 @@ export interface PublicDocument {
     id: string;
     username: string;
     fullName: string | null;
+    avatarUrl?: string | null;
   };
   versions: PublicDocumentVersion[];
   signatures: PublicDocumentSignature[];
@@ -210,6 +217,7 @@ export interface Share {
     username: string;
     fullName: string | null;
     email: string;
+    avatarUrl?: string | null;
   };
 }
 
@@ -302,34 +310,6 @@ export interface FolderStats {
   subfolderCount: number;
 }
 
-// Category types
-export interface Category {
-  id: string;
-  userId: string | null;
-  name: string;
-  description: string | null;
-  color: string | null;
-  icon: string | null;
-  isPredefined: boolean;
-  isActive: boolean;
-  createdAt: string;
-  _count?: {
-    documents: number;
-  };
-}
-
-export interface CategoryStats {
-  category: Category;
-  documentCount: number;
-  totalSize: bigint;
-  recentDocuments: Array<{
-    id: string;
-    fileName: string;
-    fileSize: number;
-    createdAt: string;
-  }>;
-}
-
 // Verification types
 export interface VerificationResult {
   exists: boolean;
@@ -390,7 +370,6 @@ export interface FileValidationResult {
 export interface DocumentFilters {
   search?: string;
   fileExtension?: string;  // Usar fileExtension (como backend)
-  categoryId?: string;
   folderId?: string;
   tags?: string[];
   // ❌ NO incluir filtros de fechas (createdAt solo en blockchain)
@@ -436,8 +415,6 @@ export interface DocumentWithBlockchainData extends Document {
   // Datos de blockchain
   ipfsCid?: string;
   isDeleted?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface VersionWithBlockchainData extends Version {

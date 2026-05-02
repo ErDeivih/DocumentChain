@@ -66,7 +66,7 @@ test.describe('Additional App Features', () => {
     });
 
     await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Notificaciones' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
 
     const emailSwitch = page.getByRole('switch', { name: 'Recibir correos de notificación' });
     const sharedSwitch = page.getByRole('switch', { name: 'Notificaciones de documentos compartidos' });
@@ -107,7 +107,7 @@ test.describe('Additional App Features', () => {
     expect(preferencesBody.data.emailEnabled).toBe(initialEmailState === 'true');
 
     await page.reload();
-    await page.getByRole('tab', { name: 'Notificaciones' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
 
     await expect(sharedSwitch).toHaveAttribute('aria-checked', initialSharedState === 'true' ? 'false' : 'true');
     await expect(versionSwitch).toHaveAttribute('aria-checked', initialVersionState === 'true' ? 'false' : 'true');

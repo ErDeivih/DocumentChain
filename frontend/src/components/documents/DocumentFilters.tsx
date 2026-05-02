@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, FileType } from 'lucide-react';
 import { Input } from '../ui/Input';
 import { FolderSelector } from '../folders/FolderSelector';
-import { CategorySelector } from '../categories/CategorySelector';
 import { DocumentFilters as Filters } from '../../types';
 
 interface DocumentFiltersProps {
@@ -110,19 +109,12 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             {/* Filtro de carpeta */}
             <FolderSelector
               value={localFilters.folderId || null}
               onChange={(folderId) => updateFilter('folderId', folderId || undefined)}
               placeholder="Todas las carpetas"
-            />
-
-            {/* Filtro de categoría */}
-            <CategorySelector
-              value={localFilters.categoryId || null}
-              onChange={(categoryId) => updateFilter('categoryId', categoryId || undefined)}
-              placeholder="Todas las categorías"
             />
           </div>
 
@@ -193,14 +185,6 @@ export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
                   <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/15 px-2 py-1 text-xs text-primary-300">
                     Carpeta seleccionada
                     <button onClick={() => updateFilter('folderId', undefined)}>
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                )}
-                {localFilters.categoryId && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
-                    Categoría seleccionada
-                    <button onClick={() => updateFilter('categoryId', undefined)}>
                       <X className="w-3 h-3" />
                     </button>
                   </span>

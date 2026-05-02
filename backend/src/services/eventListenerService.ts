@@ -18,7 +18,7 @@ const prisma = new PrismaClient();
  * BASE DE DATOS (privado, mutable):
  * - Metadatos privados: filename, size, mimeType, encryptedPath
  * - Datos de usuario: email, profilePicture, passwordHash, 2FA secrets
- * - Relaciones: userId, folderId, categoryId
+ * - Relaciones: userId, folderId
  * - Estados internos: blockchainStatus, blockchainRetries
  * - Notificaciones, preferencias, sesiones
  * 

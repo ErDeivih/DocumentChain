@@ -348,9 +348,15 @@ export const TwoFactorSetup: React.FC = () => {
           <Alert variant="warning" className="border-yellow-500">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <p className="font-semibold mb-2">¡Guarde estos códigos de respaldo!</p>
+              <p className="font-semibold mb-2">¡Guarde estos códigos de respaldo ahora!</p>
+              <p className="text-sm mb-2 text-red-700 font-medium">
+                Estos códigos se muestran una única vez. Si no los guarda ahora, no podrá verlos de nuevo.
+              </p>
+              <p className="text-sm mb-2">
+                Son códigos de un solo uso que puede usar en la pantalla de inicio de sesión cuando se le pida el código 2FA, si no tiene acceso a su aplicación autenticadora.
+              </p>
               <p className="text-sm mb-3">
-                Cada código solo se puede usar una vez. Guárdelos en un lugar seguro.
+                Cada código solo se puede usar una vez. Guárdelos en un lugar seguro (gestor de contraseñas, papel, etc.).
               </p>
               <div className="grid grid-cols-2 gap-2 p-3 bg-background rounded font-mono text-sm">
                 {backupCodes.map((code, index) => (

@@ -48,7 +48,7 @@ test.describe('Expanded frontend use cases', () => {
     await expect(page).toHaveURL(/\/app\/documents$/);
 
     await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Seguridad' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
     await page.getByLabel(/^Contraseña Actual$/).fill(passwordUser.password);
     await page.getByLabel(/^Nueva Contraseña$/).fill(newPassword);
     await page.getByLabel(/^Confirmar Nueva Contraseña$/).fill(newPassword);
@@ -98,7 +98,7 @@ test.describe('Expanded frontend use cases', () => {
     await expect(page).toHaveURL(/\/app\/documents$/);
 
     await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Seguridad' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
     await page.getByRole('button', { name: 'Configurar 2FA' }).click();
 
     await expect(page.getByAltText('QR Code')).toBeVisible();
@@ -114,12 +114,12 @@ test.describe('Expanded frontend use cases', () => {
     );
     await page.getByRole('button', { name: 'Verificar y Activar' }).click();
 
-    await expect(page.getByText('¡Guarde estos códigos de respaldo!')).toBeVisible();
+    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).toBeVisible();
     const initialBackupCode = ((await page.locator('div.grid.grid-cols-2 span').allTextContents())[0] || '').trim();
     expect(initialBackupCode).toBeTruthy();
     await expect(page.getByText('Activo')).toBeVisible();
     await page.getByRole('button', { name: 'He guardado los códigos' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo!')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).not.toBeVisible({ timeout: 10000 });
 
     await page.getByLabel('Código TOTP actual').fill(
       speakeasy.totp({
@@ -128,12 +128,12 @@ test.describe('Expanded frontend use cases', () => {
       })
     );
     await page.getByRole('button', { name: 'Regenerar Códigos' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo!')).toBeVisible();
+    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).toBeVisible();
     const regeneratedBackupCode = ((await page.locator('div.grid.grid-cols-2 span').allTextContents())[0] || '').trim();
     expect(regeneratedBackupCode).toBeTruthy();
     expect(regeneratedBackupCode).not.toBe(initialBackupCode);
     await page.getByRole('button', { name: 'He guardado los códigos' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo!')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).not.toBeVisible({ timeout: 10000 });
 
     await clearStoredSession(page);
     await page.goto('/login');
@@ -202,7 +202,7 @@ test.describe('Expanded frontend use cases', () => {
     expect(totpUserSnapshot.emailVerified).toBe(true);
 
     await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Seguridad' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
     await page.getByLabel('Código TOTP actual').fill(
       speakeasy.totp({
         secret: secret!,
@@ -706,7 +706,7 @@ test.describe('Expanded frontend use cases', () => {
     await installHardhatWallet(page, seedUsers.owner.walletIndex);
 
     await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Privacidad' }).click();
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
 
     await page.evaluate(() => {
       window.prompt = () => 'Suspensión E2E frontend';

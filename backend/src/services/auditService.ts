@@ -1,4 +1,4 @@
-import { getContracts, provider } from '../config/blockchain';
+import { getContracts, provider, documentRegistryInterface } from '../config/blockchain';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 import logger from '../utils/logger';
@@ -874,6 +874,144 @@ export class AuditService {
     } catch (error) {
       logger.error('Error al consultar eventos blockchain:', error);
       throw new Error(`Error al consultar eventos: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
+  }
+
+  /**
+   * Obtener detalles de una transacción por su hash
+   * Decodifica logs de eventos del contrato DocumentRegistry
+   * y enriquece con metadata de documentos desde la BD
+   */
+  static async getTransactionDetails(txHash: string): Promise<{
+    transaction: {
+      hash: string;
+      from: string;
+      to: string | null;
+      value: string;
+      gasPrice: string | null;
+      gasUsed: string | null;
+      status: number | null;
+      blockNumber: number | null;
+      timestamp: Date | null;
+    };
+    events: Array<{
+      name: string;
+      args: Record<string, any>;
+      blockchainId: string;
+      document?: {
+        id: string;
+        name: string;
+        publicId: string | null;
+        visibility: string;
+        ownerUsername: string;
+      } | null;
+    }>;
+  }> {
+    try {
+      const [tx, receipt] = await Promise.all([
+        provider.getTransaction(txHash),
+        provider.getTransactionReceipt(txHash),
+      ]);
+
+      if (!tx) {
+        throw new Error('Transacción no encontrada');
+      }
+
+      let timestamp: Date | null = null;
+      if (receipt?.blockNumber) {
+        try {
+          const block = await provider.getBlock(receipt.blockNumber);
+          if (block?.timestamp) {
+            timestamp = new Date(Number(block.timestamp) * 1000);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const decodedEvents: Array<{
+        name: string;
+        args: Record<string, any>;
+        blockchainId: string;
+        document?: any;
+      }> = [];
+
+      if (receipt?.logs) {
+        for (const log of receipt.logs) {
+          try {
+            const parsed = documentRegistryInterface.parseLog({
+              topics: log.topics as string[],
+              data: log.data,
+            });
+
+            if (parsed) {
+              const args: Record<string, any> = {};
+              parsed.fragment.inputs.forEach((input, idx) => {
+                const val = parsed.args[idx];
+                args[input.name] = ethers.isAddress(val)
+                  ? val
+                  : typeof val === 'bigint'
+                    ? val.toString()
+                    : val;
+              });
+
+              // Extract blockchainId (docId) from args
+              const blockchainId = args.docId || args._docId || '';
+
+              // Look up document in DB
+              let document = null;
+              if (blockchainId) {
+                const dbDoc = await prisma.document.findUnique({
+                  where: { blockchainId },
+                  select: {
+                    id: true,
+                    name: true,
+                    publicId: true,
+                    visibility: true,
+                    owner: { select: { username: true } },
+                  },
+                });
+                if (dbDoc) {
+                  document = {
+                    id: dbDoc.id,
+                    name: dbDoc.name,
+                    publicId: dbDoc.publicId,
+                    visibility: dbDoc.visibility,
+                    ownerUsername: dbDoc.owner.username,
+                  };
+                }
+              }
+
+              decodedEvents.push({
+                name: parsed.name,
+                args,
+                blockchainId,
+                document,
+              });
+            }
+          } catch {
+            // Not a DocumentRegistry event, ignore
+          }
+        }
+      }
+
+      return {
+        transaction: {
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          value: tx.value.toString(),
+          gasPrice: tx.gasPrice?.toString() || null,
+          gasUsed: receipt?.gasUsed?.toString() || null,
+          status: receipt?.status ?? null,
+          blockNumber: receipt?.blockNumber ?? null,
+          timestamp,
+        },
+        events: decodedEvents,
+      };
+    } catch (error) {
+      logger.error('Error al obtener detalles de transacción:', error);
+      throw new Error(`Error al obtener detalles de transacción: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
 }

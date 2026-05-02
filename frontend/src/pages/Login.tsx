@@ -172,11 +172,14 @@ export const Login: React.FC = () => {
                     type="text"
                     value={twoFactorCode}
                     onChange={(e) => setTwoFactorCode(e.target.value.trim())}
-                    placeholder="123456 o código de respaldo"
+                    placeholder="123456 (TOTP) o ABCD1234 (código de respaldo)"
                     required
                     disabled={isLoading}
                     autoComplete="one-time-code"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Ingrese el código de 6 dígitos de su aplicación autenticadora, o uno de sus códigos de respaldo de 8 caracteres si no tiene acceso al dispositivo.
+                  </p>
                 </div>
 
                 <div className="flex gap-2">

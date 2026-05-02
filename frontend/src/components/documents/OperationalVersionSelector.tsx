@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   Wallet
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
 
 type OperationalVersion = Version & {
   restoredFrom?: number | null;
@@ -31,6 +32,7 @@ type OperationalVersion = Version & {
 interface OperationalVersionSelectorProps {
   documentId: string;
   isOwner: boolean;
+  isArchived?: boolean;
   versions: Version[];
   isPublic?: boolean;
   publicId?: string | null;
@@ -41,6 +43,7 @@ interface OperationalVersionSelectorProps {
 export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProps> = ({
   documentId,
   isOwner,
+  isArchived = false,
   versions: providedVersions,
   isPublic = false,
   publicId = null,
@@ -340,7 +343,8 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                       variant="outline"
                       size="sm"
                       onClick={() => setOperationalVersion(version.versionNumber)}
-                      disabled={changing !== null}
+                      disabled={changing !== null || isArchived}
+                      title={isArchived ? 'No se puede cambiar la versión operacional de un documento archivado' : undefined}
                     >
                       {changing === version.versionNumber ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -359,6 +363,11 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
         </div>
 
         {/* Información adicional */}
+        {isArchived && (
+          <p className="mt-4 text-center text-xs text-amber-600">
+            Documento archivado: no se pueden cambiar las versiones operacionales
+          </p>
+        )}
         {!isOwner && (
           <p className="mt-4 text-center text-xs text-muted-foreground">
             Solo el propietario puede cambiar la versión operacional
@@ -410,11 +419,21 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-foreground">{signerName}</p>
-                        {signerUsername ? (
-                          <p className="mt-1 text-xs text-muted-foreground">@{signerUsername}</p>
-                        ) : null}
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          {signature.signer?.avatarUrl ? (
+                            <AvatarImage src={signature.signer.avatarUrl} alt={signerName} />
+                          ) : null}
+                          <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-[10px] text-slate-950">
+                            {signerName.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-foreground">{signerName}</p>
+                          {signerUsername ? (
+                            <p className="mt-0.5 text-xs text-muted-foreground">@{signerUsername}</p>
+                          ) : null}
+                        </div>
                       </div>
                       <Badge variant={getStatusVariant(signature.blockchainStatus)} className="shrink-0">
                         {getStatusLabel(signature.blockchainStatus)}
@@ -431,7 +450,15 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
 
             {selectedSignature ? (
               <div className="rounded-xl border border-white/10 bg-secondary/35 p-5" data-testid="signer-profile-panel">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    {selectedSignature.signer?.avatarUrl ? (
+                      <AvatarImage src={selectedSignature.signer.avatarUrl} alt={getSignerDisplayName(selectedSignature)} />
+                    ) : null}
+                    <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-sm text-slate-950">
+                      {getSignerDisplayName(selectedSignature).slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <h3 className="text-lg font-semibold text-foreground">Perfil del firmante</h3>
                   <Badge variant={getStatusVariant(selectedSignature.blockchainStatus)}>
                     {getStatusLabel(selectedSignature.blockchainStatus)}

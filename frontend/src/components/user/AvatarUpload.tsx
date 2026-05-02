@@ -62,7 +62,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await api.put('/api/users/avatar', formData, {
+      const response = await api.put('/api/users/me/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -86,7 +86,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setRemoving(true);
       setError(null);
 
-      await api.delete('/api/users/avatar');
+      await api.delete('/api/users/me/avatar');
       setPreviewUrl(null);
       onAvatarChange?.(null);
     } catch (err: any) {

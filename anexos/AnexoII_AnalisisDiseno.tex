@@ -230,7 +230,7 @@ El diseño prioriza seguridad, escalabilidad y experiencia de usuario, aplicando
 
 El diseño descrito en este anexo se alinea con el catálogo consolidado de \textbf{42 casos de uso principales} definido en el Anexo I. Para facilitar la lectura técnica, las secciones procedimentales enfatizan los flujos de mayor entidad funcional y tratan las acciones de apoyo como pasos internos, variantes o extensiones de esos UC principales, manteniendo la trazabilidad por identificador UC sin inflar artificialmente el catálogo.
 
-En consecuencia, funcionalidades presentes en la entrega como la organización mediante carpetas, categorías o etiquetas, la consulta de notificaciones, la configuración de preferencias, la gestión avanzada de wallets o determinadas operaciones administrativas se describen desde la perspectiva del flujo principal al que sirven. El criterio no elimina comportamiento del sistema, sino que reorganiza su documentación para que cada caso de uso represente una capacidad completa y defendible.
+En consecuencia, funcionalidades presentes en la entrega como la organización mediante carpetas y etiquetas, la consulta de notificaciones, la configuración de preferencias, la gestión avanzada de wallets o determinadas operaciones administrativas se describen desde la perspectiva del flujo principal al que sirven. El criterio no elimina comportamiento del sistema, sino que reorganiza su documentación para que cada caso de uso represente una capacidad completa y defendible.
 
 \section{Ámbito del software}
 
@@ -385,11 +385,11 @@ El siguiente diagrama muestra las entidades principales del dominio y sus relaci
 
 \subsection{Estructuras de archivo y bases de datos}
 
-El modelo de datos de DocumentChain comprende 17 tablas en PostgreSQL, organizadas en tres grupos funcionales:
+El modelo de datos de DocumentChain comprende 16 tablas en PostgreSQL, organizadas en tres grupos funcionales:
 
 \begin{itemize}
     \item \textbf{Entidades principales}: \texttt{users}, \texttt{wallets}, \texttt{documents}. Representan los actores y recursos centrales del sistema.
-    \item \textbf{Entidades derivadas}: \texttt{versions}, \texttt{document\_signatures}, \texttt{folders}, \texttt{categories}, \texttt{events}. Modelan las operaciones y la organización jerárquica de documentos.
+    \item \textbf{Entidades derivadas}: \texttt{versions}, \texttt{document\_signatures}, \texttt{folders}, \texttt{events}. Modelan las operaciones y la organización jerárquica de documentos.
     \item \textbf{Entidades de soporte}: \texttt{sessions}, \texttt{notifications}, \texttt{user\_stats}, \texttt{document\_stats}, \texttt{system\_stats}, \texttt{notification\_preferences}, \texttt{email\_verifications}, \texttt{password\_resets}, \texttt{system\_config}. Cubren autenticación, auditoría, estadísticas y configuración.
 \end{itemize}
 
@@ -397,14 +397,16 @@ Las relaciones clave son: un \texttt{user} puede tener múltiples \texttt{wallet
 
 \subsection{Diagrama Entidad-Relación}
 
-El diagrama E-R muestra las relaciones entre las 17 tablas de la base de datos PostgreSQL. Las entidades principales son: \texttt{users}, \texttt{documents} y \texttt{wallets}; las entidades de relación incluyen \texttt{versions}, \texttt{document\_signatures}, \texttt{folders}, \texttt{categories} y \texttt{events}; las entidades de soporte son \texttt{sessions}, \texttt{notifications}, \texttt{user\_stats}, \texttt{document\_stats}, \texttt{system\_stats}, \texttt{notification\_preferences}, \texttt{email\_verifications}, \texttt{password\_resets} y \texttt{system\_config}.
+El diagrama E-R muestra las relaciones entre las 16 tablas de la base de datos PostgreSQL. Las entidades principales son: \texttt{users}, \texttt{documents} y \texttt{wallets}; las entidades de relación incluyen \texttt{versions}, \texttt{document\_signatures}, \texttt{folders} y \texttt{events}; las entidades de soporte son \texttt{sessions}, \texttt{notifications}, \texttt{user\_stats}, \texttt{document\_stats}, \texttt{system\_stats}, \texttt{notification\_preferences}, \texttt{email\_verifications}, \texttt{password\_resets} y \texttt{system\_config}.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagramas/er-diagram.png}
-    \caption{Diagrama Entidad-Relación de la base de datos}
-    \label{fig:er-diagram}
-\end{figure}
+\begin{landscape}
+\vspace*{\fill}
+\centering
+\includegraphics[width=0.92\linewidth]{diagramas/er-diagram.png}
+\captionof{figure}{Diagrama Entidad-Relación de la base de datos}
+\label{fig:er-diagram}
+\vspace*{\fill}
+\end{landscape}
 
 \subsection{Diagrama conjunto: base de datos y blockchain}
 
@@ -445,7 +447,7 @@ PostgreSQL almacena toda la información que requiere consultas relacionales efi
     \item \textbf{Datos de identidad}: cuentas de usuario, credenciales cifradas, configuración de perfil, preferencias de notificación.
     \item \textbf{Metadatos de documentos}: nombre, descripción, estado de blockchain (\textit{PREPARING / TX\_SUBMITTED / SYNCED}), referencia al CID de IPFS, visibilidad, \texttt{publicId} cuando aplica, y marcas de tiempo de creación y modificación.
     \item \textbf{Control de versiones}: historial de versiones por documento, referencia a cada CID en IPFS, autor y fecha de cada versión.
-    \item \textbf{Estructura organizativa}: carpetas, categorías y la organización jerárquica de documentos.
+    \item \textbf{Estructura organizativa}: carpetas y etiquetas para la organización jerárquica de documentos.
     \item \textbf{Compartición y auditoría operativa}: eventos de preparación, confirmación y revocación, notificaciones y datos auxiliares para la interfaz y la trazabilidad interna.
     \item \textbf{Sesiones y auditoría interna}: tokens de sesión activos, registro de eventos de acceso, estadísticas de uso.
     \item \textbf{Estado de sincronización}: referencia al hash de transacción blockchain para cada documento/firma, facilitando la reconciliación de estados.
@@ -1056,6 +1058,15 @@ Los diagramas de secuencia muestran la interacción entre actores y componentes 
     \label{fig:seq-login}
 \end{figure}
 
+\subsubsection{Secuencia: Validar Segundo Factor en el Inicio de Sesión}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-2fa.png}
+    \caption{Diagrama de secuencia UC-0003: Validar Segundo Factor en el Inicio de Sesión}
+    \label{fig:seq-2fa}
+\end{figure}
+
 \subsubsection{Secuencia: Cerrar Sesión}
 
 \begin{figure}[H]
@@ -1406,6 +1417,94 @@ Los diagramas de secuencia muestran la interacción entre actores y componentes 
     \label{fig:seq-manage-roles}
 \end{figure}
 
+\subsection{Subflujos y extensiones de los casos de uso principales}
+
+Los siguientes diagramas de secuencia documentan funcionalidades que, siguiendo el criterio de consolidación del Anexo~I, se integran como subflujos o extensiones dentro de los 42 casos de uso principales. Cada figura indica el UC principal al que pertenece.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-regen-backup-2fa.png}
+    \caption{Subflujo: Regenerar códigos de respaldo 2FA (UC-0003 / UC-0009)}
+    \label{fig:seq-regen-backup-2fa}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-edit-metadata.png}
+    \caption{Subflujo: Editar metadatos de documento (UC-0018)}
+    \label{fig:seq-edit-metadata}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-modify-permissions.png}
+    \caption{Subflujo: Modificar permisos de acceso (UC-0033 / UC-0034)}
+    \label{fig:seq-modify-permissions}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-create-folder.png}
+    \caption{Subflujo: Crear carpeta (UC-0017 / UC-0018)}
+    \label{fig:seq-create-folder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-tag-document.png}
+    \caption{Subflujo: Etiquetar documento (UC-0018)}
+    \label{fig:seq-tag-document}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-notifications.png}
+    \caption{Subflujo: Consultar notificaciones (UC-0009 / UC-0017 / UC-0038)}
+    \label{fig:seq-notifications}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-preferences.png}
+    \caption{Subflujo: Configurar preferencias de notificación (UC-0009 / UC-0017 / UC-0038)}
+    \label{fig:seq-preferences}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-pause-system.png}
+    \caption{Subflujo: Pausar sistema de emergencia (UC-0038 / UC-0041 / UC-0042)}
+    \label{fig:seq-pause-system}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-resume-system.png}
+    \caption{Subflujo: Reanudar sistema (UC-0038 / UC-0041 / UC-0042)}
+    \label{fig:seq-resume-system}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-suspend-user.png}
+    \caption{Subflujo: Suspender usuario (UC-0041 / UC-0042)}
+    \label{fig:seq-suspend-user}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-delete-user-admin.png}
+    \caption{Subflujo: Eliminar usuario (admin) (UC-0041 / UC-0042)}
+    \label{fig:seq-delete-user-admin}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{diagramas/seq-create-admin.png}
+    \caption{Subflujo: Crear cuenta administradora (UC-0041 / UC-0042)}
+    \label{fig:seq-create-admin}
+\end{figure}
+
 \subsection{Diagramas de caso de uso-diseño}
 
 La numeración de casos de uso conservada concluye en UC-0042. Los diagramas que siguen no introducen nuevos casos de uso, sino variantes y flujos complementarios que detallan escenarios especialmente relevantes dentro de UC ya definidos en el Anexo I. En ellos se enfatiza la participación simultánea de la interfaz, los servicios, la persistencia operativa y la confirmación blockchain.
@@ -1473,7 +1572,7 @@ IRQ-0001 & Usuario, Wallet, Sesión & users, wallets, sessions & AuthService, Wa
 \hline
 IRQ-0002 & Documento, Versión & documents, versions & DocumentService, VersionService, IPFS, Smart Contract \\
 \hline
-IRQ-0003 & Carpeta, Categoría & folders, categories & FolderService, CategoryService \\
+IRQ-0003 & Carpeta, Etiquetas & folders & FolderService \\
 \hline
 IRQ-0004 & Firma digital & document\_signatures & SignatureService, Smart Contract \\
 \hline
@@ -1607,7 +1706,27 @@ El diagrama de despliegue muestra la distribución física de los componentes de
 
 \section{Glosario}
 
-\textit{(Mismo glosario que Anexo I)}
+\begin{description}
+    \item[AES-256-GCM] Advanced Encryption Standard con modo Galois/Counter Mode, algoritmo de cifrado simétrico.
+    \item[Argon2id] Función de derivación de claves resistente a ataques de fuerza bruta.
+    \item[Blockchain] Registro distribuido e inmutable de transacciones.
+    \item[CID] Content Identifier, identificador único de contenido en IPFS basado en hash criptográfico.
+    \item[CUID] Collision-resistant Unique Identifier, generador de IDs únicos.
+    \item[RSA-OAEP] Esquema de cifrado asimétrico utilizado para proteger claves simétricas de documentos privados.
+    \item[EIP-191] Ethereum Improvement Proposal para firmas de mensajes estándar.
+    \item[Event Listener] Servicio que escucha eventos emitidos por smart contracts.
+    \item[IPFS] InterPlanetary File System, sistema de archivos distribuido peer-to-peer.
+    \item[JWT] JSON Web Token, estándar de token de autenticación.
+    \item[OpenZeppelin] Biblioteca de smart contracts seguros y auditados.
+    \item[Pinning] Mantener contenido permanentemente disponible en IPFS.
+    \item[Prisma] ORM moderno para TypeScript y Node.js.
+    \item[Re-encriptación] Proceso de cambiar el cifrado de una clave sin exponer el contenido.
+    \item[Smart Contract] Programa auto-ejecutable desplegado en blockchain.
+    \item[TOTP] Time-based One-Time Password, para autenticación de dos factores.
+    \item[TxHash] Transaction Hash, identificador único de transacción blockchain.
+    \item[Wallet] Monedero de criptomonedas con clave privada para firmar transacciones.
+    \item[PublicId] Identificador público corto que permite resolver un documento publicado mediante enlace o código QR.
+\end{description}
 
 \section*{Bibliografía}
 \addcontentsline{toc}{section}{Bibliografía}
