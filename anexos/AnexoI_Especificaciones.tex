@@ -2026,15 +2026,18 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \textbf{Secuencia normal} & 
 \textbf{Paso 1:} El usuario selecciona el archivo e informa los metadatos básicos, incluyendo la visibilidad.\newline
 \textbf{Paso 2:} El sistema valida el contenido, aplica la política de protección correspondiente y lo almacena en el backend de almacenamiento configurado.\newline
-\textbf{Paso 3:} El sistema prepara y registra la operación en blockchain mediante el flujo firmado por wallet.\newline
-\textbf{Paso 4:} Una vez confirmada la transacción, el documento queda disponible en la biblioteca del usuario y, si es público, se habilita su acceso mediante enlace y código QR.\\
+\textbf{Paso 3:} El backend prepara la transacción, genera un mensaje legible con el título del documento y la dirección del contrato, y solicita la firma al usuario mediante su wallet.\newline
+\textbf{Paso 4:} El usuario confirma el mensaje legible en la wallet y el frontend envía la firma al backend para completar el registro on-chain.\newline
+\textbf{Paso 5:} Una vez confirmada la transacción, el documento queda disponible en la biblioteca del usuario y, si es público, se habilita su acceso mediante enlace y código QR.\\
 \hline
 \textbf{Postcondición} & Documento registrado en blockchain y almacenado en IPFS con la política seleccionada: cifrado si es privado; accesible mediante \texttt{publicId}, enlace y QR si es público. \\
 \hline
 \textbf{Excepciones} & 
 \textbf{Paso 1:} El archivo no supera las validaciones de tamaño o formato $\rightarrow$ La subida se rechaza.\newline
 \textbf{Paso 2:} El almacenamiento no está disponible $\rightarrow$ La operación queda cancelada y se informa al usuario.\newline
-\textbf{Paso 3:} La firma o la confirmación blockchain no llegan a completarse $\rightarrow$ El documento no pasa a estado operativo.\\
+\textbf{Paso 3:} El usuario rechaza la firma en la wallet $\rightarrow$ Operación cancelada.\newline
+\textbf{Paso 4:} El backend rechaza la firma o el mensaje no coincide $\rightarrow$ Error 400.\newline
+\textbf{Paso 5:} La transacción revierte o no se confirma on-chain $\rightarrow$ El documento no pasa a estado operativo.\\
 \hline
 \textbf{Importancia} & Vital \\
 \hline
@@ -2044,7 +2047,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \hline
 \textbf{Estabilidad} & Alta \\
 \hline
-\textbf{Comentarios} & El patrón Prepare/Confirm evita inconsistencias entre IPFS, base de datos y blockchain. La publicación pública es siempre optativa y exige una advertencia explícita porque elimina el cifrado del contenido. \\
+\textbf{Comentarios} & El patrón Prepare/Confirm evita inconsistencias entre IPFS, base de datos y blockchain. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario verifique en la wallet qué documento está creando antes de firmar. La publicación pública es siempre optativa y exige una advertencia explícita porque elimina el cifrado del contenido. \\
 \hline
 \caption{Especificación del caso de uso UC-0016}
 \end{longtable}
@@ -2410,15 +2413,18 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \textbf{Secuencia normal} &
 \textbf{Paso 1:} El usuario autorizado selecciona un nuevo archivo desde la pestaña de versiones e introduce, si lo desea, un comentario de cambio.\newline
 \textbf{Paso 2:} El sistema aplica a la nueva versión la misma política de visibilidad y protección que al documento original.\newline
-\textbf{Paso 3:} La operación se registra en el almacenamiento configurado y se prepara su confirmación en blockchain.\newline
-\textbf{Paso 4:} Tras la firma y la confirmación de la transacción, la nueva versión pasa a formar parte del historial y puede convertirse en la versión operativa.\\
+\textbf{Paso 3:} El backend registra la nueva versión en el almacenamiento configurado, prepara la transacción blockchain y genera un mensaje legible con el título del documento y el número de versión.\newline
+\textbf{Paso 4:} El usuario revisa el mensaje legible en su wallet y confirma la firma; el frontend envía la firma al backend para completar el registro on-chain.\newline
+\textbf{Paso 5:} Tras la confirmación de la transacción, la nueva versión pasa a formar parte del historial y se convierte automáticamente en la versión operativa.\\
 \hline
 \textbf{Postcondición} & Nueva versión registrada en blockchain e IPFS, heredando la visibilidad del documento original. La versión anterior permanece en el historial y la nueva pasa a ser la operativa automáticamente. \\
 \hline
 \textbf{Excepciones} &
 \textbf{Paso 1:} El archivo no es válido o no cumple las restricciones del documento $\rightarrow$ La operación se rechaza.\newline
 \textbf{Paso 3:} El almacenamiento no confirma la carga $\rightarrow$ La nueva versión no queda registrada.\newline
-\textbf{Paso 4:} La firma o la confirmación blockchain fallan $\rightarrow$ La versión no pasa a estado operativo.\\
+\textbf{Paso 4:} El usuario rechaza la firma $\rightarrow$ Operación cancelada.\newline
+\textbf{Paso 4:} El backend rechaza la firma o el mensaje no coincide $\rightarrow$ Error 400.\newline
+\textbf{Paso 5:} La transacción revierte o no se confirma $\rightarrow$ La versión no pasa a estado operativo.\\
 \hline
 \textbf{Importancia} & Alta \\
 \hline
@@ -2428,7 +2434,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \hline
 \textbf{Estabilidad} & Alta \\
 \hline
-\textbf{Comentarios} & Cada versión tiene su propio CID de IPFS, su hash SHA-256 y su registro en blockchain. En documentos privados, cada versión conserva su propia metadata de cifrado; en documentos públicos, cada versión queda accesible desde la ruta pública correspondiente. \\
+\textbf{Comentarios} & Cada versión tiene su propio CID de IPFS, su hash SHA-256 y su registro en blockchain. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario verifique en la wallet qué versión está registrando antes de firmar. En documentos privados, cada versión conserva su propia metadata de cifrado; en documentos públicos, cada versión queda accesible desde la ruta pública correspondiente. \\
 \hline
 \caption{Especificación del caso de uso UC-0025}
 \end{longtable}
@@ -2630,10 +2636,11 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \textbf{Secuencia normal} & 
 \textbf{Paso 1:} El usuario abre el documento o la versión que desea firmar.\newline
 \textbf{Paso 2:} El sistema muestra la confirmación de firma y permite añadir un comentario si procede.\newline
-\textbf{Paso 3:} El backend prepara la operación y devuelve los datos necesarios para la firma.\newline
-\textbf{Paso 4:} El usuario firma la transacción con su wallet.\newline
-\textbf{Paso 5:} La blockchain registra la firma y el sistema sincroniza su estado operativo.\newline
-\textbf{Paso 6:} El propietario recibe la notificación correspondiente y la interfaz actualiza el listado de firmas.\\
+\textbf{Paso 3:} El backend prepara la operación, genera un mensaje legible que incluye el título del documento, el número de versión y la dirección del contrato, y devuelve los datos necesarios para la firma.\newline
+\textbf{Paso 4:} El usuario revisa el mensaje legible en su wallet y confirma la firma.\newline
+\textbf{Paso 5:} El frontend envía la firma al backend, que completa el registro on-chain.\newline
+\textbf{Paso 6:} La blockchain registra la firma y el sistema sincroniza su estado operativo.\newline
+\textbf{Paso 7:} El propietario recibe la notificación correspondiente y la interfaz actualiza el listado de firmas.\\
 \hline
 \textbf{Postcondición} & Firma registrada inmutablemente en blockchain y visible para todos los usuarios con acceso. \\
 \hline
@@ -2641,7 +2648,8 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \textbf{Paso 2:} Usuario ya firmó esta versión $\rightarrow$ Error 409.\newline
 \textbf{Paso 2:} Usuario sin permiso $\rightarrow$ Error 403.\newline
 \textbf{Paso 4:} Usuario rechaza la firma $\rightarrow$ Operación cancelada.\newline
-\textbf{Paso 5:} La transacción revierte $\rightarrow$ Estado FAILED, firma no registrada.\\
+\textbf{Paso 5:} El backend rechaza la firma o el mensaje no coincide $\rightarrow$ Error 400.\newline
+\textbf{Paso 6:} La transacción revierte $\rightarrow$ Estado FAILED, firma no registrada.\\
 \hline
 \textbf{Importancia} & Alta \\
 \hline
@@ -2651,7 +2659,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \hline
 \textbf{Estabilidad} & Alta \\
 \hline
-\textbf{Comentarios} & Proporciona no repudio legal. La firma incluye hash de contenido. \\
+\textbf{Comentarios} & Proporciona no repudio legal. La firma incluye hash de contenido. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario pueda verificar en la wallet qué documento está firmando antes de confirmar. \\
 \hline
 \caption{Especificación del caso de uso UC-0030}
 \end{longtable}
@@ -2905,7 +2913,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \textbf{Paso 4:} El backend verifica los permisos del usuario sobre el documento.\newline
 \textbf{Paso 5:} El backend consulta la base de datos filtrando por documentId y aplicando los filtros.\newline
 \textbf{Paso 6:} El backend devuelve los eventos ordenados cronológicamente (más reciente primero): tipo de evento, fecha, usuario que realizó la acción, datos adicionales y txHash blockchain si aplica.\newline
-\textbf{Paso 7:} El frontend renderiza la línea de tiempo con iconos diferenciados por tipo de evento y colores según categoría.\newline
+\textbf{Paso 7:} El frontend renderiza la línea de tiempo con iconos diferenciados por tipo de evento y colores según tipo de evento.\newline
 \textbf{Paso 8:} El usuario puede abrir el txHash en el explorador blockchain configurado para contrastar la evidencia externa.\\
 \hline
 \textbf{Postcondición} & Historial completo de eventos del documento visible y filtrable. \\

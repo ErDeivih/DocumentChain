@@ -535,11 +535,14 @@ Tras iniciar sesión, el sistema redirige a \texttt{/app/documents}, que actúa 
     \item Verás la información completa:
     \begin{itemize}
         \item Nombre, tamaño y tipo MIME del documento
-        \item Identificador blockchain del registro
+        \item Identificador interno del documento (\texttt{documentId}) con botón para copiar al portapapeles
+        \item Identificador blockchain del registro (\texttt{blockchainId}) con botón para copiar al portapapeles
         \item Número de versiones existentes
         \item Número de accesos compartidos vigentes
         \item Acciones disponibles según el rol del usuario, la visibilidad y el estado del documento
     \end{itemize}
+    
+    \item Ambos identificadores muestran un tooltip explicativo al pasar el cursor: el \texttt{documentId} es el identificador interno de la base de datos, mientras que el \texttt{blockchainId} es el identificador asignado por el contrato Ethereum. El botón de copia permite trasladar el valor completo al portapapeles con un solo clic.
     
     \item Pestañas disponibles:
     \begin{itemize}
@@ -694,14 +697,14 @@ Para \textbf{desarchivar}:
     
     \item Haz clic en \textbf{Firmar Documento}.
     
-    \item El sistema solicitará seleccionar una wallet y confirmar la transacción de firma.
+    \item El sistema solicitará seleccionar una wallet. Antes de firmar, la wallet mostrará un mensaje legible con el título del documento, la versión y la dirección del contrato, para que sepas exactamente qué estás suscribiendo.
     
-    \item Espera a que la transacción se mine.
+    \item Confirma la transacción en tu wallet y espera a que se mine.
     
     \item Verás una notificación de éxito y el evento quedará reflejado en el historial del documento y en la auditoría blockchain.
 \end{enumerate}
 
-\textbf{Nota}: La firma se registra on-chain con tu dirección de wallet y el timestamp del bloque, proporcionando no-repudio criptográfico.
+\textbf{Nota}: La firma se registra on-chain con tu dirección de wallet y el timestamp del bloque, proporcionando no-repudio criptográfico. El mensaje legible que aparece en la wallet es generado por el backend y no puede ser alterado por el frontend.
 
 \subsubsection{Consultar los firmantes de una versión}
 
@@ -1090,7 +1093,7 @@ Tras completarse el cambio, se envía un correo de confirmación con la fecha y 
 \subsubsection{Activar autenticación de dos factores (2FA)}
 
 \begin{enumerate}
-    \item En la pestaña \textbf{Seguridad}, pulsa \textbf{Configurar 2FA}.
+    \item En la pestaña \textbf{Seguridad y Cuenta}, pulsa \textbf{Configurar 2FA}.
     \item Se mostrará un código QR y un secreto alternativo para configuración manual.
     \item Abre tu app de autenticación (Google Authenticator, Authy, etc.).
     \item Escanea el código QR.
@@ -1118,7 +1121,7 @@ Desde ahora, al iniciar sesión se te pedirá código 2FA tras la contraseña.
 \subsubsection{Regenerar códigos de respaldo o desactivar 2FA}
 
 \begin{enumerate}
-    \item Vuelve al bloque de \textbf{2FA} dentro de la pestaña \textbf{Seguridad}.
+    \item Vuelve al bloque de \textbf{2FA} dentro de la pestaña \textbf{Seguridad y Cuenta}.
     \item Para regenerar códigos de respaldo, pulsa la opción correspondiente e introduce un código temporal válido de tu aplicación autenticadora.
     \item El sistema invalidará los códigos anteriores y mostrará un nuevo conjunto una única vez para que puedas guardarlo.
     \item Si necesitas desactivar el 2FA, usa la acción \textbf{Desactivar 2FA} y confirma también con un código temporal válido.

@@ -176,6 +176,7 @@ Las funciones públicas del contrato reproducen el núcleo funcional del sistema
     \item \texttt{signDocument}: registra firmas verificables por versión y evita duplicados mediante un control interno de firmas repetidas.
     \item \texttt{transferOwnership}: transfiere la titularidad del documento y reajusta los roles del propietario saliente y del entrante.
     \item \texttt{setArchiveStatus} y \texttt{deleteDocument}: expresan archivado y borrado lógico sin eliminar el rastro histórico ya publicado.
+    \item \texttt{suspendMyself}: permite a un usuario bloquear su propia cuenta on-chain, impidiendo que pueda realizar operaciones futuras hasta que reactive su estado. Se utiliza como paso previo obligatorio a la eliminación de cuenta.
 \end{itemize}
 
 Cada una de estas operaciones emite eventos. Esa capa de eventos resulta útil por dos motivos. Primero, ofrece una auditoría natural a nivel de cadena. Segundo, alimenta los servicios de sincronización del backend, que pueden reconstruir o contrastar el estado observado en PostgreSQL a partir de lo sucedido on-chain.
