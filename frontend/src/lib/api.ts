@@ -155,6 +155,44 @@ api.interceptors.response.use(
   }
 );
 
+function mapBlockchainError(message: string): string | null {
+  const m = message.toLowerCase();
+  if (m.includes('user denied') || m.includes('rejected') || m.includes('cancelled') || m.includes('user rejected')) {
+    return 'Operación cancelada. Rechazaste la transacción en tu wallet.';
+  }
+  if (m.includes('already signed') || m.includes('ya has firmado')) {
+    return 'Ya has firmado esta versión del documento. No es necesario firmar de nuevo.';
+  }
+  if (m.includes('already shared') || m.includes('ya compartido')) {
+    return 'Este documento ya está compartido con ese usuario.';
+  }
+  if (m.includes('not owner') || m.includes('no eres el propietario')) {
+    return 'No eres el propietario de este documento. Solo el OWNER puede realizar esta acción.';
+  }
+  if (m.includes('no read permission') || m.includes('not authorized')) {
+    return 'No tienes permiso para realizar esta acción sobre el documento.';
+  }
+  if (m.includes('document not found') || m.includes('does not exist')) {
+    return 'El documento no existe en el contrato inteligente. Puede que aún no esté sincronizado con blockchain.';
+  }
+  if (m.includes('insufficient funds')) {
+    return 'No tienes suficientes fondos en tu wallet para cubrir el gas de la transacción.';
+  }
+  if (m.includes('nonce') || m.includes('replacement fee too low')) {
+    return 'Error de sincronización con la blockchain. Intenta de nuevo en unos segundos.';
+  }
+  if (m.includes('network') || m.includes('disconnect') || m.includes('underlying network changed')) {
+    return 'Error de conexión con la red blockchain. Verifica que tu nodo Hardhat esté activo y que estés en la red correcta.';
+  }
+  if (m.includes('gas required exceeds allowance') || m.includes('out of gas')) {
+    return 'La transacción requiere más gas del disponible. Intenta con un límite de gas más alto.';
+  }
+  if (m.includes('execution reverted')) {
+    return 'La transacción fue revertida por el contrato inteligente. Verifica los permisos y el estado del documento.';
+  }
+  return null;
+}
+
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const apiError = error.response?.data as ApiError;
@@ -183,6 +221,8 @@ export function getErrorMessage(error: unknown): string {
     return 'Ha ocurrido un error inesperado. Inténtalo de nuevo.';
   }
   if (error instanceof Error) {
+    const blockchainMsg = mapBlockchainError(error.message);
+    if (blockchainMsg) return blockchainMsg;
     return error.message || 'Ha ocurrido un error inesperado.';
   }
   return 'Ha ocurrido un error inesperado.';
