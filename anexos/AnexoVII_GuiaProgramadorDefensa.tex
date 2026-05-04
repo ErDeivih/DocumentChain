@@ -252,6 +252,143 @@ Durante la fase final de desarrollo se han incorporado tres capacidades que comp
     \item \textbf{Mensajes legibles en firma blockchain y mapeo de errores}. El servicio \texttt{signatureService.ts} del backend genera un \texttt{messageToSign} en texto plano que incluye el título del documento, la versión y la dirección del contrato, de forma que la wallet muestre al usuario qué está firmando antes de confirmar. En el frontend, la función \texttt{getErrorMessage()} de \texttt{lib/api.ts} centraliza el mapeo de 11 patrones de error blockchain (revert, fondos insuficientes, nonce, red incorrecta, gas, firma duplicada, etc.) a mensajes comprensibles en español, evitando que el usuario reciba trazas técnicas crudas.
 \end{itemize}
 
+
+\section{Cifrado documental y protecci\'on de contenido}
+
+El sistema no almacena documentos en texto plano. Cuando un usuario sube un archivo, el frontend genera una clave sim\'etrica aleatoria de 256 bits y cifra el contenido con AES-256-GCM antes de enviarlo al backend. Esta clave nunca abandona el navegador del usuario que crea el documento.
+
+Para documentos privados, la clave sim\'etrica se protege mediante RSA-OAEP con la clave p\'ublica de cada usuario autorizado. Solo el destinatario con la clave privada correspondiente puede descifrar la clave sim\'etrica y, con ella, el documento. El backend solo ve bytes cifrados: ni el contenido ni la clave sim\'etrica transitan en texto plano por el servidor.
+
+Cuando un documento es p\'ublico, la clave sim\'etrica se incluye en la metadata accesible sin autenticaci\'on, de modo que cualquier visitante puede descargar y descifrar el contenido desde el nodo IPFS. Esta diferencia entre privado y p\'ublico se decide en el momento de la creaci\'on y afecta tanto al cifrado como a la visibilidad de la metadata.
+
+Si un usuario pierde su clave privada del navegador (almacenada en IndexedDB), no puede recuperar documentos privados de los que no sea propietario. El propietario original puede compartir de nuevo el documento, generando un nuevo envoltorio RSA-OAEP para el nuevo par de claves del usuario.
+
+\section{Flujo \textit{prepare/confirm} y reconciliaci\'on}
+
+La mayor\'ia de operaciones con trazabilidad blockchain siguen un patr\'on en dos fases para evitar estados inconsistentes entre PostgreSQL, IPFS y la cadena.
+
+\textbf{Fase de preparaci\'on.} El backend crea un registro en PostgreSQL con estado \texttt{PENDING}, almacena el contenido en IPFS si procede, genera el mensaje legible para la wallet y devuelve los datos necesarios al frontend. En este punto no hay modificaci\'on on-chain.
+
+\textbf{Fase de confirmaci\'on.} El usuario firma la transacci\'on con su wallet. El frontend env\'ia la firma al backend, que la valida y completa el registro on-chain. Si la transacci\'on es exitosa, el backend actualiza el estado a \texttt{SYNCED} y almacena el \texttt{txHash}. Si la transacci\'on revierte o el usuario rechaza la firma, el registro pasa a \texttt{FAILED} y se ofrece la opci\'on de reintentar.
+
+Este patr\'on se aplica a: creaci\'on de documento, nueva versi\'on, firma, compartici\'on, transferencia, restauraci\'on de versi\'on y reactivaci\'on de cuenta. La ventaja principal es que el sistema siempre puede reconstruir el estado a partir de PostgreSQL, aunque la transacci\'on blockchain falle o el usuario abandone el flujo.
+
+\section{Sincronizaci\'on de eventos blockchain}
+
+El contrato \texttt{DocumentRegistry} emite eventos cada vez que ocurre una operaci\'on relevante: \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{DocumentSigned}, \texttt{DocumentShared}, etc. El backend implementa un \textit{event listener} que consulta peri\'odicamente los bloques nuevos, filtra los logs por la direcci\'on del contrato y decodifica los argumentos usando el ABI.
+
+Cuando el listener detecta un evento, compara la informaci\'on on-chain con el estado operativo en PostgreSQL. Si encuentra discrepancias (por ejemplo, una firma que aparece en blockchain pero no en la base de datos), actualiza el registro correspondiente y marca el documento como reconciliado. Este mecanismo tambi\'en permite detectar operaciones realizadas directamente sobre el contrato sin pasar por la interfaz web.
+
+En caso de reorganizaci\'on de la cadena (\textit{reorg}), el sistema actualmente no revierte cambios autom\'aticamente, ya que el entorno de desarrollo usa una red local con finalidad inmediata. En un despliegue con redes p\'ublicas, se recomendar\'ia esperar un n\'umero de confirmaciones antes de considerar un evento como definitivo.
+
+\section{Modelo de permisos on-chain}
+
+El contrato define tres roles para cada documento:
+
+\begin{itemize}
+    \item \textbf{VIEWER (1):} puede descargar y verificar firmas.
+    \item \textbf{EDITOR (2):} puede ver, descargar, crear versiones y firmar.
+    \item \textbf{OWNER (3):} control total; puede compartir, firmar, transferir y eliminar.
+\end{itemize}
+
+Los permisos se almacenan en un mapping \texttt{\_permissions[documentId][address]} dentro del contrato. Cuando el backend necesita verificar si una operaci\'on est\'a permitida, consulta tanto la base de datos (para respuesta r\'apida) como el contrato (para verificaci\'on definitiva). Esta dualidad permite que la aplicaci\'on sea r\'apida y, al mismo tiempo, auditable sin confiar ciegamente en el servidor.
+
+La transferencia de propiedad es irreversible on-chain. Cuando el propietario transfiere un documento, el contrato reasigna OWNER al nuevo usuario y revoca autom\'aticamente el rol del anterior. El backend replica este cambio en PostgreSQL y notifica a ambas partes.
+
+\section{Estrategia de versionado}
+
+Cada vez que se crea una nueva versi\'on, el sistema genera un nuevo CID en IPFS y un nuevo registro en blockchain. Las versiones anteriores no se sobrescriben; permanecen accesibles en el historial. El contrato mantiene una referencia a la \textit{versi\'on operativa} actual, que es la que se usa por defecto para descargas, firmas y compartici\'on.
+
+La restauraci\'on de una versi\'on anterior no recupera el CID antiguo como operativo directamente, sino que crea una \textit{nueva versi\'on} que reutiliza el contenido y el hash de la anterior. Esto preserva el historial completo sin saltos: la l\'inea temporal siempre avanza, aunque el contenido operativo pueda ser id\'entico a uno anterior.
+
+Cada versi\'on conserva su propia metadata de cifrado. En documentos privados, esto significa que la clave sim\'etrica de cada versi\'on est\'a protegida independientemente, de modo que revocar el acceso a una versi\'on no afecta a las dem\'as.
+
+\section{Decisiones de seguridad arquitect\'onicas}
+
+\textbf{Sin proxy upgradeable.} Aunque los patrones ERC-1967 permiten actualizar la l\'ogica de un contrato sin cambiar su direcci\'on, a\~naden complejidad y superficie de ataque. En este proyecto se prioriz\'o la claridad del c\'odigo y la reproducibilidad del entorno de pruebas. Cualquier modificaci\'on en \texttt{DocumentRegistry} exige un redeploy completo, lo cual es aceptable en un entorno acad\'emico y de demostraci\'on.
+
+\textbf{Pausable.} El contrato hereda de \texttt{Pausable} de OpenZeppelin. Si se detecta un comportamiento an\'omalo, el propietario del contrato puede pausar las operaciones de escritura sin perder el estado acumulado. Esto act\'ua como un \textit{circuit breaker} de emergencia.
+
+\textbf{Cifrado en cliente.} El backend nunca manipula el contenido en texto plano. El cifrado y descifrado ocurren en el navegador mediante Web Crypto API. Esto reduce la superficie de ataque del servidor: incluso si el backend se viera comprometido, los documentos privados permanecer\'ian inaccesibles sin las claves privadas de los usuarios.
+
+\textbf{Notas de firma legibles.} En lugar de firmar hashes opacos, el backend genera un mensaje en texto plano que describe la operaci\'on. Esto protege al usuario de ataques de phishing donde un frontend malicioso podr\'ia solicitar la firma de una transacci\'on distinta a la esperada.
+
+\section{Criterios de pruebas}
+
+El proyecto mantiene dos suites de pruebas:
+
+\textbf{Backend (Jest):} 177 tests distribuidos en 21 suites. Cubren l\'ogica de negocio, validaci\'on de permisos, manejo de errores blockchain, cifrado y descifrado, sincronizaci\'on de eventos y operaciones CRUD. No se prueban las interacciones reales con MetaMask ni la red Ethereum local, ya que estas se validan mediante tests de integraci\'on y E2E.
+
+\textbf{E2E (Playwright):} 81 tests en Chromium que recorren los flujos completos de usuario: registro, login, subida de documento, firma, compartici\'on, verificaci\'on p\'ublica y administraci\'on. Los tests usan una wallet de pruebas inyectada y un entorno Docker Compose completo, garantizando que el sistema funciona de extremo a extremo.
+
+Lo que no se cubre: pruebas de carga, pruebas con m\'ultiples nodos IPFS, pruebas de seguridad ofensiva (penetration testing) y pruebas con wallets hardware f\'isicas. Estas quedan como l\'inea de trabajo futura.
+
+\section{Preguntas frecuentes del tribunal}
+
+A continuaci\'on se recogen respuestas preparadas para las preguntas m\'as probables durante la defensa:
+
+\textbf{-- \textquestiondown Por qu\'e blockchain y no una base de datos normal?}
+
+Blockchain no sustituye a la base de datos; la complementa. PostgreSQL gestiona el estado operativo, las consultas, las relaciones y la interfaz. Blockchain aporta evidencia inmutable, verificable por terceros y resistente a modificaciones posteriores. Sin blockchain, un administrador del sistema podr\'ia alterar registros de firmas o permisos sin dejar rastro. Con blockchain, cualquier cambio relevante queda registrado en un libro mayor distribuido.
+
+\textbf{-- \textquestiondown Qui\'en paga el gas en una red p\'ublica?}
+
+En el entorno actual, la red es local (Hardhat) y no hay coste real. En una red p\'ublica, cada usuario pagar\'ia el gas de sus propias transacciones con la wallet que firma la operaci\'on. El backend podr\'ia implementar un mecanismo de \textit{relayer} (meta-transacciones) para que usuarios sin saldo de ETH puedan operar, pero eso a\~nade complejidad y queda fuera del alcance acad\'emico.
+
+\textbf{-- \textquestiondown Qu\'e pasa si el usuario pierde su wallet?}
+
+La wallet es necesaria para firmar operaciones blockchain, pero no para iniciar sesi\'on en la aplicaci\'on. El usuario puede seguir accediendo a sus documentos con su contrase\~na y 2FA. Si pierde la wallet, puede a\~nadir una nueva direcci\'on desde la configuraci\'on de cuenta. Los documentos previamente creados siguen asociados a su cuenta. Sin embargo, si no tiene copia de seguridad de la clave privada del navegador (IndexedDB), no podr\'a descifrar documentos privados compartidos por terceros hasta que se le vuelva a compartir.
+
+\textbf{-- \textquestiondown C\'omo garantiz\'ais la privacidad si blockchain es p\'ublica?}
+
+La blockchain solo almacena identificadores num\'ericos, hashes de contenido (CID) y direcciones Ethereum. El contenido real del documento nunca se publica en la cadena; se almacena en IPFS de forma cifrada (documentos privados) o sin cifrar (documentos p\'ublicos). Por tanto, un observador de la blockchain puede ver que existe un documento N firmado por la direcci\'on X, pero no puede acceder al contenido sin la clave sim\'etrica correspondiente.
+
+\textbf{-- \textquestiondown Por qu\'e IPFS y no almacenamiento en nube tradicional?}
+
+IPFS aporta direccionamiento por contenido (el CID identifica el archivo, no su ubicaci\'on), resistencia a la censura (no depende de un servidor central) y verificaci\'on de integridad autom\'atica (si el hash no coincide, el contenido ha sido alterado). Para un sistema documental que busca trazabilidad y no repudio, estas propiedades son valiosas. El almacenamiento en nube tradicional (S3, etc.) sigue siendo v\'alido para backups o para contenido p\'ublico de alto tr\'afico, pero no ofrece las mismas garant\'ias de integridad descentralizada.
+
+\textbf{-- \textquestiondown Qu\'e ocurre si el nodo IPFS deja de funcionar?}
+
+El sistema usa un nodo IPFS autoalojado (Kubo) dentro de Docker Compose. Si ese nodo se apaga, los documentos ya subidos dejan de estar disponibles para descarga. Sin embargo, los CIDs permanecen v\'alidos; cualquier otro nodo IPFS que tenga el contenido \textit{pinneado} puede servirlo. En un escenario de producci\'on, se recomendar\'a usar un servicio de pinning comercial (Pinata, Infura) como redundancia, o mantener m\'ultiples nodos Kubo sincronizados.
+
+\textbf{-- \textquestiondown Por qu\'e no us\'ais una blockchain privada?}
+
+Una blockchain p\'ublica (o de test) ofrece mayor credibilidad para la verificaci\'on externa: cualquier tercero puede consultar el contrato sin permiso. Una blockchain privada requiere controlar los nodos validadores, lo cual centraliza la confianza y reduce la ventaja diferencial respecto a una base de datos replicada tradicional. El proyecto busca demostrar que la evidencia es verificable independientemente del operador del sistema.
+
+\textbf{-- \textquestiondown C\'omo escal\'ais con el coste del gas?}
+
+En el alcance actual, el sistema no est\'a dise\~nado para miles de transacciones por minuto. Cada operaci\'on documental (crear, firmar, compartir) es una transacci\'on on-chain con coste de gas. Para escalar, se podr\'ia migrar a una red L2 (Polygon, Arbitrum) que reduce el coste entre 10x y 100x, o implementar \textit{rollups} que agrupan m\'ultiples operaciones en una \'unica transacci\'on L1. Estas alternativas se mencionan como trabajo futuro.
+
+\section{Diferencial del proyecto}
+
+DocumentChain no es ``un Google Drive con blockchain''. La diferencia clave reside en la separaci\'on de responsabilidades entre tres capas de persistencia coordinadas:
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{3.5cm}|p{5cm}|p{5cm}|}
+    \hline
+    \textbf{Aspecto} & \textbf{Soluci\'on tradicional} & \textbf{DocumentChain} \\
+    \hline
+    Evidencia de firma & Base de datos interna, editable por admin & Smart contract inmutable, verificable por terceros \\
+    \hline
+    Almacenamiento & Servidor central con paths & IPFS con CID criptogr\'afico; contenido verificable \\
+    \hline
+    Cifrado & Servidor gestiona claves & Cliente genera y gestiona claves; servidor solo ve bytes cifrados \\
+    \hline
+    Permisos & Tablas de ACL en BD & Doble validaci\'on: BD para velocidad, contrato para verdad \\
+    \hline
+    Auditor\'ia & Logs internos, opacos & Blockchain p\'ublica + endpoint de auditor\'ia por txHash \\
+    \hline
+    Descentralizaci\'on & Ninguna & Tres capas independientes que no dependen de un \'unico operador \\
+    \hline
+    \end{tabular}
+    \caption{Comparativa entre soluci\'on documental tradicional y DocumentChain}
+    \label{tab:diferencial}
+\end{table}
+
+Esta arquitectura hace que el sistema sea m\'as complejo de construir y desplegar que una aplicaci\'on web est\'andar, pero a cambio ofrece garant\'ias que son imposibles de replicar con una base de datos relacional \'unica: no repudio criptogr\'afico, verificabilidad independiente y resistencia a la alteraci\'on hist\'orica.
+
 \section{Evolución prevista del anexo}
 
 Este anexo queda preparado para incorporar nuevas secciones de apoyo a medida que se identifiquen temas relevantes para la defensa. Se podrán añadir apartados sobre cifrado documental, flujo \textit{prepare/confirm}, sincronización de eventos blockchain, modelo de permisos, estrategia de versionado, decisiones de seguridad y criterios de pruebas.

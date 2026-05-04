@@ -294,6 +294,23 @@ La introducción de blockchain, Solidity e IPFS en el proyecto no responde a una
 
 También se observa que la solución elegida evita uno de los errores frecuentes en este tipo de sistemas: tratar la blockchain como una base de datos generalista. Aquí se reserva para lo que realmente justifica su coste, mientras que el resto de la aplicación continúa apoyándose en tecnologías más adecuadas para la interacción cotidiana. Esa combinación es la que hace viable un sistema documental verificable y utilizable al mismo tiempo.
 
+\section{Glosario}
+
+\begin{description}
+    \item[ABI] Application Binary Interface, interfaz que define c\'omo interactuar con un smart contract desde c\'odigo externo.
+    \item[CID] Content Identifier, identificador \'unico de contenido en IPFS basado en hash criptogr\'afico.
+    \item[EVM] Ethereum Virtual Machine, entorno de ejecuci\'on de smart contracts en redes compatibles con Ethereum.
+    \item[Event Listener] Servicio del backend que escucha eventos emitidos por el smart contract para sincronizar estados.
+    \item[Gas] Unidad de medida del coste computacional de operaciones en la EVM; se paga en la moneda nativa de la red.
+    \item[Kubo] Implementaci\'on oficial de nodo IPFS desarrollada en Go; se usa en el proyecto para almacenamiento autoalojado.
+    \item[Mapping] Estructura de datos tipo diccionario en Solidity que relaciona claves con valores.
+    \item[Pinning] Acci\'on de mantener contenido permanentemente disponible en un nodo IPFS, evitando que sea eliminado por el recolector de basura.
+    \item[Reentrancia] Vulnerabilidad por la que una funci\'on externa puede ser llamada repetidamente antes de que termine la ejecuci\'on original; mitigada con \texttt{ReentrancyGuard}.
+    \item[Smart Contract] Programa autoejecutable desplegado en blockchain que define reglas de negocio inmutables.
+    \item[Solidity] Lenguaje de programaci\'on de alto nivel para escribir smart contracts en la EVM.
+    \item[TxHash] Transaction Hash, identificador \'unico de una transacci\'on confirmada en blockchain.
+\end{description}
+
 \section*{Bibliografía}
 \addcontentsline{toc}{section}{Bibliografía}
 

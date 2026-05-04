@@ -233,6 +233,25 @@ El plan de seguridad de \textbf{DocumentChain} se ha planteado de forma coherent
 
 La solución resultante mantiene una separación clara entre acceso a la cuenta, acceso a los documentos y publicación pública de contenido. También reserva un espacio específico para la supervisión administrativa y para la revisión continua de incidencias, dependencias y estados operativos. Sobre esa base puede continuarse la evolución del proyecto sin perder de vista los requisitos de confidencialidad, integridad, disponibilidad y trazabilidad que motivan este anexo.
 
+\section{Glosario}
+
+\begin{description}
+    \item[Argon2id] Funci\'on de derivaci\'on de claves dise\~nada para resistir ataques de fuerza bruta y de canal lateral.
+    \item[Ataque de reentrada] Vulnerabilidad en smart contracts donde una funci\'on externa es llamada repetidamente antes de que termine la ejecuci\'on anterior.
+    \item[Cifrado sim\'etrico] M\'etodo que usa la misma clave para cifrar y descifrar; en el proyecto se aplica AES-256-GCM al contenido documental.
+    \item[Circuit Breaker] Patr\'on que detiene operaciones cuando se detecta un fallo cr\'itico; materializado en el contrato mediante \texttt{Pausable}.
+    \item[Confidencialidad] Propiedad de que la informaci\'on solo es accesible para quienes est\'an autorizados.
+    \item[Descifrado en cliente] Pr\'actica de que la clave de descifrado nunca transita por el servidor, reduciendo la superficie de ataque.
+    \item[Hash criptogr\'afico] Funci\'on unidireccional que produce un resumen de longitud fija; se usa para contrase\~nas (Argon2) y para integridad de archivos (SHA-256).
+    \item[Integridad] Garant\'ia de que los datos no han sido alterados sin autorizaci\'on.
+    \item[LOPDGDD] Ley Org\'anica de Protecci\'on de Datos y Garant\'ia de los Derechos Digitales.
+    \item[No repudio] Evidencia t\'ecnica que impide a un usuario negar haber realizado una acci\'on; proporcionado por la firma blockchain.
+    \item[RGPD] Reglamento General de Protecci\'on de Datos de la Uni\'on Europea.
+    \item[Seguridad en profundidad] Estrategia que aplica m\'ultiples capas de defensa en lugar de confiar en un \'unico mecanismo.
+    \item[TOTP] Time-based One-Time Password, c\'odigo de un solo uso basado en tiempo para autenticaci\'on de dos factores.
+    \item[Wallet] Par de claves criptogr\'aficas que permite firmar transacciones en blockchain.
+\end{description}
+
 \section*{Bibliografía}
 \addcontentsline{toc}{section}{Bibliografía}
 

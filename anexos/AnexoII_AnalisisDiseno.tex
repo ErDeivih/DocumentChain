@@ -1704,6 +1704,24 @@ El diagrama de despliegue muestra la distribución física de los componentes de
     \item Docker Compose para despliegues autoalojados
 \end{itemize}
 
+\subsection{Descripci\'on de nodos de despliegue}
+
+El diagrama de despliegue representa cinco nodos principales que interact\'uan dentro de una misma red Docker Compose:
+
+\textbf{Nodo Frontend / Nginx.} Sirve la aplicaci\'on React como SPA est\'atica y act\'ua como proxy inverso hacia la API. Expone el puerto 80 internamente y se mapea al anfitri\'on seg\'un la configuraci\'on del contenedor. Resuelve el enrutado de la SPA devolviendo \texttt{index.html} para rutas internas.
+
+\textbf{Nodo Backend Node.js.} Ejecuta la API REST construida con Express. Gestiona la l\'ogica de negocio, la autenticaci\'on JWT, la comunicaci\'on con PostgreSQL, IPFS y Ethereum, y los listeners de eventos blockchain. Se comunica con PostgreSQL por TCP/5432, con IPFS por la API HTTP interna y con la red Ethereum mediante JSON-RPC.
+
+\textbf{Nodo PostgreSQL.} Almacena el estado operativo del sistema: usuarios, documentos, versiones, firmas, permisos, sesiones, notificaciones y configuraci\'on. Utiliza vol\'umenes Docker para persistencia entre reinicios. Solo el backend tiene acceso directo; ni el frontend ni servicios externos pueden conectarse a la base de datos.
+
+\textbf{Nodo IPFS (Kubo).} Mantiene el contenido documental como objetos IPFS. Expone la API HTTP para \textit{pinning} y recuperaci\'on de CIDs. Los archivos cifrados se almacenan como bloques de datos sin estructura de directorio; la aplicaci\'on gestiona el mapeo entre documentId y CID. El nodo conserva los contenidos mientras est\'en \textit{pinneados}; al eliminar un documento, el backend desancla el CID.
+
+\textbf{Nodo Ethereum (Hardhat).} En el entorno de desarrollo, este nodo proporciona una red EVM local con bloques instant\'aneos y cuentas pre-fundadas. El contrato \texttt{DocumentRegistry} se despliega durante la inicializaci\'on del entorno. El backend se conecta a este nodo mediante WebSocket o HTTP para enviar transacciones y escuchar eventos.
+
+\textbf{Nodo Postfix.} Servidor SMTP de salida que recibe los mensajes generados por el backend y los encamina hacia el destinatario final, ya sea por entrega directa o mediante un relay autenticado configurado.
+
+Para el despliegue t\'ecnico completo con Docker Compose, configuraci\'on de redes, vol\'umenes y flujo de actualizaci\'on, v\'ease el Anexo~VI, Secci\'on~``Despliegue t\'ecnico con Docker''.
+
 \section{Glosario}
 
 \begin{description}
