@@ -60,6 +60,9 @@ export interface OwnershipProof {
 
 export interface PublicDocumentMetadata {
   blockchainId: string;
+  documentId?: string;
+  publicId?: string | null;
+  visibility?: string;
   fileHash: string;
   owner: string;
   uploadTimestamp: Date;
@@ -639,8 +642,14 @@ export class AuditService {
         const currentVersion = Number(doc.currentVersion);
         const version = await contracts.documentRegistry.getVersion(blockchainId, currentVersion);
 
+        // Buscar en BD para obtener IDs internos
+        const dbDoc = await this.getDocumentDatabaseContextByBlockchainId(blockchainId).catch(() => null);
+
         return {
           blockchainId,
+          documentId: dbDoc?.id,
+          publicId: dbDoc?.publicId,
+          visibility: dbDoc?.visibility,
           fileHash: doc.docId,
           owner: doc.owner,
           uploadTimestamp: new Date(Number(doc.createdAt) * 1000),
@@ -668,6 +677,9 @@ export class AuditService {
 
         return {
           blockchainId,
+          documentId: dbDoc.id,
+          publicId: dbDoc.publicId,
+          visibility: dbDoc.visibility,
           fileHash: dbDoc.contentHash,
           owner,
           uploadTimestamp: dbDoc.createdAt,

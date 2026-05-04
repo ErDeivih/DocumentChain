@@ -214,11 +214,19 @@ export class SignatureService {
       },
     });
 
+    // Generar mensaje legible para el usuario (se muestra en MetaMask)
+    const messageToSign = `DocumentChain - Firma Digital
+Documento: "${document.name}"
+Version: ${version.versionNumber}
+Fecha: ${new Date().toISOString()}
+Wallet: ${signerWallet.walletAddress}
+ContentHash: ${document.contentHash}`;
+
     return {
       blockchainId: document.blockchainId,
       versionId: version.versionNumber,
       contentHash: document.contentHash,
-      messageToSign: document.contentHash, // Alias used by frontend SigningService
+      messageToSign, // Mensaje legible que se muestra en MetaMask
       signatureId: signature.id,
     };
   }

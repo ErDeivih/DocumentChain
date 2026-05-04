@@ -65,6 +65,9 @@ export interface OwnershipProof {
 
 export interface PublicMetadata {
   blockchainId: string;
+  documentId?: string;
+  publicId?: string | null;
+  visibility?: string;
   owner: string;
   fileHash: string;
   contentCid: string;

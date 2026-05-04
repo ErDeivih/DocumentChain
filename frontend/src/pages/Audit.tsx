@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -470,6 +471,29 @@ export const Audit: React.FC = () => {
                 </Badge>
               </div>
             </div>
+            {(metadataResult.publicId || metadataResult.documentId) && (
+              <div className="mt-4 pt-4 border-t flex gap-3">
+                {metadataResult.publicId && (
+                  <Link 
+                    to={`/public/d/${metadataResult.publicId}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                    target="_blank"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Ver página pública del documento
+                  </Link>
+                )}
+                {metadataResult.documentId && (
+                  <Link 
+                    to={`/app/documents/${metadataResult.documentId}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Abrir en DocumentChain
+                  </Link>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -711,12 +735,14 @@ export const Audit: React.FC = () => {
                 <div key={idx} className="rounded-lg border p-4 space-y-2">
                   <Badge variant="default">{event.name}</Badge>
                   {event.document && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm flex-wrap">
                       <FileText className="w-4 h-4 text-muted-foreground" />
                       <span className="font-medium">{event.document.name}</span>
                       <span className="text-xs text-muted-foreground">por {event.document.ownerUsername}</span>
                       {event.document.visibility === 'PUBLIC' && event.document.publicId ? (
                         <a href={`/public/d/${event.document.publicId}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Ver público →</a>
+                      ) : event.document.id ? (
+                        <Link to={`/app/documents/${event.document.id}`} className="text-xs text-primary hover:underline">Ver en DocumentChain →</Link>
                       ) : (
                         <span className="text-xs text-muted-foreground">Privado</span>
                       )}

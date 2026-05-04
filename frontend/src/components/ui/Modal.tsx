@@ -57,7 +57,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
@@ -65,7 +65,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           className={cn(
-            'relative w-full rounded-2xl border border-white/10 bg-card/95 text-card-foreground shadow-[0_32px_80px_-30px_rgba(2,6,23,0.95)] backdrop-blur-xl',
+            'relative w-full rounded-2xl border border-white/10 bg-card/95 text-card-foreground shadow-[0_32px_80px_-30px_rgba(2,6,23,0.5)] backdrop-blur-xl',
             sizes[size]
           )}
           onClick={(e) => e.stopPropagation()}

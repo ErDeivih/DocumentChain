@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
 import AlertMessage from '../components/ui/AlertMessage';
+import { CopyableId } from '../components/ui/CopyableId';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 import { ShareModal } from '../components/sharing/ShareModal';
@@ -25,7 +26,7 @@ import { PublicLinkActions } from '../components/public/PublicLinkActions';
 import { DocumentTypeIcon, getDocumentTypeVisual } from '../components/documents/DocumentTypeIcon';
 import { FileCrypto } from '../lib/crypto/FileCrypto';
 import { KeyManager } from '../lib/crypto/KeyManager';
-import { downloadFile, formatBytes } from '../lib/utils';
+import { downloadFile, formatBytes, formatDate } from '../lib/utils';
 import { DocumentRole, type Version } from '../types';
 import {
   FileText,
@@ -276,10 +277,10 @@ export const DocumentDetails: React.FC = () => {
 
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Blockchain ID</p>
-              <p className="font-mono text-sm truncate">{document.blockchainId}</p>
-            </div>
+                <div>
+                  <p className="text-sm text-muted-foreground" title="Identificador del documento en el contrato inteligente de Ethereum">Blockchain ID</p>
+                  <CopyableId value={document.blockchainId || ''} truncateStart={8} truncateEnd={6} />
+                </div>
             <div>
               <p className="text-sm text-muted-foreground">Versiones</p>
               <p className="font-medium">{versions?.versions.length || 0}</p>
@@ -423,12 +424,12 @@ export const DocumentDetails: React.FC = () => {
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">ID</p>
-                  <p className="font-mono">{document.id}</p>
+                  <p className="text-muted-foreground" title="Identificador interno de la aplicacion">ID del documento</p>
+                  <CopyableId value={document.id} truncateStart={10} truncateEnd={6} />
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Blockchain ID</p>
-                  <p className="font-mono break-all">{document.blockchainId || 'Pendiente'}</p>
+                  <p className="text-muted-foreground" title="Identificador del documento en el contrato inteligente de Ethereum">Blockchain ID</p>
+                  <CopyableId value={document.blockchainId || ''} truncateStart={8} truncateEnd={6} />
                 </div>
                 <div>
                   <p className="text-muted-foreground">Estado</p>
@@ -448,11 +449,11 @@ export const DocumentDetails: React.FC = () => {
                 )}
                 <div>
                   <p className="text-muted-foreground">Creado</p>
-                  <p>{new Date(document.createdAt).toLocaleString()}</p>
+                  <p>{formatDate(document.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Actualizado</p>
-                  <p>{new Date(document.updatedAt).toLocaleString()}</p>
+                  <p>{formatDate(document.updatedAt)}</p>
                 </div>
               </div>
             </CardContent>

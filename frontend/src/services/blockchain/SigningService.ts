@@ -62,8 +62,39 @@ export class SigningService {
           console.error('[SigningService] Signature rollback failed:', rollbackError);
         }
       }
-      throw new Error(error.message || 'Failed to sign document');
+      const friendlyMessage = this.mapErrorToFriendlyMessage(error);
+      throw new Error(friendlyMessage);
     }
+  }
+
+  private mapErrorToFriendlyMessage(error: any): string {
+    const msg = (error?.message || error?.reason || '').toLowerCase();
+    
+    if (msg.includes('already signed') || msg.includes('ya has firmado')) {
+      return 'Ya has firmado esta versión del documento. No es necesario firmar de nuevo.';
+    }
+    if (msg.includes('user denied') || msg.includes('rejected') || msg.includes('cancelled') || msg.includes('user rejected')) {
+      return 'Firma cancelada. La transacción no se completó porque rechazaste la operación en tu wallet.';
+    }
+    if (msg.includes('insufficient funds')) {
+      return 'No tienes suficientes fondos en tu wallet para cubrir el gas de la transacción.';
+    }
+    if (msg.includes('nonce') || msg.includes('replacement fee too low')) {
+      return 'Error de sincronización con la blockchain. Intenta de nuevo en unos segundos.';
+    }
+    if (msg.includes('no read permission') || msg.includes('not authorized')) {
+      return 'No tienes permiso para firmar este documento. El propietario debe compartírtelo primero.';
+    }
+    if (msg.includes('network') || msg.includes('disconnect')) {
+      return 'Error de conexión con la red blockchain. Verifica que tu nodo Hardhat esté activo.';
+    }
+    if (msg.includes('document not found') || msg.includes('does not exist')) {
+      return 'El documento no existe en el contrato inteligente. Puede que aún no esté sincronizado con blockchain.';
+    }
+    
+    // Log técnico para debugging pero mensaje amigable para usuario
+    console.error('[SigningService] Error técnico:', error);
+    return 'No se pudo completar la firma. Verifica tu conexión y los permisos del documento, o inténtalo de nuevo.';
   }
 }
 

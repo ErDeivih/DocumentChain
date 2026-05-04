@@ -13,8 +13,11 @@ export function formatBytes(bytes: number): string {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
 
-export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString('es-ES', {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return 'No disponible';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return 'Fecha no registrada';
+  return d.toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

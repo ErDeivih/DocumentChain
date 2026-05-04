@@ -7,7 +7,8 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
-import { api, getErrorMessage } from '../../lib/api';
+import { usersApi } from '../../api/users';
+import { getErrorMessage } from '../../lib/api';
 import { Camera, Upload, Trash2, Loader2 } from 'lucide-react';
 
 interface AvatarUploadProps {
@@ -62,13 +63,9 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await api.put('/api/users/me/avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await usersApi.updateAvatar(file);
 
-      const newAvatarUrl = response.data.avatarUrl;
+      const newAvatarUrl = response.avatarUrl;
       setPreviewUrl(newAvatarUrl);
       onAvatarChange?.(newAvatarUrl);
     } catch (err: any) {
@@ -86,7 +83,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setRemoving(true);
       setError(null);
 
-      await api.delete('/api/users/me/avatar');
+      await usersApi.removeAvatar();
       setPreviewUrl(null);
       onAvatarChange?.(null);
     } catch (err: any) {

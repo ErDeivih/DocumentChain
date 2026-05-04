@@ -242,7 +242,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[640px]">
           <DialogHeader>
             <DialogTitle>Compartir Documento</DialogTitle>
             <DialogDescription>
