@@ -5,14 +5,15 @@
  */
 
 declare namespace Express {
-  /**
-   * Extensión de la interfaz `Request` de Express para tipar estrictamente los parámetros de ruta.
-   */
   export interface Request {
-    /**
-     * Parámetros de la URL tipados como cadenas de texto plano.
-     */
     params: Record<string, string>;
+    user?: {
+      userId: string;
+      username: string;
+      email: string;
+      role: string;
+      isAdmin?: boolean;
+    };
   }
 }
 

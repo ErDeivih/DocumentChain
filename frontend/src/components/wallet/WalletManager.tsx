@@ -8,7 +8,6 @@ import { useToast } from '../ui/Toast';
 import { truncateAddress } from '../../lib/utils';
 import { walletsApi } from '../../api/wallets';
 import { useWalletManager } from '../../contexts/WalletManagerContext';
-import { WalletType } from '../../lib/blockchain/provider';
 import {
   Wallet,
   Plus,
@@ -67,7 +66,7 @@ export const WalletManager: React.FC<WalletManagerProps> = ({
   const handleConnect = async (method: 'browser' | 'walletconnect') => {
     setShowConnectionMethod(false);
     try {
-      const type = method === 'walletconnect' ? WalletType.WALLETCONNECT : WalletType.METAMASK;
+      const type = method === 'walletconnect' ? 'walletconnect' as const : 'metamask' as const;
       await connectWallet(type);
       await addWallet();
       toast({ title: 'Éxito', description: 'Wallet conectada exitosamente', variant: 'success' });

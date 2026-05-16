@@ -118,7 +118,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
       setError(null);
       setStep('signing');
 
-      const signer = await getVerifiedSigner(connectedAddress);
+      await getVerifiedSigner(connectedAddress);
 
       await signingService.signDocument({
         documentId: document.id,

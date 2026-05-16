@@ -10,6 +10,7 @@ import {
 } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Label } from '../ui/Label';
 import { Alert, AlertDescription } from '../ui/Alert';
 import { FolderSelector } from '../folders/FolderSelector';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';

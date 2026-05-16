@@ -649,7 +649,7 @@ export class DocumentController {
 
       res.status(200).json({
         message: 'Documento desarchivado correctamente',
-        document: updated,
+        document,
       });
     } catch (error: any) {
       res.status(400).json({ error: error.message });

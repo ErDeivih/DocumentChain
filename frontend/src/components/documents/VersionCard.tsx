@@ -7,7 +7,7 @@ import { formatRelativeTime, truncateAddress } from '../../lib/utils';
 import type { Version } from '../../types';
 
 interface VersionCardProps {
-  version: Version;
+  version: Version & { restoredFrom?: number | null };
   isOwner: boolean;
   isArchived: boolean;
   isPublic: boolean;

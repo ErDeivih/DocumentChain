@@ -5,15 +5,15 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Label } from '../ui/Label';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { getErrorMessage } from '../../lib/api';
+import { documentsApi } from '../../api/documents';
+import { usersApi } from '../../api/users';
+import { KeyManager } from '../../lib/crypto/KeyManager';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
 import { useSigner } from '../../hooks/useSigner';
 import { useAuth } from '../../contexts/AuthContext';
-import { ArrowRightLeft, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRightLeft, Loader2, AlertCircle, Wallet, CheckCircle, Shield } from 'lucide-react';
 import { UserSearchSelector } from './UserSearchSelector';
 import type { UserSearchResult } from './UserSearchSelector';
 import { TransferConfirmationPanel } from './TransferConfirmationPanel';
@@ -189,7 +189,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
       
       // Paso 3: Esperar la confirmación de la transacción.
       setStep('confirming');
-      const receipt = await tx.wait();
+      await tx.wait();
 
       // Paso 4: Confirmar la transferencia en el backend.
       await documentsApi.confirmTransfer({

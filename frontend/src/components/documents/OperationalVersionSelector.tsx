@@ -6,8 +6,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
 import { VersionCard } from './VersionCard';
 import { SignaturesViewer } from './SignaturesViewer';
@@ -21,11 +19,7 @@ import { useSigner } from '../../hooks/useSigner';
 import {
   GitBranch,
   CheckCircle,
-  Loader2,
   AlertCircle,
-  ArrowRight,
-  FileSignature,
-  Download
 } from 'lucide-react';
 
 /**
