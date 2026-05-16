@@ -9,13 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog';
 import { VersionCard } from './VersionCard';
+import { SignaturesViewer } from './SignaturesViewer';
 import { getErrorMessage } from '../../lib/api';
-import { formatRelativeTime, truncateAddress } from '../../lib/utils';
 import { signaturesApi } from '../../api/signatures';
 import { versionsApi } from '../../api/versions';
-import { PublicLinkActions } from '../public/PublicLinkActions';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import type { Signature, Version } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
@@ -27,11 +25,8 @@ import {
   AlertCircle,
   ArrowRight,
   FileSignature,
-  ShieldCheck,
-  Wallet,
   Download
 } from 'lucide-react';
-import { UserAvatar } from '../ui/UserAvatar';
 
 /**
  * Versión extendida con información de restauración.
@@ -86,7 +81,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   const [success, setSuccess] = useState<string | null>(null);
   const [signaturesByVersion, setSignaturesByVersion] = useState<Record<number, Signature[]>>({});
   const [selectedVersionNumber, setSelectedVersionNumber] = useState<number | null>(null);
-  const [selectedSignatureId, setSelectedSignatureId] = useState<string | null>(null);
   const [loadingSignaturesForVersion, setLoadingSignaturesForVersion] = useState<number | null>(null);
   const [signaturesError, setSignaturesError] = useState<string | null>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
@@ -146,21 +140,8 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
     return `${window.location.origin}/public/d/${publicId}/v/${versionNumber}`;
   };
 
-  const getSignerDisplayName = (signature: Signature) => {
-    return signature.signer?.fullName || signature.signer?.username || signature.user?.fullName || signature.user?.username || 'Firmante registrado';
-  };
-
-  const getSignerUsername = (signature: Signature) => {
-    return signature.signer?.username || signature.user?.username || null;
-  };
-
-  const getSignerWalletAddress = (signature: Signature) => {
-    return signature.signer?.walletAddress || signature.walletAddress || 'Wallet no disponible';
-  };
-
   const closeSignaturesModal = () => {
     setSelectedVersionNumber(null);
-    setSelectedSignatureId(null);
     setSignaturesError(null);
     setLoadingSignaturesForVersion(null);
   };
@@ -168,7 +149,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   const openSignaturesModal = async (versionNumber: number) => {
     try {
       setSelectedVersionNumber(versionNumber);
-      setSelectedSignatureId(null);
       setSignaturesError(null);
       setLoadingSignaturesForVersion(versionNumber);
 
@@ -178,7 +158,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
         ...prev,
         [versionNumber]: signatures,
       }));
-      setSelectedSignatureId(signatures[0]?.id ?? null);
     } catch (err: any) {
       console.error('Error al cargar firmantes de la versión:', err);
       setSignaturesError(getErrorMessage(err));
@@ -186,9 +165,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
       setLoadingSignaturesForVersion(null);
     }
   };
-
-  const selectedVersionSignatures = selectedVersionNumber ? signaturesByVersion[selectedVersionNumber] || [] : [];
-  const selectedSignature = selectedVersionSignatures.find((signature) => signature.id === selectedSignatureId) || selectedVersionSignatures[0] || null;
 
   if (isLoading) {
     return (
@@ -291,122 +267,14 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
         )}
       </CardContent>
 
-      <Dialog open={selectedVersionNumber !== null} onOpenChange={(open) => { if (!open) closeSignaturesModal(); }}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{selectedVersionNumber !== null ? `Firmantes de la versión ${selectedVersionNumber}` : 'Firmantes'}</DialogTitle>
-          </DialogHeader>
-        {loadingSignaturesForVersion !== null ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Cargando firmantes...
-          </div>
-        ) : signaturesError ? (
-          <div className="rounded-lg border border-error-700/35 bg-error-900/20 p-4 text-sm text-error-100">
-            {signaturesError}
-          </div>
-        ) : selectedVersionSignatures.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-white/10 bg-secondary/35 p-6 text-center text-sm text-muted-foreground">
-            Esta versión todavía no tiene firmas registradas.
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-[minmax(0,280px)_1fr]">
-            <div className="space-y-3">
-              {selectedVersionSignatures.map((signature) => {
-                const walletAddress = getSignerWalletAddress(signature);
-                const signerName = getSignerDisplayName(signature);
-                const signerUsername = getSignerUsername(signature);
-
-                return (
-                  <button
-                    key={signature.id}
-                    type="button"
-                    onClick={() => setSelectedSignatureId(signature.id)}
-                    className={`w-full rounded-lg border p-3 text-left transition-colors ${
-                      selectedSignature?.id === signature.id
-                        ? 'border-primary/40 bg-primary/10'
-                        : 'border-white/10 bg-card/90 hover:border-primary/25'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <UserAvatar size="sm" name={signerName} avatarUrl={signature.signer?.avatarUrl} />
-                        <div>
-                          <p className="font-medium text-foreground">{signerName}</p>
-                          {signerUsername ? (
-                            <p className="mt-0.5 text-xs text-muted-foreground">@{signerUsername}</p>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="mt-3 font-mono text-xs text-muted-foreground">{truncateAddress(walletAddress, 10, 6)}</p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {signature.signedAt ? formatRelativeTime(signature.signedAt) : 'Fecha pendiente'}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {selectedSignature ? (
-              <div className="rounded-xl border border-white/10 bg-secondary/35 p-5" data-testid="signer-profile-panel">
-                <div className="flex flex-wrap items-center gap-3">
-                    <UserAvatar name={getSignerDisplayName(selectedSignature)} avatarUrl={selectedSignature.signer?.avatarUrl} />
-                  <h3 className="text-lg font-semibold text-foreground">Perfil del firmante</h3>
-                </div>
-
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <ShieldCheck className="h-4 w-4" />
-                      Identidad mostrada
-                    </div>
-                    <p className="mt-3 text-base font-semibold text-foreground">{getSignerDisplayName(selectedSignature)}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {getSignerUsername(selectedSignature) ? `@${getSignerUsername(selectedSignature)}` : 'Sin alias disponible'}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <Wallet className="h-4 w-4" />
-                      Wallet empleada en la firma
-                    </div>
-                    <p className="mt-3 break-all font-mono text-sm text-foreground">{getSignerWalletAddress(selectedSignature)}</p>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
-                    <p className="text-sm font-medium text-foreground">Fecha de registro</p>
-                    <p className="mt-3 text-sm text-foreground">
-                      {selectedSignature.signedAt
-                        ? new Date(selectedSignature.signedAt).toLocaleString('es-ES', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : 'Pendiente de confirmación'}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-card/90 p-4">
-                    <p className="text-sm font-medium text-foreground">Versión firmada</p>
-                    <p className="mt-3 text-sm text-foreground">Versión {selectedSignature.versionNumber ?? selectedVersionNumber}</p>
-                    {selectedSignature.blockchainTxHash ? (
-                      <p className="mt-2 break-all font-mono text-xs text-muted-foreground">TX: {selectedSignature.blockchainTxHash}</p>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-          <DialogFooter>
-            <Button variant="outline" onClick={closeSignaturesModal}>Cerrar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SignaturesViewer
+        isOpen={selectedVersionNumber !== null}
+        onClose={closeSignaturesModal}
+        versionNumber={selectedVersionNumber}
+        signatures={selectedVersionNumber ? signaturesByVersion[selectedVersionNumber] || [] : []}
+        isLoading={loadingSignaturesForVersion !== null}
+        error={signaturesError}
+      />
 
       <WalletSelectorModal
         isOpen={showWalletModal}
