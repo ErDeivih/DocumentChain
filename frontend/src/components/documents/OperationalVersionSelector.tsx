@@ -10,6 +10,7 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog';
+import { VersionCard } from './VersionCard';
 import { getErrorMessage } from '../../lib/api';
 import { formatRelativeTime, truncateAddress } from '../../lib/utils';
 import { signaturesApi } from '../../api/signatures';
@@ -261,115 +262,19 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
         {/* Lista de versiones */}
         <div className="space-y-3">
           {versions.map((version) => (
-            <div
+            <VersionCard
               key={version.versionNumber}
-              className={`p-4 rounded-lg border transition-colors ${
-                version.isOperational
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-card/90 border-white/10 hover:border-primary/30'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {/* Indicador de versión activa */}
-                  {version.isOperational ? (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-green-100">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-secondary/70">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        v{version.versionNumber}
-                      </span>
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        Versión {version.versionNumber}
-                      </span>
-                      {version.isOperational && (
-                        <Badge variant="success" className="text-xs">
-                          Activa
-                        </Badge>
-                      )}
-                      {version.restoredFrom ? (
-                        <Badge variant="outline" className="text-xs">
-                          Restaurada de v{version.restoredFrom}
-                        </Badge>
-                      ) : null}
-                    </div>
-                    
-                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{formatRelativeTime(version.createdAt)}</span>
-                      <span>·</span>
-                      <span className="font-mono">{truncateAddress(version.ipfsCid || 'CID pendiente', 8, 8)}</span>
-                    </div>
-                    
-                    {version.comment && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        <span className="font-medium">Descripción:</span> {version.comment}
-                      </p>
-                    )}
-
-                    {isPublic && publicId ? (
-                      <div className="mt-3">
-                        <PublicLinkActions
-                          url={buildVersionUrl(version.versionNumber)}
-                          title={`versión-${version.versionNumber}`}
-                          size="sm"
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* Botón para cambiar versión */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openSignaturesModal(version.versionNumber)}
-                    data-testid={`view-signers-v${version.versionNumber}`}
-                  >
-                    <FileSignature className="h-4 w-4 mr-1" />
-                    Ver firmantes
-                  </Button>
-
-                  {onDownloadVersion && version.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onDownloadVersion(version.id)}
-                      data-testid={`download-v${version.versionNumber}`}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Descargar
-                    </Button>
-                  )}
-
-                  {isOwner && !version.isOperational && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStartSetOperational(version.versionNumber)}
-                      disabled={changing !== null || isArchived}
-                      title={isArchived ? 'No se puede cambiar la versión operacional de un documento archivado' : undefined}
-                    >
-                      {changing === version.versionNumber ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <ArrowRight className="h-4 w-4 mr-1" />
-                          Activar
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+              version={version}
+              isOwner={isOwner}
+              isArchived={isArchived}
+              isPublic={isPublic}
+              publicId={publicId || null}
+              changing={changing}
+              buildVersionUrl={buildVersionUrl}
+              onViewSignatures={openSignaturesModal}
+              onActivate={handleStartSetOperational}
+              onDownloadVersion={onDownloadVersion}
+            />
           ))}
         </div>
 
