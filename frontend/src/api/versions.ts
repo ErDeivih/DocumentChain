@@ -1,5 +1,6 @@
 import { api, type RetryableRequestConfig } from '../lib/api';
 import type { Version } from '../types';
+import { parseFilename } from './documents';
 
 const retryOn429Config: RetryableRequestConfig = {
   retryOn429: true,
@@ -24,30 +25,6 @@ export interface VersionDownloadResponse {
   encryptionIV?: string;
   /** Etiqueta de autenticación (si aplica). */
   encryptionAuthTag?: string;
-}
-
-/**
- * Extrae el nombre de archivo del header Content-Disposition.
- * @param contentDisposition - Valor del header.
- * @param fallbackName - Nombre por defecto si no se encuentra.
- * @returns Nombre de archivo extraído.
- */
-function parseFilename(contentDisposition: string | undefined, fallbackName: string): string {
-  if (!contentDisposition) {
-    return fallbackName;
-  }
-
-  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
-  if (utf8Match?.[1]) {
-    return decodeURIComponent(utf8Match[1]);
-  }
-
-  const quotedMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
-  if (quotedMatch?.[1]) {
-    return quotedMatch[1];
-  }
-
-  return fallbackName;
 }
 
 // Tipos para el patrón prepare/confirm (Arquitectura de Cifrado Backend)

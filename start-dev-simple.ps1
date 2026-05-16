@@ -94,13 +94,13 @@ Write-Host "Sistema listo!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "ACCESO:" -ForegroundColor White
-Write-Host "  Frontend:  https://localhost:5173" -ForegroundColor Cyan
-Write-Host "  Backend:   https://localhost:3000" -ForegroundColor Cyan
+Write-Host "  Frontend:  http://localhost:5173" -ForegroundColor Cyan
+Write-Host "  Backend:   http://localhost:3000" -ForegroundColor Cyan
 Write-Host "  Hardhat:   http://localhost:8545" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "SERVICIOS:" -ForegroundColor White
-Write-Host "  PostgreSQL: localhost:5432" -ForegroundColor Cyan
-Write-Host "  Postfix:    localhost:587" -ForegroundColor Cyan
+Write-Host "  PostgreSQL: localhost:5433" -ForegroundColor Cyan
+Write-Host "  Postfix:    localhost:1587" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "IPFS Provider: " -NoNewline
 $ipfsProvider = "self-hosted"

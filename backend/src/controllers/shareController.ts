@@ -1,38 +1,8 @@
-/**
- * Controlador de compartidos refactorizado para firmas de wallet en el frontend.
- *
- * Implementa el patrón preparar/confirmar:
- * - prepareShare: Crea el registro en base de datos con estado PREPARING.
- * - confirmShare: Actualiza el registro tras la transacción en blockchain.
- *
- * El backend ya NO maneja contraseñas ni firma transacciones blockchain;
- * estas operaciones las realiza la wallet del usuario.
- */
-import { Request, Response } from 'express';
-import { ShareService } from '../services/shareService';
+import { normalizeFileExtensionFilter } from '../utils/fileValidation';
 import { DocumentRole, DocumentPermissionService } from '../services/documentPermissionService';
 import logger from '../utils/logger';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
-
-/**
- * Normaliza un filtro de extensión de archivo asegurando el punto inicial.
- *
- * @param fileType - Extensión de archivo opcional.
- * @returns Extensión normalizada o undefined.
- */
-function normalizeFileExtensionFilter(fileType?: string): string | undefined {
-  if (!fileType) {
-    return undefined;
-  }
-
-  const trimmed = fileType.trim().toLowerCase();
-  if (!trimmed) {
-    return undefined;
-  }
-
-  return trimmed.startsWith('.') ? trimmed : `.${trimmed}`;
-}
 
 const VALID_SHARE_ROLES = ['SHARED_READ', 'SHARED_WRITE'] as const;
 

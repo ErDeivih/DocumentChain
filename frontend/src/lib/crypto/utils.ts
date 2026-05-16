@@ -271,8 +271,9 @@ export function generateUUID(): string {
  * @returns Hash en formato hexadecimal.
  */
 export async function hashSHA3_256(data: string | ArrayBuffer): Promise<string> {
-  const buffer = typeof data === 'string' ? stringToArrayBuffer(data) : data;
-  return hashSHA256(buffer);
+  const buffer = typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+  const { keccak256 } = await import('ethers');
+  return keccak256(buffer);
 }
 
 /**

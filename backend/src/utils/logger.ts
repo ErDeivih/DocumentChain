@@ -147,7 +147,7 @@ export class FlowLogger {
    * @param userId - Identificador opcional del usuario asociado al flujo.
    */
   constructor(context: FlowContext, userId?: string) {
-    this.flowId = `${context}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    this.flowId = `${context}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
     this.context = context;
     this.userId = userId;
     this.startTime = Date.now();

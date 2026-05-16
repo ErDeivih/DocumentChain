@@ -8,7 +8,7 @@ echo "=== Crear Primer Usuario Administrador ==="
 echo ""
 
 # Verificar que el backend esté corriendo
-BACKEND_URL="https://localhost:3001"
+BACKEND_URL="http://localhost:3000"
 if ! curl -k -s "$BACKEND_URL/api/health" > /dev/null 2>&1; then
     echo "❌ Error: El backend no está corriendo en $BACKEND_URL"
     echo "Inicia el servidor primero: npm run dev"

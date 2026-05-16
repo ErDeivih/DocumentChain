@@ -34,7 +34,7 @@ export interface DocumentDownloadResponse {
  * @param fallbackName - Nombre por defecto si no se encuentra.
  * @returns Nombre de archivo extraído.
  */
-function parseFilename(contentDisposition: string | undefined, fallbackName: string): string {
+export function parseFilename(contentDisposition: string | undefined, fallbackName: string): string {
   if (!contentDisposition) {
     return fallbackName;
   }

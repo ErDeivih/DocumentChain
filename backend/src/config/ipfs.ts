@@ -23,6 +23,33 @@ export interface IPFSAdapter {
   listPins(): Promise<any[]>;
 }
 
+/**
+ * Resultado de una operación de pin en IPFS.
+ */
+export interface PinResult {
+  cid: string;
+  status: string;
+  size?: number;
+}
+
+/**
+ * Estado de un pin en IPFS.
+ */
+export interface PinStatus {
+  cid: string;
+  pinned: boolean;
+  size?: number;
+  timestamp?: string;
+}
+
+const IPFS_PROVIDER = process.env.IPFS_PROVIDER?.trim() || 'self-hosted';
+const IPFS_API_URL: string = env.IPFS_API_URL;
+const IPFS_GATEWAY_URL: string = env.IPFS_GATEWAY_URL;
+const PINATA_JWT = process.env.PINATA_JWT?.trim() || '';
+const PINATA_API_KEY = process.env.PINATA_API_KEY?.trim() || '';
+const PINATA_API_SECRET = process.env.PINATA_API_SECRET?.trim() || '';
+const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL?.trim() || '';
+
 type SupportedProvider = 'self-hosted' | 'pinata';
 
 /**

@@ -14,7 +14,7 @@ import { Label } from '../ui/Label';
 import { Alert, AlertDescription } from '../ui/Alert';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { Upload, File, X, AlertCircle, Loader2, CheckCircle2, Wallet } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn, MAX_FILE_SIZE } from '../../lib/utils';
 import type { Document, Version } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
 import { blockchainProvider } from '../../lib/blockchain/provider';
@@ -77,9 +77,7 @@ export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
   };
 
   const handleFileSelect = (selectedFile: File) => {
-    // Validate file size
-    const maxSize = 100 * 1024 * 1024; // 100MB
-    if (selectedFile.size > maxSize) {
+    if (selectedFile.size > MAX_FILE_SIZE) {
       setError('El tamaño del archivo debe ser menor a 100MB');
       return;
     }

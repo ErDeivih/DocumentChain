@@ -24,10 +24,7 @@ export function getParam(value: string | string[] | undefined): string {
  * @returns Primera cadena del arreglo, la cadena misma, o una cadena vacía.
  */
 export function getQuery(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-  return value || '';
+  return getParam(value);
 }
 
 /**

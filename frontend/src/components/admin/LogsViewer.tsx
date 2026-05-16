@@ -18,14 +18,7 @@ import {
 } from 'lucide-react';
 import { logsApi, LogEntry, LogStats } from '../../api/logs';
 import { useToast } from '../ui/Toast';
-
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-};
+import { formatBytes } from '../../lib/utils';
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);

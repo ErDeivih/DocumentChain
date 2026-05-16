@@ -1,10 +1,10 @@
 $enc = New-Object System.Text.UTF8Encoding($false)
 $files = @(
-    "e:\Universidad\tfg\anexos\AnexoI_Especificaciones.tex",
-    "e:\Universidad\tfg\anexos\AnexoII_AnalisisDiseno.tex",
-    "e:\Universidad\tfg\anexos\AnexoIII_EstimacionPlanificacion.tex",
-    "e:\Universidad\tfg\anexos\AnexoIV_PlanSeguridad.tex",
-    "e:\Universidad\tfg\anexos\AnexoV_ManualesUsuario.tex"
+    Join-Path $PSScriptRoot "anexos\AnexoI_Especificaciones.tex",
+    Join-Path $PSScriptRoot "anexos\AnexoII_AnalisisDiseno.tex",
+    Join-Path $PSScriptRoot "anexos\AnexoIII_EstimacionPlanificacion.tex",
+    Join-Path $PSScriptRoot "anexos\AnexoIV_PlanSeguridad.tex",
+    Join-Path $PSScriptRoot "anexos\AnexoV_ManualesUsuario.tex"
 )
 
 # Each entry: [garbled_bytes_as_chars, correct_char]

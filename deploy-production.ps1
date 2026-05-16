@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-    Script para desplegar DocumentChain en producción (Polygon Mumbai o Mainnet)
+    Script para desplegar DocumentChain en producción (Polygon Amoy o Mainnet)
 
 .DESCRIPTION
     Este script automatiza el despliegue de los contratos en Polygon y la configuración
     del backend para apuntar a ellos. Incluye validaciones de seguridad y balance.
 
 .PARAMETER Network
-    Red donde desplegar: "mumbai" (testnet) o "polygon" (mainnet)
+    Red donde desplegar: "amoy" (testnet) o "polygon" (mainnet)
 
 .EXAMPLE
-    .\deploy-production.ps1 -Network mumbai
+    .\deploy-production.ps1 -Network amoy
     .\deploy-production.ps1 -Network polygon
 
 .NOTES
@@ -22,7 +22,7 @@
 
 param (
     [Parameter(Mandatory = $true)]
-    [ValidateSet("mumbai", "polygon")]
+    [ValidateSet("amoy", "polygon")]
     [string]$Network
 )
 
@@ -52,7 +52,7 @@ Write-Host "║                                                            ║" 
 Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
 Write-Host ""
 
-$networkName = if ($Network -eq "mumbai") { "Polygon Mumbai (Testnet)" } else { "Polygon Mainnet (PRODUCCIÓN)" }
+$networkName = if ($Network -eq "amoy") { "Polygon Amoy (Testnet)" } else { "Polygon Mainnet (PRODUCCIÓN)" }
 Write-Info "🌐 Red seleccionada: $networkName"
 Write-Host ""
 
@@ -157,14 +157,10 @@ try {
     Write-Success "  ✓ Balance: $balance MATIC"
     
     # Validar balance mínimo
-    $minBalance = if ($Network -eq "mumbai") { 0.5 } else { 2.0 }
+    $minBalance = if ($Network -eq "amoy") { 0.5 } else { 2.0 }
     if ($balance -lt $minBalance) {
         Write-Error "  ✗ Balance insuficiente (mínimo: $minBalance MATIC)"
-        if ($Network -eq "mumbai") {
-            Write-Warning "    Obtén MATIC de prueba: https://faucet.polygon.technology/"
-        } else {
-            Write-Warning "    Compra MATIC y transfiérelo a: $address"
-        }
+        if ($Network -eq "amoy") {
         cd ..
         exit 1
     }
@@ -258,7 +254,7 @@ Write-Info "⚙️  PASO 6/6: Actualizando configuración del backend..."
 cd ..
 cd backend
 
-$rpcUrl = if ($Network -eq "mumbai") { "https://rpc-mumbai.maticvigil.com" } else { "https://polygon-rpc.com" }
+$rpcUrl = if ($Network -eq "amoy") { "https://rpc-amoy.polygon.technology" } else { "https://polygon-rpc.com" }
 
 # Crear/actualizar .env.production
 $envProductionContent = @"
@@ -332,7 +328,7 @@ Write-Host "   DocumentVersioning:      $documentVersioning" -ForegroundColor Gr
 Write-Host "   DocumentSigning:         $documentSigning" -ForegroundColor Green
 Write-Host ""
 
-$explorerUrl = if ($Network -eq "mumbai") { "https://mumbai.polygonscan.com" } else { "https://polygonscan.com" }
+$explorerUrl = if ($Network -eq "amoy") { "https://amoy.polygonscan.com" } else { "https://polygonscan.com" }
 Write-Info "🔍 VERIFICAR CONTRATOS EN:"
 Write-Host "   $explorerUrl/address/$documentRegistry"
 Write-Host ""
@@ -348,7 +344,7 @@ Write-Host "   3. Verifica los contratos en PolygonScan (opcional pero recomenda
 Write-Host "   4. Prueba el backend: cd backend && npm run start"
 Write-Host ""
 
-if ($Network -eq "mumbai") {
+if ($Network -eq "amoy") {
     Write-Info "💡 TESTNET - Puedes hacer cambios y redesplegar sin costo"
 } else {
     Write-Warning "🔒 MAINNET - Guarda las direcciones de los contratos de forma segura"

@@ -313,3 +313,15 @@ export const PREDEFINED_CATEGORIES = [
   { id: 'cat_technical', name: 'Técnico', description: 'Documentación técnica', color: '#EA580C', icon: 'code' },
   { id: 'cat_other', name: 'Otros', description: 'Documentos varios', color: '#6B7280', icon: 'file' },
 ];
+
+/**
+ * Normaliza un filtro de extensión de archivo añadiendo el punto si no lo tiene.
+ * @param fileType - Extensión de archivo opcional.
+ * @returns Extensión normalizada o undefined.
+ */
+export function normalizeFileExtensionFilter(fileType?: string): string | undefined {
+  if (!fileType) return undefined;
+  const trimmed = fileType.trim().toLowerCase();
+  if (!trimmed) return undefined;
+  return trimmed.startsWith('.') ? trimmed : `.${trimmed}`;
+}

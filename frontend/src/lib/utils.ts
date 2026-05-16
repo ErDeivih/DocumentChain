@@ -155,3 +155,6 @@ export async function copyToClipboard(text: string): Promise<void> {
     throw new Error('No se pudo copiar al portapapeles');
   }
 }
+
+/** Tamaño máximo de archivo permitido para subida (100 MB). */
+export const MAX_FILE_SIZE = 100 * 1024 * 1024;

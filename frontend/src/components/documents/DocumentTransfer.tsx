@@ -191,12 +191,6 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
       }
 
       // Paso 1: Preparar la transferencia en el backend.
-      console.log('Preparing transfer...', {
-        documentId,
-        newOwnerId: selectedUser.id,
-        currentOwnerWalletId: wallet.id,
-        newOwnerWalletAddress: newOwner.walletAddress,
-      });
 
       const prepareResponse = await documentsApi.prepareTransfer({
         documentId,
@@ -213,8 +207,6 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
         message,
       } = prepareResponse;
 
-      console.log('Transfer prepared:', { transferId, docId, newOwnerAddress });
-
       // Paso 2: Firmar la transacción en la blockchain.
       setStep('signing');
 
@@ -222,19 +214,12 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
       const { DocumentRegistryContract } = await import('../../lib/blockchain');
       const contract = new DocumentRegistryContract(signer);
 
-      console.log('Calling blockchain transferOwnership...', { docId, newOwnerAddress });
-      
       const tx = await contract.transferOwnership(docId, newOwnerAddress);
       const txHash = tx.hash;
-      
-      console.log('Transaction sent:', txHash);
-      setTxHash(txHash);
       
       // Paso 3: Esperar la confirmación de la transacción.
       setStep('confirming');
       const receipt = await tx.wait();
-      
-      console.log('Transaction confirmed:', receipt);
 
       // Paso 4: Confirmar la transferencia en el backend.
       await documentsApi.confirmTransfer({
@@ -244,8 +229,6 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
         signature: message, // For audit trail
       });
 
-      console.log('Transfer confirmed in backend');
-      
       setStep('success');
       setSuccess(`Documento transferido exitosamente a ${selectedUser.username}`);
       onTransferComplete?.(selectedUser.id);

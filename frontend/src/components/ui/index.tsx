@@ -40,7 +40,7 @@ export { Avatar, AvatarImage, AvatarFallback } from './Avatar';
 export { Toast, ToastProvider, useToast, toastVariants } from './Toast';
 
 // Componentes legacy (mantener compatibilidad)
-export { Modal, ModalFooter } from './Modal';
+export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 
 export { Loading, LoadingOverlay } from './Loading';

@@ -115,11 +115,3 @@ export const Modal: React.FC<ModalProps> = ({
     </div>
   );
 };
-
-/**
- * Contenedor auxiliar para el pie del modal.
- * @param props - Props del componente ModalFooter.
- */
-export const ModalFooter: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <>{children}</>
-);

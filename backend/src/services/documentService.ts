@@ -24,19 +24,7 @@ import { BlockchainStatus, Document, DocumentVisibility } from '@prisma/client';
 import * as Encryption from '../lib/encryption';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 import { DocumentPermissionService, DocumentRole as PermissionRole } from './documentPermissionService';
-
-function normalizeFileExtensionFilter(fileType?: string): string | undefined {
-  if (!fileType) {
-    return undefined;
-  }
-
-  const trimmed = fileType.trim().toLowerCase();
-  if (!trimmed) {
-    return undefined;
-  }
-
-  return trimmed.startsWith('.') ? trimmed : `.${trimmed}`;
-}
+import { normalizeFileExtensionFilter } from '../utils/fileValidation';
 
 function deriveFileExtension(fileName: string, explicitExtension?: string): string | null {
   const normalizedExplicit = normalizeFileExtensionFilter(explicitExtension);

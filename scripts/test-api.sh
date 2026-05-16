@@ -227,22 +227,9 @@ else
 fi
 
 echo ""
-echo "📊 5. Testing Statistics"
+echo "📊 5. Testing Statistics (skipped - endpoint removed)"
 echo "-----------------------"
-
-# Get user stats
-echo -n "Get user stats... "
-STATS_RESPONSE=$(curl -s -X GET "$API_URL/stats/me" \
-    -H "Authorization: Bearer $TOKEN" \
-    $INSECURE)
-
-if echo "$STATS_RESPONSE" | jq -e '.stats' > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ PASS${NC}"
-    PASSED=$((PASSED + 1))
-else
-    echo -e "${RED}✗ FAIL${NC}"
-    FAILED=$((FAILED + 1))
-fi
+echo -e "${YELLOW}Note: /api/stats/me endpoint was removed in functional pruning${NC}"
 
 echo ""
 echo "📋 6. Testing Document Operations"
