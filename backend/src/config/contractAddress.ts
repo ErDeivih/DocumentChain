@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { env } from './env';
 
 /** Dirección por defecto del contrato `DocumentRegistry` en red local. */
 const DEFAULT_LOCAL_DOCUMENT_REGISTRY_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
@@ -108,11 +109,11 @@ export function getDeploymentDocumentRegistryAddress(): string | null {
 export function resolveDocumentRegistryAddress(): string | undefined {
   const deploymentAddress = getDeploymentDocumentRegistryAddress();
 
-  if (deploymentAddress && isLocalRpcUrl(process.env.BLOCKCHAIN_RPC_URL)) {
+  if (deploymentAddress && isLocalRpcUrl(env.BLOCKCHAIN_RPC_URL || undefined)) {
     return deploymentAddress;
   }
 
-  return process.env.CONTRACT_DOCUMENT_REGISTRY || deploymentAddress || undefined;
+  return env.CONTRACT_DOCUMENT_REGISTRY || deploymentAddress || undefined;
 }
 
 /**

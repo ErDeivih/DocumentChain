@@ -434,6 +434,7 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
     function setArchiveStatus(bytes32 _docId, bool _archived)
         external
         nonReentrant
+        notDeleted(_docId)
     {
         require(_isOwner(_docId, _msgSender()), "Only owner");
         require(_documents[_docId].isArchived != _archived, "Already in that state");
@@ -452,6 +453,7 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
     function deleteDocument(bytes32 _docId)
         external
         nonReentrant
+        notArchived(_docId)
     {
         require(_isOwner(_docId, _msgSender()), "Only owner can delete");
         require(!_documents[_docId].isDeleted, "Already deleted");
@@ -536,6 +538,7 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
         external
         nonReentrant
         notArchived(_docId)
+        notDeleted(_docId)
     {
         require(_isOwner(_docId, _msgSender()), "Only owner");
         require(_user != _documents[_docId].owner, "Cannot revoke owner");

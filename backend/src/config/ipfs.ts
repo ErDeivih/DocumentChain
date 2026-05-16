@@ -8,6 +8,7 @@
 
 import logger from '../utils/logger';
 import { PinataIPFSClient } from './pinataClient';
+import { env } from './env';
 
 /**
  * Interfaz común para adaptadores de IPFS.
@@ -21,25 +22,6 @@ export interface IPFSAdapter {
   getPinStatus(cid: string): Promise<any>;
   listPins(): Promise<any[]>;
 }
-
-function stripEnvQuotes(v: string | undefined, fallback = ''): string {
-  if (!v) return fallback;
-  const t = v.trim();
-  const dq = '"';
-  const sq = "'";
-  if ((t.startsWith(dq) && t.endsWith(dq)) || (t.startsWith(sq) && t.endsWith(sq))) {
-    return t.slice(1, -1).trim() || fallback;
-  }
-  return t || fallback;
-}
-
-const IPFS_PROVIDER = stripEnvQuotes(process.env.IPFS_PROVIDER, 'self-hosted');
-const IPFS_API_URL = stripEnvQuotes(process.env.IPFS_API_URL, 'http://localhost:5001');
-const IPFS_GATEWAY_URL = stripEnvQuotes(process.env.IPFS_GATEWAY_URL, 'http://localhost:8080');
-const PINATA_JWT = stripEnvQuotes(process.env.PINATA_JWT, '');
-const PINATA_API_KEY = stripEnvQuotes(process.env.PINATA_API_KEY, '');
-const PINATA_API_SECRET = stripEnvQuotes(process.env.PINATA_API_SECRET, '');
-const PINATA_GATEWAY_URL = stripEnvQuotes(process.env.PINATA_GATEWAY_URL, '');
 
 type SupportedProvider = 'self-hosted' | 'pinata';
 

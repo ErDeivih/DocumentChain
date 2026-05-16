@@ -1,9 +1,8 @@
 import { getDocumentRegistryContract } from '../config/blockchain';
 import logger from '../utils/logger';
 import { ethers } from 'ethers';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database';
+import { BlockchainQueries } from '../lib/blockchain/queries';
 
 /**
  * Enumeración de roles de documento.
@@ -59,11 +58,11 @@ export class DocumentPermissionService {
         return DocumentRole.NONE;
       }
 
-      const contract = getDocumentRegistryContract();
-      const role = await contract.getUserPermission(docId, userAddress);
-
-      return Number(role) as DocumentRole;
-
+      const roleStr = await BlockchainQueries.getUserRole(docId, userAddress);
+      if (roleStr === 'DOCUMENT_OWNER') return DocumentRole.OWNER;
+      if (roleStr === 'DOCUMENT_SHARED_WRITE') return DocumentRole.EDITOR;
+      if (roleStr === 'DOCUMENT_SHARED_READ') return DocumentRole.VIEWER;
+      return DocumentRole.NONE;
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al obtener rol de ${userAddress} en doc ${docId}:`, error);
       return DocumentRole.NONE;
@@ -129,13 +128,8 @@ export class DocumentPermissionService {
    */
   static async canView(docId: string, userAddress: string): Promise<boolean> {
     try {
-      if (!ethers.isAddress(userAddress)) {
-        return false;
-      }
-
-      const contract = getDocumentRegistryContract();
-      return await contract.canView(docId, userAddress);
-
+      if (!ethers.isAddress(userAddress)) return false;
+      return await BlockchainQueries.canRead(docId, userAddress);
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al verificar canView de ${userAddress} en doc ${docId}:`, error);
       return false;
@@ -150,13 +144,8 @@ export class DocumentPermissionService {
    */
   static async canEdit(docId: string, userAddress: string): Promise<boolean> {
     try {
-      if (!ethers.isAddress(userAddress)) {
-        return false;
-      }
-
-      const contract = getDocumentRegistryContract();
-      return await contract.canEdit(docId, userAddress);
-
+      if (!ethers.isAddress(userAddress)) return false;
+      return await BlockchainQueries.canWrite(docId, userAddress);
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al verificar canEdit de ${userAddress} en doc ${docId}:`, error);
       return false;
@@ -171,13 +160,8 @@ export class DocumentPermissionService {
    */
   static async isOwner(docId: string, userAddress: string): Promise<boolean> {
     try {
-      if (!ethers.isAddress(userAddress)) {
-        return false;
-      }
-
-      const contract = getDocumentRegistryContract();
-      return await contract.isOwner(docId, userAddress);
-
+      if (!ethers.isAddress(userAddress)) return false;
+      return await BlockchainQueries.isOwner(docId, userAddress);
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al verificar isOwner de ${userAddress} en doc ${docId}:`, error);
       return false;
@@ -236,31 +220,8 @@ export class DocumentPermissionService {
    */
   static async getUserDocuments(userAddress: string): Promise<string[]> {
     try {
-      if (!ethers.isAddress(userAddress)) {
-        return [];
-      }
-
-      const contract = getDocumentRegistryContract();
-      const documents = await contract.getUserDocuments(userAddress);
-
-      if (!Array.isArray(documents) || documents.length === 0) {
-        return [];
-      }
-
-      const activeFlags = await Promise.all(
-        documents.map(async (docId: string) => {
-          try {
-            const canView = await contract.canView(docId, userAddress);
-            return canView ? docId : null;
-          } catch (permissionError) {
-            logger.warn(`[PERMISSIONS] No se pudo validar acceso activo a ${docId} para ${userAddress}:`, permissionError);
-            return null;
-          }
-        })
-      );
-
-      return activeFlags.filter((docId): docId is string => Boolean(docId));
-
+      if (!ethers.isAddress(userAddress)) return [];
+      return await BlockchainQueries.getUserDocuments(userAddress);
     } catch (error) {
       logger.error(`[PERMISSIONS] Error al obtener documentos del usuario ${userAddress}:`, error);
       return [];

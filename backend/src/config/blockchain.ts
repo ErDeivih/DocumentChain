@@ -3,34 +3,22 @@ import { ethers } from 'ethers';
 // ABI del contrato consolidado DocumentRegistry
 import DocumentRegistryABI from '../../../smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json';
 import { resolveDocumentRegistryAddress } from './contractAddress';
-
-// Variables de entorno para direcciones de contratos
-const {
-  BLOCKCHAIN_RPC_URL,
-  BLOCKCHAIN_PRIVATE_KEY,
-  ADMIN_ROLE
-} = process.env;
+import { env } from './env';
 
 const resolvedDocumentRegistryAddress = resolveDocumentRegistryAddress();
 
 function normalizePrivateKey(rawKey?: string): string | null {
-  if (!rawKey) {
-    return null;
-  }
-
+  if (!rawKey) return null;
   const unquoted = rawKey.trim().replace(/^['"]|['"]$/g, '');
-  if (!unquoted) {
-    return null;
-  }
-
+  if (!unquoted) return null;
   const withoutPrefix = unquoted.replace(/^0x/i, '');
   return `0x${withoutPrefix}`;
 }
 
-const normalizedPrivateKey = normalizePrivateKey(BLOCKCHAIN_PRIVATE_KEY);
+const normalizedPrivateKey = normalizePrivateKey(env.BLOCKCHAIN_PRIVATE_KEY);
 
-const providerInstance = BLOCKCHAIN_RPC_URL
-  ? new ethers.JsonRpcProvider(BLOCKCHAIN_RPC_URL)
+const providerInstance = env.BLOCKCHAIN_RPC_URL
+  ? new ethers.JsonRpcProvider(env.BLOCKCHAIN_RPC_URL)
   : null;
 
 /**
@@ -74,7 +62,7 @@ export const signer = normalizedPrivateKey
   : null;
 
 /** Hash del rol ADMIN_ROLE (debe coincidir con el definido en el smart contract). */
-export const ADMIN_ROLE_HASH = ADMIN_ROLE || ethers.keccak256(ethers.toUtf8Bytes("ADMIN_ROLE"));
+export const ADMIN_ROLE_HASH = process.env.ADMIN_ROLE || ethers.keccak256(ethers.toUtf8Bytes("ADMIN_ROLE"));
 
 /**
  * Obtiene una instancia del contrato DocumentRegistry con el firmante del backend.

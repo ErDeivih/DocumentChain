@@ -1,10 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../config/database';
 import { FlowLogger, FlowContext, logger } from '../utils/logger';
 import WebSocketService from './webSocketService';
 import { emailService } from './emailService';
-
-// Usar cliente base de Prisma directamente para evitar problemas de tipado con extensiones
-const prisma = new PrismaClient();
 
 /**
  * Tipos de notificaciones soportadas por el sistema.

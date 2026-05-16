@@ -913,45 +913,6 @@ export class DocumentController {
   }
 
   /**
-   * Crea un documento mediante el endpoint legado.
-   * @deprecated Utilizar /prepare + /confirm en su lugar.
-   * Endpoint: POST /api/documents
-   *
-   * @param req - Objeto de solicitud HTTP autenticado.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con un error indicando la deprecación.
-   */
-  static async createDocument(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      if (!req.file) {
-        res.status(400).json({ error: 'No se ha subido ningún archivo' });
-        return;
-      }
-
-      const { name, description, password } = req.body;
-
-      if (!name) {
-        res.status(400).json({ error: 'El nombre del documento es obligatorio' });
-        return;
-      }
-
-      // Legacy endpoint - redirect to new pattern
-      res.status(400).json({ 
-        error: 'Este endpoint está deprecado. Use /api/documents/prepare + /confirm',
-        deprecated: true 
-      });
-    } catch (error: any) {
-      logger.error('Error al crear documento (legacy)', { error: error.message, userId: req.user?.userId });
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  /**
    * Revierte la creación de un documento eliminando registros y desanclando de IPFS.
    * Se utiliza cuando la transacción blockchain falla tras la fase de preparación.
    * Endpoint: POST /api/documents/:documentId/rollback

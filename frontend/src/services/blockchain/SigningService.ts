@@ -121,8 +121,7 @@ export class SigningService {
       return 'El documento no existe en el contrato inteligente. Puede que aún no esté sincronizado con blockchain.';
     }
 
-    // Log técnico para debugging pero mensaje amigable para usuario
-    Deja que el error se propague al componente.
+    // Mensaje genérico: se deja que errores no mapeados se muestren tal cual
     return 'No se pudo completar la firma. Verifica tu conexión y los permisos del documento, o inténtalo de nuevo.';
   }
 }

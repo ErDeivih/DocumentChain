@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import prisma from '../config/database';
 import { getContracts } from '../config/blockchain';
-import { FileCrypto } from '../lib/crypto/FileCrypto';
+import { calculateHash } from '../lib/encryption';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 import { DocumentPermissionService, DocumentRole } from './documentPermissionService';
 import { logBlockchainError } from '../utils/logger';
@@ -72,7 +72,7 @@ export class VerificationService {
    */
   static async verifyFileByHash(fileBuffer: Buffer): Promise<VerificationResult> {
     // Calcular el hash del archivo
-    const contentHash = FileCrypto.hashFile(fileBuffer);
+    const contentHash = calculateHash(fileBuffer);
     
     // Buscar en la base de datos por contentHash
     const document = await prisma.document.findFirst({

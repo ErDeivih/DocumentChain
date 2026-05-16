@@ -247,38 +247,6 @@ export class VersionController {
   }
 
   /**
-   * Crea una nueva versión mediante el endpoint legado.
-   * @deprecated Utilizar /versions/prepare + /versions/confirm en su lugar.
-   * Endpoint: POST /api/documents/:documentId/versions
-   *
-   * @param req - Objeto de solicitud HTTP autenticado.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con un error indicando la deprecación.
-   */
-  static async createVersion(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      if (!req.file) {
-        res.status(400).json({ error: 'No se ha subido ningún archivo' });
-        return;
-      }
-
-      // Legacy endpoint - redirect to new pattern
-      res.status(400).json({
-        error: 'Este endpoint está deprecado. Use /versions/prepare + /versions/confirm',
-        deprecated: true,
-      });
-    } catch (error: any) {
-      logger.error('Error al crear versión:', error);
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  /**
    * Prepara el cambio de versión operacional de un documento (fase de preparación on-chain).
    * Endpoint: POST /api/documents/:documentId/operational-version/prepare
    *
@@ -361,37 +329,6 @@ export class VersionController {
         error: error.message,
         userId: req.user?.userId,
       });
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Restaura una versión anterior creando una nueva versión con el contenido antiguo (legado).
-   * @deprecated Utilizar /versions/restore/prepare + /versions/restore/confirm en su lugar.
-   * Endpoint: POST /api/documents/:documentId/versions/:versionId/restore
-   *
-   * @param req - Objeto de solicitud HTTP autenticado.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con un error indicando la deprecación.
-   */
-  static async restoreVersion(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const documentId = req.params.documentId as string;
-      const versionId = req.params.versionId as string;
-      const { password, comment } = req.body;
-
-      // Legacy endpoint - redirect to new pattern
-      res.status(400).json({
-        error: 'Este endpoint está deprecado. Use /versions/prepare + /versions/confirm',
-        deprecated: true,
-      });
-    } catch (error: any) {
-      logger.error('Error al restaurar versión:', error);
       res.status(400).json({ error: error.message });
     }
   }

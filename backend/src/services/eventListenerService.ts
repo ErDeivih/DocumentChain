@@ -4,11 +4,8 @@ import notificationService, { NotificationType } from './notificationService';
 import WebSocketService from './webSocketService';
 import { normalizeEthereumAddress } from '../utils/ethereum';
 import { ethers } from 'ethers';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../config/database';
 import { v4 as uuidv4 } from 'uuid';
-
-// Usar cliente base de Prisma directamente para evitar problemas de tipado con extensiones
-const prisma = new PrismaClient();
 
 /**
  * EventListenerService - Sincronización Blockchain → BD

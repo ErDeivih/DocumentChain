@@ -51,7 +51,7 @@ export class EmailService {
       greetingTimeout: this.sendTimeoutMs,
       socketTimeout: this.sendTimeoutMs,
       tls: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false',
       },
     });
 
