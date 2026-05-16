@@ -94,11 +94,8 @@ test.describe('Notifications behaviour', () => {
     await page.goto('/app/documents');
     await expect(page.getByRole('heading', { name: 'Mis Documentos' })).toBeVisible();
 
-    // Verificar que existe el icono de campana en el header
-    const bellButton = page.locator('button').filter({ has: page.locator('svg') }).filter({ hasText: '' }).first();
-    // O buscar por aria-label si existe
-    const bellByLabel = page.locator('button[aria-label*="notificaciones"], button[aria-label*="Notificaciones"]');
-    const bell = await bellByLabel.isVisible().catch(() => false) ? bellByLabel : bellButton;
+    // Usar data-testid del header
+    const bell = page.locator('[data-testid="header-notifications-btn"]');
 
     await expect(bell).toBeVisible();
   });

@@ -62,22 +62,20 @@ test.describe('Wallet management flows', () => {
     await expect(walletManagerHeading()).toBeVisible();
     await expect(page.getByText(new RegExp(secondWalletAddress, 'i'))).toBeVisible({ timeout: 30000 });
 
-    const walletRowSelector = 'div.flex.items-center.justify-between.p-3.border.rounded-lg';
-
-    const secondWalletCard = page.locator(walletRowSelector).filter({
+    const secondWalletCard = page.locator('[data-testid="wallet-row"]').filter({
       hasText: secondWalletAddress,
     }).first();
     await secondWalletCard.locator('button').first().click({ force: true });
 
-    await expect(page.getByPlaceholder('Etiqueta de wallet')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="wallet-label-input"]')).toBeVisible({ timeout: 10000 });
 
-    const editingWalletCard = page.locator(walletRowSelector, {
-      has: page.getByPlaceholder('Etiqueta de wallet'),
+    const editingWalletCard = page.locator('[data-testid="wallet-row"]', {
+      has: page.locator('[data-testid="wallet-label-input"]'),
     }).first();
     await editingWalletCard.getByPlaceholder('Etiqueta de wallet').fill(secondWalletLabel);
     await editingWalletCard.locator('button').first().click({ force: true });
     await expect(page.getByText('Etiqueta de wallet actualizada')).toBeVisible({ timeout: 30000 });
-    const renamedWalletCard = page.locator(walletRowSelector).filter({
+    const renamedWalletCard = page.locator([data-testid="wallet-row"]).filter({
       hasText: secondWalletLabel,
     }).first();
     await expect(renamedWalletCard).toBeVisible({ timeout: 30000 });
@@ -111,10 +109,10 @@ test.describe('Wallet management flows', () => {
     await page.reload();
     await expect(walletManagerHeading()).toBeVisible();
 
-    const renamedPrimaryWalletCard = page.locator(walletRowSelector).filter({
+    const renamedPrimaryWalletCard = page.locator([data-testid="wallet-row"]).filter({
       hasText: secondWalletLabel,
     }).first();
-    const firstNonPrimaryWalletCard = page.locator(walletRowSelector).filter({
+    const firstNonPrimaryWalletCard = page.locator([data-testid="wallet-row"]).filter({
       hasText: firstWalletAddress,
     }).first();
 
@@ -130,7 +128,7 @@ test.describe('Wallet management flows', () => {
 
     await page.reload();
     await expect(walletManagerHeading()).toBeVisible();
-    const renamedWalletAfterDelete = page.locator(walletRowSelector).filter({
+    const renamedWalletAfterDelete = page.locator([data-testid="wallet-row"]).filter({
       hasText: secondWalletLabel,
     }).first();
     await expect(renamedWalletAfterDelete.getByText('Principal')).toBeVisible({ timeout: 30000 });

@@ -134,7 +134,7 @@ test.describe('Search and filters', () => {
     await page.goto('/app/documents');
     await page.waitForTimeout(2000);
 
-    const searchInput = page.locator('input[placeholder*="buscar"], input[placeholder*="Buscar"]');
+    const searchInput = page.locator('[data-testid="document-search-input"]');
     if (await searchInput.isVisible().catch(() => false)) {
       await searchInput.fill('xyznonexistentquery12345');
       await page.waitForTimeout(1500);
