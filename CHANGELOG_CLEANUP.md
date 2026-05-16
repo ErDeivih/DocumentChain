@@ -1,144 +1,106 @@
 # CHANGELOG - Limpieza de Código DocumentChain
 
 > Fecha: 16 de mayo de 2026
-> Sesión: single session
-> Backup pre-limpieza: commit `a834cf8`
+> Commits: `a834cf8` (backup) → `667c7c8` (pases 1-2) → `1ac67c4` (pases 3-4) → `3520ac9` (fase 5)
 
 ---
 
-## Cambios realizados
+## Resumen de cambios realizados
 
-### Pase 1 - Seguridad y Basura
+### Commit `667c7c8` — Pases 1 y 2 (CRÍTICO + ALTO)
 
-#### Archivos basura eliminados (17 archivos)
-| Archivo | Motivo |
-|---------|--------|
-| `texput.log` | crash log de LaTeX |
-| `tmp_query.sql` | query ad-hoc de debug |
-| `reseed-last.log` | log binario de reseed |
-| `test_upload_v2.txt` | artefacto de test |
-| `nul` | error de shell redirigido |
-| `get_last_share.js` | script de debug |
-| `get_last_share.ts` | script de debug (con bug: llamada `prisma.()` vacía) |
-| `package-lock.json` (raíz) | huérfano sin package.json |
-| `run_check.bat` | referencia script inexistente |
-| `start-dev.bat` | obsoleto, redundante con start-dev.ps1 |
-| `ANALISIS_FUNCIONALIDADES_COMPLETO.md` | análisis histórico superado |
-| `ANALISIS_SIMPLIFICACION_TFG.md` | redundante |
-| `CONTEXTO_CONSOLIDACION_UC_PARA_AGENTE.md` | handoff de agente completado |
-| `INSTRUCCIONES_COMPLETAS_CONSOLIDACION_UC.md` | ídem |
-| `TRABAJO_PENDIENTE_UC_CONSOLIDACION.md` | ídem |
-| `PLAN_ELIMINACION_AJUSTADO_TFG.md` | cambios ya implementados |
-| `plans/PLAN_IMPLEMENTACION_DETALLADO.md` | planificación histórica |
+#### Archivos basura eliminados (17)
+`texput.log`, `tmp_query.sql`, `reseed-last.log`, `test_upload_v2.txt`, `nul`, `get_last_share.*`, `package-lock.json` (raíz), `run_check.bat`, `start-dev.bat`, 8 MDs de planificación histórica.
 
-#### `frontend/src/services/blockchain/SigningService.ts:125` - Texto español suelto (CRÍTICO)
-- **Problema:** Línea `Deja que el error se propague al componente.` sin comentar causaba ReferenceError
-- **Solución:** Convertido a comentario válido
+#### Bugs críticos arreglados
+| # | Archivo | Problema | Solución |
+|---|---------|----------|----------|
+| 1 | `SigningService.ts:125` | Texto español suelto causaba ReferenceError | Convertido a comentario |
+| 2 | `passwordPolicy.ts:283` | `Math.random()` para generar contraseñas | `crypto.randomBytes()` |
+| 3 | `emailService.ts:53` | `rejectUnauthorized: false` hardcodeado | Variable de entorno `SMTP_TLS_REJECT_UNAUTHORIZED` |
+| 4 | `DocumentRegistry.sol` | 3 funciones sin modifiers de seguridad | `notDeleted`/`notArchived` añadidos a `setArchiveStatus`, `deleteDocument`, `revokePermission` |
 
-#### `backend/src/validators/passwordPolicy.ts:275-302` - Math.random() → crypto.randomBytes() (CRÍTICO)
-- **Problema:** `Math.random()` usado para generar contraseñas (no criptográficamente seguro)
-- **Solución:** Reemplazado por `crypto.randomBytes()` para todas las selecciones aleatorias
-
-#### `backend/src/services/emailService.ts:53-54` - TLS rejectUnauthorized
-- **Problema:** `rejectUnauthorized: false` hardcodeado deshabilitaba validación TLS
-- **Solución:** Ahora usa `process.env.SMTP_TLS_REJECT_UNAUTHORIZED` (default `true` en producción)
+#### Estructural (ALTOS)
+| # | Cambio | Archivos |
+|---|--------|----------|
+| 5 | `DocumentPermissionService` delega a `BlockchainQueries` (fuente canónica única) | `documentPermissionService.ts` |
+| 6 | `verificationService` usa `calculateHash` de `encryption.ts` (elimina uso de `FileCrypto`) | `verificationService.ts` |
+| 7 | 3 endpoints deprecated eliminados (`createDocument`, `createVersion`, `restoreVersion`) | `documentController.ts`, `versionController.ts` |
+| 8 | 3 instancias de `PrismaClient` unificadas al singleton con extensión BigInt | `notificationService.ts`, `eventListenerService.ts`, `documentPermissionService.ts` |
+| 9 | `share.schema.ts` eliminado (archivo muerto, 0 referencias) | `schemas/share.schema.ts` |
+| 10 | Config files usan `env.ts` validado | `blockchain.ts`, `ipfs.ts`, `contractAddress.ts` |
 
 ---
 
-### Pase 2 - Código Muerto y Duplicado Mayor
+### Commit `1ac67c4` — Fases 3 y 4 (Medium Quick Wins + Small Fixes)
 
-#### Consolidación DocumentPermissionService → BlockchainQueries
-**Archivos:** `services/documentPermissionService.ts` (358→~250 líneas), `lib/blockchain/queries.ts` (sin cambios)
-- **Problema:** Dos clases consultaban los mismos métodos del contrato por caminos separados
-- **Solución:** `DocumentPermissionService.getUserRole`, `canView`, `canEdit`, `isOwner`, `getUserDocuments` ahora delegan a `BlockchainQueries` como fuente canónica única
-- **Métodos conservados:** `getDocumentUsers`, `getDocumentUsersWithRoles`, `getUserDocumentCount`, `shareDocument`, `revokePermission` (no existen en BlockchainQueries)
+#### Fase 3 — Quick Wins (11 items)
+| # | Cambio | Archivos |
+|---|--------|----------|
+| 1 | `getQuery` delega a `getParam` (código idéntico) | `utils/request.ts` |
+| 2 | `substr` → `slice` (API deprecated) | `utils/logger.ts:151` |
+| 3 | `formatBytes` importado de utils en vez de redefinido | `LogsViewer.tsx` |
+| 4 | 6 `console.log` eliminados de producción | `DocumentTransfer.tsx` |
+| 5 | `MAX_FILE_SIZE` constante compartida | `lib/utils.ts`, `UploadModal.tsx`, `UploadVersionModal.tsx` |
+| 6 | 3 directorios vacíos eliminados | `lib/api/`, `lib/ipfs/`, `lib/utils/` |
+| 7 | `test-api.sh` actualizado (stats endpoint eliminado) | `scripts/test-api.sh` |
+| 8 | `create-first-admin.sh` puerto corregido 3001→3000 | `scripts/create-first-admin.sh` |
+| 9 | `start-dev-simple.ps1` puertos y protocolos corregidos | `start-dev-simple.ps1` |
+| 10 | `ModalFooter` no-op eliminado | `ui/Modal.tsx`, `ui/index.tsx` |
+| 11 | `fix-encoding.ps1` paths relativos con `$PSScriptRoot` | `fix-encoding.ps1` |
 
-#### PrismaClient unificado a singleton (3 archivos)
-**Archivos:** `notificationService.ts`, `documentPermissionService.ts`, `eventListenerService.ts`
-- **Problema:** Cada uno creaba `new PrismaClient()` independiente, bypassando la extensión BigInt de `config/database.ts`
-- **Solución:** Los 3 importan ahora `prisma from '../config/database'` (singleton extendido)
-
-#### Librerías de cifrado: eliminado uso de FileCrypto en verificationService
-**Archivos:** `services/verificationService.ts`
-- **Problema:** `FileCrypto.hashFile()` duplicaba `calculateHash()` de `lib/encryption.ts`
-- **Solución:** `verificationService.ts` ahora usa `calculateHash` de `lib/encryption.ts`
-- **NOTA:** `FileCrypto.ts` y `KeyManager.ts` se conservan (KeyManager lo usan authService y adminController)
-
-#### Endpoints deprecated eliminados de controladores (3 métodos)
-**Archivos:** `controllers/documentController.ts`, `controllers/versionController.ts`
-- **Eliminados:** `DocumentController.createDocument`, `VersionController.createVersion`, `VersionController.restoreVersion`
-- **Motivo:** Siempre devolvían error 400 redirigiendo al nuevo patrón prepare/confirm. Ya no estaban registrados en rutas.
-
-#### `share.schema.ts` eliminado
-**Archivo eliminado:** `schemas/share.schema.ts`
-- **Motivo:** Nunca importado por ningún archivo (0 referencias). Sus schemas ya existían duplicados en `document.schema.ts`.
-
-#### Config files refactorizados para usar `env.ts` validado
-**Archivos:** `config/blockchain.ts`, `config/ipfs.ts`, `config/contractAddress.ts`
-- `blockchain.ts`: Usa `env.BLOCKCHAIN_RPC_URL` y `env.BLOCKCHAIN_PRIVATE_KEY` en vez de `process.env`
-- `ipfs.ts`: Usa `env.IPFS_API_URL` y `env.IPFS_GATEWAY_URL`; elimina función `stripEnvQuotes` redundante con `stripWrappedQuotes` de `env.ts`
-- `contractAddress.ts`: Usa `env.BLOCKCHAIN_RPC_URL` y `env.CONTRACT_DOCUMENT_REGISTRY`
-
-#### DocumentRegistry.sol - 3 modifiers faltantes corregidos
-**Archivo:** `smart-contracts/contracts/DocumentRegistry.sol`
-| Función | Modifier añadido | Motivo |
-|---------|-----------------|--------|
-| `setArchiveStatus()` | `notDeleted(_docId)` | Un documento eliminado no debería poder archivarse |
-| `deleteDocument()` | `notArchived(_docId)` | Un documento archivado no debería poder eliminarse directamente |
-| `revokePermission()` | `notDeleted(_docId)` | No se deberían modificar permisos de un documento eliminado |
-
-El contrato compila correctamente tras los cambios.
+#### Fase 4 — Small Structural Fixes (10 items)
+| # | Cambio | Archivos |
+|---|--------|----------|
+| 12 | `normalizeFileExtensionFilter` extraído a `fileValidation.ts` | `documentService.ts`, `shareController.ts` |
+| 13 | `generateSecurePassword` y `estimateCrackTime` eliminados (dead code) | `passwordPolicy.ts` (-80 líneas) |
+| 14 | Tipos `PinResult`, `PinStatus` añadidos a IPFS adapter | `ipfs.ts` |
+| 15 | `parseFilename` unificado (exportado desde `documents.ts`, importado en `versions.ts`) | `api/documents.ts`, `api/versions.ts` |
+| 16 | `hashSHA3_256` ahora usa `ethers.keccak256` real (antes usaba SHA-256) | `lib/crypto/utils.ts` |
+| 17 | `deploy-production.ps1` red actualizada Mumbai→Amoy | `deploy-production.ps1` |
 
 ---
 
-## Issues MEDIUM documentados (pendientes para futuro)
+### Commit `3520ac9` — Fase 5 (Medium Refactors)
 
-### Backend
-1. Patrón "validate ownership on-chain" repetido ~20 veces en controladores - extraer a helper middleware
-2. `normalizeFileExtensionFilter` duplicado en `documentService.ts` y `shareController.ts`
-3. Funciones >100 líneas sin descomponer: `AuditService.getFileAuditTrail` (230L), `EventListenerService.syncHistoricalEvents` (316L)
-4. Funciones exportadas nunca usadas: `validateSession`, `revokeAccessToken`, `cleanupExpiredTokens`, `getOperationalVersion`, `getSignature`, `hasUserSigned`, `getUserDocumentCount`, `generateSecurePassword`, `estimateCrackTime`
-5. `getParam` y `getQuery` idénticos en `utils/request.ts` - uno debe delegar al otro
-6. `substr` deprecated en `utils/logger.ts:151` - cambiar a `slice`
-7. Tests: mock de logger duplicado en 18+ archivos - mover a mock compartido
-8. `any` types en IPFS adapter (9 instancias en `ipfs.ts`, `pinataClient.ts`)
+#### Hook `useSigner` extraído
+- **Nuevo archivo:** `frontend/src/hooks/useSigner.ts`
+- **Elimina 60 líneas duplicadas** en 6 componentes que repetían el mismo patrón de verificación de wallet:
+  - `UploadModal.tsx` → usa `getRegistryContract(connectedAddress)`
+  - `ShareModal.tsx` → usa `getRegistryContract(connectedAddress)`
+  - `SignDocumentModal.tsx` → usa `getVerifiedSigner(connectedAddress)`
+  - `UploadVersionModal.tsx` → usa `getRegistryContract(connectedAddress)`
+  - `OperationalVersionSelector.tsx` → usa `getRegistryContract(connectedAddress)`
+  - `DocumentTransfer.tsx` → usa `getVerifiedSigner(connectedAddress)`
+- 6 imports de `blockchainProvider` y `DocumentRegistryContract` eliminados de componentes
 
-### Frontend
-9. `formatAddress`/`shortenAddress`/`truncateAddress` duplicado en 6+ componentes
-10. `parseFilename` duplicado en `api/documents.ts` y `api/versions.ts`
-11. `formatBytes` duplicado en `LogsViewer.tsx` (debe importar de `lib/utils.ts`)
-12. State machine pattern duplicado en 5+ componentes (UploadModal, ShareModal, etc.)
-13. Wallet signer verification duplicado en 6+ componentes
-14. Avatar + initials styling duplicado en 8+ componentes
-15. 12 componentes >300 líneas sin descomponer
-16. `console.log` en producción (DocumentTransfer, +30 catch blocks)
-17. Magic numbers: `100 * 1024 * 1024` hardcodeado en 4 sitios distintos
-18. Dos sistemas de modales (`Modal` vs `Dialog`) con APIs diferentes
-19. Alias exports redundantes en todos los `api/*.ts` (nadie los importa)
-20. `WalletManager` duplica lógica de `WalletManagerContext`
-21. E2E: selectores frágiles (XPath, placeholders, sin `data-testid`)
-22. E2E: tests sin aserciones reales (login, notifications)
-23. E2E: 100% tests usan `test.skip(browserName !== 'chromium')` (62 ocurrencias)
-24. Cero tests unitarios frontend (solo E2E)
-25. `hashSHA3_256` usa SHA-256 en vez de Keccak (nombre engañoso)
-26. 3 directorios vacíos en `frontend/src/lib/`
+---
 
-### Scripts / Infra
-27. `test-api.sh` referencia endpoint eliminado `/api/stats/me`
-28. `create-first-admin.sh` usa puerto 3001 en vez de 3000
-29. `deploy-production.ps1` usa URLs de Mumbai (red deprecated: cambiar a Amoy)
-30. `start-dev-simple.ps1` reporta puertos incorrectos
+## Issues documentados para el futuro
+
+### MEDIUM (15 items)
+1. Patrón "validate ownership on-chain" repetido ~11 veces — extraer a helper
+2. Funciones >100 líneas: `auditService.getFileAuditTrail` (232L), `eventListenerService.syncHistoricalEvents` (317L) — descomponer
+3. Funciones exportadas nunca usadas: `validateSession`, `revokeAccessToken`, `cleanupExpiredTokens` (en `tokenService.ts`)
+4. `any` types en IPFS adapter (`getPinStatus`, `listPins`, etc.)
+5. `truncateAddress` duplicado en 4+ componentes frontend
+6. Avatar + initials styling duplicado en 8+ componentes — extraer `<UserAvatar>`
+7. Alias exports redundantes en `api/*.ts` — verificar y eliminar
+8. 10 componentes >300 líneas sin descomponer
+9. 2 sistemas de modales (`Modal` vs `Dialog`) con APIs diferentes
+10. `WalletManager` duplica lógica de `WalletManagerContext`
+11. E2E: selectores frágiles (XPath, placeholders, sin `data-testid`)
+12. E2E: tests sin aserciones reales
+13. E2E: `test.skip(browserName !== 'chromium')` en 62 tests
+14. Cero tests unitarios frontend
+15. Logger mock duplicado en 19 tests — consolidar
+
+### LOW (5 items)
+1. Smart contract: `_msgSender()` sin cachear en algunas funciones
+2. Smart contract: `Ownable` + `AccessControl` redundante
+3. `DialogPortal` wrapper no-op (pero usado internamente)
+4. `deploy-production.ps1` necesita revisión completa de URLs
+5. Credenciales SMTP en `.github/workflows/deploy-local-server.yml` — mover a GitHub Secrets
 
 ### Credenciales (documentado, no modificado)
-- `.env` raíz: contiene credenciales SMTP reales (gitignored)
-- `.github/workflows/deploy-local-server.yml`: credenciales SMTP hardcodeadas → mover a GitHub Secrets
-
----
-
-## Issues LOW documentados (pendientes para futuro)
-
-1. Smart contract: eventos faltantes en `createVersion`, `restoreVersion`, `transferOwnership`
-2. Smart contract: `_msgSender()` llamado múltiples veces sin cachear (gas optimization)
-3. Smart contract: `Ownable` + `AccessControl` redundante en el contrato
-4. `ModalFooter` y `DialogPortal` son wrappers no-op (`<>{children}</>`)
-5. `fix-encoding.ps1` paths hardcodeados
+- `.env` raíz: contiene credenciales SMTP (protegido por `.gitignore`)
