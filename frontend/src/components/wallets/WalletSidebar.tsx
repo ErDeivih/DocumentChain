@@ -24,14 +24,6 @@ export const WalletSidebar: React.FC = () => {
   const { activeWallet, setActiveWallet } = useActiveWallet();
   const navigate = useNavigate();
 
-  const { savedWallets, setPrimaryWallet } = useWalletManager();
-   * @param address - Dirección completa de la wallet.
-   * @returns Cadena con los primeros 6 y últimos 4 caracteres separados por "...".
-   */
-  const shortenAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   /**
    * Activa la wallet seleccionada en el contexto de la aplicación.
    *

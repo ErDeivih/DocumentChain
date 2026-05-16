@@ -501,6 +501,7 @@ export class VersionService {
         blockchainId: true,
         name: true,
         isDeleted: true,
+        isArchived: true,
       }
     });
 
@@ -512,36 +513,6 @@ export class VersionService {
     await DocumentPermissionService.validateOwnership(document, userId, {
       errorMessage: 'Solo el propietario puede cambiar la versión operacional',
     });
-
-    if (document.isDeleted) {
-      throw new Error('No se pueden cambiar versiones en documentos eliminados');
-    }
-    });
-
-    if (!document) {
-      throw new Error('Documento no encontrado');
-    }
-
-    // Validate ownership (on-chain or DB fallback)
-    await DocumentPermissionService.validateOwnership(document, userId, {
-      errorMessage: 'Solo el propietario puede cambiar la versión operacional',
-    });
-
-    if (document.isDeleted) {
-      throw new Error('No se pueden cambiar versiones en documentos eliminados');
-    }
-
-    // Validate ownership ON-CHAIN if blockchainId exists
-    if (document.blockchainId) {
-      const wallet = await prisma.wallet.findFirst({ where: { userId } });
-      if (!wallet) throw new Error('Wallet no encontrada');
-      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
-      if (!isOwnerOnChain) {
-        throw new Error('Solo el propietario puede cambiar la versión operacional');
-      }
-    } else if (document.ownerId !== userId) {
-      throw new Error('Solo el propietario puede cambiar la versión operacional');
-    }
 
     if (document.isDeleted) {
       throw new Error('No se pueden cambiar versiones en documentos eliminados');

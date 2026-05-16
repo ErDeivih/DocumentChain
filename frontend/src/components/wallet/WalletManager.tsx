@@ -20,7 +20,6 @@ import {
   Smartphone,
   Monitor,
 } from 'lucide-react';
-import type { Wallet as WalletType } from '../../types';
 
 interface WalletManagerProps {
   autoOpenConnector?: boolean;
@@ -96,7 +95,7 @@ export const WalletManager: React.FC<WalletManagerProps> = ({
     });
   };
 
-  const startEditing = (wallet: WalletType) => {
+  const startEditing = (wallet: { id: string; label: string | null }) => {
     setEditingId(wallet.id);
     setEditLabel(wallet.label || '');
   };

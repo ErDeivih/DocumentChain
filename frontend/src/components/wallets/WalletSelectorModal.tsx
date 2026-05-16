@@ -9,7 +9,6 @@ import { ConnectedWalletBanner, SavedWalletItem } from './WalletModalComponents'
 import { 
   Wallet, 
   Plus, 
-  Star, 
   AlertCircle, 
   Loader2,
   LogOut

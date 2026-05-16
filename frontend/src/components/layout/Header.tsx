@@ -139,7 +139,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                 <>
                   <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/82 px-3 py-2 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.16)]">
                     <UserAvatar name={user?.username} avatarUrl={user?.avatarUrl} />
-                    </Avatar>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-foreground">{user?.username}</p>
                       <p className="text-xs text-muted-foreground">{user?.email}</p>

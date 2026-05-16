@@ -309,7 +309,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
                   <li>Eliminación de todas las comparticiones existentes</li>
                 </ul>
               </div>
-            </div>
+            </>
           )}
         </CardContent>
       </Card>
