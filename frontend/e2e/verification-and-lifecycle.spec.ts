@@ -86,7 +86,7 @@ test.describe('Verification and document lifecycle coverage', () => {
     await expect(page.getByText(new RegExp(`Creado por ${seedUsers.owner.username}`, 'i'))).toBeVisible({ timeout: 30000 });
 
     await page.getByText('ID Blockchain').click();
-    await page.getByPlaceholder('0x...').fill(syncedDocument.blockchainId);
+    await page.getByTestId('blockchain-id-input').fill(syncedDocument.blockchainId);
     await page.getByRole('button', { name: 'Verificar Documento' }).click();
 
     await expect(page.getByText('Información del Documento')).toBeVisible({ timeout: 30000 });
@@ -125,7 +125,7 @@ test.describe('Verification and document lifecycle coverage', () => {
     await expect(page).toHaveURL(/\/app\/documents$/, { timeout: 30000 });
 
     await page.getByText('Archivados').click();
-    await page.getByPlaceholder('Buscar por nombre...').fill(fileName);
+    await page.getByTestId('document-search-input').fill(fileName);
     await expect(page.getByText(fileName)).toBeVisible({ timeout: 30000 });
 
     await page.getByText(fileName).click();

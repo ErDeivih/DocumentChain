@@ -25,7 +25,7 @@ test.describe('Additional App Features', () => {
     await page.getByRole('button', { name: 'Nueva Carpeta' }).click();
     await expect(page.getByText('Crear Nueva Carpeta')).toBeVisible();
 
-    await page.getByPlaceholder('Ingrese nombre de la carpeta').fill(folderName);
+    await page.getByTestId('folder-name-input').fill(folderName);
     await page.getByPlaceholder('Ingrese descripción de la carpeta').fill(folderDescription);
     await page.getByRole('button', { name: 'Crear Carpeta' }).click();
 

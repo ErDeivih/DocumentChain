@@ -424,6 +424,7 @@ export const Audit: React.FC = () => {
                 onChange={(e) => setSearchValue(e.target.value)}
                 placeholder="0x... (66 caracteres hexadecimales)"
                 helperText="Introduzca el hash de la transacción para ver sus eventos decodificados"
+                data-testid="audit-txhash-input"
               />
             )}
 

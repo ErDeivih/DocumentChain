@@ -176,6 +176,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
           placeholder="Ingrese nombre de la carpeta"
           required
           disabled={loading}
+          data-testid="folder-name-input"
         />
 
         <div>
@@ -188,6 +189,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
             placeholder="Ingrese descripción de la carpeta"
             rows={3}
             disabled={loading}
+            data-testid="folder-description-input"
             className="w-full rounded-xl border border-input bg-background/75 px-3 py-2 text-foreground backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
           />
         </div>

@@ -621,6 +621,7 @@ export const DocumentDetails: React.FC = () => {
               onChange={(e) => setDownloadPassword(e.target.value)}
               placeholder="Ingrese su contraseña de cuenta"
               required={Boolean(document?.isEncrypted)}
+              data-testid="download-password-input"
             />
           </div>
           <DialogFooter>

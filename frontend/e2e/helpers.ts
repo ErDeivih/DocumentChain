@@ -413,7 +413,7 @@ export async function selectFirstSavedWallet(page: Page, preferredAddress?: stri
   await expect(page.getByTestId('wallet-selector-modal')).toBeVisible();
 
   const useConnectedWalletButton = page.getByRole('button', { name: 'Usar esta wallet' });
-  const connectedWalletCard = page.locator('div.p-3.bg-green-50.border.border-green-200.rounded-lg').first();
+  const connectedWalletCard = page.getByTestId('connected-wallet-card');
 
   if (preferredAddress) {
     const abbreviatedPreferredAddress = abbreviateAddress(preferredAddress);

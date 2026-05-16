@@ -213,6 +213,7 @@ export const Verify: React.FC = () => {
                 onChange={(e) => setBlockchainId(e.target.value)}
                 placeholder="0x..."
                 helperText="Introduzca el identificador de documento blockchain"
+                data-testid="blockchain-id-input"
               />
             )}
 

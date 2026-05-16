@@ -19,7 +19,7 @@ export const ConnectedWalletBanner: React.FC<ConnectedWalletBannerProps> = ({
   onUseThisWallet,
   onChangeWallet,
 }) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+  <div className="p-3 bg-green-50 border border-green-200 rounded-lg" data-testid="connected-wallet-card">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <CheckCircle2 className="w-5 h-5 text-green-600" />
