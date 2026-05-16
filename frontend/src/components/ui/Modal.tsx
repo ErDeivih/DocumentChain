@@ -73,6 +73,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
+        data-testid="modal-backdrop"
       />
 
       {/* Modal */}
@@ -83,17 +84,19 @@ export const Modal: React.FC<ModalProps> = ({
             sizes[size]
           )}
           onClick={(e) => e.stopPropagation()}
+          data-testid="modal-content"
         >
           {/* Header */}
           {(title || showCloseButton) && (
             <div className="flex items-center justify-between border-b border-white/5 p-4">
               {title && (
-                <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+                <h2 className="text-xl font-semibold text-foreground" data-testid="modal-title">{title}</h2>
               )}
               {showCloseButton && (
                 <button
                   onClick={onClose}
                   className="text-muted-foreground transition-colors hover:text-foreground"
+                  data-testid="modal-close-btn"
                 >
                   <X className="w-6 h-6" />
                 </button>

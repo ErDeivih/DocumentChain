@@ -74,14 +74,14 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                 {/* Menú Escritorio */}
                 <div className="hidden md:flex items-center gap-2">
                   <Link to="/app/notifications">
-                    <Button variant="ghost" size="sm" aria-label="Notificaciones">
+                    <Button variant="ghost" size="sm" aria-label="Notificaciones" data-testid="header-notifications-btn">
                       <Bell className="w-4 h-4" />
                     </Button>
                   </Link>
 
                   {/* Ajustes */}
                   <Link to="/app/settings">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" data-testid="header-settings-btn">
                       <Settings className="w-4 h-4" />
                     </Button>
                   </Link>
