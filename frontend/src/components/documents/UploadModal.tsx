@@ -10,17 +10,18 @@ import {
 } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { Label } from '../ui/Label';
 import { Alert, AlertDescription } from '../ui/Alert';
-import { Switch } from '../ui/Switch';
 import { FolderSelector } from '../folders/FolderSelector';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
-import { Upload, File, X, AlertCircle, Info, Loader2, CheckCircle2 } from 'lucide-react';
-import { cn, MAX_FILE_SIZE } from '../../lib/utils';
+import { AlertCircle, Info, Loader2, CheckCircle2 } from 'lucide-react';
+import { MAX_FILE_SIZE } from '../../lib/utils';
 import { getErrorMessage } from '../../lib/api';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSigner } from '../../hooks/useSigner';
+import { FileDropZone } from './FileDropZone';
+import { VisibilityToggle } from './VisibilityToggle';
+import { UploadStepIndicator } from './UploadStepIndicator';
 
 /**
  * Props del componente UploadModal.
@@ -205,29 +206,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     }
   };
 
-  /**
-   * Obtiene el icono de estado correspondiente a un paso del flujo.
-   */
-  const getStepIcon = (stepName: UploadStep) => {
-    if (step === stepName) {
-      return <Loader2 className="w-4 h-4 animate-spin" />;
-    }
-    if (Object.keys(stepOrder).indexOf(step) > Object.keys(stepOrder).indexOf(stepName)) {
-      return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-    }
-    return null;
-  };
-
-  const stepOrder: Record<UploadStep, number> = {
-    form: 0,
-    select_wallet: 1,
-    preparing: 2,
-    signing: 3,
-    confirming: 4,
-    success: 5,
-    error: 5,
-  };
-
   const isProcessing = step !== 'form' && step !== 'error';
 
   return (
@@ -257,91 +235,20 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             </Alert>
           )}
 
-          {isProcessing && (
-            <div className="space-y-3 p-4 bg-muted rounded-lg">
-              <div className="flex items-center gap-2">
-                {getStepIcon('preparing')}
-                <span className={step === 'preparing' ? 'font-medium' : 'text-muted-foreground'}>
-                  Preparando documento...
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {getStepIcon('signing')}
-                <span className={step === 'signing' ? 'font-medium' : 'text-muted-foreground'}>
-                  Firmando transacción...
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {getStepIcon('confirming')}
-                <span className={step === 'confirming' ? 'font-medium' : 'text-muted-foreground'}>
-                  Confirmando en blockchain...
-                </span>
-              </div>
-            </div>
-          )}
+          {isProcessing && <UploadStepIndicator step={step} />}
 
           <form onSubmit={handleStartUpload} className="space-y-4">
-            {/* File Drop Zone */}
-            <div
-              className={cn(
-                'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
-                isDragging
-                  ? 'border-primary bg-primary/10'
-                  : 'border-border hover:border-primary/50'
-              )}
+            <FileDropZone
+              file={file}
+              isProcessing={isProcessing}
+              isDragging={isDragging}
+              fileInputRef={fileInputRef}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-            >
-              {!file ? (
-                <>
-                  <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-foreground font-medium mb-1">
-                    Arrastre y suelte su archivo aquí
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-4">o</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isProcessing}
-                  >
-                    Explorar Archivos
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Tamaño máximo de archivo: 100MB
-                  </p>
-                </>
-              ) : (
-                <div className="flex items-center justify-between bg-accent p-4 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <File className="w-8 h-8 text-primary" />
-                    <div className="text-left">
-                      <p className="font-medium text-foreground">{file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFile(null)}
-                    className="text-muted-foreground hover:text-foreground"
-                    disabled={isProcessing}
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                onChange={handleFileInputChange}
-                disabled={isProcessing}
-              />
-            </div>
+              onFileInputChange={handleFileInputChange}
+              onClearFile={() => setFile(null)}
+            />
 
             {/* Folder Selection */}
             <FolderSelector
@@ -367,40 +274,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               </p>
             </div>
 
-            <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <Label htmlFor="public-visibility" className="text-sm font-medium text-amber-900">
-                    Publicar documento con enlace y QR
-                  </Label>
-                  <p className="mt-1 text-xs text-amber-800">
-                    Si activa esta opción, el documento se almacenará sin cifrar y cualquier persona con el enlace podrá verlo o descargarlo.
-                  </p>
-                </div>
-                <Switch
-                  id="public-visibility"
-                  checked={isPublic}
-                  onCheckedChange={setIsPublic}
-                  disabled={isProcessing}
-                />
-              </div>
-
-              {isPublic ? (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Documento público: no se cifrará antes de subirse a IPFS. El enlace público y los QR quedarán disponibles tras la confirmación en blockchain.
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <Alert variant="info">
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Documento privado: se cifrará automáticamente con AES-256-GCM antes de subirse a IPFS.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
+            <VisibilityToggle isPublic={isPublic} onToggle={setIsPublic} isProcessing={isProcessing} />
 
             <Alert variant="info">
               <Info className="h-4 w-4" />

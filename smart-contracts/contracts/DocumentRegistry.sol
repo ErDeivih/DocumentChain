@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -22,7 +21,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
  * @custom:security-contact security@documentchain.io
  * @custom:version 1.0.0
  */
-contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
+contract DocumentRegistry is AccessControl, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -185,7 +184,7 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
      * @notice Inicializa el contrato estableciendo al desplegador como propietario y administrador.
      * @dev Otorga DEFAULT_ADMIN_ROLE y ADMIN_ROLE al creador para permitir la gestión inicial.
      */
-    constructor() Ownable(msg.sender) {
+    constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
         emit AdminRoleGranted(msg.sender, msg.sender, block.timestamp);
