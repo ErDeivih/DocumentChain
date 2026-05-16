@@ -46,16 +46,6 @@ jest.mock('../../src/services/documentPermissionService', () => ({
   },
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 jest.mock('../../src/lib/encryption', () => ({
   validateFileSize: jest.fn(),
   encryptFile: jest.fn(),

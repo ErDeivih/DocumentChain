@@ -18,17 +18,6 @@ jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn(() => mockPrisma),
 }));
 
-// Mock logger
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 // Now safe to import
 import { DocumentPermissionService, DocumentRole } from '../../src/services/documentPermissionService';
 import { getDocumentRegistryContract } from '../../src/config/blockchain';

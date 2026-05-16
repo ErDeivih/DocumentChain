@@ -25,16 +25,6 @@ jest.mock('../../src/config/database', () => ({
   },
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 jest.mock('../../src/lib/encryption', () => ({
   encryptSymmetricKey: jest.fn(),
 }));

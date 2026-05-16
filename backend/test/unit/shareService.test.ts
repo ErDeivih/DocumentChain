@@ -56,16 +56,6 @@ jest.mock('../../src/lib/encryption', () => ({
   encryptSymmetricKey: jest.fn(),
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 import prisma from '../../src/config/database';
 import { DocumentPermissionService } from '../../src/services/documentPermissionService';
 import notificationService from '../../src/services/notificationService';

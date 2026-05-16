@@ -18,15 +18,6 @@ jest.mock('nodemailer', () => ({
   },
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  logger: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 describe('EmailService send methods', () => {
   const originalEnv = { ...process.env };
 

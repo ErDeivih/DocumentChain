@@ -14,16 +14,6 @@ const mockArgon2 = {
 
 jest.mock('argon2', () => mockArgon2);
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 import { Argon2Service } from '../../src/services/argon2Service';
 
 describe('Argon2Service', () => {

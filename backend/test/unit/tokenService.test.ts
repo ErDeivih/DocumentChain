@@ -21,16 +21,6 @@ jest.mock('../../src/config/jwt', () => ({
   JWT_SECRET: 'test-jwt-secret',
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 jest.mock('jsonwebtoken', () => ({
   sign: jest.fn(),
   verify: jest.fn(),

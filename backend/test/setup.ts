@@ -12,14 +12,28 @@ process.env.JWT_REFRESH_SECRET = 'test-jwt-refresh-secret-key';
 jest.setTimeout(10000);
 
 // Mock logger to avoid cluttering test output
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+};
 jest.mock('../src/utils/logger', () => ({
   __esModule: true,
-  default: {
-    info: jest.fn(),
+  default: mockLogger,
+  logger: mockLogger,
+  FlowLogger: jest.fn().mockImplementation(() => ({
+    start: jest.fn().mockReturnValue('flow-id'),
+    step: jest.fn(),
+    success: jest.fn(),
     error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
+  })),
+  logBlockchainError: jest.fn(),
+  logBlockchainEvent: jest.fn(),
+  logIPFSError: jest.fn(),
+  logUserActivity: jest.fn(),
+  logAuthError: jest.fn(),
+  withLogging: jest.fn((fn: any) => fn),
 }));
 
 // Mock uuid to avoid ES module issues

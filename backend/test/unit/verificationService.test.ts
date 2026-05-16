@@ -46,17 +46,6 @@ jest.mock('../../src/utils/ethereum', () => ({
   normalizeEthereumAddress: jest.fn((addr: string) => addr.toLowerCase()),
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-  logBlockchainError: jest.fn(),
-}));
-
 import { VerificationService } from '../../src/services/verificationService';
 import prisma from '../../src/config/database';
 import { getContracts } from '../../src/config/blockchain';

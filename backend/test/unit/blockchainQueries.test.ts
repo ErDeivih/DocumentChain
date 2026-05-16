@@ -5,17 +5,6 @@ jest.mock('../../src/config/blockchain', () => ({
   getDocumentRegistryContract: jest.fn(),
 }));
 
-// Mock logger
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 import { BlockchainQueries } from '../../src/lib/blockchain/queries';
 import { getContracts } from '../../src/config/blockchain';
 import { ethers } from 'ethers';

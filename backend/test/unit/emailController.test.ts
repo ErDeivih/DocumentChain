@@ -40,15 +40,6 @@ jest.mock('../../src/services/argon2Service', () => ({
   },
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  logger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 jest.mock('crypto', () => ({
   randomBytes: jest.fn(() => ({
     toString: jest.fn(() => 'fixed-token-123'),

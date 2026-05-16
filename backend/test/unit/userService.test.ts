@@ -25,16 +25,6 @@ jest.mock('../../src/config/database', () => ({
   },
 }));
 
-jest.mock('../../src/utils/logger', () => ({
-  __esModule: true,
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 import { UserService } from '../../src/services/userService';
 import prisma from '../../src/config/database';
 
