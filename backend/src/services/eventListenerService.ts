@@ -367,7 +367,6 @@ class EventListenerService {
     });
     
     try {
-      // Obtener último bloque sincronizado
       const lastSyncRecord = await prisma.systemStats.findFirst({
         where: { statType: 'BLOCKCHAIN_SYNC' },
         orderBy: { createdAt: 'desc' },
@@ -377,10 +376,7 @@ class EventListenerService {
       const currentBlock = await provider.getBlockNumber();
       
       if (lastSyncedBlock >= currentBlock) {
-        this.flowLogger.step('Ya sincronizado', {
-          lastSyncedBlock,
-          currentBlock,
-        });
+        this.flowLogger.step('Ya sincronizado', { lastSyncedBlock, currentBlock });
         return;
       }
       
@@ -391,247 +387,145 @@ class EventListenerService {
       });
       
       const contracts = getContracts();
+      const filter = { fromBlock: lastSyncedBlock + 1, toBlock: currentBlock };
       
-      // Consultar eventos históricos
-      const filter = {
-        fromBlock: lastSyncedBlock + 1,
-        toBlock: currentBlock,
+      // Helper: query events and process them with a handler
+      const syncEventType = async (
+        filterFn: () => any,
+        handler: (args: any, event: any) => Promise<void>
+      ): Promise<number> => {
+        const events = await contracts.documentRegistry.queryFilter(
+          filterFn(), filter.fromBlock, filter.toBlock
+        );
+        for (const event of events) {
+          await handler((event as any).args, event);
+        }
+        return events.length;
       };
-      
+
       // DocumentCreated
-      const createdEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.DocumentCreated(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of createdEvents) {
-        const args = (event as any).args;
-        await this.handleDocumentCreated({
-          docId: args.docId,
-          owner: args.owner,
-          fileHash: args.ipfsCid, // Nuevo contrato solo tiene ipfsCid
-          contentCid: args.ipfsCid,
+      const cLen = await syncEventType(
+        () => contracts.documentRegistry.filters.DocumentCreated(),
+        async (args, event) => this.handleDocumentCreated({
+          docId: args.docId, owner: args.owner,
+          fileHash: args.ipfsCid, contentCid: args.ipfsCid,
           timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
-      // DocumentShared (reemplaza PermissionGranted)
-      const sharedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.DocumentShared(),
-        filter.fromBlock,
-        filter.toBlock
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
       );
-      
-      for (const event of sharedEvents) {
-        const args = (event as any).args;
-        // Mapear role número a permisos booleanos
-        const canView = args.role >= 1; // VIEWER, EDITOR, OWNER
-        const canEdit = args.role >= 2; // EDITOR, OWNER
-        
-        await this.handlePermissionGranted({
-          docId: args.docId,
-          grantedTo: args.to,
-          canView,
-          canEdit,
+
+      // DocumentShared
+      const sLen = await syncEventType(
+        () => contracts.documentRegistry.filters.DocumentShared(),
+        async (args, event) => this.handlePermissionGranted({
+          docId: args.docId, grantedTo: args.to,
+          canView: args.role >= 1, canEdit: args.role >= 2,
           grantedBy: args.from,
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // DocumentDeleted
-      const deletedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.DocumentDeleted(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of deletedEvents) {
-        const args = (event as any).args;
-        await this.handleDocumentDeleted({
-          docId: args.docId,
-          deletedBy: args.by,
+      const dLen = await syncEventType(
+        () => contracts.documentRegistry.filters.DocumentDeleted(),
+        async (args, event) => this.handleDocumentDeleted({
+          docId: args.docId, deletedBy: args.by,
           timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // VersionCreated
-      const versionEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.VersionCreated(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of versionEvents) {
-        const args = (event as any).args;
-        await this.handleDocumentVersioned({
-          docId: args.docId,
-          versionNumber: Number(args.versionNumber),
-          ipfsCid: args.ipfsCid,
-          createdBy: args.createdBy,
+      const vLen = await syncEventType(
+        () => contracts.documentRegistry.filters.VersionCreated(),
+        async (args, event) => this.handleDocumentVersioned({
+          docId: args.docId, versionNumber: Number(args.versionNumber),
+          ipfsCid: args.ipfsCid, createdBy: args.createdBy,
           timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
-      // VersionRestored
-      const restoredEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.VersionRestored(),
-        filter.fromBlock,
-        filter.toBlock
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
       );
-      
-      for (const event of restoredEvents) {
-        const args = (event as any).args;
-        await this.handleVersionRestored({
+
+      // VersionRestored
+      const rLen = await syncEventType(
+        () => contracts.documentRegistry.filters.VersionRestored(),
+        async (args, event) => this.handleVersionRestored({
           docId: args.docId,
           newVersionNumber: Number(args.newVersionNumber),
           restoredFromVersion: Number(args.restoredFromVersion),
-          by: args.by,
-          timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          by: args.by, timestamp: Number(args.timestamp),
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // DocumentSigned
-      const signedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.DocumentSigned(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of signedEvents) {
-        const args = (event as any).args;
-        await this.handleDocumentSigned({
-          docId: args.docId,
-          versionNumber: Number(args.versionNumber),
-          signer: args.signer,
-          message: args.message,
-          comment: '',
+      const sigLen = await syncEventType(
+        () => contracts.documentRegistry.filters.DocumentSigned(),
+        async (args, event) => this.handleDocumentSigned({
+          docId: args.docId, versionNumber: Number(args.versionNumber),
+          signer: args.signer, message: args.message, comment: '',
           timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // DocumentArchived
-      const archivedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.DocumentArchived(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of archivedEvents) {
-        const args = (event as any).args;
-        await this.handleDocumentArchived({
-          docId: args.docId,
-          by: args.by,
-          archived: args.archived,
+      const aLen = await syncEventType(
+        () => contracts.documentRegistry.filters.DocumentArchived(),
+        async (args, event) => this.handleDocumentArchived({
+          docId: args.docId, by: args.by, archived: args.archived,
           timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // OwnershipTransferred
-      const transferredEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters['OwnershipTransferred(bytes32,address,address,uint256)'](),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of transferredEvents) {
-        const args = (event as any).args;
-        await this.handleOwnershipTransferred({
-          docId: args.docId,
-          from: args.from,
-          to: args.to,
+      const tLen = await syncEventType(
+        () => contracts.documentRegistry.filters['OwnershipTransferred(bytes32,address,address,uint256)'](),
+        async (args, event) => this.handleOwnershipTransferred({
+          docId: args.docId, from: args.from, to: args.to,
           timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // PermissionRevoked
-      const revokedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.PermissionRevoked(),
-        filter.fromBlock,
-        filter.toBlock
+      const pLen = await syncEventType(
+        () => contracts.documentRegistry.filters.PermissionRevoked(),
+        async (args, event) => this.handlePermissionRevoked({
+          docId: args.docId, revokedFrom: args.user, revokedBy: args.by,
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
       );
-      
-      for (const event of revokedEvents) {
-        const args = (event as any).args;
-        await this.handlePermissionRevoked({
-          docId: args.docId,
-          revokedFrom: args.user,
-          revokedBy: args.by,
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+
       // OperationalVersionChanged
-      const operationalEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.OperationalVersionChanged(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of operationalEvents) {
-        const args = (event as any).args;
-        await this.handleOperationalVersionChanged({
+      const oLen = await syncEventType(
+        () => contracts.documentRegistry.filters.OperationalVersionChanged(),
+        async (args, event) => this.handleOperationalVersionChanged({
           docId: args.docId,
-          oldVersion: Number(args.oldVersion),
-          newVersion: Number(args.newVersion),
-          by: args.by,
-          timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+          oldVersion: Number(args.oldVersion), newVersion: Number(args.newVersion),
+          by: args.by, timestamp: Number(args.timestamp),
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
+      );
+
       // AdminRoleGranted
-      const adminGrantedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.AdminRoleGranted(),
-        filter.fromBlock,
-        filter.toBlock
+      const agLen = await syncEventType(
+        () => contracts.documentRegistry.filters.AdminRoleGranted(),
+        async (args, event) => this.handleAdminRoleGranted({
+          admin: args.admin, by: args.by, timestamp: Number(args.timestamp),
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
       );
-      
-      for (const event of adminGrantedEvents) {
-        const args = (event as any).args;
-        await this.handleAdminRoleGranted({
-          admin: args.admin,
-          by: args.by,
-          timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
+
       // AdminRoleRevoked
-      const adminRevokedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.AdminRoleRevoked(),
-        filter.fromBlock,
-        filter.toBlock
+      const arLen = await syncEventType(
+        () => contracts.documentRegistry.filters.AdminRoleRevoked(),
+        async (args, event) => this.handleAdminRoleRevoked({
+          admin: args.admin, by: args.by, timestamp: Number(args.timestamp),
+          blockNumber: event.blockNumber, transactionHash: event.transactionHash,
+        })
       );
-      
-      for (const event of adminRevokedEvents) {
-        const args = (event as any).args;
-        await this.handleAdminRoleRevoked({
-          admin: args.admin,
-          by: args.by,
-          timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
       
       // Actualizar último bloque sincronizado
       const now = new Date();
@@ -640,8 +534,7 @@ class EventListenerService {
         create: {
           id: 'default',
           statType: 'BLOCKCHAIN_SYNC',
-          periodStart: now,
-          periodEnd: now,
+          periodStart: now, periodEnd: now,
           lastSyncedBlock: currentBlock,
         },
         update: {
@@ -653,23 +546,12 @@ class EventListenerService {
       this.flowLogger.success({
         fromBlock: lastSyncedBlock + 1,
         toBlock: currentBlock,
-        totalEvents: createdEvents.length + sharedEvents.length + deletedEvents.length + 
-                     versionEvents.length + restoredEvents.length + signedEvents.length + 
-                     archivedEvents.length + transferredEvents.length + revokedEvents.length + 
-                     operationalEvents.length + adminGrantedEvents.length + adminRevokedEvents.length,
+        totalEvents: cLen + sLen + dLen + vLen + rLen + sigLen + aLen + tLen + pLen + oLen + agLen + arLen,
         breakdown: {
-          documentsCreated: createdEvents.length,
-          versionsCreated: versionEvents.length,
-          versionsRestored: restoredEvents.length,
-          documentsShared: sharedEvents.length,
-          permissionsRevoked: revokedEvents.length,
-          documentsSigned: signedEvents.length,
-          documentsDeleted: deletedEvents.length,
-          documentsArchived: archivedEvents.length,
-          ownershipsTransferred: transferredEvents.length,
-          operationalVersionsChanged: operationalEvents.length,
-          adminRolesGranted: adminGrantedEvents.length,
-          adminRolesRevoked: adminRevokedEvents.length,
+          documentsCreated: cLen, versionsCreated: vLen, versionsRestored: rLen,
+          documentsShared: sLen, permissionsRevoked: pLen, documentsSigned: sigLen,
+          documentsDeleted: dLen, documentsArchived: aLen, ownershipsTransferred: tLen,
+          operationalVersionsChanged: oLen, adminRolesGranted: agLen, adminRolesRevoked: arLen,
         },
       });
       

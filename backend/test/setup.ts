@@ -13,6 +13,7 @@ jest.setTimeout(10000);
 
 // Mock logger to avoid cluttering test output
 jest.mock('../src/utils/logger', () => ({
+  __esModule: true,
   default: {
     info: jest.fn(),
     error: jest.fn(),

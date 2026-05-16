@@ -279,211 +279,90 @@ export class AuditService {
       const contracts = getContracts();
       const events: AuditEvent[] = [];
 
-      // 1. DocumentCreated events
-      const createdFilter = contracts.documentRegistry.filters.DocumentCreated(blockchainId);
-      const createdEvents = await contracts.documentRegistry.queryFilter(createdFilter);
-
-      for (const event of createdEvents) {
-        const block = await event.getBlock();
-        // Type guard para EventLog
-        if (!('args' in event)) continue;
-        
-        events.push(this.buildAuditEvent({
-          id: `${event.transactionHash}:DocumentCreated`,
-          blockchainId,
-          eventType: 'DocumentCreated',
-          actor: event.args?.owner,
-          timestamp: new Date(block.timestamp * 1000),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-          details: {
-            docId: event.args?.docId,
-            owner: event.args?.owner,
-            ipfsCid: event.args?.ipfsCid,
-            currentVersion: event.args?.currentVersion?.toString()
+      const queryAndPush = async (
+        filterFn: () => any,
+        eventType: string,
+        idSuffix: string,
+        actorKey: string,
+        detailsMap: (args: any) => Record<string, any>
+      ) => {
+        try {
+          const rawEvents = await contracts.documentRegistry.queryFilter(filterFn());
+          for (const event of rawEvents) {
+            const block = await event.getBlock();
+            if (!('args' in event)) continue;
+            events.push(this.buildAuditEvent({
+              id: `${event.transactionHash}:${idSuffix}`,
+              blockchainId,
+              eventType,
+              actor: event.args?.[actorKey],
+              timestamp: new Date(block.timestamp * 1000),
+              blockNumber: event.blockNumber,
+              transactionHash: event.transactionHash,
+              details: detailsMap(event.args),
+            }));
           }
-        }));
-      }
-
-      // 2. DocumentShared events
-      const sharedFilter = contracts.documentRegistry.filters.DocumentShared(blockchainId);
-      const sharedEvents = await contracts.documentRegistry.queryFilter(sharedFilter);
-
-      for (const event of sharedEvents) {
-        const block = await event.getBlock();
-        if (!('args' in event)) continue;
-        
-        events.push(this.buildAuditEvent({
-          id: `${event.transactionHash}:DocumentShared`,
-          blockchainId,
-          eventType: 'DocumentShared',
-          actor: event.args?.from,
-          timestamp: new Date(block.timestamp * 1000),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-          details: {
-            docId: event.args?.docId,
-            from: event.args?.from,
-            to: event.args?.to
-          }
-        }));
-      }
-
-      // 3. DocumentArchived events
-      const archivedFilter = contracts.documentRegistry.filters.DocumentArchived(blockchainId);
-      const archivedEvents = await contracts.documentRegistry.queryFilter(archivedFilter);
-
-      for (const event of archivedEvents) {
-        const block = await event.getBlock();
-        if (!('args' in event)) continue;
-        const isArchived = Boolean(event.args?.archived);
-        
-        events.push(this.buildAuditEvent({
-          id: `${event.transactionHash}:${isArchived ? 'DocumentArchived' : 'DocumentUnarchived'}`,
-          blockchainId,
-          eventType: isArchived ? 'DocumentArchived' : 'DocumentUnarchived',
-          actor: event.args?.by,
-          timestamp: new Date(block.timestamp * 1000),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-          details: {
-            docId: event.args?.docId,
-            by: event.args?.by,
-            archived: isArchived,
-          }
-        }));
-      }
-
-      // 4. DocumentDeleted events
-      const deletedFilter = contracts.documentRegistry.filters.DocumentDeleted(blockchainId);
-      const deletedEvents = await contracts.documentRegistry.queryFilter(deletedFilter);
-
-      for (const event of deletedEvents) {
-        const block = await event.getBlock();
-        if (!('args' in event)) continue;
-        
-        events.push(this.buildAuditEvent({
-          id: `${event.transactionHash}:DocumentDeleted`,
-          blockchainId,
-          eventType: 'DocumentDeleted',
-          actor: event.args?.by,
-          timestamp: new Date(block.timestamp * 1000),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-          details: {
-            docId: event.args?.docId,
-            by: event.args?.by
-          }
-        }));
-      }
-
-      // 5. OwnershipTransferred events
-      const transferredFilter = contracts.documentRegistry.filters['OwnershipTransferred(bytes32,address,address,uint256)'](blockchainId);
-      const transferredEvents = await contracts.documentRegistry.queryFilter(transferredFilter);
-
-      for (const event of transferredEvents) {
-        const block = await event.getBlock();
-        if (!('args' in event)) continue;
-        
-        events.push(this.buildAuditEvent({
-          id: `${event.transactionHash}:DocumentTransferred`,
-          blockchainId,
-          eventType: 'DocumentTransferred',
-          actor: event.args?.from,
-          timestamp: new Date(block.timestamp * 1000),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-          details: {
-            docId: event.args?.docId,
-            from: event.args?.from,
-            to: event.args?.to
-          }
-        }));
-      }
-
-      // 6. VersionCreated events (from DocumentRegistry — consolidated contract)
-      const versionFilter = contracts.documentRegistry.filters.VersionCreated(blockchainId);
-      const versionEvents = await contracts.documentRegistry.queryFilter(versionFilter);
-
-      for (const event of versionEvents) {
-        const block = await event.getBlock();
-        if (!('args' in event)) continue;
-        
-        events.push(this.buildAuditEvent({
-          id: `${event.transactionHash}:DocumentVersioned`,
-          blockchainId,
-          eventType: 'DocumentVersioned',
-          actor: event.args?.createdBy,
-          timestamp: new Date(block.timestamp * 1000),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-          details: {
-            docId: event.args?.docId,
-            versionNumber: event.args?.versionNumber?.toString(),
-            ipfsCid: event.args?.ipfsCid,
-            createdBy: event.args?.createdBy
-          }
-        }));
-      }
-
-      // 7. DocumentShared events (replaces old PermissionGranted from separate AccessControl contract)
-      // Event: DocumentShared(bytes32 indexed docId, address indexed from, address indexed to, DocumentRole role, uint256 timestamp)
-      try {
-        const documentSharedFilter = contracts.documentRegistry.filters.DocumentShared(blockchainId);
-        const documentSharedEvents = await contracts.documentRegistry.queryFilter(documentSharedFilter);
-
-        for (const event of documentSharedEvents) {
-          const block = await event.getBlock();
-          if (!('args' in event)) continue;
-          
-          events.push(this.buildAuditEvent({
-            id: `${event.transactionHash}:PermissionGranted`,
-            blockchainId,
-            eventType: 'PermissionGranted',
-            actor: event.args?.from,
-            timestamp: new Date(block.timestamp * 1000),
-            blockNumber: event.blockNumber,
-            transactionHash: event.transactionHash,
-            details: {
-              docId: event.args?.docId,
-              owner: event.args?.from,
-              recipient: event.args?.to,
-              accessLevel: event.args?.role?.toString()
-            }
-          }));
+        } catch (error) {
+          logger.warn(`No se pudieron obtener eventos ${eventType}`);
         }
-      } catch (error) {
-        logger.warn('No se pudieron obtener eventos DocumentShared');
-      }
+      };
 
-      // 8. PermissionRevoked events
-      // Event: PermissionRevoked(bytes32 indexed docId, address indexed user, address indexed by, uint256 timestamp)
-      try {
-        const permissionRevokedFilter = contracts.documentRegistry.filters.PermissionRevoked(blockchainId);
-        const permissionRevokedEvents = await contracts.documentRegistry.queryFilter(permissionRevokedFilter);
+      // 1. DocumentCreated
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.DocumentCreated(blockchainId),
+        'DocumentCreated', 'DocumentCreated', 'owner',
+        (args) => ({ docId: args?.docId, owner: args?.owner, ipfsCid: args?.ipfsCid, currentVersion: args?.currentVersion?.toString() })
+      );
 
-        for (const event of permissionRevokedEvents) {
-          const block = await event.getBlock();
-          if (!('args' in event)) continue;
-          
-          events.push(this.buildAuditEvent({
-            id: `${event.transactionHash}:PermissionRevoked`,
-            blockchainId,
-            eventType: 'PermissionRevoked',
-            actor: event.args?.by,
-            timestamp: new Date(block.timestamp * 1000),
-            blockNumber: event.blockNumber,
-            transactionHash: event.transactionHash,
-            details: {
-              docId: event.args?.docId,
-              owner: event.args?.by,
-              recipient: event.args?.user
-            }
-          }));
-        }
-      } catch (error) {
-        logger.warn('No se pudieron obtener eventos PermissionRevoked');
-      }
+      // 2. DocumentShared
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.DocumentShared(blockchainId),
+        'DocumentShared', 'DocumentShared', 'from',
+        (args) => ({ docId: args?.docId, from: args?.from, to: args?.to })
+      );
+
+      // 3. DocumentArchived
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.DocumentArchived(blockchainId),
+        'DocumentArchived', 'DocumentArchived', 'by',
+        (args) => ({ docId: args?.docId, by: args?.by, archived: Boolean(args?.archived) })
+      );
+      // Note: archived events also emit unarchived — captured via the archived boolean
+
+      // 4. DocumentDeleted
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.DocumentDeleted(blockchainId),
+        'DocumentDeleted', 'DocumentDeleted', 'by',
+        (args) => ({ docId: args?.docId, by: args?.by })
+      );
+
+      // 5. OwnershipTransferred
+      await queryAndPush(
+        () => contracts.documentRegistry.filters['OwnershipTransferred(bytes32,address,address,uint256)'](blockchainId),
+        'DocumentTransferred', 'DocumentTransferred', 'from',
+        (args) => ({ docId: args?.docId, from: args?.from, to: args?.to })
+      );
+
+      // 6. VersionCreated
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.VersionCreated(blockchainId),
+        'DocumentVersioned', 'DocumentVersioned', 'createdBy',
+        (args) => ({ docId: args?.docId, versionNumber: args?.versionNumber?.toString(), ipfsCid: args?.ipfsCid, createdBy: args?.createdBy })
+      );
+
+      // 7. PermissionGranted (DocumentShared for audit trail labeling)
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.DocumentShared(blockchainId),
+        'PermissionGranted', 'PermissionGranted', 'from',
+        (args) => ({ docId: args?.docId, owner: args?.from, recipient: args?.to, accessLevel: args?.role?.toString() })
+      );
+
+      // 8. PermissionRevoked
+      await queryAndPush(
+        () => contracts.documentRegistry.filters.PermissionRevoked(blockchainId),
+        'PermissionRevoked', 'PermissionRevoked', 'by',
+        (args) => ({ docId: args?.docId, owner: args?.by, recipient: args?.user })
+      );
 
       const persistedEvents = await this.getPersistedAuditTrail(blockchainId);
       const mergedEvents = [...events];
@@ -495,7 +374,6 @@ export class AuditService {
         }
       }
 
-      // Ordenar cronológicamente (más recientes primero)
       mergedEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
       logger.info(`Obtenidos ${mergedEvents.length} eventos de auditoría para documento ${blockchainId}`);
