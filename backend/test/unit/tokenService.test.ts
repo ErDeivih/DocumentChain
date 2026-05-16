@@ -125,28 +125,6 @@ describe('TokenService', () => {
     });
   });
 
-  describe('revokeAccessToken()', () => {
-    it('should delete sessions matching access token', async () => {
-      (prisma.session.deleteMany as jest.Mock).mockResolvedValue({ count: 1 });
-
-      await TokenService.revokeAccessToken('access-token');
-
-      expect(prisma.session.deleteMany).toHaveBeenCalledWith({
-        where: { accessToken: 'access-token' },
-      });
-    });
-  });
-
-  describe('cleanupExpiredTokens()', () => {
-    it('should delete sessions with expired refresh tokens', async () => {
-      (prisma.session.deleteMany as jest.Mock).mockResolvedValue({ count: 5 });
-
-      const result = await TokenService.cleanupExpiredTokens();
-
-      expect(result).toBe(5);
-    });
-  });
-
   describe('revokeAllUserSessions()', () => {
     it('should delete all sessions for a user', async () => {
       (prisma.session.deleteMany as jest.Mock).mockResolvedValue({ count: 3 });

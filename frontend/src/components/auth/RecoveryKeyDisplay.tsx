@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import AlertMessage from '../ui/AlertMessage';
 import { Copy, Download, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
@@ -84,13 +84,12 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="🔑 Guarde Su Clave de Recuperación"
-      size="lg"
-    >
-      <div className="space-y-6">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>🔑 Guarde Su Clave de Recuperación</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
         {/* Advertencia Crítica */}
         <AlertMessage
           type="warning"
@@ -193,6 +192,7 @@ export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
           </p>
         )}
       </div>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

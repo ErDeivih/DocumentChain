@@ -40,10 +40,6 @@ export { UserAvatar } from './UserAvatar';
 
 export { Toast, ToastProvider, useToast, toastVariants } from './Toast';
 
-// Componentes legacy (mantener compatibilidad)
-export { Modal } from './Modal';
-export type { ModalProps } from './Modal';
-
 export { Loading, LoadingOverlay } from './Loading';
 export type { LoadingProps } from './Loading';
 

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
-import { Modal } from '../ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog';
 import { getErrorMessage } from '../../lib/api';
 import { formatRelativeTime, truncateAddress } from '../../lib/utils';
 import { signaturesApi } from '../../api/signatures';
@@ -386,17 +386,11 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
         )}
       </CardContent>
 
-      <Modal
-        isOpen={selectedVersionNumber !== null}
-        onClose={closeSignaturesModal}
-        title={selectedVersionNumber !== null ? `Firmantes de la versión ${selectedVersionNumber}` : 'Firmantes'}
-        size="xl"
-        footer={
-          <Button variant="outline" onClick={closeSignaturesModal}>
-            Cerrar
-          </Button>
-        }
-      >
+      <Dialog open={selectedVersionNumber !== null} onOpenChange={(open) => { if (!open) closeSignaturesModal(); }}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{selectedVersionNumber !== null ? `Firmantes de la versión ${selectedVersionNumber}` : 'Firmantes'}</DialogTitle>
+          </DialogHeader>
         {loadingSignaturesForVersion !== null ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -503,7 +497,11 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
             ) : null}
           </div>
         )}
-      </Modal>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeSignaturesModal}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <WalletSelectorModal
         isOpen={showWalletModal}

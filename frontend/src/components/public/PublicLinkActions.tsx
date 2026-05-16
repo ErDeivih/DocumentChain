@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '../ui/Button';
-import { Modal } from '../ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog';
 import AlertMessage from '../ui/AlertMessage';
 import { Copy, ExternalLink, QrCode, Download } from 'lucide-react';
 import { copyToClipboard } from '../../lib/utils';
@@ -84,12 +84,25 @@ export const PublicLinkActions: React.FC<PublicLinkActionsProps> = ({
         </Button>
       </div>
 
-      <Modal
-        isOpen={isQrOpen}
-        onClose={() => setIsQrOpen(false)}
-        title={`QR de ${title}`}
-        footer={
-          <>
+      <Dialog open={isQrOpen} onOpenChange={(open) => { if (!open) setIsQrOpen(false); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>QR de {title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {message && <AlertMessage type="info" message={message} onClose={() => setMessage(null)} />}
+            <p className="break-all text-sm text-muted-foreground">{url}</p>
+            <div className="flex justify-center rounded-xl border border-white/10 bg-card/90 p-4 shadow-sm">
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt={`QR de ${title}`} className="h-72 w-72" />
+              ) : (
+                <div className="flex h-72 w-72 items-center justify-center text-sm text-muted-foreground">
+                  Generando QR...
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
             <Button variant="ghost" onClick={() => setIsQrOpen(false)}>
               Cerrar
             </Button>
@@ -101,23 +114,9 @@ export const PublicLinkActions: React.FC<PublicLinkActionsProps> = ({
               <Download className="w-4 h-4 mr-2" />
               Descargar QR
             </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {message && <AlertMessage type="info" message={message} onClose={() => setMessage(null)} />}
-          <p className="break-all text-sm text-muted-foreground">{url}</p>
-          <div className="flex justify-center rounded-xl border border-white/10 bg-card/90 p-4 shadow-sm">
-            {qrDataUrl ? (
-              <img src={qrDataUrl} alt={`QR de ${title}`} className="h-72 w-72" />
-            ) : (
-              <div className="flex h-72 w-72 items-center justify-center text-sm text-muted-foreground">
-                Generando QR...
-              </div>
-            )}
-          </div>
-        </div>
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

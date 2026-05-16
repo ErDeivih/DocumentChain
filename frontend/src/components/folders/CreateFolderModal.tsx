@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Folder } from 'lucide-react';
-import { Modal } from '../ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Folder as FolderType } from '../../types';
@@ -157,8 +157,12 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditMode ? 'Editar Carpeta' : 'Crear Nueva Carpeta'}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{isEditMode ? 'Editar Carpeta' : 'Crear Nueva Carpeta'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {error}
@@ -255,6 +259,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
           </Button>
         </div>
       </form>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   );
 };

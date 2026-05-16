@@ -13,7 +13,7 @@ import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
 import AlertMessage from '../components/ui/AlertMessage';
 import { CopyableId } from '../components/ui/CopyableId';
-import { Modal } from '../components/ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/Dialog';
 import { Input } from '../components/ui/Input';
 import { ShareModal } from '../components/sharing/ShareModal';
 import { ShareList } from '../components/sharing/ShareList';
@@ -602,15 +602,28 @@ export const DocumentDetails: React.FC = () => {
       )}
 
       {/* Download Password Modal */}
-      <Modal
-        isOpen={isDownloadModalOpen}
-        onClose={() => {
-          setIsDownloadModalOpen(false);
-          setDownloadingVersionId(null);
-        }}
-        title={downloadingVersionId ? 'Descargar Versión' : 'Descargar Documento'}
-        footer={
-          <>
+      <Dialog open={isDownloadModalOpen} onOpenChange={(open) => { if (!open) { setIsDownloadModalOpen(false); setDownloadingVersionId(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{downloadingVersionId ? 'Descargar Versión' : 'Descargar Documento'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <AlertMessage
+              type="info"
+              message={document?.isEncrypted
+                ? 'Ingrese su contraseña de cuenta para descifrar y descargar este documento.'
+                : 'Este documento es público y no está cifrado. La descarga se realizará directamente.'}
+            />
+            <Input
+              label="Su Contraseña de Cuenta"
+              type="password"
+              value={downloadPassword}
+              onChange={(e) => setDownloadPassword(e.target.value)}
+              placeholder="Ingrese su contraseña de cuenta"
+              required={Boolean(document?.isEncrypted)}
+            />
+          </div>
+          <DialogFooter>
             <Button variant="ghost" onClick={() => {
               setIsDownloadModalOpen(false);
               setDownloadingVersionId(null);
@@ -624,26 +637,9 @@ export const DocumentDetails: React.FC = () => {
             >
               Descargar
             </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <AlertMessage
-            type="info"
-            message={document?.isEncrypted
-              ? 'Ingrese su contraseña de cuenta para descifrar y descargar este documento.'
-              : 'Este documento es público y no está cifrado. La descarga se realizará directamente.'}
-          />
-          <Input
-            label="Su Contraseña de Cuenta"
-            type="password"
-            value={downloadPassword}
-            onChange={(e) => setDownloadPassword(e.target.value)}
-            placeholder="Ingrese su contraseña de cuenta"
-            required={Boolean(document?.isEncrypted)}
-          />
-        </div>
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Share Modal */}
       <ShareModal

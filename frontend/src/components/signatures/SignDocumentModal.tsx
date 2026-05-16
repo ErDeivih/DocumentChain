@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Modal } from '../ui/Modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
@@ -156,12 +156,12 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
 
   return (
     <>
-      <Modal
-        isOpen={isOpen}
-        onClose={handleClose}
-        title={"Firmar Documento"}
-      >
-        <div className="space-y-4">
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Firmar Documento</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
         {/* Paso del formulario */}
         {step === 'form' && (
           <>
@@ -307,7 +307,8 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
           </div>
         )}
         </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
 
       <WalletSelectorModal
         isOpen={showWalletModal}
