@@ -22,8 +22,19 @@ jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn(() => mockPrisma),
 }));
 
+jest.mock('../../src/lib/blockchain/queries', () => ({
+  BlockchainQueries: {
+    getUserRole: jest.fn(),
+    canRead: jest.fn(),
+    canWrite: jest.fn(),
+    isOwner: jest.fn(),
+    getUserDocuments: jest.fn().mockResolvedValue([]),
+  },
+}));
+
 // Now safe to import
 import { DocumentPermissionService, DocumentRole } from '../../src/services/documentPermissionService';
+import { BlockchainQueries } from '../../src/lib/blockchain/queries';
 import { getDocumentRegistryContract } from '../../src/config/blockchain';
 import * as ethers from 'ethers';
 
@@ -61,6 +72,26 @@ describe('DocumentPermissionService', () => {
     mockContract.getUserDocumentCount.mockClear();
     mockContract.shareDocument.mockClear();
     mockContract.revokePermission.mockClear();
+
+    // Sync BlockchainQueries.getUserDocuments with mockContract
+    (BlockchainQueries.getUserDocuments as jest.Mock).mockImplementation(
+      (addr: string) => mockContract.getUserDocuments(addr)
+    );
+    (BlockchainQueries.isOwner as jest.Mock).mockImplementation(
+      (docId: string, addr: string) => mockContract.isOwner(docId, addr)
+    );
+    (BlockchainQueries.canRead as jest.Mock).mockImplementation(
+      (docId: string, addr: string) => mockContract.canView(docId, addr)
+    );
+    (BlockchainQueries.canWrite as jest.Mock).mockImplementation(
+      (docId: string, addr: string) => mockContract.canEdit(docId, addr)
+    );
+    (BlockchainQueries.getUserRole as jest.Mock).mockImplementation(
+      (docId: string, addr: string) => mockContract.getUserPermission(docId, addr).then((r: any) => {
+        const roleNum = Number(r);
+        switch (roleNum) { case 3: return 'DOCUMENT_OWNER'; case 2: return 'DOCUMENT_SHARED_WRITE'; case 1: return 'DOCUMENT_SHARED_READ'; default: return null; }
+      })
+    );
 
     // Reset to default values
     mockContract.getUserPermission.mockResolvedValue(BigInt(0));

@@ -32,7 +32,10 @@ jest.mock('../../src/lib/encryption', () => ({
 jest.mock('../../src/services/documentPermissionService', () => ({
   DocumentPermissionService: {
     isOwner: jest.fn(),
-    validateOwnership: jest.fn(),
+    validateOwnership: jest.fn().mockImplementation(async (doc: any, userId: string) => {
+      if (doc.ownerId !== userId) throw new Error('No eres el propietario del documento');
+      return { wallet: { walletAddress: '0xMock' }, isOwner: true as const };
+    }),
   },
 }));
 

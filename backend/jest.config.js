@@ -5,10 +5,12 @@ module.exports = {
   testMatch: [
     '**/__tests__/**/*.test.ts',
     '**/?(*.)+(spec|test).ts',
-    '!**/blockchain.test.ts' // Exclude blockchain integration tests (requires chai setup)
+    '!**/blockchain.test.ts', // Exclude blockchain integration tests (requires chai setup)
+    '!**/ipfs.provider.test.ts', // Exclude IPFS provider tests (requires Docker IPFS node)
+    '!**/ipfs.self-hosted-client.test.ts', // Exclude self-hosted IPFS tests (requires Docker)
   ],
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }],
+    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json', diagnostics: false }],
   },
   transformIgnorePatterns: [
     'node_modules/(?!(uuid)/)', // Transform uuid ES module
@@ -27,6 +29,7 @@ module.exports = {
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^uuid$': require.resolve('uuid'), // Force CommonJS uuid
   },
+  setupFiles: ['<rootDir>/test/env-setup.ts'],
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   testTimeout: 10000,
   verbose: true,

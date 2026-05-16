@@ -1,3 +1,7 @@
+// Set env vars before module initialization
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-jwt-secret-for-unit-tests-32+chars';
+
 import prisma from '../../src/config/database';
 import { uploadToIPFS, deleteFromIPFS } from '../../src/config/ipfs';
 import * as Encryption from '../../src/lib/encryption';
