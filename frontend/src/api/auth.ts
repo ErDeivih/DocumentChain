@@ -102,19 +102,5 @@ export const authApi = {
   }
 };
 
-// Alias para compatibilidad hacia atrás
-
-/** Alias de {@link authApi.register}. */
-export const register = authApi.register;
-/** Alias de {@link authApi.login}. */
-export const login = authApi.login;
-/** Alias de {@link authApi.logout}. */
-export const logout = authApi.logout;
-/** Alias de {@link authApi.getMe}. */
-export const getMe = authApi.getMe;
 /** Alias de {@link authApi.changePassword}. */
 export const changePassword = authApi.changePassword;
-/** Alias de {@link authApi.forgotPassword}. */
-export const forgotPassword = authApi.forgotPassword;
-/** Alias de {@link authApi.resetPassword}. */
-export const resetPassword = authApi.resetPassword;

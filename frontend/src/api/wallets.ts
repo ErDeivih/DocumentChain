@@ -140,20 +140,3 @@ export const walletsApi = {
     return response.data;
   }
 };
-
-// Alias para compatibilidad hacia atrás
-
-/** Alias de {@link walletsApi.list}. */
-export const listWallets = walletsApi.list;
-/** Alias de {@link walletsApi.add}. */
-export const addWallet = walletsApi.add;
-/** Alias de {@link walletsApi.remove}. */
-export const removeWallet = walletsApi.remove;
-/** Alias de {@link walletsApi.setPrimary}. */
-export const setPrimaryWallet = walletsApi.setPrimary;
-/** Alias de {@link walletsApi.updateLabel}. */
-export const updateWalletLabel = walletsApi.updateLabel;
-/** Alias de {@link walletsApi.getChallenge}. */
-export const getWalletChallenge = walletsApi.getChallenge;
-/** Alias de {@link walletsApi.getPrimary}. */
-export const getPrimaryWallet = walletsApi.getPrimary;

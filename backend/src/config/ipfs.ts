@@ -19,8 +19,8 @@ export interface IPFSAdapter {
   cat(cid: string): Promise<Buffer>;
   pin(cid: string): Promise<void>;
   unpin(cid: string): Promise<void>;
-  getPinStatus(cid: string): Promise<any>;
-  listPins(): Promise<any[]>;
+  getPinStatus(cid: string): Promise<PinStatus>;
+  listPins(): Promise<PinResult[]>;
 }
 
 /**

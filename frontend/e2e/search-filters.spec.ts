@@ -15,7 +15,6 @@ test.describe('Search and filters', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('search by text filters documents', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -66,7 +65,6 @@ test.describe('Search and filters', () => {
   });
 
   test('filter by archived status hides active documents', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -128,8 +126,6 @@ test.describe('Search and filters', () => {
   });
 
   test('search returns empty state for non-matching query', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,

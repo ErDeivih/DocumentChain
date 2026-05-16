@@ -154,31 +154,6 @@ export class TokenService {
   }
 
   /**
-   * Revocar access token (logout alternativo)
-   */
-  static async revokeAccessToken(accessToken: string): Promise<void> {
-    const result = await prisma.session.deleteMany({
-      where: { accessToken }
-    });
-
-    logger.info('Token de acceso revocado', { count: result.count });
-  }
-
-  /**
-   * Limpiar tokens expirados (cron job)
-   */
-  static async cleanupExpiredTokens(): Promise<number> {
-    const result = await prisma.session.deleteMany({
-      where: {
-        refreshTokenExpiresAt: { lt: new Date() }
-      }
-    });
-
-    logger.info('Tokens expirados limpiados', { count: result.count });
-    return result.count;
-  }
-
-  /**
    * Revocar todas las sesiones de un usuario
    */
   static async revokeAllUserSessions(userId: string): Promise<number> {

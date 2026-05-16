@@ -9,7 +9,6 @@ import {
 
 test.describe('Wallet management flows', () => {
   test('fresh user can connect, rename, prioritize, and remove wallets from profile', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(180000);
 
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;

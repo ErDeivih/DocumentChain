@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/Dialog';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Copy, ExternalLink, FileText, User, Hash, Clock, Fuel, Activity } from 'lucide-react';
-import { copyToClipboard, formatDate } from '../../lib/utils';
+import { copyToClipboard, formatDate, truncateAddress } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -72,9 +72,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 }) => {
   const { user } = useAuth();
 
-  const truncate = (str: string, len = 12) =>
-    str.length > len * 2 + 2 ? `${str.slice(0, len)}...${str.slice(-len)}` : str;
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -109,7 +106,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <div className="space-y-1">
                   <span className="text-muted-foreground">Hash</span>
                   <div className="flex items-center gap-2">
-                    <code className="bg-muted px-2 py-1 rounded text-xs">{truncate(details.transaction.hash, 20)}</code>
+                    <code className="bg-muted px-2 py-1 rounded text-xs">{truncateAddress(details.transaction.hash, 20, 20)}</code>
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(details.transaction.hash)}>
                       <Copy className="w-3 h-3" />
                     </Button>
@@ -140,11 +137,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 </div>
                 <div className="space-y-1">
                   <span className="text-muted-foreground">From</span>
-                  <code className="text-xs bg-muted px-2 py-1 rounded">{truncate(details.transaction.from, 14)}</code>
+                  <code className="text-xs bg-muted px-2 py-1 rounded">{truncateAddress(details.transaction.from, 14, 14)}</code>
                 </div>
                 <div className="space-y-1">
                   <span className="text-muted-foreground">To</span>
-                  <code className="text-xs bg-muted px-2 py-1 rounded">{details.transaction.to ? truncate(details.transaction.to, 14) : '-'}</code>
+                  <code className="text-xs bg-muted px-2 py-1 rounded">{details.transaction.to ? truncateAddress(details.transaction.to, 14, 14) : '-'}</code>
                 </div>
                 {details.transaction.gasUsed && (
                   <div className="space-y-1">
@@ -219,7 +216,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                         <span className="text-muted-foreground">{key}:</span>
                         <span className="text-right break-all max-w-[60%]">
                           {typeof value === 'string' && value.startsWith('0x') && value.length > 20
-                            ? truncate(value, 14)
+                            ? truncateAddress(value, 14, 14)
                             : String(value)}
                         </span>
                       </div>

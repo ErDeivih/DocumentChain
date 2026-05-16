@@ -10,7 +10,6 @@ test.describe('Avatar flow', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('user can upload avatar via API and see it in settings, then remove it', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(60000);
 
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;

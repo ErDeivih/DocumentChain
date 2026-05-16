@@ -165,15 +165,6 @@ export const signaturesApi = {
   }
 };
 
-// Alias para compatibilidad hacia atrás
-
-/** Alias de {@link signaturesApi.list}. */
-export const listSignatures = signaturesApi.list;
-/** Alias de {@link signaturesApi.listByVersion}. */
-export const listSignaturesByVersion = signaturesApi.listByVersion;
-/** Alias de {@link signaturesApi.verify}. */
-export const verifySignature = signaturesApi.verify;
-
 /**
  * Normaliza una firma asegurando la dirección de la wallet.
  * @param signature - Firma a normalizar.

@@ -10,7 +10,6 @@ test.describe('Delete account flow', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('delete account confirmation modal and wallet selector open correctly', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(60000);
 
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;

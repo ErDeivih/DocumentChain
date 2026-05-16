@@ -11,7 +11,7 @@ import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
 import { Modal } from '../ui/Modal';
 import { getErrorMessage } from '../../lib/api';
-import { formatRelativeTime } from '../../lib/utils';
+import { formatRelativeTime, truncateAddress } from '../../lib/utils';
 import { signaturesApi } from '../../api/signatures';
 import { versionsApi } from '../../api/versions';
 import { PublicLinkActions } from '../public/PublicLinkActions';
@@ -137,11 +137,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
     }
   };
 
-  const truncateCid = (cid: string) => {
-    if (cid.length <= 16) return cid;
-    return `${cid.slice(0, 8)}...${cid.slice(-8)}`;
-  };
-
   const buildVersionUrl = (versionNumber: number) => {
     if (!publicId) {
       return '';
@@ -160,14 +155,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
 
   const getSignerWalletAddress = (signature: Signature) => {
     return signature.signer?.walletAddress || signature.walletAddress || 'Wallet no disponible';
-  };
-
-  const truncateWalletAddress = (walletAddress: string) => {
-    if (walletAddress.length <= 18) {
-      return walletAddress;
-    }
-
-    return `${walletAddress.slice(0, 10)}...${walletAddress.slice(-6)}`;
   };
 
   const closeSignaturesModal = () => {
@@ -317,7 +304,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatRelativeTime(version.createdAt)}</span>
                       <span>·</span>
-                      <span className="font-mono">{truncateCid(version.ipfsCid || 'CID pendiente')}</span>
+                      <span className="font-mono">{truncateAddress(version.ipfsCid || 'CID pendiente', 8, 8)}</span>
                     </div>
                     
                     {version.comment && (
@@ -460,7 +447,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                         </div>
                       </div>
                     </div>
-                    <p className="mt-3 font-mono text-xs text-muted-foreground">{truncateWalletAddress(walletAddress)}</p>
+                    <p className="mt-3 font-mono text-xs text-muted-foreground">{truncateAddress(walletAddress, 10, 6)}</p>
                     <p className="mt-2 text-xs text-muted-foreground">
                       {signature.signedAt ? formatRelativeTime(signature.signedAt) : 'Fecha pendiente'}
                     </p>

@@ -4,7 +4,7 @@ import { WalletType, DetectedWallet, BlockchainProvider } from '../../lib/blockc
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
-import { copyToClipboard } from '../../lib/utils';
+import { copyToClipboard, truncateAddress } from '../../lib/utils';
 import { 
   Wallet, 
   Plus, 
@@ -152,7 +152,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
 
     if (connectedWallet) {
       setLocalError(
-        `La wallet conectada (${formatAddress(connectedWallet.address)}) no coincide con ${formatAddress(wallet.walletAddress)}. ` +
+        `La wallet conectada (${truncateAddress(connectedWallet.address)}) no coincide con ${truncateAddress(wallet.walletAddress)}. ` +
         'Cambie de cuenta en su wallet y vuelva a intentarlo.'
       );
       return;
@@ -217,10 +217,6 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
     }
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" data-testid="wallet-selector-modal">
       <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -250,7 +246,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
                   <div>
                     <p className="text-sm font-medium text-green-800">Wallet Conectada</p>
                     <p className="text-xs font-mono text-green-600">
-                      {formatAddress(connectedWallet.address)}
+                      {truncateAddress(connectedWallet.address)}
                     </p>
                   </div>
                 </div>
@@ -306,7 +302,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
                           </p>
                           <div className="flex items-center gap-1">
                             <p className="text-xs font-mono text-muted-foreground">
-                              {formatAddress(wallet.walletAddress)}
+                              {truncateAddress(wallet.walletAddress)}
                             </p>
                             <button
                               onClick={(e) => copyAddress(wallet.walletAddress, e)}

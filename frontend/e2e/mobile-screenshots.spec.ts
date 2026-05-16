@@ -17,24 +17,18 @@ test.describe('Mobile viewport screenshots', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('capture mobile landing page', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await page.goto('/');
     await expect(page.getByTestId('landing-hero-heading')).toBeVisible({ timeout: 15000 });
     await page.screenshot({ path: 'test-results/mobile-landing.png', fullPage: true });
   });
 
   test('capture mobile login page', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await page.goto('/login');
     await expect(page.getByRole('heading', { name: /Iniciar Sesión/i })).toBeVisible({ timeout: 15000 });
     await page.screenshot({ path: 'test-results/mobile-login.png', fullPage: true });
   });
 
   test('capture mobile documents list', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -47,8 +41,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile document detail', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const session = await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -69,8 +61,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile shared documents', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.recipient.username,
       password: seedUsers.recipient.password,
@@ -83,8 +73,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile notifications', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -97,8 +85,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile settings', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -111,8 +97,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile verify page', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await page.goto('/verify');
     await expect(page.getByRole('heading', { name: 'Verificar Documento' })).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
@@ -120,8 +104,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile admin dashboard', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.admin.username,
       password: seedUsers.admin.password,
@@ -134,8 +116,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile sidebar menu open', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -152,7 +132,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile upload modal', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     await loginWithStoredSession(page, request, {
@@ -171,7 +150,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile wallet selector', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     await loginWithStoredSession(page, request, {
@@ -201,7 +179,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile security settings', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -216,8 +193,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile blockchain auditor', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -230,8 +205,6 @@ test.describe('Mobile viewport screenshots', () => {
   });
 
   test('capture mobile register page', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await page.goto('/register');
     await expect(page.getByRole('heading', { name: /Registro|Crear Cuenta/i })).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);

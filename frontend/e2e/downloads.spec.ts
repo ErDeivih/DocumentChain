@@ -3,7 +3,6 @@ import { API_BASE_URL, loginWithStoredSession, seedUsers } from './helpers';
 
 test.describe('Document downloads', () => {
   test('owner can download a document from the detail page', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     await page.addInitScript(() => {

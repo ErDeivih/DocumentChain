@@ -6,7 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import AlertMessage from '../components/ui/AlertMessage';
 import { auditApi, AuditEvent, PublicStats, AuditHealth, TransactionDetails } from '../api/audit';
-import { formatDate } from '../lib/utils';
+import { formatDate, truncateAddress } from '../lib/utils';
 import {
   Search,
   Shield,
@@ -195,11 +195,6 @@ export const Audit: React.FC = () => {
       'DocumentTransferred': 'default',
     };
     return colors[type] || 'default';
-  };
-
-  const formatAddress = (address: string) => {
-    if (!address) return '-';
-    return `${address.substring(0, 10)}...${address.substring(address.length - 8)}`;
   };
 
   return (
@@ -458,7 +453,7 @@ export const Audit: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Propietario</p>
-                <p className="font-mono text-sm">{formatAddress(metadataResult.owner)}</p>
+                <p className="font-mono text-sm">{metadataResult.owner ? truncateAddress(metadataResult.owner, 10, 8) : '-'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Hash del Archivo</p>
@@ -539,7 +534,7 @@ export const Audit: React.FC = () => {
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
                           <span className="text-muted-foreground">Actor:</span>{' '}
-                          <span className="font-mono">{formatAddress(event.actor)}</span>
+                          <span className="font-mono">{truncateAddress(event.actor, 10, 8)}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Fecha:</span>{' '}
@@ -589,7 +584,7 @@ export const Audit: React.FC = () => {
                   Propiedad Verificada
                 </h2>
                 <p className="mb-4 text-muted-foreground">
-                  La wallet <span className="font-mono">{formatAddress(ownershipResult.walletAddress)}</span> ES propietaria de este documento
+                  La wallet <span className="font-mono">{truncateAddress(ownershipResult.walletAddress, 10, 8)}</span> ES propietaria de este documento
                 </p>
               </>
             ) : (
@@ -599,14 +594,14 @@ export const Audit: React.FC = () => {
                   Propiedad No Verificada
                 </h2>
                 <p className="mb-4 text-muted-foreground">
-                  La wallet <span className="font-mono">{formatAddress(ownershipResult.walletAddress)}</span> NO es propietaria de este documento
+                  La wallet <span className="font-mono">{truncateAddress(ownershipResult.walletAddress, 10, 8)}</span> NO es propietaria de este documento
                 </p>
               </>
             )}
             {ownershipResult.documentInfo && (
               <div className="mx-auto mt-4 max-w-md rounded-lg border border-border bg-secondary/35 p-4 text-left">
                 <p className="mb-1 text-sm text-muted-foreground">Propietario Real:</p>
-                <p className="font-mono text-sm">{formatAddress(ownershipResult.documentInfo.owner)}</p>
+                <p className="font-mono text-sm">{truncateAddress(ownershipResult.documentInfo.owner, 10, 8)}</p>
               </div>
             )}
           </CardContent>
@@ -656,7 +651,7 @@ export const Audit: React.FC = () => {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Propietario:</span>
                     <span className="font-mono text-xs">
-                      {formatAddress(integrityResult.blockchainData?.owner || '')}
+                      {integrityResult.blockchainData?.owner ? truncateAddress(integrityResult.blockchainData.owner, 10, 8) : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -733,8 +728,8 @@ export const Audit: React.FC = () => {
                 <div><span className="text-muted-foreground">Estado:</span> {txDetails.transaction.status === 1 ? <Badge variant="success">Éxito</Badge> : <Badge variant="destructive">Fallido</Badge>}</div>
                 <div><span className="text-muted-foreground">Bloque:</span> {txDetails.transaction.blockNumber ?? '-'}</div>
                 <div><span className="text-muted-foreground">Fecha:</span> {txDetails.transaction.timestamp ? formatDate(txDetails.transaction.timestamp) : '-'}</div>
-                <div><span className="text-muted-foreground">From:</span> <code className="text-xs">{formatAddress(txDetails.transaction.from)}</code></div>
-                <div><span className="text-muted-foreground">To:</span> <code className="text-xs">{txDetails.transaction.to ? formatAddress(txDetails.transaction.to) : '-'}</code></div>
+                <div><span className="text-muted-foreground">From:</span> <code className="text-xs">{truncateAddress(txDetails.transaction.from, 10, 8)}</code></div>
+                <div><span className="text-muted-foreground">To:</span> <code className="text-xs">{txDetails.transaction.to ? truncateAddress(txDetails.transaction.to, 10, 8) : '-'}</code></div>
                 {txDetails.transaction.gasUsed && <div><span className="text-muted-foreground">Gas:</span> {txDetails.transaction.gasUsed}</div>}
               </div>
             </div>

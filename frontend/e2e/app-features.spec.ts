@@ -11,8 +11,6 @@ import {
 
 test.describe('Additional App Features', () => {
   test('seed user can create a folder from the documents page and it persists in the API', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const session = await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -58,8 +56,6 @@ test.describe('Additional App Features', () => {
   });
 
   test('seed user can persist notification preferences from settings', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const session = await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -119,7 +115,6 @@ test.describe('Additional App Features', () => {
   });
 
   test('seed wallet user can view timeline events for a freshly uploaded document', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(150000);
 
     const session = await loginWithStoredSession(page, request, {

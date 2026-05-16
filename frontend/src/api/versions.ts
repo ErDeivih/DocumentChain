@@ -262,13 +262,5 @@ export const versionsApi = {
   }
 };
 
-// Alias para compatibilidad hacia atrás
-
 /** Alias de {@link versionsApi.list}. */
 export const listVersions = versionsApi.list;
-/** Alias de {@link versionsApi.create}. */
-export const createVersion = versionsApi.create;
-/** Alias de {@link versionsApi.restore}. */
-export const restoreVersion = versionsApi.restore;
-/** Alias de {@link versionsApi.download}. */
-export const downloadVersion = versionsApi.download;

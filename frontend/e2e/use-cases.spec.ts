@@ -20,8 +20,6 @@ test.describe('Expanded frontend use cases', () => {
   let uploadedBlockchainId = '';
 
   test('fresh user can change the password from settings and must use the new password afterwards', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     const passwordUser = {
       username: `teresa_clave_${uniqueSuffix}`,
@@ -71,8 +69,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('fresh user can access security settings and cancel account deletion confirmation', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     const securityUser = {
       username: `marina_seguridad_${uniqueSuffix}`,
@@ -111,7 +107,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('fresh user can request a password reset and recover access with the recovery key', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(90000);
 
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
@@ -185,7 +180,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('seed wallet user can upload and share a document from the frontend with hardhat-backed signing', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(150000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -289,8 +283,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('recipient sees the share notification and public audit pages expose trail, integrity, and ownership', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.recipient.username,
       password: seedUsers.recipient.password,
@@ -325,7 +317,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('owner can revoke the shared access and the recipient loses the shared document', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     const revokeAccessLabel = new RegExp(
@@ -398,7 +389,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('owner can create a new version of the shared document from the frontend', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -424,7 +414,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('owner can transfer document ownership to the recipient from the frontend', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(120000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -584,8 +573,6 @@ test.describe('Expanded frontend use cases', () => {
   });
 
   test('seed wallet user can access wallet management tab from settings', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,

@@ -51,7 +51,6 @@ async function createSyncedDocument(
 
 test.describe('Verification and document lifecycle coverage', () => {
   test('owner can verify a synced document by file and blockchain id from the verify page', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(180000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -96,7 +95,6 @@ test.describe('Verification and document lifecycle coverage', () => {
   });
 
   test('owner can archive, unarchive, and delete a document from the detail page', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(180000);
 
     const ownerSession = await loginWithStoredSession(page, request, {

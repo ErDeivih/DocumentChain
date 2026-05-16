@@ -1,4 +1,4 @@
-ï»¿import { expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import {
   API_BASE_URL,
   clearStoredSession,
@@ -12,18 +12,17 @@ import {
 
 /**
  * Suite de caminos negativos y validaciones de error.
- * Cubre las Ãºltimas incorporaciones (archivado, 2FA, eliminaciÃ³n de categorÃ­as)
+ * Cubre las últimas incorporaciones (archivado, 2FA, eliminación de categorías)
  * y otros escenarios no contemplados en los tests de camino feliz.
  */
 test.describe('Negative paths and validation coverage', () => {
   test.describe.configure({ mode: 'serial' });
 
   // ============================================================
-  // 1. Documentos Archivados (Ãºltimas incorporaciones)
+  // 1. Documentos Archivados (últimas incorporaciones)
   // ============================================================
 
   test('archived document blocks sharing, signing, transfer, and version changes', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(240000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -50,7 +49,7 @@ test.describe('Negative paths and validation coverage', () => {
     await page.getByRole('button', { name: 'Subir y Firmar' }).click();
     await selectFirstSavedWallet(page, getHardhatAddress(seedUsers.owner.walletIndex));
 
-    await expect(page.getByText('Â¡Documento subido exitosamente!')).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText('¡Documento subido exitosamente!')).toBeVisible({ timeout: 45000 });
     const confirmCreateResponse = await confirmCreateResponsePromise;
     expect(confirmCreateResponse.ok()).toBeTruthy();
     const { id: documentId } = (await confirmCreateResponse.json()).document;
@@ -65,49 +64,49 @@ test.describe('Negative paths and validation coverage', () => {
     await page.getByRole('button', { name: 'Archivar' }).click();
     await expect(page.getByRole('button', { name: 'Desarchivar' })).toBeVisible({ timeout: 30000 });
 
-    // 3. Verificar que el botÃ³n Compartir estÃ¡ deshabilitado
+    // 3. Verificar que el botón Compartir está deshabilitado
     const shareButton = page.getByRole('button', { name: 'Compartir' });
     await expect(shareButton).toBeDisabled();
 
-    // 4. Verificar que el botÃ³n Firmar Documento estÃ¡ deshabilitado
+    // 4. Verificar que el botón Firmar Documento está deshabilitado
     const signButton = page.getByRole('button', { name: 'Firmar Documento' });
     await expect(signButton).toBeDisabled();
 
-    // 5. Verificar que la pestaÃ±a Transferir no existe
+    // 5. Verificar que la pestaña Transferir no existe
     await expect(page.getByRole('tab', { name: 'Transferir' })).not.toBeVisible();
 
-    // 6. Verificar que el botÃ³n Subir Nueva VersiÃ³n estÃ¡ deshabilitado
+    // 6. Verificar que el botón Subir Nueva Versión está deshabilitado
     await page.getByRole('button', { name: 'Versiones' }).click();
-    await expect(page.getByRole('button', { name: 'Subir Nueva VersiÃ³n' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Subir Nueva Versión' })).toBeDisabled();
 
-    // 7. Verificar que el botÃ³n Activar versiÃ³n estÃ¡ deshabilitado (con tooltip de archivado)
-    const activateVersionButton = page.locator('button[title*="No se puede cambiar la versiÃ³n operacional de un documento archivado"]');
+    // 7. Verificar que el botón Activar versión está deshabilitado (con tooltip de archivado)
+    const activateVersionButton = page.locator('button[title*="No se puede cambiar la versión operacional de un documento archivado"]');
     if (await activateVersionButton.isVisible().catch(() => false)) {
       await expect(activateVersionButton).toBeDisabled();
     }
 
-    // 8. API directa: compartir documento archivado â†’ 400
+    // 8. API directa: compartir documento archivado ? 400
     const shareResponse = await request.post(`${API_BASE_URL}/documents/${documentId}/share/prepare`, {
       headers: { Authorization: `Bearer ${ownerSession.accessToken}` },
       data: { recipientId: 'dummy-recipient-id', role: 'VIEWER', walletId: 'dummy-wallet-id' },
     });
     expect([400, 403]).toContain(shareResponse.status());
 
-    // 9. API directa: firmar documento archivado â†’ 400
+    // 9. API directa: firmar documento archivado ? 400
     const signResponse = await request.post(`${API_BASE_URL}/signatures/prepare`, {
       headers: { Authorization: `Bearer ${ownerSession.accessToken}` },
       data: { documentId, versionNumber: 1, walletId: 'dummy-wallet-id', signMessage: 'test' },
     });
     expect([400, 403]).toContain(signResponse.status());
 
-    // 10. API directa: transferir documento archivado â†’ 400
+    // 10. API directa: transferir documento archivado ? 400
     const transferResponse = await request.post(`${API_BASE_URL}/documents/${documentId}/transfer/prepare`, {
       headers: { Authorization: `Bearer ${ownerSession.accessToken}` },
       data: { newOwnerId: 'dummy-new-owner-id', walletId: 'dummy-wallet-id', newOwnerWalletAddress: '0x1234567890123456789012345678901234567890' },
     });
     expect([400, 403]).toContain(transferResponse.status());
 
-    // 11. API directa: crear versiÃ³n de documento archivado â†’ 400
+    // 11. API directa: crear versión de documento archivado ? 400
     const versionResponse = await request.post(`${API_BASE_URL}/documents/${documentId}/versions/prepare`, {
       headers: { Authorization: `Bearer ${ownerSession.accessToken}` },
       data: { walletId: 'dummy-wallet-id', comment: 'test version' },
@@ -124,12 +123,10 @@ test.describe('Negative paths and validation coverage', () => {
   });
 
   // ============================================================
-  // 2. 2FA â€” Caminos Negativos
+  // 2. 2FA — Caminos Negativos
   // ============================================================
 
   test('security settings does not expose removed 2FA controls', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -138,19 +135,19 @@ test.describe('Negative paths and validation coverage', () => {
     await page.goto('/app/settings');
     await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
     await expect(page.getByRole('button', { name: 'Configurar 2FA' })).not.toBeVisible();
-    await expect(page.getByText(/VerificaciÃ³n 2FA/i)).not.toBeVisible();
+    await expect(page.getByText(/Verificación 2FA/i)).not.toBeVisible();
     await expect(page.getByRole('button', { name: 'Desactivar 2FA' })).not.toBeVisible();
   });
 
   // ============================================================
-  // 3. CategorÃ­as Eliminadas â€” Endpoints 404
+  // 3. Categorías Eliminadas — Endpoints 404
   // ============================================================
 
   test('category endpoints return 404 after model removal', async ({ request }) => {
     const noAuthResponse = await request.get(`${API_BASE_URL}/categories`);
     expect([401, 404]).toContain(noAuthResponse.status());
 
-    // Con autenticaciÃ³n tambiÃ©n debe fallar (ruta no existe)
+    // Con autenticación también debe fallar (ruta no existe)
     const loginResponse = await request.post(`${API_BASE_URL}/auth/login`, {
       data: { username: seedUsers.owner.username, password: seedUsers.owner.password },
     });
@@ -176,25 +173,25 @@ test.describe('Negative paths and validation coverage', () => {
   });
 
   // ============================================================
-  // 4. Permisos y Acceso â€” Caminos Negativos
+  // 4. Permisos y Acceso — Caminos Negativos
   // ============================================================
 
   test('unauthenticated requests are rejected and unauthorized access returns 404', async ({ request }) => {
-    // Documento protegido sin token â†’ 401
+    // Documento protegido sin token ? 401
     const protectedDocResponse = await request.get(`${API_BASE_URL}/documents/nonexistent-id`);
     expect(protectedDocResponse.status()).toBe(401);
 
-    // Lista de documentos sin token â†’ 401
+    // Lista de documentos sin token ? 401
     const listResponse = await request.get(`${API_BASE_URL}/documents`);
     expect(listResponse.status()).toBe(401);
 
-    // Compartir sin token â†’ 401 o 404 (segÃºn orden de middlewares)
+    // Compartir sin token ? 401 o 404 (según orden de middlewares)
     const shareResponse = await request.post(`${API_BASE_URL}/documents/nonexistent-id/shares/prepare`, {
       data: { recipientId: 'dummy', role: 'VIEWER', walletId: 'dummy' },
     });
     expect([401, 404]).toContain(shareResponse.status());
 
-    // Firmar sin token â†’ 401 o 404
+    // Firmar sin token ? 401 o 404
     const signResponse = await request.post(`${API_BASE_URL}/documents/nonexistent-id/signatures/prepare`, {
       data: { versionNumber: 1, walletId: 'dummy', signMessage: 'test' },
     });
@@ -220,14 +217,12 @@ test.describe('Negative paths and validation coverage', () => {
   // ============================================================
 
   test('login rejects invalid credentials with generic error', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await page.goto('/login');
     await page.getByLabel('Nombre de usuario o Email').fill('usuario_inexistente_12345');
-    await page.getByLabel('ContraseÃ±a').fill('WrongPassword123!');
-    await page.getByRole('button', { name: 'Iniciar SesiÃ³n' }).click();
+    await page.getByLabel('Contraseña').fill('WrongPassword123!');
+    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
 
-    await expect(page.getByRole('alert')).toContainText(/credenciales|incorrecto|invÃ¡lido/i);
+    await expect(page.getByRole('alert')).toContainText(/credenciales|incorrecto|inválido/i);
     await expect(page).toHaveURL(/\/login$/);
   });
 
@@ -243,7 +238,7 @@ test.describe('Negative paths and validation coverage', () => {
     });
     expect(duplicateResponse.status()).toBe(409);
 
-    // Email invÃ¡lido
+    // Email inválido
     const invalidEmailResponse = await request.post(`${API_BASE_URL}/auth/register`, {
       data: {
         username: `valid_${Date.now()}`,
@@ -254,7 +249,7 @@ test.describe('Negative paths and validation coverage', () => {
     });
     expect(invalidEmailResponse.status()).toBe(400);
 
-    // ContraseÃ±a dÃ©bil
+    // Contraseña débil
     const weakPasswordResponse = await request.post(`${API_BASE_URL}/auth/register`, {
       data: {
         username: `valid_${Date.now()}`,
@@ -267,7 +262,6 @@ test.describe('Negative paths and validation coverage', () => {
   });
 
   test('document upload form blocks empty file and oversized name', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(60000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -279,10 +273,10 @@ test.describe('Negative paths and validation coverage', () => {
     await page.goto('/app/documents');
     await page.getByRole('button', { name: 'Subir Documento' }).click();
 
-    // Intentar enviar sin archivo â†’ el botÃ³n deberÃ­a estar deshabilitado o fallar
+    // Intentar enviar sin archivo ? el botón debería estar deshabilitado o fallar
     const submitButton = page.getByRole('button', { name: 'Subir y Firmar' });
 
-    // Si el botÃ³n estÃ¡ deshabilitado sin archivo, lo verificamos
+    // Si el botón está deshabilitado sin archivo, lo verificamos
     const isDisabled = await submitButton.isDisabled().catch(() => false);
     if (!isDisabled) {
       await submitButton.click();
@@ -291,12 +285,10 @@ test.describe('Negative paths and validation coverage', () => {
   });
 
   // ============================================================
-  // 6. Usuario Suspendido â€” Caminos Negativos
+  // 6. Usuario Suspendido — Caminos Negativos
   // ============================================================
 
   test('security settings does not expose removed suspension controls', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -327,7 +319,7 @@ test.describe('Negative paths and validation coverage', () => {
     const getResponse = await request.get(`${API_BASE_URL}/documents/${fakeId}`, { headers: authHeaders });
     expect(getResponse.status()).toBe(404);
 
-    // Descargar documento inexistente (puede ser 400 por validaciÃ³n de params o 404)
+    // Descargar documento inexistente (puede ser 400 por validación de params o 404)
     const downloadResponse = await request.get(`${API_BASE_URL}/documents/${fakeId}/download`, { headers: authHeaders });
     expect([400, 404]).toContain(downloadResponse.status());
 

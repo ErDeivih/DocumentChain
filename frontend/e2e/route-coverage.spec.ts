@@ -8,8 +8,6 @@ import {
 
 test.describe('Route coverage gaps', () => {
   test('unauthenticated users are redirected to login when opening a protected route', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await page.goto('/app/settings');
 
     await expect(page).toHaveURL(/\/login$/);
@@ -18,8 +16,6 @@ test.describe('Route coverage gaps', () => {
   });
 
   test('register route can complete the UI flow and show the verification-required confirmation', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     const registerUser = {
       username: `sofia_registro_${uniqueSuffix}`,
@@ -50,8 +46,6 @@ test.describe('Route coverage gaps', () => {
   });
 
   test('seed owner can access the protected verify route and the profile wallet view', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -73,8 +67,6 @@ test.describe('Route coverage gaps', () => {
   });
 
   test('admin can open the dashboard, user management, and logs tabs', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.admin.username,
       password: seedUsers.admin.password,
@@ -97,8 +89,6 @@ test.describe('Route coverage gaps', () => {
   });
 
   test('non-admin users are redirected away from the dashboard route', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.recipient.username,
       password: seedUsers.recipient.password,
@@ -111,8 +101,6 @@ test.describe('Route coverage gaps', () => {
   });
 
   test('seed owner can inspect blockchain auditor filters and expand an event', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,

@@ -85,7 +85,6 @@ test.describe('Shared route coverage', () => {
   };
 
   test('seed owner can create and share a document used for shared-page coverage', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(240000);
 
     const ownerSession = await loginWithStoredSession(page, request, {
@@ -146,8 +145,6 @@ test.describe('Shared route coverage', () => {
   });
 
   test('recipient can use the shared-with-me page search, filters, and open the shared document', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const recipientSession = await loginWithStoredSession(page, request, {
       username: seedUsers.recipient.username,
       password: seedUsers.recipient.password,
@@ -203,7 +200,6 @@ test.describe('Shared route coverage', () => {
   });
 
   test('recipient can sign the shared document and the owner receives a document notification', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(180000);
 
     const recipientSession = await loginWithStoredSession(page, request, {
@@ -291,8 +287,6 @@ test.describe('Shared route coverage', () => {
   });
 
   test('recipient can inspect the signer profile for the signed version', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const recipientSession = await loginWithStoredSession(page, request, {
       username: seedUsers.recipient.username,
       password: seedUsers.recipient.password,
@@ -320,8 +314,6 @@ test.describe('Shared route coverage', () => {
   });
 
   test('notifications tabs expose share and document events', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.recipient.username,
       password: seedUsers.recipient.password,

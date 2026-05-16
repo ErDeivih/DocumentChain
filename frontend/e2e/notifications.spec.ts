@@ -9,8 +9,6 @@ test.describe('Notifications behaviour', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('notifications page loads with all tabs', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,
@@ -26,7 +24,6 @@ test.describe('Notifications behaviour', () => {
   });
 
   test('unread notifications are auto-marked as read after entering the page', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(60000);
 
     await loginWithStoredSession(page, request, {
@@ -58,7 +55,6 @@ test.describe('Notifications behaviour', () => {
   });
 
   test('mark all as read button clears unread notifications', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(60000);
 
     await loginWithStoredSession(page, request, {
@@ -88,7 +84,6 @@ test.describe('Notifications behaviour', () => {
   });
 
   test('notification badge in header reflects unread count', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(60000);
 
     await loginWithStoredSession(page, request, {

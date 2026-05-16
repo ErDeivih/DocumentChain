@@ -128,7 +128,6 @@ test.describe('Annex UI screenshots', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('capture current UI for annex V', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(240000);
 
     await page.setViewportSize({ width: 1440, height: 1200 });
@@ -330,7 +329,6 @@ test.describe('Annex UI screenshots', () => {
   });
 
   test('capture security and account deletion confirmation screens', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,
       password: seedUsers.owner.password,

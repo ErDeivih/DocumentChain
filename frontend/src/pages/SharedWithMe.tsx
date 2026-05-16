@@ -8,6 +8,7 @@ import AlertMessage from '../components/ui/AlertMessage';
 import { Badge } from '../components/ui/Badge';
 import { DocumentTypeIcon, getDocumentTypeVisual } from '../components/documents/DocumentTypeIcon';
 import { Link } from 'react-router-dom';
+import { truncateAddress } from '../lib/utils';
 import { useDebounce } from '../hooks/useDebounce';
 import { FileText, User, Search, Filter, Wallet as WalletIcon, Loader2 } from 'lucide-react';
 
@@ -100,7 +101,7 @@ export const SharedWithMe: React.FC = () => {
                 <span className="font-medium text-foreground">
                   {activeWallet.label || 'Wallet sin nombre'}
                 </span>{' '}
-                ({activeWallet.walletAddress.slice(0, 6)}...{activeWallet.walletAddress.slice(-4)})
+                ({truncateAddress(activeWallet.walletAddress)})
               </span>
             </div>
           )}

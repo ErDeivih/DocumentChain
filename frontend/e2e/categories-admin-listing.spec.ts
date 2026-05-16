@@ -140,8 +140,6 @@ function cleanupListingDocuments(username: string, prefix: string): void {
 
 test.describe('Admin and listing coverage', () => {
   test('admin can create, demote, and delete a managed user while self-protection remains enforced', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const session = await loginWithStoredSession(page, request, {
       username: seedUsers.admin.username,
       password: seedUsers.admin.password,
@@ -274,8 +272,6 @@ test.describe('Admin and listing coverage', () => {
   });
 
   test('documents page paginates results and combines search, file type, and archived filters', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
-
     const prefix = `listing-e2e-${Date.now()}`;
     seedListingDocuments(seedUsers.owner.username, prefix);
 

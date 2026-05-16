@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWalletManager } from '../../contexts/WalletManagerContext';
 import { useActiveWallet } from '../../contexts/ActiveWalletContext';
-import { cn } from '../../lib/utils';
+import { cn, truncateAddress } from '../../lib/utils';
 import { Star, Wallet, Plus } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
@@ -24,9 +24,7 @@ export const WalletSidebar: React.FC = () => {
   const { activeWallet, setActiveWallet } = useActiveWallet();
   const navigate = useNavigate();
 
-  /**
-   * Acorta una dirección de wallet para su visualización compacta.
-   *
+  const { savedWallets, setPrimaryWallet } = useWalletManager();
    * @param address - Dirección completa de la wallet.
    * @returns Cadena con los primeros 6 y últimos 4 caracteres separados por "...".
    */
@@ -125,7 +123,7 @@ export const WalletSidebar: React.FC = () => {
                     </p>
                   </div>
                   <p className="font-mono text-[10px] text-muted-foreground">
-                    {shortenAddress(wallet.walletAddress)}
+                    {truncateAddress(wallet.walletAddress)}
                   </p>
                 </div>
 

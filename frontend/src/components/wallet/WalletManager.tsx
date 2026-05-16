@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Badge } from '../ui/Badge';
 import { useToast } from '../ui/Toast';
+import { truncateAddress } from '../../lib/utils';
 import { walletsApi } from '../../api/wallets';
 import { getWalletConnectInstance } from '../../lib/walletconnect';
 import {
@@ -229,8 +230,6 @@ export const WalletManager: React.FC<WalletManagerProps> = ({
     setEditLabel(wallet.label || '');
   };
 
-  const formatAddress = (address: string) => `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
-
   return (
     <Card>
       <CardHeader>
@@ -324,7 +323,7 @@ export const WalletManager: React.FC<WalletManagerProps> = ({
                     ) : (
                       <>
                         <div className="flex items-center gap-2">
-                          <p className="font-medium">{wallet.label || formatAddress(wallet.address)}</p>
+                          <p className="font-medium">{wallet.label || truncateAddress(wallet.address)}</p>
                           {wallet.isPrimary && (
                             <Badge variant="default" className="text-xs">
                               <Star className="w-3 h-3 mr-1" />

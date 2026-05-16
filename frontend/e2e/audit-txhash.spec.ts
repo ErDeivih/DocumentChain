@@ -13,7 +13,6 @@ test.describe('Audit txHash search', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('user can search a transaction by hash and see decoded events', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(180000);
 
     const session = await loginWithStoredSession(page, request, {

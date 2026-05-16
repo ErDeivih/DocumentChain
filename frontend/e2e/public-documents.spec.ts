@@ -11,7 +11,6 @@ import {
 
 test.describe('Public document publishing', () => {
   test('owner can publish a document and access it through the public page', async ({ page, request, browserName }) => {
-    test.skip(browserName !== 'chromium');
     test.setTimeout(180000);
 
     const ownerSession = await loginWithStoredSession(page, request, {

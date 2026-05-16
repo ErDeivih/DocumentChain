@@ -543,27 +543,6 @@ export class AuthService {
   }
 
   /**
-   * Valida un token de sesión (legado - para compatibilidad hacia atrás).
-   * @param accessToken - Token de acceso a validar.
-   * @returns `true` si la sesión existe y no ha expirado.
-   */
-  static async validateSession(accessToken: string): Promise<boolean> {
-    const session = await prisma.session.findUnique({
-      where: { accessToken }
-    });
-
-    if (!session) {
-      return false;
-    }
-
-    if (session.accessTokenExpiresAt < new Date()) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
    * Obtiene la clave privada descifrada de un usuario.
    * @deprecated El descifrado de clave privada debe realizarse únicamente en el frontend.
    * @param userId - UUID del usuario.
