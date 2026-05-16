@@ -1,4 +1,4 @@
-# Mapa de Recursos del Proyecto DocumentChain
+﻿# Mapa de Recursos del Proyecto DocumentChain
 
 > **FUENTE DE VERDAD**: Las capturas de `anexos/capt/` (1.png a 30.png) contienen la normativa oficial USAL / CCII-N2016-02. Todo lo que se genera debe ajustarse a lo que dictan esas diapositivas.
 
@@ -142,7 +142,7 @@
 Todos los `seq-*.puml` son de **diseño**: muestran AuthService, DocumentService, IPFS, PostgreSQL, Smart Contract, etc. Son los "posteriores" del Anexo III.
 
 **Listado completo**:
-`seq-2fa`, `seq-activate-version`, `seq-archive`, `seq-blockchain-audit`, `seq-categories`, `seq-change-password`, `seq-connect-wallet`, `seq-create-admin`, `seq-create-folder`, `seq-delete`, `seq-delete-user-admin`, `seq-delete-wallet`, `seq-doc-detail`, `seq-download`, `seq-download-version`, `seq-edit-metadata`, `seq-global-stats`, `seq-label-wallet`, `seq-list-documents`, `seq-list-users`, `seq-list-versions`, `seq-login`, `seq-logout`, `seq-manage-roles`, `seq-modify-permissions`, `seq-notifications`, `seq-pause-system`, `seq-preferences`, `seq-primary-wallet`, `seq-profile`, `seq-recover-password`, `seq-regen-backup-2fa`, `seq-register`, `seq-register-wallet`, `seq-resend-verification`, `seq-restore-version`, `seq-resume-system`, `seq-revoke-access`, `seq-search`, `seq-self-suspend`, `seq-self-unsuspend`, `seq-share`, `seq-shared-documents`, `seq-sign`, `seq-suspend-user`, `seq-tag-document`, `seq-timeline`, `seq-transfer`, `seq-unarchive`, `seq-upload`, `seq-user-stats`, `seq-verify-authenticity`, `seq-verify-email`, `seq-verify-signature`, `seq-version`, `seq-view-signatures`.
+`seq-activate-version`, `seq-archive`, `seq-blockchain-audit`, `seq-categories`, `seq-change-password`, `seq-connect-wallet`, `seq-create-admin`, `seq-create-folder`, `seq-delete`, `seq-delete-user-admin`, `seq-delete-wallet`, `seq-doc-detail`, `seq-download`, `seq-download-version`, `seq-edit-metadata`, `seq-label-wallet`, `seq-list-documents`, `seq-list-users`, `seq-list-versions`, `seq-login`, `seq-logout`, `seq-manage-roles`, `seq-modify-permissions`, `seq-notifications`, `seq-preferences`, `seq-primary-wallet`, `seq-profile`, `seq-recover-password`, `seq-register`, `seq-register-wallet`, `seq-resend-verification`, `seq-restore-version`, `seq-revoke-access`, `seq-search`, `seq-share`, `seq-shared-documents`, `seq-sign`, `seq-tag-document`, `seq-timeline`, `seq-transfer`, `seq-unarchive`, `seq-upload`, `seq-verify-authenticity`, `seq-verify-email`, `seq-verify-signature`, `seq-version`, `seq-view-signatures`.
 
 Algunos tienen variante `_prov` (provisional).
 
@@ -204,8 +204,6 @@ Estas capturas se usarán en el **Anexo VI (Manual del Usuario)**.
 | Archivo | Utilidad |
 |---------|----------|
 | `API.md` | Endpoints REST, formato de peticiones/responses. Útil para Anexo IV. |
-| `IMPLEMENTATION.md` | Decisiones de implementación, arquitectura. Útil para Memoria cap. 7 y Anexo IV. |
-| `CHECKLIST_IMPLEMENTACION.md` | Checklist funcional. Referencia de funcionalidades implementadas. |
 | `FRONTEND_ENCRYPTION_MIGRATION.md` | Migración de cifrado. Útil para Anexo IV (aspectos técnicos). |
 | `IPFS_SETUP.md` | Configuración de IPFS. Útil para Anexo VII. |
 | `UBUNTU_SELF_HOSTED_DEPLOY.md` | Despliegue en Ubuntu. Útil para Anexo VII. |

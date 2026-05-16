@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Detalle / Verificar firma" as ui
 control "Endpoints de firmas (/api/documents/:id/signatures/:sigId/verify)" as api
 control "SignatureService" as srv
-control "BlockchainService" as bc
+control "BlockchainAdminService" as bc
 database "Base de datos" as db
 
 user -> ui: Solicita verificar una firma

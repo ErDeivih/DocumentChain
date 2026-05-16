@@ -1,4 +1,4 @@
-# Guía de Pruebas - Sistema DocumentChain
+﻿# Guía de Pruebas - Sistema DocumentChain
 
 ## ✅ Servicios Activos
 
@@ -305,7 +305,7 @@ curl -k -X POST https://localhost:3000/api/admin/sync \
 ### Tests del Backend
 ```bash
 cd backend
-npm test
+npm run test
 ```
 
 ### Tests de Smart Contracts

@@ -1,9 +1,9 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Vista Estadisticas" as ui
-control "Endpoints de estadisticas (/api/stats/user)" as api
-control "StatsService" as srv
+boundary "Vista de perfil / Estadisticas" as ui
+control "Endpoints de administracion (/api/admin/stats)" as api
+control "AdminController" as srv
 database "Base de datos" as db
 
 user -> ui: Solicita sus estadisticas de uso

@@ -3,7 +3,7 @@
 actor Usuario as user
 boundary "Vista Auditoria blockchain" as ui
 control "Endpoints de auditoria (/api/audit)" as api
-control "BlockchainService" as srv
+control "AuditService" as srv
 entity "DocumentRegistry" as sc
 
 user -> ui: Abre la auditoria blockchain del documento

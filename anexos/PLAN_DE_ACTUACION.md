@@ -1,3 +1,5 @@
+> **ESTADO**: COMPLETADO - Mayo 2026. Todas las fases han sido ejecutadas segun TODO.md.
+
 # Plan de Actuación — DocumentChain TFG
 
 > **Base normativa**: Capturas `anexos/capt/` (normativa CCII-N2016-02, USAL)

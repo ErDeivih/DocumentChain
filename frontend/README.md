@@ -1,4 +1,4 @@
-# DocumentChain Frontend
+﻿# DocumentChain Frontend
 
 Modern React frontend for the DocumentChain blockchain-based document management system.
 
@@ -27,8 +27,7 @@ frontend/
 │   │   ├── documents.ts
 │   │   ├── versions.ts
 │   │   ├── shares.ts
-│   │   ├── wallets.ts
-│   │   └── stats.ts
+│   │   └── wallets.ts
 │   ├── components/       # React components
 │   │   ├── ui/          # Base UI components
 │   │   ├── auth/        # Authentication components
@@ -258,8 +257,6 @@ Fully typed with TypeScript:
 
 ## Future Enhancements
 
-- [ ] Wallet integration (MetaMask)
-- [ ] Digital signatures
 - [ ] Advanced search filters
 - [ ] Bulk operations
 - [ ] Real-time notifications

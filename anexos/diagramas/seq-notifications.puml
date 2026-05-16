@@ -3,7 +3,7 @@
 autonumber 1
 actor Usuario as user
 boundary "VistaNotificaciones.tsx" as ui
-control "NotificationController\n(/api/notifications)" as notifApi
+control "Rutas de notificaciones\n(/api/notifications)" as notifApi
 control "NotificationService" as srv
 entity "Notification" as notif
 database "Base de datos" as db

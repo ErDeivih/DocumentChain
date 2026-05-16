@@ -1,9 +1,7 @@
-@startuml
+﻿@startuml
 !include ../_structure-style.puml
 skinparam classAttributeIconSize 0
-
-title Diagrama de Clases de Análisis (BCE) — DocumentChain
-
+title Diagrama de Clases de AnÃ¡lisis (BCE) â€” DocumentChain
 package "Boundary (Interfaces de Usuario)" #E3F2FD {
     class "PaginaLogin" as BLogin <<boundary>>
     class "PaginaRegistro" as BRegister <<boundary>>
@@ -18,7 +16,6 @@ package "Boundary (Interfaces de Usuario)" #E3F2FD {
     class "CentroNotificaciones" as BNotif <<boundary>>
     class "GestorWallets" as BWallet <<boundary>>
 }
-
 package "Control (Gestores de Casos de Uso)" #E8F5E9 {
     class "GestorAutenticacion" as CAuth <<control>>
     class "GestorDocumentos" as CDoc <<control>>
@@ -32,7 +29,6 @@ package "Control (Gestores de Casos de Uso)" #E8F5E9 {
     class "GestorAdministracion" as CAdmin <<control>>
     class "GestorEstadisticas" as CStats <<control>>
 }
-
 package "Entity (Entidades de Dominio)" #FFF3E0 {
     class "Usuario" as EUser <<entity>> {
         - id
@@ -48,7 +44,6 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - isSuspended
         - createdAt
     }
-
     class "Documento" as EDoc <<entity>> {
         - id
         - name
@@ -63,7 +58,6 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - visibility
         - createdAt
     }
-
     class "Version" as EVer <<entity>> {
         - id
         - versionNumber
@@ -72,21 +66,18 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - isOperational
         - createdAt
     }
-
     class "Firma" as ESig <<entity>> {
         - id
         - signedAt
         - blockchainTxHash
         - signatureHash
     }
-
     class "Compartido" as EShare <<entity>> {
         - id
         - permission
         - expiresAt
         - createdAt
     }
-
     class "Wallet" as EWallet <<entity>> {
         - id
         - walletAddress
@@ -95,7 +86,6 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - nickname
         - addedAt
     }
-
     class "Carpeta" as EFolder <<entity>> {
         - id
         - name
@@ -103,7 +93,6 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - color
         - isShared
     }
-
     class "Evento" as EEvent <<entity>> {
         - id
         - eventType
@@ -112,7 +101,6 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - blockNumber
         - createdAt
     }
-
     class "Notificacion" as ENotif <<entity>> {
         - id
         - type
@@ -121,33 +109,18 @@ package "Entity (Entidades de Dominio)" #FFF3E0 {
         - isRead
         - createdAt
     }
-
-    class "Cuenta2FA" as E2FA <<entity>> {
-        - secret
-        - isEnabled
-        - backupCodes[]
-    }
-
     class "TokenVerificacion" as EToken <<entity>> {
         - token
         - type
         - expiresAt
     }
-
     class "Sesion" as ESession <<entity>> {
         - token
         - expiresAt
         - ipAddress
         - userAgent
     }
-
-    class "Categoria" as ECat <<entity>> {
-        - id
-        - name
-        - color
-    }
 }
-
 ' Relaciones Boundary -> Control
 BLogin --> CAuth
 BRegister --> CAuth
@@ -163,83 +136,61 @@ BAdmin --> CAdmin
 BAdmin --> CStats
 BNotif --> CNotif
 BWallet --> CWallet
-
 ' Relaciones Control -> Entity
 CAuth --> EUser
-CAuth --> E2FA
 CAuth --> EToken
 CAuth --> ESession
-
 CDoc --> EDoc
 CDoc --> EFolder
 CDoc --> EVer
 CDoc --> EShare
 CDoc --> EEvent
-CDoc --> ECat
-
 CVer --> EDoc
 CVer --> EVer
-
 CShare --> EDoc
 CShare --> EShare
 CShare --> EUser
-
 CSign --> EDoc
 CSign --> EVer
 CSign --> ESig
 CSign --> EWallet
-
 CVerify --> EDoc
 CVerify --> EVer
 CVerify --> ESig
-
 CAudit --> EDoc
 CAudit --> EEvent
-
 CWallet --> EWallet
 CWallet --> EUser
-
 CAdmin --> EUser
 CAdmin --> ESession
 CAdmin --> EDoc
-
 CNotif --> ENotif
 CNotif --> EUser
-
 CStats --> EDoc
 CStats --> EUser
 CStats --> ESig
 CStats --> EShare
 CStats --> EEvent
-
 ' Relaciones Entity -> Entity
 EUser "1" -- "0..5" EWallet : posee >
 EUser "1" -- "*" EDoc : propietario >
 EUser "1" -- "*" EFolder : organiza >
 EUser "1" -- "*" ENotif : recibe >
-EUser "1" -- "0..1" E2FA : configura >
 EUser "1" -- "*" EToken : genera >
 EUser "1" -- "*" ESession : tiene >
 EUser "1" -- "*" ESig : firma >
 EUser "1" -- "*" EShare : comparte >
-
 EDoc "1" -- "*" EVer : tiene >
 EDoc "1" -- "*" ESig : firmado por >
 EDoc "1" -- "*" EShare : compartido mediante >
 EDoc "1" -- "*" EEvent : genera >
 EDoc "1" -- "*" ENotif : origina >
 EDoc "*" -- "0..1" EFolder : contenido en >
-EDoc "*" -- "*" ECat : categorizado por >
-
-EVer "*" -- "1" EDoc : versión de >
+EVer "*" -- "1" EDoc : versiÃ³n de >
 EVer "1" -- "*" ESig : tiene firmas >
-
 ESig "*" -- "1" EUser : firmado por >
 ESig "*" -- "0..1" EWallet : desde wallet >
-
 EFolder "*" -- "0..1" EFolder : padre >
-
 EShare "*" -- "1" EDoc : sobre documento >
 EShare "*" -- "1" EUser : compartido con >
-
 @enduml

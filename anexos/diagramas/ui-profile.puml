@@ -1,7 +1,7 @@
-@startsalt
+﻿@startsalt
 {+
   Boceto de perfil y seguridad
-  ─────────────────────────────
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     [ Foto ] |
     {
@@ -10,7 +10,7 @@
       Rol: [rol] | Alta: [fecha]
     }
   }
-  ─────────────────────────────
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Wallets vinculadas
   {#
     Red | Direccion | Verificada | Accion
@@ -18,7 +18,7 @@
     [Red] | [direccion] | [si/no] | [Accion]
   }
   [+ Vincular nueva wallet]
-  ─────────────────────────────
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Seguridad
   {
     Segundo factor: | [estado]
@@ -26,8 +26,8 @@
     Sesiones activas: | [resumen]
   }
   .
-  [Cambiar contrasena] | [Configurar 2FA] | [Ver sesiones]
-  ─────────────────────────────
+  [Cambiar contrasena] | [Ver sesiones]
+  â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   [Editar perfil] | [Eliminar cuenta]
 }
 @endsalt

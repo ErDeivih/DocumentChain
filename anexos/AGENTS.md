@@ -1,4 +1,4 @@
-# AGENTS.md - Guia para Desarrollo de Anexos y Memoria Final TFG
+﻿# AGENTS.md - Guia para Desarrollo de Anexos y Memoria Final TFG
 
 > **DocumentChain - Sistema de Gestion Documental con Blockchain**
 > Este archivo es la referencia definitiva para que cualquier agente de IA pueda continuar y completar los anexos tecnicos y la memoria final del proyecto.
@@ -337,11 +337,8 @@ Orientado completamente a desarrolladores que vayan a leer, mantener o evaluar e
    - Referencia a posible uso de TypeDoc para el backend
    - Documentacion de contratos inteligentes (NatSpec en Solidity)
    - API REST documentada con Swagger/OpenAPI
-5. **Smart Contracts**:
-   - DocumentRegistry.sol: registro de documentos
-   - Versioning.sol: gestion de versiones
-   - Signing.sol: firmas digitales
-   - AccessControl.sol: control de acceso y permisos
+5. **Smart Contract**:
+   - DocumentRegistry.sol: contrato consolidado que gestiona registro de documentos, versiones, firmas digitales y control de acceso
    - Descripcion de cada funcion publica y eventos emitidos
 6. **Arquitectura de cifrado** (3 capas):
    - Capa 1: Autenticacion (JWT)
@@ -534,16 +531,7 @@ Es la memoria completa de un companero de la USAL (proyecto Load Crutches). Sirv
 
 **USAR SOLO COMO REFERENCIA DE ESTILO Y ESTRUCTURA, NO COPIAR CONTENIDO.**
 
-### 4.4 Archivos Temporales de Anexos
-
-**Ubicacion**: `anexos/temp_anexo*.md`
-
-Son borradores previos de los anexos. Pueden contener informacion util pero necesitan:
-- Reestructuracion completa segun esta guia
-- Actualizacion de contenido tecnico
-- Correccion de estilo
-
-### 4.5 Archivos LaTeX Actuales
+### 4.4 Archivos LaTeX Actuales
 
 **Ubicacion**: `anexos/*_NUEVO.tex`
 

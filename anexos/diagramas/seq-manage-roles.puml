@@ -3,7 +3,7 @@
 actor Administrador as admin
 boundary "Panel de administracion / Usuarios" as ui
 control "Endpoints de administracion (/api/admin)" as api
-control "AdminUserService" as srv
+control "AdminController" as srv
 database "Base de datos" as db
 
 admin -> ui: Cambia el rol de un usuario

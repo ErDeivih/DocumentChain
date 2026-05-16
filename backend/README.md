@@ -1,4 +1,4 @@
-# DocumentChain - Backend API
+﻿# DocumentChain - Backend API
 
 ## Complete Implementation Status ✅
 
@@ -71,13 +71,9 @@
 - **File Upload**: Multer
 - **HTTPS**: Self-signed certificates (dev) / Let's Encrypt (production)
 
-### Smart Contracts
+### Smart Contract
 - **Language**: Solidity
-- **Contracts**:
-  - DocumentRegistry - CRUD operations
-  - DocumentVersioning - Version management
-  - DocumentSigning - Digital signatures
-  - DocumentAccessControl - Role-based permissions (OpenZeppelin)
+- **Contract**: DocumentRegistry.sol - contrato consolidado que gestiona registro de documentos, versiones, firmas digitales y control de acceso
 
 ---
 
@@ -104,8 +100,7 @@ backend/
 │   │   ├── documentService.ts   # Document operations
 │   │   ├── versionService.ts    # Version control
 │   │   ├── signatureService.ts  # Digital signatures
-│   │   ├── shareService.ts      # Sharing/permissions
-│   │   └── statsService.ts      # Statistics
+│   │   └── shareService.ts      # Sharing/permissions
 │   │
 │   ├── controllers/
 │   │   ├── authController.ts
@@ -114,8 +109,7 @@ backend/
 │   │   ├── documentController.ts
 │   │   ├── versionController.ts
 │   │   ├── signatureController.ts
-│   │   ├── shareController.ts
-│   │   └── statsController.ts
+│   │   └── shareController.ts
 │   │
 │   ├── routes/
 │   │   ├── auth.ts
@@ -124,8 +118,7 @@ backend/
 │   │   ├── documents.ts
 │   │   ├── versions.ts
 │   │   ├── signatures.ts
-│   │   ├── shares.ts
-│   │   └── stats.ts
+│   │   └── shares.ts
 │   │
 │   ├── middleware/
 │   │   ├── auth.ts              # JWT authentication
@@ -208,9 +201,6 @@ IPFS_GATEWAY_URL="http://localhost:8080"
 BLOCKCHAIN_RPC_URL="http://localhost:8545"
 BLOCKCHAIN_PRIVATE_KEY="your-backend-wallet-private-key"
 CONTRACT_DOCUMENT_REGISTRY=""
-CONTRACT_DOCUMENT_VERSIONING=""
-CONTRACT_DOCUMENT_SIGNING=""
-CONTRACT_DOCUMENT_ACCESS_CONTROL=""
 ```
 
 ### 4. Generate SSL Certificates
@@ -365,11 +355,6 @@ See [API Documentation](../docs/API.md) for complete endpoint list.
 - `PUT /api/documents/:id/share/:userId` - Update role
 - `DELETE /api/documents/:id/share/:userId` - Revoke access
 
-### Statistics
-- `GET /api/stats/me` - User stats
-- `GET /api/stats/system` (admin) - System stats
-- `GET /api/documents/:id/stats` - Document stats
-
 ---
 
 ## Security Features
@@ -435,26 +420,18 @@ See `prisma/schema.prisma` for complete schema.
 
 ## Blockchain Integration
 
-### Smart Contracts
+### Smart Contract
 
-**DocumentRegistry**:
+**DocumentRegistry** (contrato consolidado):
 - Create, archive, delete documents
 - Transfer ownership
 - Soft delete support
-
-**DocumentVersioning**:
-- Create versions
+- Create and manage versions
 - Set operational version
 - Restore previous versions
-
-**DocumentSigning**:
 - Sign versions with comments
-- Prevent duplicate signatures
-
-**DocumentAccessControl**:
 - Role-based access control
 - Grant/revoke permissions
-- Change ownership
 
 ### Roles
 

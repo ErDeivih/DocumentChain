@@ -1,3 +1,5 @@
+> **NOTA**: Este documento es una referencia historica del plan de despliegue original. No representa el estado actual del despliegue.
+
 # Plan de despliegue en Sepolia — DocumentChain
 
 ## Objetivo

@@ -3,7 +3,7 @@
 actor Usuario as user
 boundary "Detalle / Actividad" as ui
 control "Endpoints de timeline (/api/timeline/documents/:id)" as api
-control "EventService" as srv
+control "DocumentTimelineService" as srv
 control "DocumentPermissionService" as perm
 entity "DocumentRegistry" as sc
 entity "Event" as evt

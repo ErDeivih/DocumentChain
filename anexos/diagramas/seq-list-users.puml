@@ -3,7 +3,7 @@
 actor Admin as admin
 boundary "Panel de administracion" as ui
 control "Endpoints de administracion (/api/admin)" as api
-control "AdminService" as srv
+control "AdminController" as srv
 database "Base de datos" as db
 
 admin -> ui: Abre gestion de usuarios y aplica filtros
@@ -13,7 +13,7 @@ srv -> db: Consultar usuarios y total disponible
 db --> srv: Lista paginada
 srv --> api: Resultado consolidado
 api --> ui: Tabla lista
-ui --> admin: Ve roles, suspension, email verificado y ultimo acceso
+ui --> admin: Ve roles, email verificado y ultimo acceso
 
 @enduml
 
