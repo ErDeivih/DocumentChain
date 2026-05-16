@@ -13,7 +13,7 @@ import AlertMessage from '../ui/AlertMessage';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { signingService } from '../../services/blockchain/SigningService';
 import { signaturesApi } from '../../api/signatures';
-import { blockchainProvider } from '../../lib/blockchain/provider';
+import { useSigner } from '../../hooks/useSigner';
 import { FileSignature, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import type { Document } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
@@ -56,6 +56,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
   const [hasAlreadySigned, setHasAlreadySigned] = useState(false);
   const [checkingSignature, setCheckingSignature] = useState(true);
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const { getVerifiedSigner } = useSigner();
 
   // Verifica si el usuario ya ha firmado esta versión
   useEffect(() => {
@@ -117,15 +118,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
       setError(null);
       setStep('signing');
 
-      const signer = blockchainProvider.getSigner();
-      if (!signer) {
-        throw new Error('No signer available. Please connect your wallet.');
-      }
-
-      const signerAddress = await signer.getAddress();
-      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
-        throw new Error('Connected wallet does not match selected wallet.');
-      }
+      const signer = await getVerifiedSigner(connectedAddress);
 
       await signingService.signDocument({
         documentId: document.id,

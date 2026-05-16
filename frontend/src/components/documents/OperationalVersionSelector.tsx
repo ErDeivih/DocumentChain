@@ -16,10 +16,9 @@ import { signaturesApi } from '../../api/signatures';
 import { versionsApi } from '../../api/versions';
 import { PublicLinkActions } from '../public/PublicLinkActions';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
-import { blockchainProvider } from '../../lib/blockchain/provider';
-import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
 import type { Signature, Version } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
+import { useSigner } from '../../hooks/useSigner';
 import {
   GitBranch,
   CheckCircle,
@@ -91,6 +90,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   const [signaturesError, setSignaturesError] = useState<string | null>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [pendingVersionNumber, setPendingVersionNumber] = useState<number | null>(null);
+  const { getRegistryContract } = useSigner();
 
   useEffect(() => {
     setVersions(providedVersions);
@@ -113,18 +113,8 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
       // 1. PREPARE
       const prepare = await versionsApi.prepareSetOperational(documentId, pendingVersionNumber);
 
-      // 2. Validar signer
-      const signer = blockchainProvider.getSigner();
-      if (!signer) {
-        throw new Error('No hay wallet conectada. Conecta tu wallet para firmar la transacción.');
-      }
-      const signerAddress = await signer.getAddress();
-      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
-        throw new Error('La wallet conectada no coincide con la seleccionada.');
-      }
-
-      // 3. Firmar transacción on-chain
-      const registry = new DocumentRegistryContract(signer);
+      // 2. Validar signer y obtener contrato
+      const registry = await getRegistryContract(connectedAddress);
       const tx = await registry.setOperationalVersion(prepare.blockchainId, pendingVersionNumber);
 
       // 4. Confirmar en backend

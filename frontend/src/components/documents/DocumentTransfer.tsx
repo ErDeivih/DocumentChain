@@ -12,7 +12,7 @@ import { Badge } from '../ui/Badge';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { getErrorMessage } from '../../lib/api';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
-import { blockchainProvider } from '../../lib/blockchain/provider';
+import { useSigner } from '../../hooks/useSigner';
 import { documentsApi } from '../../api/documents';
 import { usersApi } from '../../api/users';
 import { KeyManager } from '../../lib/crypto/KeyManager';
@@ -70,6 +70,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
   onTransferComplete
 }) => {
   const { user } = useAuth();
+  const { getVerifiedSigner } = useSigner();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null);
@@ -149,17 +150,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
         throw new Error('El usuario autenticado no tiene material criptográfico disponible.');
       }
       
-      // Get signer from connected wallet
-      const signer = blockchainProvider.getSigner();
-      if (!signer) {
-        throw new Error('No signer available. Please connect your wallet.');
-      }
-      
-      // Verify the connected address matches
-      const signerAddress = await signer.getAddress();
-      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
-        throw new Error('Connected wallet does not match selected wallet.');
-      }
+      const signer = await getVerifiedSigner(connectedAddress);
 
       const { document } = await documentsApi.get(documentId);
       if (!isPublic && !document.encryptedSymmetricKey) {

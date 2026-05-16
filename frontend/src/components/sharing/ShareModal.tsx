@@ -7,6 +7,7 @@ import { usersApi, type UserSearchResult } from '../../api/users';
 import { KeyManager } from '../../lib/crypto/KeyManager';
 import { getErrorMessage } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSigner } from '../../hooks/useSigner';
 import {
   Dialog,
   DialogContent,
@@ -21,8 +22,7 @@ import { Label } from '../ui/Label';
 import { Alert, AlertDescription } from '../ui/Alert';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { SavedWallet } from '../../contexts/WalletManagerContext';
-import { blockchainProvider } from '../../lib/blockchain/provider';
-import { AccessRole, DocumentRegistryContract } from '../../lib/blockchain/contracts';
+import { AccessRole } from '../../lib/blockchain/contracts';
 import { UserPlus, AlertCircle, Info, Loader2, Wallet } from 'lucide-react';
 
 /**
@@ -55,6 +55,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { getRegistryContract } = useSigner();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<DocumentRole>(DocumentRole.SHARED_READ);
@@ -117,17 +118,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         throw new Error('Usuario no autenticado');
       }
 
-      // Obtiene el firmante
-      const signer = blockchainProvider.getSigner();
-      if (!signer) {
-        throw new Error('No signer available. Please connect your wallet.');
-      }
-      
-      // Verifica que la dirección conectada coincida
-      const signerAddress = await signer.getAddress();
-      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
-        throw new Error('Connected wallet does not match selected wallet.');
-      }
+      const registryContract = await getRegistryContract(connectedAddress);
 
       // Paso 1: utiliza el destinatario validado, recurriendo a una búsqueda solo si es necesario
       const recipientUser = pendingRecipient ?? (await usersApi.search(username.trim())).users?.[0];
@@ -179,9 +170,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       // Paso 6: firma la transacción blockchain para el control de acceso
       setStep('signing');
 
-      // Crea la instancia del contrato de registro
-      const registryContract = new DocumentRegistryContract(signer);
-      
       const role = selectedRole === DocumentRole.SHARED_WRITE
         ? AccessRole.EDITOR
         : AccessRole.VIEWER;

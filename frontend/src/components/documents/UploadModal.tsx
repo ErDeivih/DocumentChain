@@ -19,11 +19,8 @@ import { Upload, File, X, AlertCircle, Info, Loader2, CheckCircle2 } from 'lucid
 import { cn, MAX_FILE_SIZE } from '../../lib/utils';
 import { getErrorMessage } from '../../lib/api';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
-import { blockchainProvider } from '../../lib/blockchain/provider';
-import { 
-  DocumentRegistryContract, 
-} from '../../lib/blockchain/contracts';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSigner } from '../../hooks/useSigner';
 
 /**
  * Props del componente UploadModal.
@@ -54,6 +51,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   defaultFolderId,
 }) => {
   const { user } = useAuth(); // Get current user
+  const { getRegistryContract } = useSigner();
   const [file, setFile] = useState<File | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [folderId, setFolderId] = useState<string | null>(defaultFolderId || null);
@@ -155,17 +153,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       if (!user) throw new Error('User not authenticated');
       if (!wallet) throw new Error('Wallet not selected');
       
-      // Get signer from connected wallet
-      const signer = blockchainProvider.getSigner();
-      if (!signer) {
-        throw new Error('No signer available. Please connect your wallet.');
-      }
-      
-      // Verify the connected address matches
-      const signerAddress = await signer.getAddress();
-      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
-        throw new Error('Connected wallet does not match selected wallet.');
-      }
+      const registryContract = await getRegistryContract(connectedAddress);
 
       // Step 1: Read file as ArrayBuffer (unencrypted)
       const fileBuffer = await file.arrayBuffer();
@@ -184,10 +172,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       
       // Step 3: Sign blockchain transaction
       setStep('signing');
-      
-      // Get owner address from signer
-        // Create contract instance (consolidated single contract)
-      const registryContract = new DocumentRegistryContract(signer);
       
       // 3.1: Create document in Registry (metadata only)
         // Consolidated contract: createDocument sets doc + first version in one tx

@@ -17,8 +17,7 @@ import { Upload, File, X, AlertCircle, Loader2, CheckCircle2, Wallet } from 'luc
 import { cn, MAX_FILE_SIZE } from '../../lib/utils';
 import type { Document, Version } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
-import { blockchainProvider } from '../../lib/blockchain/provider';
-import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
+import { useSigner } from '../../hooks/useSigner';
 
 /**
  * Props del componente UploadVersionModal.
@@ -52,6 +51,7 @@ export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { getRegistryContract } = useSigner();
   
   // Upload state
   const [step, setStep] = useState<UploadStep>('form');
@@ -157,17 +157,7 @@ export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
       if (!file) throw new Error('No file selected');
       if (!wallet) throw new Error('Wallet not selected');
       
-      // Get signer from connected wallet
-      const signer = blockchainProvider.getSigner();
-      if (!signer) {
-        throw new Error('No signer available. Please connect your wallet.');
-      }
-      
-      // Verify the connected address matches
-      const signerAddress = await signer.getAddress();
-      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
-        throw new Error('Connected wallet does not match selected wallet.');
-      }
+      const registryContract = await getRegistryContract(connectedAddress);
 
       // Step 1: Read file as ArrayBuffer (unencrypted)
       const fileBuffer = await file.arrayBuffer();
@@ -182,9 +172,6 @@ export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
       
       // Step 3: Sign blockchain transaction
       setStep('signing');
-      
-      // Create registry contract instance
-      const registryContract = new DocumentRegistryContract(signer);
       
       // Get docId from document (should be blockchain ID)
       const docId = document.blockchainId || document.id;
