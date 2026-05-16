@@ -8,36 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
-import { Badge } from '../ui/Badge';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { getErrorMessage } from '../../lib/api';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
 import { useSigner } from '../../hooks/useSigner';
-import { documentsApi } from '../../api/documents';
-import { usersApi } from '../../api/users';
-import { KeyManager } from '../../lib/crypto/KeyManager';
 import { useAuth } from '../../contexts/AuthContext';
-import {
-  ArrowRightLeft,
-  Search,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  Shield,
-  Wallet
-} from 'lucide-react';
-import { UserAvatar } from '../ui/UserAvatar';
-
-/**
- * Resultado de una búsqueda de usuarios.
- */
-interface UserSearchResult {
-  id: string;
-  username: string;
-  fullName: string | null;
-  email: string;
-  avatarUrl?: string | null;
-}
+import { ArrowRightLeft, Loader2, AlertCircle } from 'lucide-react';
+import { UserSearchSelector } from './UserSearchSelector';
+import type { UserSearchResult } from './UserSearchSelector';
+import { TransferConfirmationPanel } from './TransferConfirmationPanel';
 
 /**
  * Props del componente DocumentTransfer.
@@ -301,129 +280,27 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
 
           {/* Modal de confirmación */}
           {showConfirmation && selectedUser ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm text-amber-800">
-                  <strong>Atención:</strong> Estás a punto de transferir la propiedad de 
-                  <strong> "{documentName}"</strong> a <strong>{selectedUser.username}</strong>.
-                  Esta acción no se puede deshacer y requerirá firmar una transacción blockchain.
-                </p>
-                {isPublic ? (
-                  <p className="mt-2 text-sm text-amber-800">
-                    El documento es público, por lo que la transferencia no requiere re-encriptación del contenido.
-                  </p>
-                ) : null}
-              </div>
-
-              {/* Usuario seleccionado */}
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/35 p-3">
-                <UserAvatar name={selectedUser.fullName || selectedUser.username} avatarUrl={selectedUser.avatarUrl} />
-                <div>
-                  <p className="font-medium text-foreground">{selectedUser.fullName || selectedUser.username}</p>
-                  <p className="text-sm text-muted-foreground">@{selectedUser.username}</p>
-                </div>
-              </div>
-
-              {/* Campo de contraseña */}
-              {!isPublic ? (
-                <div className="space-y-2">
-                  <Label htmlFor="password">Contraseña de su cuenta</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Introduce su contraseña para descifrar el documento"
-                    disabled={isProcessing}
-                  />
-                </div>
-              ) : null}
-
-              {/* Botones de acción */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={cancelSelection}
-                  disabled={isProcessing}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={startTransfer}
-                  disabled={isProcessing || (!isPublic && !password)}
-                  className="flex-1 bg-amber-600 hover:bg-amber-700"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Transfiriendo...
-                    </>
-                  ) : (
-                    <>
-                      <ArrowRightLeft className="h-4 w-4 mr-2" />
-                      Transferir y Firmar
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
+            <TransferConfirmationPanel
+              selectedUser={selectedUser}
+              documentName={documentName}
+              isPublic={isPublic}
+              password={password}
+              onPasswordChange={setPassword}
+              onCancel={cancelSelection}
+              onTransfer={startTransfer}
+              isProcessing={isProcessing}
+            />
           ) : (
-            <div className="space-y-4">
-              {/* Buscador de usuarios */}
-              <div className="space-y-2">
-                <Label>Buscar nuevo propietario</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar por nombre de usuario o email"
-                    onKeyDown={(e) => e.key === 'Enter' && searchUsers()}
-                    disabled={isProcessing}
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={searchUsers}
-                    disabled={searching || !searchQuery.trim() || isProcessing}
-                  >
-                    {searching ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Search className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Resultados de búsqueda */}
-              {searchResults.length > 0 && (
-                <div className="divide-y rounded-lg border border-border bg-white">
-                  {searchResults.map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => selectUser(user)}
-                      className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-secondary/35"
-                      disabled={isProcessing}
-                    >
-                      <UserAvatar name={user.fullName || user.username} avatarUrl={user.avatarUrl} />
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{user.fullName || user.username}</p>
-                        <p className="text-sm text-muted-foreground">@{user.username}</p>
-                      </div>
-                      <Badge variant="outline">Seleccionar</Badge>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Sin resultados */}
-              {searchQuery && searchResults.length === 0 && !searching && (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  No se encontraron usuarios con ese criterio
-                </p>
-              )}
-
-              {/* Información */}
+            <>
+              <UserSearchSelector
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                searchResults={searchResults}
+                searching={searching}
+                onSearch={searchUsers}
+                onSelectUser={selectUser}
+                isProcessing={isProcessing}
+              />
               <div className="space-y-1 text-xs text-muted-foreground">
                 <p>La transferencia de propiedad incluye:</p>
                 <ul className="list-disc list-inside ml-2">
