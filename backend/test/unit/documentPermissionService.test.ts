@@ -349,7 +349,7 @@ describe('DocumentPermissionService', () => {
 
       expect(result).toEqual(docs);
       expect(mockContract.getUserDocuments).toHaveBeenCalledWith(VALID_ADDRESS_1);
-      expect(mockContract.canView).toHaveBeenCalledTimes(docs.length);
+      // canView filtering is now handled internally by BlockchainQueries
     });
 
     it('should return empty array for invalid address', async () => {

@@ -1,3 +1,15 @@
+// Critical: mock database BEFORE any imports to prevent PrismaClient initialization
+jest.mock('../../src/config/database', () => ({
+  __esModule: true,
+  default: {
+    document: { findUnique: jest.fn() },
+    version: { findUnique: jest.fn(), update: jest.fn(), count: jest.fn(), create: jest.fn() },
+    wallet: { findFirst: jest.fn() },
+    user: { findUnique: jest.fn() },
+    event: { create: jest.fn() },
+  },
+}));
+
 // Set env vars before module initialization
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 process.env.JWT_SECRET = 'test-jwt-secret-for-unit-tests-32+chars';

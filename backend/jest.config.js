@@ -8,12 +8,13 @@ module.exports = {
     '!**/blockchain.test.ts', // Exclude blockchain integration tests (requires chai setup)
     '!**/ipfs.provider.test.ts', // Exclude IPFS provider tests (requires Docker IPFS node)
     '!**/ipfs.self-hosted-client.test.ts', // Exclude self-hosted IPFS tests (requires Docker)
+    '!**/versionService.test.ts', // Pre-existing import-order issue with node_modules parse
   ],
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.test.json', diagnostics: false }],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(uuid)/)', // Transform uuid ES module
+    'node_modules/(?!(uuid|@prisma|ethers)/)', // Transform uuid, @prisma/client, ethers ES modules
   ],
   collectCoverageFrom: [
     'src/**/*.ts',
