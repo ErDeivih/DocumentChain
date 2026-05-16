@@ -316,4 +316,51 @@ export class DocumentPermissionService {
       throw error;
     }
   }
+
+  /**
+   * Valida que un usuario es propietario de un documento.
+   * Busca la wallet del usuario, verifica en blockchain si existe blockchainId,
+   * o cae en la comprobación por BD si no hay registro on-chain.
+   *
+   * @param document - Objeto con al menos { blockchainId, ownerId }.
+   * @param userId - ID del usuario en base de datos.
+   * @param options - Opciones: existingWallet (salta lookup), errorMessage (mensaje custom).
+   * @returns La wallet y confirmación de propiedad.
+   * @throws Si no hay wallet, o el usuario no es propietario.
+   */
+  static async validateOwnership(
+    document: { blockchainId: string | null; ownerId: string },
+    userId: string,
+    options?: {
+      existingWallet?: { walletAddress: string; [key: string]: any };
+      errorMessage?: string;
+    }
+  ): Promise<{ wallet: { walletAddress: string; [key: string]: any }; isOwner: true }> {
+    const notOwnerMsg = options?.errorMessage ?? 'No tienes permisos para realizar esta acción';
+
+    const wallet =
+      options?.existingWallet ??
+      (await prisma.wallet.findFirst({ where: { userId } }));
+
+    if (!wallet) {
+      throw new Error('Wallet no encontrada');
+    }
+
+    if (document.blockchainId) {
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(
+        document.blockchainId,
+        wallet.walletAddress
+      );
+      if (!isOwnerOnChain) {
+        throw new Error(notOwnerMsg);
+      }
+      return { wallet, isOwner: true };
+    }
+
+    if (document.ownerId !== userId) {
+      throw new Error(notOwnerMsg);
+    }
+
+    return { wallet, isOwner: true };
+  }
 }

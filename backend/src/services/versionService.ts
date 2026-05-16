@@ -499,13 +499,36 @@ export class VersionService {
         id: true,
         ownerId: true,
         blockchainId: true,
+        name: true,
         isDeleted: true,
-        isArchived: true,
-      },
+      }
     });
 
     if (!document) {
       throw new Error('Documento no encontrado');
+    }
+
+    // Validate ownership (on-chain or DB fallback)
+    await DocumentPermissionService.validateOwnership(document, userId, {
+      errorMessage: 'Solo el propietario puede cambiar la versión operacional',
+    });
+
+    if (document.isDeleted) {
+      throw new Error('No se pueden cambiar versiones en documentos eliminados');
+    }
+    });
+
+    if (!document) {
+      throw new Error('Documento no encontrado');
+    }
+
+    // Validate ownership (on-chain or DB fallback)
+    await DocumentPermissionService.validateOwnership(document, userId, {
+      errorMessage: 'Solo el propietario puede cambiar la versión operacional',
+    });
+
+    if (document.isDeleted) {
+      throw new Error('No se pueden cambiar versiones en documentos eliminados');
     }
 
     // Validate ownership ON-CHAIN if blockchainId exists
@@ -673,17 +696,10 @@ export class VersionService {
       throw new Error('Documento no encontrado');
     }
 
-    // Validate ownership ON-CHAIN if blockchainId exists
-    if (document.blockchainId) {
-      const wallet = await prisma.wallet.findFirst({ where: { userId } });
-      if (!wallet) throw new Error('Wallet no encontrada');
-      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
-      if (!isOwnerOnChain) {
-        throw new Error('Solo el propietario puede cambiar la versión operacional');
-      }
-    } else if (document.ownerId !== userId) {
-      throw new Error('Solo el propietario puede cambiar la versión operacional');
-    }
+    // Validate ownership (on-chain or DB fallback)
+    await DocumentPermissionService.validateOwnership(document, userId, {
+      errorMessage: 'Solo el propietario puede cambiar la versión operacional',
+    });
 
     if (document.isDeleted || document.isArchived) {
       throw new Error('No se pueden cambiar versiones en documentos eliminados o archivados');
@@ -845,18 +861,10 @@ export class VersionService {
         throw new Error('Version not found');
       }
 
-      // Verify ownership
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (version.document.blockchainId) {
-        const wallet = await prisma.wallet.findFirst({ where: { userId } });
-        if (!wallet) throw new Error('Wallet no encontrada');
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(version.document.blockchainId, wallet.walletAddress);
-        if (!isOwnerOnChain) {
-          throw new Error('No tienes permiso para eliminar esta versión');
-        }
-      } else if (version.document.ownerId !== userId) {
-        throw new Error('No tienes permiso para eliminar esta versión');
-      }
+      // Verify ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(version.document, userId, {
+        errorMessage: 'No tienes permiso para eliminar esta versión',
+      });
 
       const ipfsCid = version.ipfsCid;
 
@@ -919,18 +927,10 @@ export class VersionService {
         throw new Error('Version not found');
       }
 
-      // Verify ownership
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (version.document.blockchainId) {
-        const wallet = await prisma.wallet.findFirst({ where: { userId } });
-        if (!wallet) throw new Error('Wallet no encontrada');
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(version.document.blockchainId, wallet.walletAddress);
-        if (!isOwnerOnChain) {
-          throw new Error('No tienes permiso para eliminar esta versión');
-        }
-      } else if (version.document.ownerId !== userId) {
-        throw new Error('No tienes permiso para eliminar esta versión');
-      }
+      // Verify ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(version.document, userId, {
+        errorMessage: 'No tienes permiso para eliminar esta versión',
+      });
 
       // Delete from database (do NOT unpin IPFS - it belongs to the original version)
       await prisma.version.delete({
@@ -986,17 +986,11 @@ export class VersionService {
     if (!document) {
       throw new Error('Documento no encontrado');
     }
-    // Validate ownership ON-CHAIN if blockchainId exists
-    if (document.blockchainId) {
-      const wallet = await prisma.wallet.findFirst({ where: { userId } });
-      if (!wallet) throw new Error('Wallet no encontrada');
-      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
-      if (!isOwnerOnChain) {
-        throw new Error('Solo el propietario puede restaurar versiones');
-      }
-    } else if (document.ownerId !== userId) {
-      throw new Error('Solo el propietario puede restaurar versiones');
-    }
+    // Validate ownership (on-chain or DB fallback)
+    await DocumentPermissionService.validateOwnership(document, userId, {
+      errorMessage: 'Solo el propietario puede restaurar versiones',
+    });
+
     if (document.isDeleted) {
       throw new Error('No se pueden restaurar versiones en documentos eliminados');
     }

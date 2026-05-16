@@ -126,15 +126,11 @@ export class TransferService {
       throw new Error('Wallet del propietario actual no encontrada');
     }
 
-    // Validate ownership ON-CHAIN if blockchainId exists
-    if (document.blockchainId) {
-      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, currentWallet.walletAddress);
-      if (!isOwnerOnChain) {
-        throw new Error('No eres el propietario del documento');
-      }
-    } else if (document.ownerId !== currentOwnerId) {
-      throw new Error('No eres el propietario del documento');
-    }
+    // Validate ownership (on-chain or DB fallback)
+    await DocumentPermissionService.validateOwnership(document, currentOwnerId, {
+      existingWallet: currentWallet,
+      errorMessage: 'No eres el propietario del documento',
+    });
 
     // Soft-delete check: cannot transfer deleted documents
     if (document.isDeleted) {

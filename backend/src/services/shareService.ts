@@ -184,14 +184,10 @@ export class ShareService {
     }
 
     // 3. Validate ownership ON-CHAIN (sole source of truth)
-    const isOwnerOnChain = await DocumentPermissionService.isOwner(
-      document.blockchainId,
-      sharerWallet.walletAddress
-    );
-
-    if (!isOwnerOnChain) {
-      throw new Error('No eres el propietario del documento');
-    }
+    await DocumentPermissionService.validateOwnership(document, sharerUserId, {
+      existingWallet: sharerWallet,
+      errorMessage: 'No eres el propietario del documento',
+    });
 
     // 4. Get recipient's info including public key
     const recipient = await prisma.user.findUnique({
@@ -626,14 +622,10 @@ export class ShareService {
     }
 
     // Validate ownership ON-CHAIN
-    const isOwnerOnChain = await DocumentPermissionService.isOwner(
-      document.blockchainId,
-      sharerWallet.walletAddress
-    );
-
-    if (!isOwnerOnChain) {
-      throw new Error('No eres el propietario del documento');
-    }
+    await DocumentPermissionService.validateOwnership(document, ownerId, {
+      existingWallet: sharerWallet,
+      errorMessage: 'No eres el propietario del documento',
+    });
 
     const normalizedRecipientAddress = normalizeEthereumAddress(recipientIdentifier);
 

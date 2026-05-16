@@ -377,22 +377,23 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
         notDeleted(_docId)
         notArchived(_docId)
     {
-        require(_canView(_docId, _msgSender()), "No read permission");
+        address sender = _msgSender();
+        require(_canView(_docId, sender), "No read permission");
         require(_versionNumber > 0 && _versionNumber <= _documents[_docId].latestVersion, "Invalid version");
         require(_signature.length > 0, "Invalid signature");
-        require(!_hasSigned[_docId][_versionNumber][_msgSender()], "Already signed");
+        require(!_hasSigned[_docId][_versionNumber][sender], "Already signed");
 
         _signatures[_docId][_versionNumber].push(Signature({
-            signer: _msgSender(),
+            signer: sender,
             signature: _signature,
             message: _message,
             comment: _comment,
             timestamp: block.timestamp
         }));
 
-        _hasSigned[_docId][_versionNumber][_msgSender()] = true;
+        _hasSigned[_docId][_versionNumber][sender] = true;
 
-        emit DocumentSigned(_docId, _versionNumber, _msgSender(), _message, block.timestamp);
+        emit DocumentSigned(_docId, _versionNumber, sender, _message, block.timestamp);
     }
 
     /**
@@ -436,13 +437,14 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
         nonReentrant
         notDeleted(_docId)
     {
-        require(_isOwner(_docId, _msgSender()), "Only owner");
+        address sender = _msgSender();
+        require(_isOwner(_docId, sender), "Only owner");
         require(_documents[_docId].isArchived != _archived, "Already in that state");
 
         _documents[_docId].isArchived = _archived;
         _documents[_docId].updatedAt = block.timestamp;
 
-        emit DocumentArchived(_docId, _msgSender(), _archived, block.timestamp);
+        emit DocumentArchived(_docId, sender, _archived, block.timestamp);
     }
 
     /**
@@ -455,13 +457,14 @@ contract DocumentRegistry is Ownable, AccessControl, ReentrancyGuard {
         nonReentrant
         notArchived(_docId)
     {
-        require(_isOwner(_docId, _msgSender()), "Only owner can delete");
+        address sender = _msgSender();
+        require(_isOwner(_docId, sender), "Only owner can delete");
         require(!_documents[_docId].isDeleted, "Already deleted");
 
         _documents[_docId].isDeleted = true;
         _documents[_docId].updatedAt = block.timestamp;
 
-        emit DocumentDeleted(_docId, _msgSender(), block.timestamp);
+        emit DocumentDeleted(_docId, sender, block.timestamp);
     }
 
     /**

@@ -1,106 +1,127 @@
 # CHANGELOG - Limpieza de Código DocumentChain
 
-> Fecha: 16 de mayo de 2026
-> Commits: `a834cf8` (backup) → `667c7c8` (pases 1-2) → `1ac67c4` (pases 3-4) → `3520ac9` (fase 5)
+> 16 mayo 2026 | Commits: `a834cf8` → `667c7c8` → `1ac67c4` → `3520ac9` → `b8db1b9`
 
 ---
 
-## Resumen de cambios realizados
+## COMPLETADO
 
-### Commit `667c7c8` — Pases 1 y 2 (CRÍTICO + ALTO)
+### Fase 1-2 — CRÍTICO + ALTO
+- 17 archivos basura eliminados
+- `SigningService.ts:125` texto español → comentario
+- `passwordPolicy.ts` Math.random() → crypto.randomBytes()
+- `emailService.ts` rejectUnauthorized → env variable
+- `DocumentRegistry.sol` 3 modifiers (notDeleted/notArchived) añadidos
+- `DocumentPermissionService` → delega a `BlockchainQueries` (capa única)
+- `verificationService` → usa `calculateHash` de `encryption.ts`
+- 3 endpoints deprecated eliminados de controladores
+- 3 PrismaClient → singleton unificado (BigInt extension)
+- `share.schema.ts` eliminado (archivo muerto)
+- Config files (`blockchain.ts`, `ipfs.ts`, `contractAddress.ts`) → usan `env.ts`
 
-#### Archivos basura eliminados (17)
-`texput.log`, `tmp_query.sql`, `reseed-last.log`, `test_upload_v2.txt`, `nul`, `get_last_share.*`, `package-lock.json` (raíz), `run_check.bat`, `start-dev.bat`, 8 MDs de planificación histórica.
+### Fase 3 — Quick Wins
+- `getQuery` delega a `getParam` | `substr` → `slice` | `formatBytes` importado
+- 6 `console.log` eliminados de `DocumentTransfer.tsx`
+- `MAX_FILE_SIZE` constante | 3 directorios vacíos eliminados
+- `test-api.sh`, `create-first-admin.sh`, `start-dev-simple.ps1` arreglados
+- `ModalFooter` no-op eliminado | `fix-encoding.ps1` usa `$PSScriptRoot`
 
-#### Bugs críticos arreglados
-| # | Archivo | Problema | Solución |
-|---|---------|----------|----------|
-| 1 | `SigningService.ts:125` | Texto español suelto causaba ReferenceError | Convertido a comentario |
-| 2 | `passwordPolicy.ts:283` | `Math.random()` para generar contraseñas | `crypto.randomBytes()` |
-| 3 | `emailService.ts:53` | `rejectUnauthorized: false` hardcodeado | Variable de entorno `SMTP_TLS_REJECT_UNAUTHORIZED` |
-| 4 | `DocumentRegistry.sol` | 3 funciones sin modifiers de seguridad | `notDeleted`/`notArchived` añadidos a `setArchiveStatus`, `deleteDocument`, `revokePermission` |
+### Fase 4 — Small Fixes
+- `normalizeFileExtensionFilter` extraído a `fileValidation.ts`
+- `generateSecurePassword`, `estimateCrackTime` eliminados (dead code)
+- Tipos `PinResult`, `PinStatus` añadidos a IPFS
+- `parseFilename` unificado (exportado de `documents.ts`)
+- `hashSHA3_256` → `ethers.keccak256` real | `deploy-production.ps1` Mumbai→Amoy
 
-#### Estructural (ALTOS)
-| # | Cambio | Archivos |
-|---|--------|----------|
-| 5 | `DocumentPermissionService` delega a `BlockchainQueries` (fuente canónica única) | `documentPermissionService.ts` |
-| 6 | `verificationService` usa `calculateHash` de `encryption.ts` (elimina uso de `FileCrypto`) | `verificationService.ts` |
-| 7 | 3 endpoints deprecated eliminados (`createDocument`, `createVersion`, `restoreVersion`) | `documentController.ts`, `versionController.ts` |
-| 8 | 3 instancias de `PrismaClient` unificadas al singleton con extensión BigInt | `notificationService.ts`, `eventListenerService.ts`, `documentPermissionService.ts` |
-| 9 | `share.schema.ts` eliminado (archivo muerto, 0 referencias) | `schemas/share.schema.ts` |
-| 10 | Config files usan `env.ts` validado | `blockchain.ts`, `ipfs.ts`, `contractAddress.ts` |
+### Fase 5 — useSigner Hook
+- Hook `useSigner.ts` creado: `getVerifiedSigner()` + `getRegistryContract()`
+- 6 componentes migrados, 60 líneas duplicadas eliminadas
 
----
-
-### Commit `1ac67c4` — Fases 3 y 4 (Medium Quick Wins + Small Fixes)
-
-#### Fase 3 — Quick Wins (11 items)
-| # | Cambio | Archivos |
-|---|--------|----------|
-| 1 | `getQuery` delega a `getParam` (código idéntico) | `utils/request.ts` |
-| 2 | `substr` → `slice` (API deprecated) | `utils/logger.ts:151` |
-| 3 | `formatBytes` importado de utils en vez de redefinido | `LogsViewer.tsx` |
-| 4 | 6 `console.log` eliminados de producción | `DocumentTransfer.tsx` |
-| 5 | `MAX_FILE_SIZE` constante compartida | `lib/utils.ts`, `UploadModal.tsx`, `UploadVersionModal.tsx` |
-| 6 | 3 directorios vacíos eliminados | `lib/api/`, `lib/ipfs/`, `lib/utils/` |
-| 7 | `test-api.sh` actualizado (stats endpoint eliminado) | `scripts/test-api.sh` |
-| 8 | `create-first-admin.sh` puerto corregido 3001→3000 | `scripts/create-first-admin.sh` |
-| 9 | `start-dev-simple.ps1` puertos y protocolos corregidos | `start-dev-simple.ps1` |
-| 10 | `ModalFooter` no-op eliminado | `ui/Modal.tsx`, `ui/index.tsx` |
-| 11 | `fix-encoding.ps1` paths relativos con `$PSScriptRoot` | `fix-encoding.ps1` |
-
-#### Fase 4 — Small Structural Fixes (10 items)
-| # | Cambio | Archivos |
-|---|--------|----------|
-| 12 | `normalizeFileExtensionFilter` extraído a `fileValidation.ts` | `documentService.ts`, `shareController.ts` |
-| 13 | `generateSecurePassword` y `estimateCrackTime` eliminados (dead code) | `passwordPolicy.ts` (-80 líneas) |
-| 14 | Tipos `PinResult`, `PinStatus` añadidos a IPFS adapter | `ipfs.ts` |
-| 15 | `parseFilename` unificado (exportado desde `documents.ts`, importado en `versions.ts`) | `api/documents.ts`, `api/versions.ts` |
-| 16 | `hashSHA3_256` ahora usa `ethers.keccak256` real (antes usaba SHA-256) | `lib/crypto/utils.ts` |
-| 17 | `deploy-production.ps1` red actualizada Mumbai→Amoy | `deploy-production.ps1` |
+### Fase 6 — Batch Final
+- **Dead code:** 6 funciones eliminadas (validateSession, revokeAccessToken, cleanupExpiredTokens, getOperationalVersion, getSignature, hasUserSigned)
+- **Alias exports:** 19 eliminados de `auth.ts`, `wallets.ts`, `signatures.ts`, `versions.ts`
+- **truncateAddress:** 10 ocurrencias unificadas en 7 archivos (WalletSidebar, WalletSelectorModal, WalletManager, Audit, TransactionDetailModal, OperationalVersionSelector, SharedWithMe)
+- **IPFS types:** `any` → `PinStatus`, `PinResult` en `IPFSAdapter`
+- **E2E:** 62 `test.skip(browserName !== 'chromium')` eliminados de 17 specs
 
 ---
 
-### Commit `3520ac9` — Fase 5 (Medium Refactors)
+## PENDIENTE — Próxima iteración
 
-#### Hook `useSigner` extraído
-- **Nuevo archivo:** `frontend/src/hooks/useSigner.ts`
-- **Elimina 60 líneas duplicadas** en 6 componentes que repetían el mismo patrón de verificación de wallet:
-  - `UploadModal.tsx` → usa `getRegistryContract(connectedAddress)`
-  - `ShareModal.tsx` → usa `getRegistryContract(connectedAddress)`
-  - `SignDocumentModal.tsx` → usa `getVerifiedSigner(connectedAddress)`
-  - `UploadVersionModal.tsx` → usa `getRegistryContract(connectedAddress)`
-  - `OperationalVersionSelector.tsx` → usa `getRegistryContract(connectedAddress)`
-  - `DocumentTransfer.tsx` → usa `getVerifiedSigner(connectedAddress)`
-- 6 imports de `blockchainProvider` y `DocumentRegistryContract` eliminados de componentes
+### Fase 7 (esta sesión) — MEDIUM cierre
+
+| # | Issue | Estado |
+|---|-------|--------|
+| M6 | `<UserAvatar>` componente compartido (8+ componentes → 1) | **en progreso** |
+| M1 | Helper `validateDocumentOwnership` (~11 call sites) | **en progreso** |
+| M15 | Logger mock consolidado en 19 tests | **en progreso** |
+| L1 | Cachear `_msgSender()` en DocumentRegistry.sol | **en progreso** |
+
+### Fase 8 (próxima sesión) — Descomposición funciones grandes
+
+| # | Issue | Archivos |
+|---|-------|----------|
+| M2a | `getFileAuditTrail` (232L, 8 event loops) → helpers | `auditService.ts` |
+| M2b | `syncHistoricalEvents` (317L, 12 event loops) → mapper | `eventListenerService.ts` |
+
+### Fase 9 (futuro) — Arquitectura (NO prioridad ahora)
+
+| # | Issue | Esfuerzo estimado |
+|---|-------|-------------------|
+| M8 | Descomponer 10 componentes >300L | 20h+ |
+| M9 | Unificar Modal vs Dialog (2 sistemas) | 10h+ |
+| M10 | Consolidar WalletManager vs WalletManagerContext | 6h |
+| M11 | E2E: selectores data-testid | 6h |
+| M12 | E2E: aserciones reales | 4h |
+| M14 | Tests unitarios frontend (0 existen) | 20h+ |
+| L2 | Quitar Ownable del contrato (solo AccessControl) | 4h |
+| L5 | Credenciales SMTP → GitHub Secrets | 10min |
+
+### DESCARTADO definitivamente
+
+| # | Issue | Motivo |
+|---|-------|--------|
+| L3 | DialogPortal no-op | No es no-op, se usa internamente en DialogContent |
+| L4 | deploy-production.ps1 URLs | Ya arreglado (Mumbai→Amoy) |
 
 ---
 
-## Issues documentados para el futuro
+## Tareas Fase 7 — Detalle técnico
 
-### MEDIUM (15 items)
-1. Patrón "validate ownership on-chain" repetido ~11 veces — extraer a helper
-2. Funciones >100 líneas: `auditService.getFileAuditTrail` (232L), `eventListenerService.syncHistoricalEvents` (317L) — descomponer
-3. Funciones exportadas nunca usadas: `validateSession`, `revokeAccessToken`, `cleanupExpiredTokens` (en `tokenService.ts`)
-4. `any` types en IPFS adapter (`getPinStatus`, `listPins`, etc.)
-5. `truncateAddress` duplicado en 4+ componentes frontend
-6. Avatar + initials styling duplicado en 8+ componentes — extraer `<UserAvatar>`
-7. Alias exports redundantes en `api/*.ts` — verificar y eliminar
-8. 10 componentes >300 líneas sin descomponer
-9. 2 sistemas de modales (`Modal` vs `Dialog`) con APIs diferentes
-10. `WalletManager` duplica lógica de `WalletManagerContext`
-11. E2E: selectores frágiles (XPath, placeholders, sin `data-testid`)
-12. E2E: tests sin aserciones reales
-13. E2E: `test.skip(browserName !== 'chromium')` en 62 tests
-14. Cero tests unitarios frontend
-15. Logger mock duplicado en 19 tests — consolidar
+### M6: `<UserAvatar>` component
+**Archivos a modificar:** Header.tsx, Sidebar.tsx, ShareList.tsx, DocumentTransfer.tsx, OperationalVersionSelector.tsx, AvatarUpload.tsx, Profile.tsx, Settings.tsx
+**Patrón duplicado:**
+```tsx
+<Avatar className="h-10 w-10">
+  {user?.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={name} /> : null}
+  <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-sm text-slate-950">
+    {name.slice(0, 2).toUpperCase()}
+  </AvatarFallback>
+</Avatar>
+```
+**Nuevo componente:** `components/ui/UserAvatar.tsx` con props `name`, `avatarUrl`, `size?`
 
-### LOW (5 items)
-1. Smart contract: `_msgSender()` sin cachear en algunas funciones
-2. Smart contract: `Ownable` + `AccessControl` redundante
-3. `DialogPortal` wrapper no-op (pero usado internamente)
-4. `deploy-production.ps1` necesita revisión completa de URLs
-5. Credenciales SMTP en `.github/workflows/deploy-local-server.yml` — mover a GitHub Secrets
+### M1: Helper `validateDocumentOwnership`
+**Archivos a modificar:** `documentController.ts` (8 call sites), `shareController.ts` (3 call sites)
+**Patrón:**
+```ts
+if (document.blockchainId) {
+  const { DocumentPermissionService } = await import('../services/documentPermissionService');
+  const userWallet = await prisma.wallet.findFirst({ where: { userId } });
+  if (!userWallet) throw new Error('Wallet no encontrada');
+  const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+  if (!isOwnerOnChain) throw new Error('No tienes permisos...');
+} else if (document.ownerId !== userId) {
+  throw new Error('No tienes permisos...');
+}
+```
+**Nuevo helper:** `services/documentPermissionService.ts` con método `validateOwnership(document, userId): Promise<void>`
 
-### Credenciales (documentado, no modificado)
-- `.env` raíz: contiene credenciales SMTP (protegido por `.gitignore`)
+### M15: Logger mock consolidation
+**Archivos:** 19 test files en `backend/test/unit/` + `test/setup.ts`
+**Patrón duplicado:** `jest.mock('../../src/utils/logger', () => ({...}))` repetido en cada archivo
+**Solución:** Mover el mock a `setup.ts` (global mock)
+
+### L1: `_msgSender()` caching
+**Archivo:** `smart-contracts/contracts/DocumentRegistry.sol`
+**Cambio:** `address sender = _msgSender();` al inicio de funciones que llaman `_msgSender()` múltiples veces

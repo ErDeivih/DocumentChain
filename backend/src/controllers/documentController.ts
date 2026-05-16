@@ -14,6 +14,7 @@ import prisma from '../config/database';
 import { deleteFromIPFS } from '../config/ipfs';
 import { DocumentService } from '../services/documentService';
 import { TransferService } from '../services/transferService';
+import { DocumentPermissionService } from '../services/documentPermissionService';
 import logger from '../utils/logger';
 
 /**
@@ -42,21 +43,10 @@ export class DocumentController {
       throw new Error('El documento ya ha sido eliminado');
     }
 
-    // Validate ownership ON-CHAIN if blockchainId exists
-    if (document.blockchainId) {
-      const { DocumentPermissionService } = await import('../services/documentPermissionService');
-      const userWallet = await prisma.wallet.findFirst({ where: { userId } });
-      if (!userWallet) {
-        throw new Error('Wallet no encontrada');
-      }
-      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-      if (!isOwnerOnChain) {
-        throw new Error('No tienes permisos para eliminar este documento');
-      }
-    } else if (document.ownerId !== userId) {
-      // Fallback for documents not yet on chain
-      throw new Error('No tienes permisos para eliminar este documento');
-    }
+    // Validate ownership (on-chain or DB fallback)
+    await DocumentPermissionService.validateOwnership(document, userId, {
+      errorMessage: 'No tienes permisos para eliminar este documento',
+    });
 
     const deletedAt = new Date();
     const cidsToUnpin = Array.from(
@@ -409,23 +399,10 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (document.blockchainId) {
-        const { DocumentPermissionService } = await import('../services/documentPermissionService');
-        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-        if (!userWallet) {
-          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-          return;
-        }
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-        if (!isOwnerOnChain) {
-          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-          return;
-        }
-      } else if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-        return;
-      }
+      // Validate ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+        errorMessage: 'No tienes permisos para archivar este documento',
+      });
 
       if (!document.blockchainId) {
         res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
@@ -469,23 +446,10 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (document.blockchainId) {
-        const { DocumentPermissionService } = await import('../services/documentPermissionService');
-        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-        if (!userWallet) {
-          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-          return;
-        }
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-        if (!isOwnerOnChain) {
-          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-          return;
-        }
-      } else if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-        return;
-      }
+      // Validate ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+        errorMessage: 'No tienes permisos para archivar este documento',
+      });
 
       const updated = await prisma.document.update({
         where: { id: documentId },
@@ -541,23 +505,10 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (document.blockchainId) {
-        const { DocumentPermissionService } = await import('../services/documentPermissionService');
-        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-        if (!userWallet) {
-          res.status(403).json({ error: 'No tienes permisos para eliminar este documento' });
-          return;
-        }
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-        if (!isOwnerOnChain) {
-          res.status(403).json({ error: 'No tienes permisos para eliminar este documento' });
-          return;
-        }
-      } else if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para eliminar este documento' });
-        return;
-      }
+      // Validate ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+        errorMessage: 'No tienes permisos para eliminar este documento',
+      });
 
       if (document.isDeleted) {
         res.status(400).json({ error: 'El documento ya ha sido eliminado' });
@@ -640,33 +591,10 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (document.blockchainId) {
-        const { DocumentPermissionService } = await import('../services/documentPermissionService');
-        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-        if (!userWallet) {
-          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-          return;
-        }
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-        if (!isOwnerOnChain) {
-          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-          return;
-        }
-      } else if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-        return;
-      }
-
-      if (!document.isArchived) {
-        res.status(400).json({ error: 'El documento no está archivado' });
-        return;
-      }
-
-      if (!document.blockchainId) {
-        res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
-        return;
-      }
+      // Validate ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+        errorMessage: 'No tienes permisos para desarchivar este documento',
+      });
 
       res.status(200).json({
         documentId,
@@ -704,30 +632,9 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (document.blockchainId) {
-        const { DocumentPermissionService } = await import('../services/documentPermissionService');
-        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-        if (!userWallet) {
-          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-          return;
-        }
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-        if (!isOwnerOnChain) {
-          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-          return;
-        }
-      } else if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-        return;
-      }
-
-      const updated = await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          isArchived: false,
-          archivedAt: null,
-        },
+      // Validate ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+        errorMessage: 'No tienes permisos para desarchivar este documento',
       });
 
       await prisma.event.create({
@@ -776,23 +683,10 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership ON-CHAIN if blockchainId exists
-      if (document.blockchainId) {
-        const { DocumentPermissionService } = await import('../services/documentPermissionService');
-        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-        if (!userWallet) {
-          res.status(403).json({ error: 'No tienes permisos para editar este documento' });
-          return;
-        }
-        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
-        if (!isOwnerOnChain) {
-          res.status(403).json({ error: 'No tienes permisos para editar este documento' });
-          return;
-        }
-      } else if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para editar este documento' });
-        return;
-      }
+      // Validate ownership (on-chain or DB fallback)
+      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+        errorMessage: 'No tienes permisos para editar este documento',
+      });
 
       const updated = await prisma.document.update({
         where: { id: documentId },
