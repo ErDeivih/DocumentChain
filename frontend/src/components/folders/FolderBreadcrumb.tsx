@@ -3,12 +3,22 @@ import { ChevronRight, Home } from 'lucide-react';
 import { FolderPath, Folder } from '../../types';
 import { getFolderPath } from '../../api/folders';
 
+/**
+ * Props del componente FolderBreadcrumb.
+ */
 interface FolderBreadcrumbProps {
+  /** Identificador de la carpeta actual. */
   folderId?: string | null;
+  /** Carpeta actual seleccionada. */
   currentFolder?: Folder | null;
+  /** Callback al navegar a una carpeta del breadcrumb. */
   onNavigate?: (folderId: string | null) => void;
 }
 
+/**
+ * Breadcrumb de navegación de carpetas.
+ * Muestra la ruta jerárquica desde la raíz hasta la carpeta actual.
+ */
 export const FolderBreadcrumb: React.FC<FolderBreadcrumbProps> = ({
   folderId,
   currentFolder,

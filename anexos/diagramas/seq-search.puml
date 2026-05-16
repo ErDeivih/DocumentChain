@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Biblioteca / Busqueda" as ui
 control "Endpoints de documentos (/api/documents)" as api
 control "DocumentService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Introduce termino y filtros
 ui -> api: Solicitar resultados filtrados
@@ -16,4 +16,5 @@ api --> ui: Lista filtrada
 ui --> user: Resultados actualizados
 
 @enduml
+
 

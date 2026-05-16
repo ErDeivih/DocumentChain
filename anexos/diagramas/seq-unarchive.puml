@@ -4,14 +4,16 @@ actor Usuario as user
 boundary "Detalle de documento" as ui
 control "Endpoints de documentos (/api/documents)" as api
 control "DocumentService" as srv
-database "PostgreSQL" as db
+entity "DocumentRegistry" as sc
+database "Base de datos" as db
 participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+control "EventListenerService" as listener
 
 user -> ui: Solicita desarchivar el documento
 ui -> api: Preparar desarchivado
 api -> srv: Validar propiedad y estado archivado
+srv -> sc: isOwner(blockchainId, walletAddress)
+sc --> srv: Propietario validado
 srv -> db: Registrar operacion preparada
 db --> srv: Datos para firmar
 srv --> api: Payload blockchain

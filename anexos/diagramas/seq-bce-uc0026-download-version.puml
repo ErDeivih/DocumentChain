@@ -1,0 +1,32 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0026: Descargar Version Especifica (Analisis BCE)
+
+actor Actor
+boundary "PanelVersiones" as BF
+control "GestorVersiones" as CV
+entity "Version" as EV
+
+database "Base de datos" as DB
+boundary "IPFS" as IPFS
+
+Actor -> BF : 1. Selecciona version a descargar
+BF -> CV : 2. Peticion de descarga
+CV -> EV : 3. Recupera CID de la version
+EV -> DB : consulta CID
+DB --> EV : CID recuperado
+EV --> CV : CID de la version
+
+CV -> IPFS : 4. Solicita contenido por CID
+IPFS --> CV : archivo recuperado
+
+CV -> CV : 5. Verifica integridad del contenido
+note right : Control contrasta hash del contenido recuperado con el hash registrado
+
+CV --> BF : 6. Archivo de la version
+BF --> Actor : 7. Inicia descarga del archivo
+
+@enduml
+
+

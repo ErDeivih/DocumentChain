@@ -1,0 +1,33 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0029: Verificar firma individual (Análisis BCE)
+
+actor "Usuario con acceso" as user
+boundary "Pestaña de firmas / Verificación" as ui
+control "Gestor de firmas" as ctrl
+entity "Firma" as sig
+entity "Documento" as doc
+entity "Wallet" as wallet
+
+user -> ui: Seleccionar "Verificar firma"
+ui -> ctrl: Solicitar verificación (idFirma)
+
+ctrl -> sig: Obtener datos de firma
+sig --> ctrl: Datos (hash firmado, wallet, timestamp)
+
+ctrl -> doc: Obtener hash actual del documento
+doc --> ctrl: Hash actual
+
+ctrl -> wallet: Verificar firma criptográfica (hash, firma, dirección)
+wallet --> ctrl: Firma válida / inválida
+
+alt Firma no válida
+    ctrl --> ui: Firma no verificada
+    ui --> user: Mostrar advertencia (firma corrupta o documento modificado)
+else Firma válida
+    ctrl --> ui: Firma verificada
+    ui --> user: Mostrar confirmación (firmante, fecha, integridad)
+end
+
+@enduml

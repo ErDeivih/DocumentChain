@@ -1,8 +1,15 @@
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import type { ApiError } from '../types';
 
+/** URL base del API, obtenida de variables de entorno o resuelta relativa a `/api`. */
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
+/**
+ * Instancia configurada de Axios para comunicación con el backend.
+ *
+ * Incluye interceptores para inyección de token y manejo de errores,
+ * reintentos ante código 429 y refresco automático de sesión ante 401.
+ */
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -11,17 +18,32 @@ export const api = axios.create({
   withCredentials: true // Importante para CORS con credentials
 });
 
+/**
+ * Configuración extendida de peticiones Axios que permite definir
+ * comportamiento de reintento ante respuesta 429 (Too Many Requests).
+ */
 export interface RetryableRequestConfig<D = any> extends AxiosRequestConfig<D> {
+  /** Indica si se debe reintentar la petición ante un 429. */
   retryOn429?: boolean;
+  /** Número máximo de intentos de reintento por 429. */
   retryOn429MaxAttempts?: number;
 }
 
+/** Indica si actualmente se está refrescando el token de acceso. */
 let isRefreshing = false;
+
+/** Cola de peticiones fallidas que esperan la resolución del refresco de token. */
 let failedQueue: Array<{
   resolve: (value?: any) => void;
   reject: (reason?: any) => void;
 }> = [];
 
+/**
+ * Procesa la cola de peticiones pendientes tras un intento de refresco.
+ *
+ * @param error - Error ocurrido durante el refresco; si es nulo, se reintentan las peticiones.
+ * @param token - Nuevo token de acceso a inyectar en las peticiones reintentadas.
+ */
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach(prom => {
     if (error) {
@@ -34,7 +56,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor to add auth token
+// Interceptor de peticiones: añade el token de autorización si está disponible.
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -48,7 +70,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling and token refresh
+// Interceptor de respuestas: maneja 429 (reintentos) y 401 (refresco de token).
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiError>) => {
@@ -57,14 +79,14 @@ api.interceptors.response.use(
       _retry429Count?: number;
     } & RetryableRequestConfig;
 
-    // Don't attempt to refresh token for auth endpoints
-    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
-                           originalRequest.url?.includes('/auth/2fa/verify') ||
-                           originalRequest.url?.includes('/auth/register') ||
-                           originalRequest.url?.includes('/auth/forgot-password') ||
-                           originalRequest.url?.includes('/auth/reset-password') ||
-                           originalRequest.url?.includes('/auth/refresh');
+    // No intentar refrescar token en endpoints de autenticación
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register') ||
+      originalRequest.url?.includes('/auth/forgot-password') ||
+      originalRequest.url?.includes('/auth/reset-password') ||
+      originalRequest.url?.includes('/auth/refresh');
 
+    // Reintento ante 429 (Too Many Requests)
     if (
       error.response?.status === 429 &&
       (originalRequest.method?.toLowerCase() === 'get' || originalRequest.retryOn429)
@@ -86,9 +108,10 @@ api.interceptors.response.use(
       }
     }
 
+    // Refresco automático de token ante 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
-        // Queue this request
+        // Encolar petición hasta que finalice el refresco
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(token => {
@@ -107,14 +130,13 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
 
       if (!refreshToken) {
-        // No refresh token - clear auth data and let ProtectedRoute handle redirect
+        // Sin token de refresco: limpiar datos y notificar a AuthContext
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        
-        // Trigger a custom event to notify AuthContext
+
         window.dispatchEvent(new CustomEvent('auth:logout'));
-        
+
         return Promise.reject(error);
       }
 
@@ -137,12 +159,11 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
 
-        // Refresh failed - clear auth data and let ProtectedRoute handle redirect
+        // Fallo al refrescar: limpiar sesión y notificar a AuthContext
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        
-        // Trigger a custom event to notify AuthContext
+
         window.dispatchEvent(new CustomEvent('auth:logout'));
 
         return Promise.reject(refreshError);
@@ -155,6 +176,12 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * Mapea mensajes de error de blockchain a descripciones localizadas en español.
+ *
+ * @param message - Mensaje original del error.
+ * @returns Mensaje localizado, o `null` si no hay coincidencia.
+ */
 function mapBlockchainError(message: string): string | null {
   const m = message.toLowerCase();
   if (m.includes('user denied') || m.includes('rejected') || m.includes('cancelled') || m.includes('user rejected')) {
@@ -193,6 +220,17 @@ function mapBlockchainError(message: string): string | null {
   return null;
 }
 
+/**
+ * Extrae un mensaje de error legible a partir de cualquier valor de error.
+ *
+ * - Si es un error Axios, intenta obtener el mensaje del backend o devuelve
+   un texto según el código de estado HTTP.
+ * - Si es un error de blockchain, lo mapea a un mensaje localizado.
+ * - En cualquier otro caso, devuelve el mensaje original o un texto genérico.
+ *
+ * @param error - Error capturado (puede ser de Axios, blockchain o genérico).
+ * @returns Mensaje descriptivo en español.
+ */
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const apiError = error.response?.data as ApiError;
@@ -207,7 +245,7 @@ export function getErrorMessage(error: unknown): string {
       return apiError.error;
     }
 
-    // Never expose raw technical errors/status codes to end users
+    // Nunca exponer errores técnicos/códigos de estado crudos al usuario
     if (status === 400) return 'No se pudo procesar la solicitud. Revise los datos e inténtelo de nuevo.';
     if (status === 401) return 'Tu sesión no es válida o ha expirado. Inicia sesión de nuevo.';
     if (status === 403) return 'No tienes permisos para realizar esta acción.';

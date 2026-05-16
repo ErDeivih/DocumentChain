@@ -1,6 +1,6 @@
 /**
- * Componente de Transferencia de Documento
- * Permite al propietario transferir la propiedad a otro usuario
+ * Componente de transferencia de documento.
+ * Permite al propietario transferir la propiedad de un documento a otro usuario.
  */
 
 import React, { useState } from 'react';
@@ -28,6 +28,9 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
 
+/**
+ * Resultado de una búsqueda de usuarios.
+ */
 interface UserSearchResult {
   id: string;
   username: string;
@@ -36,16 +39,29 @@ interface UserSearchResult {
   avatarUrl?: string | null;
 }
 
+/**
+ * Props del componente DocumentTransfer.
+ */
 interface DocumentTransferProps {
+  /** Identificador del documento a transferir. */
   documentId: string;
+  /** Nombre del documento a transferir. */
   documentName: string;
+  /** Indica si el usuario actual es el propietario del documento. */
   isOwner: boolean;
+  /** Indica si el documento es público. */
   isPublic?: boolean;
+  /** Callback que se ejecuta cuando la transferencia se completa exitosamente. */
   onTransferComplete?: (newOwnerId: string) => void;
 }
 
+/** Pasos posibles durante el proceso de transferencia. */
 type TransferStep = 'form' | 'select_wallet' | 'preparing' | 'signing' | 'confirming' | 'success' | 'error';
 
+/**
+ * Componente para transferir la propiedad de un documento a otro usuario.
+ * Gestiona la búsqueda del destinatario, la confirmación y la firma blockchain.
+ */
 export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
   documentId,
   documentName,
@@ -101,7 +117,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
   };
 
   /**
-   * Start transfer process - show wallet selector
+   * Inicia el proceso de transferencia mostrando el selector de wallets.
    */
   const startTransfer = async () => {
     if (!selectedUser || (!isPublic && !password)) {
@@ -118,7 +134,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
   };
 
   /**
-   * Handle wallet selection for transfer
+   * Gestiona la selección de wallet para firmar la transferencia.
    */
   const handleWalletSelected = async (wallet: SavedWallet | null, connectedAddress: string) => {
     setShowWalletModal(false);
@@ -174,7 +190,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
         throw new Error('New owner does not have a primary wallet');
       }
 
-      // Step 1: Prepare transfer (backend)
+      // Paso 1: Preparar la transferencia en el backend.
       console.log('Preparing transfer...', {
         documentId,
         newOwnerId: selectedUser.id,
@@ -199,7 +215,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
 
       console.log('Transfer prepared:', { transferId, docId, newOwnerAddress });
 
-      // Step 2: Sign blockchain transaction
+      // Paso 2: Firmar la transacción en la blockchain.
       setStep('signing');
 
       // Import contract wrapper
@@ -214,13 +230,13 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
       console.log('Transaction sent:', txHash);
       setTxHash(txHash);
       
-      // Step 3: Wait for confirmation
+      // Paso 3: Esperar la confirmación de la transacción.
       setStep('confirming');
       const receipt = await tx.wait();
       
       console.log('Transaction confirmed:', receipt);
 
-      // Step 4: Confirm in backend
+      // Paso 4: Confirmar la transferencia en el backend.
       await documentsApi.confirmTransfer({
         documentId,
         transferId,
@@ -234,7 +250,7 @@ export const DocumentTransfer: React.FC<DocumentTransferProps> = ({
       setSuccess(`Documento transferido exitosamente a ${selectedUser.username}`);
       onTransferComplete?.(selectedUser.id);
       
-      // Limpiar estado
+      // Limpiar estado tras la transferencia exitosa.
       setTimeout(() => {
         setSelectedUser(null);
         setShowConfirmation(false);

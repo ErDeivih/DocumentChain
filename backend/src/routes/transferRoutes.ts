@@ -1,6 +1,6 @@
 /**
- * Transfer Routes
- * API endpoints para transferencia de propiedad de documentos
+ * Router de transferencia de propiedad de documentos.
+ * Gestiona la preparación, confirmación y consulta del historial de transferencias.
  */
 
 import { Router, Request, Response } from 'express';

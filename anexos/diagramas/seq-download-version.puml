@@ -4,12 +4,15 @@ actor Usuario as user
 boundary "Detalle / pestana Versiones" as ui
 control "Endpoints de versiones\n(/api/versions y /api/public-documents)" as versionApi
 control "Servicio de versiones" as srv
-entity "IPFS" as ipfs
-database "PostgreSQL" as db
+entity "DocumentRegistry" as sc
+entity "IPFSService" as ipfs
+database "Base de datos" as db
 
 user -> ui: Pide descargar una version concreta
 ui -> versionApi: Solicitar la version seleccionada
 versionApi -> srv: Validar acceso y resolver la version
+srv -> sc: canView(blockchainId, walletAddress)
+sc --> srv: Acceso validado
 srv -> db: Recuperar metadatos y politica de acceso
 db --> srv: Version autorizada
 srv -> ipfs: Obtener contenido asociado

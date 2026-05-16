@@ -1,10 +1,10 @@
-@startuml
+﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Ajustes / Wallets" as ui
 control "Endpoints de wallets (/api/wallets)" as api
 control "WalletService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Solicita eliminar una wallet guardada
 ui -> api: Eliminar wallet
@@ -15,3 +15,4 @@ srv --> api: Wallet eliminada
 api --> ui: Listado actualizado
 ui --> user: Wallet retirada de la cuenta
 @enduml
+

@@ -254,4 +254,26 @@ describe('EmailController', () => {
     );
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
+
+  it('handles concurrent resend requests safely', async () => {
+    const req1 = createRequest({ body: { email: 'demo@example.com' } });
+    const req2 = createRequest({ body: { email: 'demo@example.com' } });
+    const res1 = createResponse();
+    const res2 = createResponse();
+
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'demo@example.com',
+      username: 'demo_user',
+    });
+    prisma.emailVerification.findFirst.mockResolvedValue(null);
+
+    await Promise.all([
+      EmailController.resendVerification(req1, res1 as any),
+      EmailController.resendVerification(req2, res2 as any),
+    ]);
+
+    expect(res1.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+    expect(res2.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+  });
 });

@@ -4,16 +4,26 @@ actor Usuario as user
 boundary "Detalle / Actividad" as ui
 control "Endpoints de timeline (/api/timeline/documents/:id)" as api
 control "EventService" as srv
-database "PostgreSQL" as db
+control "DocumentPermissionService" as perm
+entity "DocumentRegistry" as sc
+entity "Event" as evt
+database "Base de datos" as db
 
 user -> ui: Abre la cronologia del documento
 ui -> api: Solicitar eventos del documento
 api -> srv: Resolver timeline con paginacion
-srv -> db: Recuperar eventos ordenados y total
-db --> srv: Eventos disponibles
+srv -> perm: canView(blockchainId, walletAddress)
+perm -> sc: getUserPermission(docId, userAddress)
+sc --> perm: DocumentRole (OWNER/VIEWER/EDITOR)
+perm --> srv: Acceso de lectura validado
+srv -> evt: Obtener timeline del documento
+evt -> db: Recuperar eventos ordenados + total
+db --> evt: Eventos disponibles
+evt --> srv: Timeline normalizado
 srv --> api: Timeline listo
 api --> ui: Cronologia cargada
 ui --> user: Ve subidas, firmas, accesos y cambios
 
 @enduml
+
 

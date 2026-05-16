@@ -1,14 +1,15 @@
 import crypto from 'crypto';
 
 /**
- * KeyManager handles ECDH P-256 key pair generation and management
- * Keys are used for encrypting/decrypting file symmetric keys
- * NOT derived from wallet - separate key pair per user
+ * Gestiona la generación y administración de pares de claves RSA-OAEP.
+ * Las claves se utilizan para cifrar/descifrar las claves simétricas de archivos.
+ * No se derivan de la wallet; es un par de claves independiente por usuario.
  */
 export class KeyManager {
   /**
-   * Generate a new RSA-OAEP key pair (4096 bits) in PEM format.
-   * Backend keys must match frontend expectations (RSA-OAEP) to avoid import errors.
+   * Genera un nuevo par de claves RSA-OAEP de 4096 bits en formato PEM.
+   * Las claves del backend deben coincidir con las expectativas del frontend (RSA-OAEP) para evitar errores de importación.
+   * @returns Objeto con la clave pública y la clave privada en formato PEM.
    */
   static generateKeyPair(): { publicKey: string; privateKey: string } {
     const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
@@ -27,18 +28,19 @@ export class KeyManager {
   }
 
   /**
-   * Encrypt private key with user password using AES-256-GCM
-   * @param privateKey - Private key in PEM format
-   * @param password - User password
-   * @returns Encrypted private key with IV and auth tag (format: iv:authTag:encryptedData)
+   * Cifra una clave privada con la contraseña del usuario mediante AES-256-GCM.
+   * Deriva la clave de cifrado desde la contraseña usando PBKDF2.
+   * @param privateKey - Clave privada en formato PEM.
+   * @param password - Contraseña del usuario.
+   * @returns Clave privada cifrada en formato `salt:iv:authTag:encryptedData`.
    */
   static encryptPrivateKey(privateKey: string, password: string): string {
-    // Derive encryption key from password using PBKDF2
+    // Derivar clave de cifrado desde la contraseña usando PBKDF2
     const salt = crypto.randomBytes(32);
     const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
 
-    // Encrypt private key
-    const iv = crypto.randomBytes(12); // 96-bit IV for GCM
+    // Cifrar clave privada
+    const iv = crypto.randomBytes(12); // IV de 96 bits para GCM
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     
     let encrypted = cipher.update(privateKey, 'utf8', 'base64');
@@ -46,16 +48,16 @@ export class KeyManager {
     
     const authTag = cipher.getAuthTag();
 
-    // Return format: salt:iv:authTag:encryptedData
+    // Formato de salida: salt:iv:authTag:encryptedData
     return `${salt.toString('base64')}:${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted}`;
   }
 
   /**
-   * Decrypt private key with user password
-   * @param encryptedPrivateKey - Encrypted private key (format: salt:iv:authTag:encryptedData)
-   * @param password - User password
-   * @returns Decrypted private key in PEM format
-   * @throws Error if decryption fails (wrong password or corrupted data)
+   * Descifra una clave privada con la contraseña del usuario.
+   * @param encryptedPrivateKey - Clave privada cifrada en formato `salt:iv:authTag:encryptedData`.
+   * @param password - Contraseña del usuario.
+   * @returns Clave privada descifrada en formato PEM.
+   * @throws Error si el descifrado falla (contraseña incorrecta o datos corruptos).
    */
   static decryptPrivateKey(encryptedPrivateKey: string, password: string): string {
     const parts = encryptedPrivateKey.split(':');
@@ -69,10 +71,10 @@ export class KeyManager {
     const iv = Buffer.from(ivB64, 'base64');
     const authTag = Buffer.from(authTagB64, 'base64');
 
-    // Derive decryption key from password
+    // Derivar clave de descifrado desde la contraseña
     const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
 
-    // Decrypt private key
+    // Descifrar clave privada
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(authTag);
 
@@ -86,10 +88,10 @@ export class KeyManager {
   }
 
   /**
-   * Derive shared secret using ECDH
-   * @param privateKey - Your private key in PEM format
-   * @param publicKey - Other party's public key in PEM format
-   * @returns Shared secret as Buffer
+   * Deriva un secreto compartido mediante ECDH (curva prime256v1).
+   * @param privateKey - Clave privada propia en formato PEM.
+   * @param publicKey - Clave pública de la otra parte en formato PEM.
+   * @returns Secreto compartido como Buffer.
    */
   static deriveSharedSecret(privateKey: string, publicKey: string): Buffer {
     const privateKeyObj = crypto.createPrivateKey(privateKey);
@@ -104,25 +106,25 @@ export class KeyManager {
   }
 
   /**
-   * Encrypt data with recipient's public key (hybrid encryption)
-   * Uses ECDH to derive shared secret, then encrypts with AES-256-GCM
-   * @param data - Data to encrypt (typically a symmetric key)
-   * @param recipientPublicKey - Recipient's public key in PEM format
-   * @param senderPrivateKey - Sender's private key in PEM format
-   * @returns Encrypted data (format: iv:authTag:encryptedData)
+   * Cifra datos con la clave pública del destinatario (cifrado híbrido).
+   * Utiliza ECDH para derivar un secreto compartido y luego cifra con AES-256-GCM.
+   * @param data - Datos a cifrar (normalmente una clave simétrica).
+   * @param recipientPublicKey - Clave pública del destinatario en formato PEM.
+   * @param senderPrivateKey - Clave privada del remitente en formato PEM.
+   * @returns Datos cifrados en formato `iv:authTag:encryptedData`.
    */
   static encryptForRecipient(
     data: Buffer,
     recipientPublicKey: string,
     senderPrivateKey: string
   ): string {
-    // Derive shared secret
+    // Derivar secreto compartido
     const sharedSecret = this.deriveSharedSecret(senderPrivateKey, recipientPublicKey);
     
-    // Derive encryption key from shared secret
+    // Derivar clave de cifrado desde el secreto compartido
     const key = crypto.createHash('sha256').update(sharedSecret).digest();
 
-    // Encrypt data
+    // Cifrar datos
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     
@@ -133,16 +135,16 @@ export class KeyManager {
     
     const authTag = cipher.getAuthTag();
 
-    // Return format: iv:authTag:encryptedData
+    // Formato de salida: iv:authTag:encryptedData
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
   }
 
   /**
-   * Decrypt data encrypted with encryptForRecipient
-   * @param encryptedData - Encrypted data (format: iv:authTag:encryptedData)
-   * @param senderPublicKey - Sender's public key in PEM format
-   * @param recipientPrivateKey - Recipient's private key in PEM format
-   * @returns Decrypted data as Buffer
+   * Descifra datos previamente cifrados con {@link encryptForRecipient}.
+   * @param encryptedData - Datos cifrados en formato `iv:authTag:encryptedData`.
+   * @param senderPublicKey - Clave pública del remitente en formato PEM.
+   * @param recipientPrivateKey - Clave privada del destinatario en formato PEM.
+   * @returns Datos descifrados como Buffer.
    */
   static decryptFromSender(
     encryptedData: string,
@@ -160,13 +162,13 @@ export class KeyManager {
     const authTag = Buffer.from(authTagB64, 'base64');
     const data = Buffer.from(dataB64, 'base64');
 
-    // Derive shared secret
+    // Derivar secreto compartido
     const sharedSecret = this.deriveSharedSecret(recipientPrivateKey, senderPublicKey);
     
-    // Derive decryption key from shared secret
+    // Derivar clave de descifrado desde el secreto compartido
     const key = crypto.createHash('sha256').update(sharedSecret).digest();
 
-    // Decrypt data
+    // Descifrar datos
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(authTag);
 
@@ -181,9 +183,9 @@ export class KeyManager {
   }
 
   /**
-   * Validate that a string is a valid PEM-formatted public key
-   * @param publicKey - Public key to validate
-   * @returns true if valid, false otherwise
+   * Valida que una cadena sea una clave pública válida en formato PEM.
+   * @param publicKey - Clave pública a validar.
+   * @returns `true` si es válida, `false` en caso contrario.
    */
   static isValidPublicKey(publicKey: string): boolean {
     try {
@@ -195,9 +197,9 @@ export class KeyManager {
   }
 
   /**
-   * Validate that a string is a valid PEM-formatted private key
-   * @param privateKey - Private key to validate
-   * @returns true if valid, false otherwise
+   * Valida que una cadena sea una clave privada válida en formato PEM.
+   * @param privateKey - Clave privada a validar.
+   * @returns `true` si es válida, `false` en caso contrario.
    */
   static isValidPrivateKey(privateKey: string): boolean {
     try {
@@ -209,35 +211,35 @@ export class KeyManager {
   }
 
   /**
-   * Generate a recovery key for account recovery
-   * @returns Recovery key as base64 string (256 bits of entropy)
+   * Genera una clave de recuperación para la restauración de la cuenta.
+   * @returns Clave de recuperación codificada en base64 (256 bits de entropía).
    */
   static generateRecoveryKey(): string {
     return crypto.randomBytes(32).toString('base64');
   }
 
   /**
-   * Hash recovery key for storage
-   * @param recoveryKey - Recovery key to hash
-   * @returns SHA-256 hash of the recovery key
+   * Calcula el hash SHA-256 de una clave de recuperación para su almacenamiento seguro.
+   * @param recoveryKey - Clave de recuperación a hashear.
+   * @returns Hash SHA-256 de la clave de recuperación.
    */
   static hashRecoveryKey(recoveryKey: string): string {
     return crypto.createHash('sha256').update(recoveryKey).digest('hex');
   }
 
   /**
-   * Encrypt private key with recovery key using AES-256-GCM
-   * This creates a second encryption of the private key for recovery purposes
-   * @param privateKey - Private key in PEM format
-   * @param recoveryKey - Recovery key (base64)
-   * @returns Encrypted private key with IV and auth tag (format: iv:authTag:encryptedData)
+   * Cifra una clave privada con una clave de recuperación mediante AES-256-GCM.
+   * Crea una segunda capa de cifrado de la clave privada para fines de recuperación.
+   * @param privateKey - Clave privada en formato PEM.
+   * @param recoveryKey - Clave de recuperación (base64).
+   * @returns Clave privada cifrada en formato `iv:authTag:encryptedData`.
    */
   static encryptPrivateKeyWithRecovery(privateKey: string, recoveryKey: string): string {
-    // Derive encryption key from recovery key using SHA-256
+    // Derivar clave de cifrado desde la clave de recuperación usando SHA-256
     const key = crypto.createHash('sha256').update(Buffer.from(recoveryKey, 'base64')).digest();
 
-    // Encrypt private key
-    const iv = crypto.randomBytes(12); // 96-bit IV for GCM
+    // Cifrar clave privada
+    const iv = crypto.randomBytes(12); // IV de 96 bits para GCM
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
     
     let encrypted = cipher.update(privateKey, 'utf8', 'base64');
@@ -245,16 +247,16 @@ export class KeyManager {
     
     const authTag = cipher.getAuthTag();
 
-    // Return format: iv:authTag:encryptedData
+    // Formato de salida: iv:authTag:encryptedData
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted}`;
   }
 
   /**
-   * Decrypt private key with recovery key
-   * @param encryptedPrivateKey - Encrypted private key (format: iv:authTag:encryptedData)
-   * @param recoveryKey - Recovery key (base64)
-   * @returns Decrypted private key in PEM format
-   * @throws Error if decryption fails (wrong recovery key or corrupted data)
+   * Descifra una clave privada con una clave de recuperación.
+   * @param encryptedPrivateKey - Clave privada cifrada en formato `iv:authTag:encryptedData`.
+   * @param recoveryKey - Clave de recuperación (base64).
+   * @returns Clave privada descifrada en formato PEM.
+   * @throws Error si el descifrado falla (clave de recuperación incorrecta o datos corruptos).
    */
   static decryptPrivateKeyWithRecovery(encryptedPrivateKey: string, recoveryKey: string): string {
     const parts = encryptedPrivateKey.split(':');
@@ -267,10 +269,10 @@ export class KeyManager {
     const iv = Buffer.from(ivB64, 'base64');
     const authTag = Buffer.from(authTagB64, 'base64');
 
-    // Derive decryption key from recovery key
+    // Derivar clave de descifrado desde la clave de recuperación
     const key = crypto.createHash('sha256').update(Buffer.from(recoveryKey, 'base64')).digest();
 
-    // Decrypt private key
+    // Descifrar clave privada
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
     decipher.setAuthTag(authTag);
 

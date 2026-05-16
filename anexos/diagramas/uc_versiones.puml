@@ -1,33 +1,34 @@
 @startuml
 !include _structure-style.puml
 left to right direction
+title Casos de uso - Versionado
 
 actor "Usuario" as USER
 actor "IPFS" as IPFS
 actor "Blockchain" as SC
 
-rectangle "Gestion de Versiones" {
-  usecase "UC-0025: Crear Nueva Version" as UC29
-  usecase "UC-0026: Listar Versiones" as UC30
-  usecase "UC-0027: Establecer Version Operativa" as UC31
-  usecase "UC-0028: Restaurar Version Anterior" as UC32
-  usecase "UC-0029: Descargar Version Especifica" as UC33
+rectangle "Modulo de versionado" {
+  usecase "UC-0022: Crear Nueva Version" as UC22
+  usecase "UC-0023: Listar Versiones" as UC23
+  usecase "UC-0024: Establecer Version Operativa" as UC24
+  usecase "UC-0025: Restaurar Version Anterior" as UC25
+  usecase "UC-0026: Descargar Version Especifica" as UC26
 }
 
-UC29 -[hidden]down-> UC30
-UC30 -[hidden]down-> UC31
-UC31 -[hidden]down-> UC32
-UC32 -[hidden]down-> UC33
+UC22 -[hidden]down-> UC23
+UC23 -[hidden]down-> UC24
+UC24 -[hidden]down-> UC25
+UC25 -[hidden]down-> UC26
 
-USER --> UC29
-USER --> UC30
-USER --> UC31
-USER --> UC32
-USER --> UC33
+USER --> UC22
+USER --> UC23
+USER --> UC24
+USER --> UC25
+USER --> UC26
 
-IPFS --> UC29
-IPFS --> UC33
-SC --> UC29
-SC --> UC31
-SC --> UC32
+IPFS --> UC22
+IPFS --> UC26
+SC --> UC22
+SC --> UC24
+SC --> UC25
 @enduml

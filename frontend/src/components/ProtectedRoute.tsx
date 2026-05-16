@@ -5,10 +5,19 @@ import { Loading } from './ui/Loading';
 import { configApi } from '../api/config';
 import { setContractAddress } from '../lib/blockchain/config';
 
+/**
+ * Props del componente ProtectedRoute.
+ */
 interface ProtectedRouteProps {
+  /** Contenido protegido que se renderizará si el usuario está autorizado. */
   children: React.ReactNode;
 }
 
+/**
+ * Ruta protegida que verifica la autenticación del usuario.
+ * Gestiona la sincronización de la configuración blockchain y redirige
+ * al inicio de sesión o verificación de email cuando es necesario.
+ */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -63,16 +72,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }, [syncedUserId, user]);
 
   if (isLoading || !isBlockchainConfigReady) {
-    return <Loading fullScreen text="Loading..." />;
+    return <Loading fullScreen text="Cargando..." />;
   }
 
   if (!user) {
     // Redirect to login but save the attempted location
     return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (user.isSuspended && location.pathname !== '/app/settings') {
-    return <Navigate to="/app/settings" replace />;
   }
 
   if (!user.emailVerified) {

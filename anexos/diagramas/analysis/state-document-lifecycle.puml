@@ -1,0 +1,38 @@
+@startuml
+!include ../_structure-style.puml
+
+title Diagrama de Estados — Ciclo de vida del Documento
+
+[*] --> BORRADOR : Crear documento (subida)
+
+state BORRADOR {
+    [*] --> PREPARING : Iniciar registro blockchain
+}
+
+PREPARING --> TX_SUBMITTED : Enviar transacción
+TX_SUBMITTED --> SYNCED : Evento blockchain confirmado
+TX_SUBMITTED --> ERROR : Transacción fallida / timeout
+
+ERROR --> PREPARING : Reintentar
+ERROR --> [*] : Cancelar / Eliminar
+
+SYNCED --> ARCHIVADO : Archivar documento
+SYNCED --> ELIMINADO : Eliminar documento
+
+ARCHIVADO --> SYNCED : Desarchivar
+ARCHIVADO --> ELIMINADO : Eliminar
+
+ELIMINADO --> [*]
+
+SYNCED : Estado operativo normal
+SYNCED : Visible en biblioteca
+SYNCED : Permite firmas, compartición, versiones
+
+ARCHIVADO : No visible en biblioteca principal
+ARCHIVADO : Accesible desde vista de archivados
+ARCHIVADO : Solo lectura (no firmas nuevas)
+
+ELIMINADO : Documento eliminado permanentemente
+ELIMINADO : Referencias on-chain persisten
+
+@enduml

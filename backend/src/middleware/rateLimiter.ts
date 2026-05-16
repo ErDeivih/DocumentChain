@@ -4,6 +4,15 @@ import { env } from '../config/env';
 
 const isProduction = env.NODE_ENV === 'production';
 
+/**
+ * Resuelve el valor máximo de solicitudes permitidas para un rate limiter,
+ * priorizando la variable de entorno correspondiente.
+ *
+ * @param envVarName - Nombre de la variable de entorno a consultar.
+ * @param productionDefault - Valor por defecto en entornos de producción.
+ * @param nonProductionDefault - Valor por defecto en entornos no productivos.
+ * @returns Número máximo de solicitudes permitidas.
+ */
 function resolveRateLimitMax(envVarName: string, productionDefault: number, nonProductionDefault: number): number {
   const rawValue = process.env[envVarName];
   const parsedValue = rawValue ? Number(rawValue) : NaN;
@@ -21,8 +30,8 @@ const prepareRateLimitMax = resolveRateLimitMax('PREPARE_RATE_LIMIT_MAX', 10, 10
 const confirmRateLimitMax = resolveRateLimitMax('CONFIRM_RATE_LIMIT_MAX', 15, 150);
 
 /**
- * Rate limiter para endpoints de autenticación (estricto)
- * Protege contra ataques de fuerza bruta
+ * Rate limiter para endpoints de autenticación (estricto).
+ * Protege contra ataques de fuerza bruta limitando los intentos de inicio de sesión.
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
@@ -40,8 +49,8 @@ export const authLimiter = rateLimit({
 });
 
 /**
- * Rate limiter para uploads de documentos (moderado)
- * Previene abuso del almacenamiento
+ * Rate limiter para la subida de documentos (moderado).
+ * Previene el abuso del almacenamiento limitando la cantidad de archivos subidos por hora.
  */
 export const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
@@ -55,8 +64,8 @@ export const uploadLimiter = rateLimit({
 });
 
 /**
- * Rate limiter general para todas las rutas API (flexible)
- * Protección básica contra DoS
+ * Rate limiter general para todas las rutas de la API (flexible).
+ * Ofrece protección básica contra ataques de denegación de servicio (DoS).
  */
 export const generalLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
@@ -86,8 +95,8 @@ export const generalLimiter = rateLimit({
 });
 
 /**
- * Rate limiter para auditoría pública (amplio)
- * Permite exploración pública sin verse afectada por el tráfico general de la app.
+ * Rate limiter para auditoría pública (amplio).
+ * Permite la exploración pública de registros sin verse afectada por el tráfico general de la aplicación.
  */
 export const auditLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minuto
@@ -100,8 +109,8 @@ export const auditLimiter = rateLimit({
 });
 
 /**
- * Rate limiter para operaciones blockchain (muy restrictivo)
- * Las queries blockchain son costosas
+ * Rate limiter para operaciones blockchain (muy restrictivo).
+ * Limita las consultas a la cadena de bloques dado su elevado coste computacional.
  */
 export const blockchainLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutos
@@ -114,7 +123,8 @@ export const blockchainLimiter = rateLimit({
 });
 
 /**
- * Rate limiter para operaciones de compartir (moderado)
+ * Rate limiter para operaciones de compartir documentos (moderado).
+ * Restringe la cantidad de acciones de compartir que un usuario puede realizar por hora.
  */
 export const shareLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
@@ -127,9 +137,9 @@ export const shareLimiter = rateLimit({
 });
 
 /**
- * Rate limiter for prepare endpoints (restrictive)
- * Prevents abuse of the prepare/confirm pattern
- * Limits how many transactions a user can prepare per minute
+ * Rate limiter para endpoints de preparación (restrictivo).
+ * Previene el abuso del patrón prepare/confirm limitando la cantidad de transacciones
+ * que un usuario puede preparar por minuto.
  */
 export const prepareLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -147,8 +157,9 @@ export const prepareLimiter = rateLimit({
 });
 
 /**
- * Rate limiter for confirm endpoints (moderate)
- * Slightly higher limit than prepare since confirms should follow prepares
+ * Rate limiter para endpoints de confirmación (moderado).
+ * Permite un límite ligeramente superior al de preparación, ya que las confirmaciones
+ * deben seguir a las solicitudes de preparación.
  */
 export const confirmLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute

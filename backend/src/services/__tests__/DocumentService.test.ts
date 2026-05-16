@@ -66,13 +66,6 @@ jest.mock('../../utils/logger', () => ({
   },
 }));
 
-jest.mock('../../services/statsService', () => ({
-  StatsService: {
-    getUserStats: jest.fn(),
-    getDocumentStats: jest.fn(),
-  },
-}));
-
 describe('DocumentService - Backend Encryption', () => {
   const mockUserId = 'user-123';
   const mockWalletId = 'wallet-456';

@@ -7,33 +7,45 @@ import { Button } from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
 
 /**
- * WalletSidebar Component
- * 
- * Displays list of user's wallets in sidebar.
- * Allows quick switching between wallets to view documents shared with each wallet.
- * 
- * Visual indicators:
- * - Primary wallet: Star icon (green)
- * - Active wallet: Green border + checkmark
- * - Other wallets: Click to activate
+ * Componente WalletSidebar.
+ *
+ * Muestra la lista de wallets del usuario en la barra lateral.
+ * Permite cambiar rápidamente entre wallets para visualizar los documentos compartidos con cada una.
+ *
+ * Indicadores visuales:
+ * - Wallet principal: icono de estrella (verde).
+ * - Wallet activa: borde verde + indicador.
+ * - Otras wallets: clic para activar.
+ *
+ * @returns Elemento JSX de la barra lateral de wallets.
  */
 export const WalletSidebar: React.FC = () => {
   const { savedWallets, canAddWallet } = useWalletManager();
   const { activeWallet, setActiveWallet } = useActiveWallet();
   const navigate = useNavigate();
 
-  if (savedWallets.length === 0) {
-    return null;
-  }
-
+  /**
+   * Acorta una dirección de wallet para su visualización compacta.
+   *
+   * @param address - Dirección completa de la wallet.
+   * @returns Cadena con los primeros 6 y últimos 4 caracteres separados por "...".
+   */
   const shortenAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
+  /**
+   * Activa la wallet seleccionada en el contexto de la aplicación.
+   *
+   * @param wallet - Objeto de wallet proveniente del listado guardado.
+   */
   const handleWalletClick = (wallet: typeof savedWallets[0]) => {
     setActiveWallet(wallet);
   };
 
+  /**
+   * Redirige al usuario a la pestaña de gestión de wallets dentro de ajustes.
+   */
   const handleAddWallet = () => {
     navigate('/app/settings?tab=wallets');
   };
@@ -57,64 +69,79 @@ export const WalletSidebar: React.FC = () => {
         )}
       </div>
 
-      <div className="space-y-1">
-        {savedWallets.map((wallet) => {
-          const isActive = activeWallet?.id === wallet.id;
-          
-          return (
-            <button
-              key={wallet.id}
-              onClick={() => handleWalletClick(wallet)}
-              className={cn(
-                'w-full px-3 py-2.5 rounded-lg transition-all text-left',
-                'flex items-center gap-2.5',
-                isActive
-                  ? 'border border-primary/40 bg-[linear-gradient(90deg,rgba(45,212,191,0.20),rgba(14,165,233,0.14))] shadow-[0_12px_26px_-20px_rgba(14,165,233,0.18)]'
-                  : 'border border-transparent hover:bg-sky-50'
-              )}
-            >
-              {/* Wallet Icon */}
-              <div
+      {savedWallets.length === 0 ? (
+        <div className="px-4 py-3 text-center">
+          <p className="text-xs text-muted-foreground mb-2">No tienes wallets vinculadas</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddWallet}
+            className="w-full text-xs"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Añadir wallet
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {savedWallets.map((wallet) => {
+            const isActive = activeWallet?.id === wallet.id;
+            
+            return (
+              <button
+                key={wallet.id}
+                onClick={() => handleWalletClick(wallet)}
                 className={cn(
-                  'p-1.5 rounded-full shrink-0',
-                  isActive ? 'bg-primary/18' : 'bg-sky-50'
+                  'w-full px-3 py-2.5 rounded-lg transition-all text-left',
+                  'flex items-center gap-2.5',
+                  isActive
+                    ? 'border border-primary/40 bg-[linear-gradient(90deg,rgba(45,212,191,0.20),rgba(14,165,233,0.14))] shadow-[0_12px_26px_-20px_rgba(14,165,233,0.18)]'
+                    : 'border border-transparent hover:bg-sky-50'
                 )}
               >
-                <Wallet className={cn('w-3.5 h-3.5', isActive ? 'text-primary' : 'text-muted-foreground')} />
-              </div>
-
-              {/* Wallet Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  {wallet.isPrimary && (
-                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 shrink-0" />
+                {/* Icono de wallet */}
+                <div
+                  className={cn(
+                    'p-1.5 rounded-full shrink-0',
+                    isActive ? 'bg-primary/18' : 'bg-sky-50'
                   )}
-                  <p
-                    className={cn(
-                      'text-xs font-semibold truncate',
-                      isActive ? 'text-foreground' : 'text-foreground'
+                >
+                  <Wallet className={cn('w-3.5 h-3.5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                </div>
+
+                {/* Información de la wallet */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    {wallet.isPrimary && (
+                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 shrink-0" />
                     )}
-                  >
-                    {wallet.label || 'Wallet sin nombre'}
+                    <p
+                      className={cn(
+                        'text-xs font-semibold truncate',
+                        isActive ? 'text-foreground' : 'text-foreground'
+                      )}
+                    >
+                      {wallet.label || 'Wallet sin nombre'}
+                    </p>
+                  </div>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    {shortenAddress(wallet.walletAddress)}
                   </p>
                 </div>
-                <p className="font-mono text-[10px] text-muted-foreground">
-                  {shortenAddress(wallet.walletAddress)}
-                </p>
-              </div>
 
-              {/* Active Indicator */}
-              {isActive && (
-                <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+                {/* Indicador de activa */}
+                {isActive && (
+                  <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Info Text */}
+      {/* Texto informativo */}
       <p className="mt-3 px-4 text-[10px] text-muted-foreground">
-        Click en una wallet para ver sus documentos compartidos
+        {savedWallets.length > 0 ? 'Click en una wallet para ver sus documentos compartidos' : 'Añade una wallet para gestionar documentos compartidos'}
       </p>
     </div>
   );

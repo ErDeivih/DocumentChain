@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Vista Estadisticas" as ui
 control "Endpoints de estadisticas (/api/stats/user)" as api
 control "StatsService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Solicita sus estadisticas de uso
 ui -> api: Recuperar resumen personal
@@ -16,4 +16,5 @@ api --> ui: Estadisticas cargadas
 ui --> user: Ve actividad, volumen y tendencias
 
 @enduml
+
 

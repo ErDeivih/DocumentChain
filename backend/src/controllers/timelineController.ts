@@ -1,15 +1,20 @@
 /**
- * Controlador de Línea Temporal de Documentos
+ * Controlador de línea temporal de documentos.
+ * Gestiona la obtención del historial cronológico de eventos asociados
+ * a un documento específico.
  */
-
 import { Request, Response } from 'express';
 import { DocumentTimelineService } from '../services/documentTimelineService';
 import logger from '../utils/logger';
 
 export class TimelineController {
   /**
-   * Obtener la línea temporal de un documento
-   * GET /api/documents/:id/timeline
+   * Obtiene la línea temporal de eventos de un documento.
+   * Endpoint: GET /api/documents/:id/timeline
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la línea temporal del documento.
    */
   static async getDocumentTimeline(req: Request, res: Response): Promise<void> {
     try {

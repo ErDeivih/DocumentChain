@@ -1,6 +1,6 @@
 ﻿@startuml
 !include _structure-style.puml
-title Diagrama de Clases de Diseno - DocumentChain (Capa de Negocio)
+title Diagrama de clases de diseno - capa de negocio
 
 skinparam classAttributeIconSize 0
 skinparam classFontSize 11
@@ -13,34 +13,47 @@ package "Controllers (Express.js)" #DDEEFF {
         +logout(req, res): void
         +forgotPassword(req, res): void
         +verifyEmail(req, res): void
-        +enable2FA(req, res): void
+    }
+    class EmailController {
+        +verifyEmail(req, res): void
+        +forgotPassword(req, res): void
     }
     class DocumentController {
-        +upload(req, res): void
-        +list(req, res): void
-        +detail(req, res): void
-        +download(req, res): void
-        +archive(req, res): void
-        +delete(req, res): void
-        +transfer(req, res): void
-        +confirm(req, res): void
+        +prepareDocument(req, res): void
+        +confirmDocument(req, res): void
+        +getDocument(req, res): void
+        +downloadDocument(req, res): void
+        +listDocuments(req, res): void
+        +getDocumentsByWallet(req, res): void
+        +prepareArchiveDocument(req, res): void
+        +confirmArchiveDocument(req, res): void
+        +prepareUnarchiveDocument(req, res): void
+        +confirmUnarchiveDocument(req, res): void
+        +prepareTransferDocument(req, res): void
+        +confirmTransferDocument(req, res): void
     }
     class SignatureController {
-        +prepare(req, res): void
-        +confirm(req, res): void
-        +list(req, res): void
-        +verify(req, res): void
+        +prepareSignature(req, res): void
+        +confirmSignature(req, res): void
+        +getDocumentSignatures(req, res): void
+        +verifySignature(req, res): void
     }
     class ShareController {
-        +share(req, res): void
-        +modifyPermissions(req, res): void
+        +prepareShare(req, res): void
+        +confirmShare(req, res): void
+        +getDocumentShares(req, res): void
         +revokeAccess(req, res): void
     }
+    class UserController {
+        +getAllUsers(req, res): void
+        +deleteUser(req, res): void
+    }
     class AdminController {
-        +listUsers(req, res): void
-        +assignRole(req, res): void
-        +suspendUser(req, res): void
-        +pauseSystem(req, res): void
+        +getAllUsers(req, res): void
+        +updateUserRole(req, res): void
+        +createAdminUser(req, res): void
+        +deleteUser(req, res): void
+        +getSystemStats(req, res): void
     }
 }
 
@@ -49,45 +62,73 @@ package "Services (Logica de Negocio)" #DFFFDF {
         -jwtSecret: string
         +register(data): Promise<User>
         +login(email, pwd): Promise<{token, user}>
-        +generateJWT(user): string
-        +verifyJWT(token): UserPayload
+        +logout(userId): Promise<void>
         +sendPasswordReset(email): Promise<void>
-        +verify2FA(userId, code): boolean
+        +resetPassword(token, password): Promise<void>
+    }
+    class EmailService {
+        +sendVerificationEmail(to, token): Promise<void>
+        +sendPasswordResetEmail(to, token): Promise<void>
+        +sendDocumentSharedEmail(to, info): Promise<void>
+        +sendDocumentSignedEmail(to, info): Promise<void>
     }
     class DocumentService {
-        +uploadDocument(file, meta, userId): Promise<Document>
-        +confirmDocument(docId, txHash): Promise<Document>
-        +listDocuments(userId, filters): Promise<Document[]>
-        +getDocument(id, userId): Promise<Document>
-        +downloadDocument(id, userId): Promise<Buffer>
-        +archiveDocument(id, userId): Promise<void>
-        +deleteDocument(id, userId): Promise<void>
-        +transferDocument(id, newOwner): Promise<void>
+        +prepareDocument(input): Promise<PrepareDocumentResult>
+        +confirmDocument(input): Promise<DocumentInfo>
+        +getDocumentById(documentId, userId): Promise<DocumentInfo | null>
+        +listDocuments(userId, filters): Promise<DocumentInfo[]>
+        +downloadDocument(documentId, userId): Promise<{fileBuffer, fileName}>
+        +prepareArchiveDocument(documentId, userId): Promise<any>
+        +confirmArchiveDocument(input): Promise<any>
+        +prepareUnarchiveDocument(documentId, userId): Promise<any>
+        +confirmUnarchiveDocument(input): Promise<any>
+        +prepareTransferDocument(documentId, newOwner): Promise<any>
+        +confirmTransferDocument(input): Promise<any>
     }
     class IPFSService {
         -gateway: string
         +uploadFile(buffer, name): Promise<string>
         +downloadFile(cid): Promise<Buffer>
         +pinFile(cid): Promise<void>
+        +unpinFile(cid): Promise<void>
         +isAvailable(cid): Promise<boolean>
     }
-    class BlockchainService {
-        -contract: ethers.Contract
-        +prepareDocument(hash, cid): Promise<TxData>
-        +prepareSignature(docId, signer): Promise<TxData>
-        +prepareTransfer(docId, newOwner): Promise<TxData>
-        +getDocumentOnChain(hash): Promise<DocInfo>
+    class ShareService {
+        +prepareShare(documentId, recipientUserId, role): Promise<any>
+        +confirmShare(shareId, txHash): Promise<any>
+        +getDocumentShares(documentId, userId): Promise<any[]>
+        +revokeAccess(shareId, userId): Promise<void>
     }
     class SignatureService {
-        +prepareSignature(docId, userId): Promise<TxData>
-        +confirmSignature(txHash, docId, userId): Promise<Signature>
-        +listSignatures(docId): Promise<Signature[]>
-        +verifySignature(sigId): Promise<boolean>
+        +prepareSignature(docId, userId): Promise<any>
+        +confirmSignature(txHash, docId, userId): Promise<any>
+        +getDocumentSignatures(documentId, requesterUserId): Promise<any[]>
+        +verifySignature(signatureId): Promise<boolean>
     }
     class NotificationService {
-        +notify(userId, msg, type): Promise<void>
-        +sendEmail(to, subject, body): Promise<void>
+        +createNotification(userId, type, data): Promise<void>
+        +markAllAsRead(userId): Promise<void>
         +broadcastSocket(event, data): void
+    }
+    class UserService {
+        +getAllUsers(page, limit): Promise<any>
+        +deleteUser(userId): Promise<void>
+    }
+    class DocumentPermissionService {
+        +getDocumentUsers(docId): Promise<string[]>
+        +getDocumentUsersWithRoles(docId): Promise<any[]>
+        +hasAccess(userId, docId, role): Promise<boolean>
+    }
+    class VersionService {
+        +getDocumentVersions(documentId, userId): Promise<any[]>
+    }
+    class DocumentTimelineService {
+        +getDocumentTimeline(documentId, userId): Promise<any[]>
+    }
+    class BlockchainAdminService {
+        +grantAdminRole(walletAddress): Promise<any>
+        +revokeAdminRole(walletAddress): Promise<any>
+        +syncAllAdmins(): Promise<any>
     }
 }
 
@@ -123,20 +164,32 @@ class EventListener {
 
 ' Dependencias
 AuthController ..> AuthService
+AuthController ..> EmailService
+EmailController ..> EmailService
 DocumentController ..> DocumentService
 SignatureController ..> SignatureService
-ShareController ..> DocumentService
-AdminController ..> UserRepository
+ShareController ..> ShareService
+UserController ..> UserService
+AdminController ..> UserService
+AdminController ..> BlockchainAdminService
 
 AuthService ..> UserRepository
-AuthService ..> NotificationService
+AuthService ..> EmailService
 DocumentService ..> IPFSService
-DocumentService ..> BlockchainService
+DocumentService ..> ShareService
 DocumentService ..> DocumentRepository
 DocumentService ..> NotificationService
-SignatureService ..> BlockchainService
+SignatureService ..> DocumentPermissionService
 SignatureService ..> SignatureRepository
 SignatureService ..> DocumentRepository
+ShareService ..> DocumentPermissionService
+ShareService ..> NotificationService
+ShareService ..> EmailService
+UserService ..> UserRepository
+VersionService ..> DocumentRepository
+DocumentTimelineService ..> DocumentRepository
+DocumentPermissionService ..> DocumentRepository
+BlockchainAdminService ..> UserRepository
 
 EventListener ..> DocumentRepository
 EventListener ..> SignatureRepository

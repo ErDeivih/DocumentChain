@@ -10,6 +10,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import App from './App';
 import './index.css';
 
+/**
+ * Cliente de React Query configurado con opciones por defecto para toda la aplicación.
+ * Desactiva la revalidación al enfocar la ventana, limita los reintentos a 1
+ * y establece un tiempo de frescura de 5 minutos.
+ */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -20,6 +25,12 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Punto de entrada de la aplicación React.
+ *
+ * Monta el árbol de componentes dentro del DOM, envolviendo la aplicación con los
+ * proveedores de rutas, estado de servidor, autenticación, gestión de wallets y notificaciones.
+ */
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>

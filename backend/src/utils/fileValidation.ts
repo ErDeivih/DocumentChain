@@ -1,8 +1,11 @@
 /**
- * Configuración de extensiones de archivo permitidas
- * Solo se permiten tipos de archivo seguros
+ * Configuración de extensiones de archivo permitidas.
+ * Únicamente se admiten tipos de archivo considerados seguros.
  */
 
+/**
+ * Interfaz que define la configuración de un tipo de archivo permitido.
+ */
 export interface FileTypeConfig {
   extensions: string[];
   mimeTypes: string[];
@@ -151,7 +154,10 @@ export const ALLOWED_MIME_TYPES = ALLOWED_FILE_TYPES.flatMap(type => type.mimeTy
 export const MAX_FILE_SIZE = Math.max(...ALLOWED_FILE_TYPES.map(type => type.maxSize));
 
 /**
- * Valida si una extensión de archivo está permitida
+ * Valida si la extensión de un archivo está dentro de la lista permitida.
+ *
+ * @param filename - Nombre del archivo a validar.
+ * @returns `true` si la extensión es válida; de lo contrario, `false`.
  */
 export function isValidExtension(filename: string): boolean {
   const ext = getFileExtension(filename);
@@ -159,14 +165,20 @@ export function isValidExtension(filename: string): boolean {
 }
 
 /**
- * Valida si un MIME type está permitido
+ * Valida si un tipo MIME está dentro de la lista permitida.
+ *
+ * @param mimeType - Tipo MIME a validar.
+ * @returns `true` si el tipo MIME es válido; de lo contrario, `false`.
  */
 export function isValidMimeType(mimeType: string): boolean {
   return ALLOWED_MIME_TYPES.includes(mimeType);
 }
 
 /**
- * Obtiene la extensión de un archivo (incluyendo el punto)
+ * Obtiene la extensión de un archivo, incluyendo el punto inicial.
+ *
+ * @param filename - Nombre del archivo.
+ * @returns Extensión del archivo en minúsculas, o cadena vacía si no tiene extensión.
  */
 export function getFileExtension(filename: string): string {
   const match = filename.match(/\.[^.]+$/);
@@ -174,7 +186,10 @@ export function getFileExtension(filename: string): string {
 }
 
 /**
- * Obtiene la configuración del tipo de archivo basándose en la extensión
+ * Obtiene la configuración del tipo de archivo correspondiente a partir de su extensión.
+ *
+ * @param filename - Nombre del archivo.
+ * @returns Configuración del tipo de archivo, o `null` si no se encuentra.
  */
 export function getFileTypeConfig(filename: string): FileTypeConfig | null {
   const ext = getFileExtension(filename);
@@ -182,7 +197,11 @@ export function getFileTypeConfig(filename: string): FileTypeConfig | null {
 }
 
 /**
- * Valida el tamaño del archivo según su tipo
+ * Valida que el tamaño de un archivo no exceda el límite definido para su tipo.
+ *
+ * @param filename - Nombre del archivo.
+ * @param size - Tamaño del archivo en bytes.
+ * @returns Objeto indicando si es válido y, en su caso, el tamaño máximo permitido.
  */
 export function isValidFileSize(filename: string, size: number): { valid: boolean; maxSize?: number } {
   const config = getFileTypeConfig(filename);
@@ -198,7 +217,7 @@ export function isValidFileSize(filename: string, size: number): { valid: boolea
 }
 
 /**
- * Valida completamente un archivo
+ * Interfaz que representa el resultado de la validación completa de un archivo.
  */
 export interface FileValidationResult {
   valid: boolean;
@@ -206,6 +225,14 @@ export interface FileValidationResult {
   config?: FileTypeConfig;
 }
 
+/**
+ * Realiza una validación completa de un archivo comprobando extensión, tipo MIME y tamaño.
+ *
+ * @param filename - Nombre del archivo.
+ * @param mimeType - Tipo MIME del archivo.
+ * @param size - Tamaño del archivo en bytes.
+ * @returns Resultado de la validación con posibles errores y configuración detectada.
+ */
 export function validateFile(filename: string, mimeType: string, size: number): FileValidationResult {
   const errors: string[] = [];
   
@@ -236,7 +263,10 @@ export function validateFile(filename: string, mimeType: string, size: number): 
 }
 
 /**
- * Obtiene el icono recomendado para un tipo de archivo
+ * Obtiene el nombre del icono recomendado según la extensión del archivo.
+ *
+ * @param filename - Nombre del archivo.
+ * @returns Identificador del icono asociado al tipo de archivo.
  */
 export function getFileIcon(filename: string): string {
   const ext = getFileExtension(filename);
@@ -271,7 +301,7 @@ export function getFileIcon(filename: string): string {
 }
 
 /**
- * Categorías predefinidas del sistema
+ * Categorías predefinidas del sistema para la clasificación de documentos.
  */
 export const PREDEFINED_CATEGORIES = [
   { id: 'cat_legal', name: 'Legal', description: 'Documentos legales y contratos', color: '#DC2626', icon: 'scale' },

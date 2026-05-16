@@ -1,0 +1,32 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0014: Listar documentos (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Biblioteca de documentos" as ui
+control "Gestor de documentos" as ctrl
+entity "Documento" as doc
+entity "Carpeta" as folder
+
+user -> ui: Solicitar biblioteca
+ui -> ctrl: Solicitar listado de documentos (filtros, paginación)
+
+ctrl -> doc: Obtener documentos del usuario
+ctrl -> folder: Obtener carpetas del usuario
+doc --> ctrl: Lista de documentos
+folder --> ctrl: Lista de carpetas
+
+ctrl --> ui: Lista de documentos + carpetas
+ui --> user: Mostrar biblioteca con carpetas y documentos
+
+user -> ui: Aplicar filtro (búsqueda, categoría, estado)
+ui -> ctrl: Solicitar listado filtrado
+ctrl -> doc: Aplicar filtros
+ctrl -> folder: Aplicar filtros
+doc --> ctrl: Resultados filtrados
+folder --> ctrl: Carpetas filtradas
+ctrl --> ui: Resultados filtrados
+ui --> user: Actualizar vista con filtros
+
+@enduml

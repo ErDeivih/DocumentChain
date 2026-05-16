@@ -1,0 +1,37 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0029: Verificar Firma del Usuario (Analisis BCE)
+
+actor Actor
+boundary "VistaFirmas" as BF
+control "GestorFirmas" as CV
+entity "Firma" as EF
+entity "Version" as EV
+
+database "Base de datos" as DB
+
+Actor -> BF : 1. Solicita verificar firma
+BF -> CV : 2. Peticion de verificacion
+CV -> EV : 3. Obtiene version firmada
+EV -> DB : consulta version
+DB --> EV : datos version
+EV --> CV : version recuperada
+
+CV -> EF : 4. Busca firma del usuario
+EF -> DB : consulta firma por usuario + documento
+DB --> EF : datos firma
+EF --> CV : firma encontrada
+
+CV -> CV : 5. Verifica integridad de la firma
+note right : Control contrasta direccion del firmante y hash registrado en BD
+
+CV -> CV : 6. Comprueba evidencia blockchain
+note right : Control verifica que la transaccion asociada existe on-chain
+
+CV --> BF : 7. Resultado de verificacion
+BF --> Actor : 8. Muestra estado de la firma (valida/revocada/no encontrada)
+
+@enduml
+
+

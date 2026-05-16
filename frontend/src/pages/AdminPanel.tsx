@@ -16,28 +16,55 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
+/**
+ * Representa un usuario dentro del sistema de administración.
+ */
 interface User {
+  /** Identificador único del usuario. */
   id: string;
+  /** Nombre de usuario para inicio de sesión. */
   username: string;
+  /** Dirección de correo electrónico del usuario. */
   email: string;
+  /** Nombre completo del usuario (opcional). */
   fullName: string | null;
+  /** Rol asignado en el sistema. */
   role: 'USER' | 'ADMIN';
+  /** Fecha de creación de la cuenta en formato ISO. */
   createdAt: string;
-  twoFactorEnabled: boolean;
+  /** Contadores de recursos asociados al usuario. */
   _count: {
+    /** Número de documentos del usuario. */
     documents: number;
+    /** Número de wallets vinculadas. */
     wallets: number;
+    /** Número de sesiones activas. */
     sessions: number;
   };
 }
 
+/**
+ * Datos requeridos para el formulario de creación de un administrador.
+ */
 interface CreateAdminForm {
+  /** Nombre de usuario del nuevo administrador. */
   username: string;
+  /** Correo electrónico del nuevo administrador. */
   email: string;
+  /** Contraseña de acceso. */
   password: string;
+  /** Nombre completo del nuevo administrador. */
   fullName: string;
 }
 
+/**
+ * Página de gestión de usuarios para administradores.
+ *
+ * Permite listar usuarios, crear nuevos administradores, modificar roles
+ * y eliminar cuentas. Incluye visualización de estadísticas básicas.
+ *
+ * @returns JSX.Element con el panel de administración de usuarios.
+ */
 export const AdminPanel: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
@@ -337,14 +364,28 @@ export const AdminPanel: React.FC = () => {
   );
 };
 
+/**
+ * Propiedades del componente de fila de usuario expandible.
+ */
 interface UserRowProps {
+  /** Usuario a representar en la fila. */
   user: User;
+  /** Indica si la fila está expandida mostrando detalles. */
   expanded: boolean;
+  /** Callback para alternar la expansión de la fila. */
   onToggleExpand: () => void;
+  /** Callback para cambiar el rol del usuario. */
   onToggleRole: (userId: string, currentRole: 'USER' | 'ADMIN') => void;
+  /** Callback para eliminar el usuario. */
   onDelete: (userId: string, username: string) => void;
 }
 
+/**
+ * Componente interno que renderiza una fila expandible con los datos de un usuario.
+ *
+ * @param props - Propiedades del componente.
+ * @returns JSX.Element con la fila de usuario.
+ */
 const UserRow: React.FC<UserRowProps> = ({ user, expanded, onToggleExpand, onToggleRole, onDelete }) => {
   return (
     <div className="border rounded-lg">
@@ -359,9 +400,6 @@ const UserRow: React.FC<UserRowProps> = ({ user, expanded, onToggleExpand, onTog
               <Badge variant={user.role === 'ADMIN' ? 'destructive' : 'secondary'}>
                 {user.role}
               </Badge>
-              {user.twoFactorEnabled && (
-                <Badge variant="success" className="text-xs">2FA</Badge>
-              )}
             </div>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
@@ -410,10 +448,6 @@ const UserRow: React.FC<UserRowProps> = ({ user, expanded, onToggleExpand, onTog
             <div>
               <p className="text-muted-foreground">Sesiones Activas</p>
               <p className="font-medium">{user._count.sessions}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Estado 2FA</p>
-              <p className="font-medium">{user.twoFactorEnabled ? 'Habilitado' : 'Deshabilitado'}</p>
             </div>
           </div>
         </div>

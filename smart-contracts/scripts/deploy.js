@@ -71,7 +71,7 @@ DEPLOYER_ADDRESS=${deployer.address}
   console.log("  - Dirección:", registryAddress);
   console.log("  - Administrador inicial:", deployer.address);
   console.log("  - Funcionalidades: Registro, Versionado, Firmas, Control de Acceso");
-  console.log("  - Pausable: Sí (Circuit Breaker Pattern)");
+  console.log("  - Control de acceso: AccessControl + ADMIN_ROLE");
 }
 
 main()

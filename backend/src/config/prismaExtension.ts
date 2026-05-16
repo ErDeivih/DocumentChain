@@ -1,15 +1,18 @@
 import { PrismaClient } from '@prisma/client';
 
 /**
- * Prisma Client con extensión para transformar BigInt a string
- * Esto soluciona el problema de serialización JSON de BigInt
- * 
- * IMPORTANTE: Esta extensión SOLO agrega transformaciones, NO reemplaza los modelos
- * Todos los modelos de Prisma siguen disponibles (User, Document, Notification, etc.)
+ * Cliente Prisma con extensión para transformar valores `BigInt` a `string`.
+ * Resuelve el problema de serialización JSON de tipos `BigInt`.
+ *
+ * IMPORTANTE: Esta extensión únicamente añade transformaciones, no reemplaza los modelos.
+ * Todos los modelos de Prisma siguen disponibles (`User`, `Document`, `Notification`, etc.).
  */
 const prismaBase = new PrismaClient();
 
-// Extender Prisma con transformaciones de BigInt
+/**
+ * Extensión del cliente Prisma que transforma el campo `size` del modelo `document`
+ * de `BigInt` a `string` para facilitar su serialización.
+ */
 export const prisma = prismaBase.$extends({
   result: {
     document: {
@@ -19,41 +22,13 @@ export const prisma = prismaBase.$extends({
           return document.size ? document.size.toString() : '0';
         }
       }
-    },
-    event: {
-      gasUsed: {
-        needs: { gasUsed: true },
-        compute(event) {
-          return event.gasUsed ? event.gasUsed.toString() : null;
-        }
-      }
-    },
-    userStats: {
-      totalSize: {
-        needs: { totalSize: true },
-        compute(stats) {
-          return stats.totalSize ? stats.totalSize.toString() : '0';
-        }
-      }
-    },
-    systemStats: {
-      totalStorage: {
-        needs: { totalStorage: true },
-        compute(stats) {
-          return stats.totalStorage ? stats.totalStorage.toString() : '0';
-        }
-      },
-      newStorage: {
-        needs: { newStorage: true },
-        compute(stats) {
-          return stats.newStorage ? stats.newStorage.toString() : '0';
-        }
-      }
     }
   }
 });
 
-// Tipo del cliente extendido que incluye todos los modelos de Prisma
+/**
+ * Tipo que representa el cliente Prisma extendido, incluyendo todos sus modelos.
+ */
 export type ExtendedPrismaClient = typeof prisma;
 
 export default prisma;

@@ -1,0 +1,27 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0038: Listar usuarios (admin) (Análisis BCE)
+
+actor "Administrador" as admin
+boundary "Panel de administración" as ui
+control "Gestor de administración" as ctrl
+entity "Cuenta de usuario" as account
+
+admin -> ui: Solicitar listado de usuarios
+ui -> ctrl: Solicitar usuarios (filtros, paginación)
+
+ctrl -> account: Obtener todos los usuarios
+account --> ctrl: Lista de usuarios
+
+ctrl --> ui: Lista con datos (nombre, email, rol, estado, fecha)
+ui --> admin: Mostrar tabla de usuarios con opciones de gestión
+
+admin -> ui: Aplicar filtro (rol, estado, búsqueda)
+ui -> ctrl: Filtrar usuarios
+ctrl -> account: Aplicar filtros
+account --> ctrl: Resultados filtrados
+ctrl --> ui: Resultados
+ui --> admin: Actualizar tabla
+
+@enduml

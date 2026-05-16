@@ -2,6 +2,12 @@ import React from 'react';
 import { Badge } from './Badge';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente BlockchainStatusBadge.
+ * @property status - Estado de la blockchain: PENDING, SYNCED o FAILED.
+ * @property showIcon - Indica si se debe mostrar el icono del estado.
+ * @property className - Clases CSS adicionales.
+ */
 export interface BlockchainStatusBadgeProps {
   status: 'PENDING' | 'SYNCED' | 'FAILED';
   showIcon?: boolean;
@@ -26,6 +32,10 @@ const statusConfig = {
   },
 };
 
+/**
+ * Componente que muestra un badge con el estado de sincronización de la blockchain.
+ * @param props - Props del componente BlockchainStatusBadge.
+ */
 export const BlockchainStatusBadge: React.FC<BlockchainStatusBadgeProps> = ({
   status,
   showIcon = true,
@@ -41,12 +51,20 @@ export const BlockchainStatusBadge: React.FC<BlockchainStatusBadgeProps> = ({
   );
 };
 
-// Componente para mostrar información de blockchain vs DB
+/**
+ * Props del componente DataSourceIndicator.
+ * @property source - Origen de los datos: blockchain o database.
+ * @property className - Clases CSS adicionales.
+ */
 export interface DataSourceIndicatorProps {
   source: 'blockchain' | 'database';
   className?: string;
 }
 
+/**
+ * Componente que indica si los datos provienen de la blockchain o de la base de datos.
+ * @param props - Props del componente DataSourceIndicator.
+ */
 export const DataSourceIndicator: React.FC<DataSourceIndicatorProps> = ({
   source,
   className,

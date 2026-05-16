@@ -1,12 +1,22 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente Loading.
+ * @property size - Tamaño del indicador de carga: sm, md, lg o xl.
+ * @property text - Texto opcional que se muestra debajo del spinner.
+ * @property fullScreen - Si se debe mostrar en pantalla completa con fondo oscuro.
+ */
 export interface LoadingProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   text?: string;
   fullScreen?: boolean;
 }
 
+/**
+ * Componente que muestra un indicador de carga animado.
+ * @param props - Props del componente Loading.
+ */
 export const Loading: React.FC<LoadingProps> = ({
   size = 'md',
   text,
@@ -56,6 +66,10 @@ export const Loading: React.FC<LoadingProps> = ({
   return spinner;
 };
 
+/**
+ * Componente que muestra una superposición de carga sobre su contenedor padre.
+ * @param props - Props del componente LoadingOverlay.
+ */
 export const LoadingOverlay: React.FC<{ show: boolean; text?: string }> = ({ show, text }) => {
   if (!show) return null;
 

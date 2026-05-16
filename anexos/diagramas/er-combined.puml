@@ -1,10 +1,11 @@
-﻿@startuml er-combined
+@startuml er-combined
 !include _structure-style.puml
 skinparam defaultFontName Arial
 skinparam defaultFontSize 11
 skinparam padding 4
+title Modelo ER combinado: aplicacion y blockchain
 
-package "Base de datos (PostgreSQL)" <<pg>> {
+package "Base de datos relacional" <<pg>> {
   entity "users" as users {
     * id : CUID <<PK>>
     --
@@ -55,9 +56,17 @@ package "Base de datos (PostgreSQL)" <<pg>> {
     transaction_hash : TEXT?
     metadata : JSON
   }
+  entity "document_share_keys" as shareKeys {
+    * id : CUID <<PK>>
+    --
+    document_id : CUID <<FK>>
+    user_id : CUID <<FK>>
+    encrypted_symmetric_key : TEXT
+    created_at : TIMESTAMPTZ
+  }
 }
 
-package "Smart Contract (Blockchain Ethereum)" <<bc>> {
+package "DocumentRegistry (red blockchain)" <<bc>> {
   entity "Struct Document" as bcDoc {
     * docId : bytes32 <<PK>>
     --
@@ -92,7 +101,7 @@ package "Smart Contract (Blockchain Ethereum)" <<bc>> {
   }
 }
 
-' --- Relaciones internas PostgreSQL ---
+' --- Relaciones internas Base de datos ---
 users ||--o{ wallets : "tiene"
 users ||--o{ docs : "posee"
 docs ||--o{ versions : "tiene"
@@ -100,6 +109,8 @@ docs ||--o{ sigs : "recibe"
 docs ||--o{ events : "genera"
 users ||--o{ events : "ejecuta"
 wallets ||--o{ sigs : "firma con"
+docs ||--o{ shareKeys : "comparte clave"
+users ||--o{ shareKeys : "recibe clave"
 
 ' --- Correspondencias transversales (campos equivalentes) ---
 docs ..> bcDoc : "blockchain_id\n= docId"
@@ -109,4 +120,5 @@ events ..> bcPerm : "evidencia de share/revoke\n(la verdad vigente esta on-chain
 wallets ..> bcDoc : "address\n= owner"
 
 @enduml
+
 

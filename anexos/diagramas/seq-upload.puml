@@ -1,54 +1,57 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Biblioteca / Modal de subida" as ui
-control "Endpoints de documentos (/api/documents)" as api
+boundary "UploadModal.tsx" as ui
+control "DocumentController (/api/documents)" as api
 control "DocumentService" as srv
-entity "IPFS" as ipfs
-database "PostgreSQL" as db
-participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+control "IPFSService" as ipfs
+database "Base de datos" as db
+participant "Wallet (EIP-6963 / WalletConnect)" as wallet
+entity "DocumentRegistry" as sc
+control "EventListenerService" as listener
 
-user -> ui: Selecciona archivo, metadatos y visibilidad
-alt Publicacion publica
-	ui -> ui: Advierte que el archivo quedara accesible por enlace y QR
-else Documento privado
-	ui -> ui: Mantiene la proteccion cifrada
+user -> ui: Selecciona archivo, nombre, descripcion y visibilidad
+alt Visibilidad publica
+    ui -> ui: Muestra advertencia de acceso publico por enlace/QR
+else Visibilidad privada
+    ui -> ui: Mantiene proteccion cifrada por defecto
 end
 
-ui -> api: Preparar alta
-api -> srv: Validar archivo y wallet
+ui -> api: POST /api/documents/prepare (multipart/form-data)
+api -> srv: prepareDocument(file, metadata, userId, walletId)
+srv -> db: Verificar wallet activa del usuario
+db --> srv: Wallet valida
 alt Documento privado
-	srv -> srv: Cifrar contenido y clave de acceso
+    srv -> srv: generateSymmetricKey() + cifrar contenido con AES-256-GCM
+    srv -> srv: encryptSymmetricKeyWithPublicKey(ownerPublicKey)
 else Documento publico
-	srv -> srv: Mantener contenido en claro y generar publicId
+    srv -> srv: Generar publicId unico (nanoid)
 end
-srv -> ipfs: Subir contenido
+srv -> ipfs: uploadFile(buffer, filename)
 ipfs --> srv: CID
-srv -> db: Guardar documento en PREPARING
-db --> srv: documentId, blockchainId, publicId
-srv --> api: Datos para firmar
-api --> ui: Alta preparada
+srv -> db: Crear documento + version inicial en PREPARING
+db --> srv: {documentId, versionId, blockchainId, publicId?}
+srv --> api: {documentId, versionId, blockchainId, messageToSign}
+api --> ui: 200 OK con datos para firmar
 
-ui -> wallet: Solicitar firma de creacion
-wallet -> sc: Registrar alta on-chain
+ui -> wallet: eth_signTypedData_v4 (messageToSign con titulo y direccion del contrato)
+wallet -> sc: createDocument(blockchainId, cid, metadataHash)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: Confirmar alta
-api -> srv: Registrar TX_SUBMITTED
-srv -> db: Actualizar estado y txHash
+ui -> api: POST /api/documents/confirm {documentId, txHash, walletAddress}
+api -> srv: confirmDocument(documentId, txHash, walletAddress)
+srv -> db: Actualizar documento y version a TX_SUBMITTED
 db --> srv: OK
-srv --> api: Pendiente de sincronizacion
-api --> ui: Confirmacion registrada
+srv --> api: {status: "TX_SUBMITTED"}
+api --> ui: 200 OK confirmacion registrada
 
-sc -> listener: Evento de alta confirmado
-listener -> db: Marcar documento y version inicial como SYNCED
-listener -> ui: Refrescar biblioteca y detalle
-ui --> user: Documento disponible
-alt Publicacion publica
-	ui --> user: Enlace y QR listos en la vista de detalle
+sc -> listener: Evento DocumentCreated(docId, cid, owner, timestamp)
+listener -> db: Actualizar documento y version a SYNCED, registrar evento
+listener -> ui: WebSocket / notificacion de sincronizacion
+ui --> user: Documento visible en biblioteca
+alt Documento publico
+    ui --> user: Mostrar enlace /public/:publicId y codigo QR
 end
 
 @enduml

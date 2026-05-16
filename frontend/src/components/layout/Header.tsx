@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUnreadCount } from '../../api/notifications';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
@@ -12,29 +10,28 @@ import {
   X,
   LogOut,
   Settings,
-  Lock,
   Bell,
+  Lock,
   LogIn,
   UserPlus,
 } from 'lucide-react';
 
+/**
+ * Props del componente Header.
+ */
 interface HeaderProps {
+  /** Callback para alternar la visibilidad del menú en dispositivos móviles. */
   onMenuToggle?: () => void;
 }
 
+/**
+ * Encabezado principal de la aplicación.
+ * Muestra el logo, la información del usuario autenticado, notificaciones,
+ * accesos rápidos a ajustes y cierre de sesión, así como el menú de navegación móvil.
+ */
 export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const { data: unreadData } = useQuery({
-    queryKey: ['unreadNotifications'],
-    queryFn: getUnreadCount,
-    enabled: !isLoading && isAuthenticated,
-    retry: false,
-    refetchInterval: 30000,
-  });
-
-  const unreadNotifications = unreadData?.count || 0;
 
   const handleLogout = () => {
     logout();
@@ -83,18 +80,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
                 {/* Menú Escritorio */}
                 <div className="hidden md:flex items-center gap-2">
-                  {/* Notificaciones */}
                   <Link to="/app/notifications">
-                    <Button variant="ghost" size="sm" className="relative">
+                    <Button variant="ghost" size="sm" aria-label="Notificaciones">
                       <Bell className="w-4 h-4" />
-                      {unreadNotifications > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                        >
-                          {unreadNotifications}
-                        </Badge>
-                      )}
                     </Button>
                   </Link>
 
@@ -175,19 +163,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                       </Badge>
                     )}
                   </div>
-
-                  {/* Notificaciones Móvil */}
-                  <Link to="/app/notifications" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start relative">
-                      <Bell className="w-4 h-4 mr-2" />
-                      Notificaciones
-                      {unreadNotifications > 0 && (
-                        <Badge variant="destructive" className="ml-auto h-5 px-2 text-xs">
-                          {unreadNotifications}
-                        </Badge>
-                      )}
-                    </Button>
-                  </Link>
 
                   {/* Ajustes Móvil */}
                   <Link to="/app/settings" onClick={() => setIsMenuOpen(false)}>

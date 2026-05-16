@@ -1,13 +1,13 @@
-﻿@startuml
+@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Biblioteca / Modal de subida" as ui
 control "Endpoints de documentos (/api/documents)" as api
 control "DocumentService" as srv
 entity "IPFS" as ipfs
-database "PostgreSQL" as db
+database "Base de datos" as db
 participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
+entity "DocumentRegistry" as sc
 control "Event Listener" as listener
 
 user -> ui: Activa "Publicar documento con enlace y QR"
@@ -39,4 +39,5 @@ listener -> db: Marcar documento SYNCED
 listener -> ui: Habilitar acciones publicas
 ui --> user: El documento ya dispone de enlace y QR
 @enduml
+
 

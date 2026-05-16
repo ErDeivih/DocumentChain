@@ -1,0 +1,33 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Login.tsx" as ui
+control "Endpoints de autenticacion (/api/auth)" as api
+control "AuthService" as srv
+database "Base de datos" as db
+participant "Wallet externa" as wallet
+
+user -> ui: Entra en la pagina de inicio de sesion
+ui -> ui: Detecta wallets disponibles (EIP-6963)
+note right: Boundary escanea eventos de ventana para detectar MetaMask, Rabby, etc.
+
+ui -> api: Solicita challenge de autenticacion
+api -> srv: getChallenge(walletAddress)
+srv -> srv: Genera mensaje desafio con nonce
+srv --> api: challenge + nonce
+api --> ui: Mensaje a firmar
+
+ui -> wallet: Solicita firma del mensaje desafio
+wallet --> ui: Firma del usuario
+
+ui -> api: walletLogin(walletAddress, signature, message)
+api -> srv: Verifica firma y direccion
+srv -> db: Busca wallet por direccion
+db --> srv: Datos de wallet y usuario
+srv -> srv: Valida que la wallet pertenece al usuario
+srv -> db: Crea sesion y genera token JWT
+db --> srv: Sesion creada
+srv --> api: TokenPair (access + refresh)
+api --> ui: Token JWT + datos de usuario
+ui --> user: Redirige al panel principal
+@enduml

@@ -1,21 +1,21 @@
 /**
- * Blockchain Module - Frontend Blockchain Interactions
- * 
- * This module provides all functionality needed for:
- * - Wallet connection and management
- * - Smart contract interactions
- * - Transaction monitoring
- * - Network configuration
+ * @fileoverview Módulo blockchain del frontend.
+ *
+ * Centraliza toda la funcionalidad relacionada con:
+ * - Conexión y gestión de wallets.
+ * - Interacción con contratos inteligentes.
+ * - Monitoreo de transacciones.
+ * - Configuración de redes.
  */
 
-// Re-export configuration
+// Re-exportar configuración
 export * from './config';
 
-// Re-export provider
+// Re-exportar proveedor
 export { BlockchainProvider, blockchainProvider } from './provider';
 export type { WalletType, WalletConnection, ProviderState } from './provider';
 
-// Re-export contracts
+// Re-exportar contratos
 export {
   DocumentRegistryContract,
   createContracts,
@@ -29,7 +29,7 @@ export type {
   Contracts,
 } from './contracts';
 
-// Re-export monitor
+// Re-exportar monitor
 export { TransactionMonitor, transactionMonitor } from './monitor';
 export type {
   TransactionStatus,
@@ -37,7 +37,7 @@ export type {
   TransactionCallbacks,
 } from './monitor';
 
-// Default export for convenience
+// Exportación por defecto para conveniencia
 export default {
   blockchainProvider: (await import('./provider')).blockchainProvider,
   transactionMonitor: (await import('./monitor')).transactionMonitor,

@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Vista Auditoria blockchain" as ui
 control "Endpoints de auditoria (/api/audit)" as api
 control "BlockchainService" as srv
-entity "Smart Contract" as sc
+entity "DocumentRegistry" as sc
 
 user -> ui: Abre la auditoria blockchain del documento
 ui -> api: Solicitar eventos on-chain

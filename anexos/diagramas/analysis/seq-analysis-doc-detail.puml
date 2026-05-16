@@ -1,0 +1,34 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0015: Ver detalle de documento (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Página de detalle del documento" as ui
+control "Gestor de documentos" as ctrl
+entity "Documento" as doc
+entity "Versión" as ver
+entity "Firma" as sig
+entity "Compartido" as share
+
+user -> ui: Seleccionar documento
+ui -> ctrl: Solicitar detalle (idDocumento)
+
+ctrl -> doc: Obtener metadatos del documento
+doc --> ctrl: Metadatos
+ctrl -> ver: Obtener versión operacional
+ver --> ctrl: Versión operacional
+ctrl -> sig: Obtener firmas del documento
+sig --> ctrl: Lista de firmas
+ctrl -> share: Obtener comparticiones del documento
+share --> ctrl: Lista de comparticiones
+
+alt Documento no existe o sin permiso
+    ctrl --> ui: Error / Acceso denegado
+    ui --> user: Mostrar error 404 o permiso
+else Documento accesible
+    ctrl --> ui: Detalle completo del documento
+    ui --> user: Mostrar vista de detalle (metadatos, versiones, firmas, compartidos)
+end
+
+@enduml

@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Servicio de firmas blockchain.
+ *
+ * Gestiona el flujo completo de firma de documentos:
+ * 1. Preparar la firma con el backend.
+ * 2. Firmar el mensaje con la wallet.
+ * 3. Enviar la transacción al contrato inteligente.
+ * 4. Confirmar la firma en el backend.
+ * 5. Realizar rollback si ocurre algún error.
+ */
+
 import { ethers } from 'ethers';
 import { blockchainProvider } from '../../lib/blockchain/provider';
 import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
@@ -5,9 +16,24 @@ import { signaturesApi } from '../../api/signatures';
 import type { Signature } from '../../types';
 import type { SignDocumentInput } from './types';
 
+/**
+ * Servicio para firmar versiones de documentos en blockchain.
+ */
 export class SigningService {
   /**
-   * Sign a document version with blockchain signature
+   * Firma una versión de documento mediante transacción blockchain.
+   *
+   * Flujo:
+   * 1. Prepara la firma con el backend (mensaje a firmar).
+   * 2. Firma el mensaje con la wallet conectada.
+   * 3. Envía la transacción al contrato DocumentRegistry.
+   * 4. Confirma la firma en el backend.
+   *
+   * Si ocurre un error después de la preparación, revierte el registro
+   * de firma en el backend para mantener la consistencia.
+   *
+   * @param input - Datos de entrada para la firma.
+   * @returns Firma registrada.
    */
   async signDocument(input: SignDocumentInput): Promise<Signature> {
     let preparedSignature: any = null;
@@ -18,7 +44,7 @@ export class SigningService {
         throw new Error('No wallet connected');
       }
 
-      // Step 1: Prepare signature with backend
+      // Paso 1: Preparar firma con el backend
       preparedSignature = await signaturesApi.prepare({
         documentId: input.documentId,
         versionNumber: input.versionNumber,
@@ -26,10 +52,10 @@ export class SigningService {
         comment: input.comment || '',
       });
 
-      // Step 2: Sign message with wallet
+      // Paso 2: Firmar mensaje con la wallet
       const messageSignature = await signer.signMessage(preparedSignature.messageToSign);
 
-      // Step 3: Sign blockchain transaction
+      // Paso 3: Firmar transacción blockchain
       const docIdBytes32 = ethers.isHexString(preparedSignature.blockchainId)
         ? preparedSignature.blockchainId
         : ethers.id(preparedSignature.blockchainId);
@@ -44,7 +70,7 @@ export class SigningService {
       );
       await tx.wait();
 
-      // Step 4: Confirm with backend
+      // Paso 4: Confirmar con el backend
       const result = await signaturesApi.confirm({
         signatureId: preparedSignature.signatureId,
         transactionHash: tx.hash,
@@ -53,13 +79,11 @@ export class SigningService {
 
       return result;
     } catch (error: any) {
-      // Rollback: delete signature record
+      // Rollback: eliminar registro de firma
       if (preparedSignature?.signatureId) {
         try {
           await signaturesApi.rollback(preparedSignature.signatureId);
-          console.log('[SigningService] Signature rollback successful');
         } catch (rollbackError) {
-          console.error('[SigningService] Signature rollback failed:', rollbackError);
         }
       }
       const friendlyMessage = this.mapErrorToFriendlyMessage(error);
@@ -67,9 +91,14 @@ export class SigningService {
     }
   }
 
+  /**
+   * Mapea errores técnicos a mensajes amigables para el usuario.
+   * @param error - Error original.
+   * @returns Mensaje localizado y amigable.
+   */
   private mapErrorToFriendlyMessage(error: any): string {
     const msg = (error?.message || error?.reason || '').toLowerCase();
-    
+
     if (msg.includes('already signed') || msg.includes('ya has firmado')) {
       return 'Ya has firmado esta versión del documento. No es necesario firmar de nuevo.';
     }
@@ -91,12 +120,12 @@ export class SigningService {
     if (msg.includes('document not found') || msg.includes('does not exist')) {
       return 'El documento no existe en el contrato inteligente. Puede que aún no esté sincronizado con blockchain.';
     }
-    
+
     // Log técnico para debugging pero mensaje amigable para usuario
-    console.error('[SigningService] Error técnico:', error);
+    Deja que el error se propague al componente.
     return 'No se pudo completar la firma. Verifica tu conexión y los permisos del documento, o inténtalo de nuevo.';
   }
 }
 
-// Singleton instance
+// Instancia singleton
 export const signingService = new SigningService();

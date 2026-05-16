@@ -1,32 +1,34 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Pagina Login" as ui
-control "Endpoints de autenticacion (/api/auth)" as api
+boundary "Login.tsx" as ui
+control "AuthController (/api/auth)" as api
 control "AuthService" as srv
-database "PostgreSQL" as db
+control "TokenService" as tokenSrv
+database "Base de datos" as db
 
-user -> ui: Introduce usuario o email y contrasena
-ui -> api: Solicitar inicio de sesion
-api -> srv: Validar credenciales
-srv -> db: Recuperar cuenta y hash de contrasena
-db --> srv: Datos de acceso
+user -> ui: Introduce username/email y contrasena
+ui -> ui: Valida formato de entrada
+ui -> api: POST /auth/login {identifier, password}
+api -> srv: validateCredentials(identifier, password)
+srv -> db: Buscar usuario por username o email
+db --> srv: usuario con hashedPassword y emailVerified
+srv -> srv: Verificar contrasena con Argon2id
 alt Credenciales invalidas
-  srv --> api: Error de autenticacion
-  api --> ui: Mostrar credenciales invalidas
+  srv --> api: Error 401 "Credenciales invalidas"
+  api --> ui: Mostrar error de autenticacion
 else Correo no verificado
-  srv --> api: Error indicando verificacion pendiente
-  api --> ui: Mostrar bloqueo y acceso a reenviar verificacion
-else Credenciales validas con 2FA activo
-  srv --> api: tempToken y contexto de 2FA
-  api --> ui: Solicitar segundo factor
-else Credenciales validas sin 2FA
-  srv -> db: Crear sesion activa
+  srv --> api: Error 401 "Correo no verificado"
+  api --> ui: Mostrar bloqueo y boton de reenvio de verificacion
+else Credenciales validas
+  srv -> tokenSrv: generateAccessToken(userId) + generateRefreshToken(userId)
+  tokenSrv --> srv: accessToken, refreshToken
+  srv -> db: Crear sesion activa con refreshToken
   db --> srv: Sesion registrada
-  srv --> api: Tokens y perfil
-  api --> ui: Acceso concedido
-  ui -> ui: Guardar sesion local
-  ui --> user: Redirige a la vista solicitada o a Biblioteca
+  srv --> api: {accessToken, refreshToken, user}
+  api --> ui: 200 OK con tokens y perfil
+  ui -> ui: Guardar tokens en almacenamiento local
+  ui --> user: Redirige a /app/documents
 end
 
 @enduml

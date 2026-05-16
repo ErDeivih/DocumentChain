@@ -1,7 +1,7 @@
 /**
- * Server-Side Encryption Library
- * Handles AES-256-GCM encryption/decryption for files
- * Replaces client-side encryption (moved from frontend)
+ * Biblioteca de cifrado del lado del servidor.
+ * Gestiona el cifrado y descifrado de archivos mediante AES-256-GCM.
+ * Reemplaza el cifrado del lado del cliente (trasladado desde el frontend).
  */
 
 import crypto from 'crypto';
@@ -11,58 +11,65 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 const KEY_LENGTH = 32; // 256 bits
 
+/**
+ * Resultado del cifrado de un archivo.
+ */
 export interface EncryptionResult {
   encryptedData: Buffer;
-  symmetricKey: string; // Base64 encoded
-  iv: string; // Base64 encoded
-  authTag: string; // Base64 encoded
-  contentHash: string; // SHA-256 hash of original file
-}
-
-export interface DecryptionInput {
-  encryptedData: Buffer;
-  symmetricKey: string; // Base64 encoded
-  iv: string; // Base64 encoded
-  authTag: string; // Base64 encoded
+  symmetricKey: string; // Codificada en base64
+  iv: string; // Codificada en base64
+  authTag: string; // Codificada en base64
+  contentHash: string; // Hash SHA-256 del archivo original
 }
 
 /**
- * Generate a random AES-256 symmetric key
+ * Parámetros necesarios para descifrar un archivo.
+ */
+export interface DecryptionInput {
+  encryptedData: Buffer;
+  symmetricKey: string; // Codificada en base64
+  iv: string; // Codificada en base64
+  authTag: string; // Codificada en base64
+}
+
+/**
+ * Genera una clave simétrica aleatoria de 256 bits para AES.
+ * @returns Clave simétrica codificada en base64.
  */
 export function generateSymmetricKey(): string {
   return crypto.randomBytes(KEY_LENGTH).toString('base64');
 }
 
 /**
- * Encrypt file data with AES-256-GCM
- * @param fileBuffer Original file buffer
- * @param symmetricKey Optional symmetric key (generates new if not provided)
- * @returns Encryption result with encrypted data and metadata
+ * Cifra los datos de un archivo con AES-256-GCM.
+ * @param fileBuffer - Buffer del archivo original.
+ * @param symmetricKey - Clave simétrica opcional en base64; si no se proporciona, se genera una nueva.
+ * @returns Resultado del cifrado con los datos cifrados y metadatos asociados.
  */
 export function encryptFile(
   fileBuffer: Buffer,
   symmetricKey?: string
 ): EncryptionResult {
-  // Generate or use provided symmetric key
+  // Generar o utilizar la clave simétrica proporcionada
   const keyString = symmetricKey || generateSymmetricKey();
   const key = Buffer.from(keyString, 'base64');
 
-  // Generate random IV
+  // Generar vector de inicialización aleatorio
   const iv = crypto.randomBytes(IV_LENGTH);
 
-  // Create cipher
+  // Crear cifrador
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
-  // Encrypt data
+  // Cifrar datos
   const encryptedChunks: Buffer[] = [];
   encryptedChunks.push(cipher.update(fileBuffer));
   encryptedChunks.push(cipher.final());
   const encryptedData = Buffer.concat(encryptedChunks);
 
-  // Get authentication tag
+  // Obtener etiqueta de autenticación
   const authTag = cipher.getAuthTag();
 
-  // Calculate content hash (SHA-256 of original file)
+  // Calcular hash de contenido (SHA-256 del archivo original)
   const contentHash = crypto
     .createHash('sha256')
     .update(fileBuffer)
@@ -78,9 +85,9 @@ export function encryptFile(
 }
 
 /**
- * Decrypt file data with AES-256-GCM
- * @param input Decryption parameters
- * @returns Decrypted file buffer
+ * Descifra los datos de un archivo previamente cifrados con AES-256-GCM.
+ * @param input - Parámetros de descifrado.
+ * @returns Buffer con los datos del archivo descifrados.
  */
 export function decryptFile(input: DecryptionInput): Buffer {
   const {
@@ -90,16 +97,16 @@ export function decryptFile(input: DecryptionInput): Buffer {
     authTag: authTagB64,
   } = input;
 
-  // Decode base64 values
+  // Decodificar valores en base64
   const key = Buffer.from(symmetricKeyB64, 'base64');
   const iv = Buffer.from(ivB64, 'base64');
   const authTag = Buffer.from(authTagB64, 'base64');
 
-  // Create decipher
+  // Crear descifrador
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
 
-  // Decrypt data
+  // Descifrar datos
   const decryptedChunks: Buffer[] = [];
   decryptedChunks.push(decipher.update(encryptedData));
   decryptedChunks.push(decipher.final());
@@ -108,10 +115,10 @@ export function decryptFile(input: DecryptionInput): Buffer {
 }
 
 /**
- * Encrypt symmetric key with user's RSA public key
- * @param symmetricKey Base64-encoded symmetric key
- * @param publicKeyPem User's RSA public key in PEM format
- * @returns Base64-encoded encrypted symmetric key
+ * Cifra una clave simétrica con la clave pública RSA de un usuario.
+ * @param symmetricKey - Clave simétrica codificada en base64.
+ * @param publicKeyPem - Clave pública RSA del usuario en formato PEM.
+ * @returns Clave simétrica cifrada y codificada en base64.
  */
 export function encryptSymmetricKey(
   symmetricKey: string,
@@ -130,10 +137,10 @@ export function encryptSymmetricKey(
 }
 
 /**
- * Decrypt symmetric key with user's RSA private key
- * @param encryptedSymmetricKey Base64-encoded encrypted symmetric key
- * @param privateKeyPem User's RSA private key in PEM format
- * @returns Base64-encoded symmetric key
+ * Descifra una clave simétrica con la clave privada RSA de un usuario.
+ * @param encryptedSymmetricKey - Clave simétrica cifrada codificada en base64.
+ * @param privateKeyPem - Clave privada RSA del usuario en formato PEM.
+ * @returns Clave simétrica descifrada codificada en base64.
  */
 export function decryptSymmetricKey(
   encryptedSymmetricKey: string,
@@ -152,10 +159,10 @@ export function decryptSymmetricKey(
 }
 
 /**
- * Validate file size
- * @param fileSize File size in bytes
- * @param maxSizeMB Maximum allowed size in MB (default: 100MB)
- * @throws Error if file is too large
+ * Valida que el tamaño de un archivo no exceda el límite permitido.
+ * @param fileSize - Tamaño del archivo en bytes.
+ * @param maxSizeMB - Tamaño máximo permitido en MB (por defecto: 100 MB).
+ * @throws Error si el archivo supera el tamaño máximo.
  */
 export function validateFileSize(fileSize: number, maxSizeMB: number = 100): void {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -165,23 +172,23 @@ export function validateFileSize(fileSize: number, maxSizeMB: number = 100): voi
 }
 
 /**
- * Validate MIME type against whitelist
- * @param mimeType File MIME type
- * @param allowedTypes Optional array of allowed MIME types (null = allow all)
- * @throws Error if MIME type not allowed
+ * Valida un tipo MIME contra una lista blanca de tipos permitidos.
+ * @param mimeType - Tipo MIME del archivo.
+ * @param allowedTypes - Lista opcional de tipos MIME permitidos (`null` permite todos).
+ * @throws Error si el tipo MIME no está permitido.
  */
 export function validateMimeType(
   mimeType: string,
   allowedTypes: string[] | null = null
 ): void {
-  // If no whitelist provided, allow all types
+  // Si no se proporciona lista blanca, permitir todos los tipos
   if (!allowedTypes || allowedTypes.length === 0) {
     return;
   }
 
-  // Check if MIME type is in whitelist
+  // Verificar si el tipo MIME está en la lista blanca
   const isAllowed = allowedTypes.some(allowed => {
-    // Support wildcards like "image/*"
+    // Soporte de comodines como "image/*"
     if (allowed.endsWith('/*')) {
       const prefix = allowed.slice(0, -2);
       return mimeType.startsWith(prefix + '/');
@@ -195,9 +202,9 @@ export function validateMimeType(
 }
 
 /**
- * Calculate SHA-256 hash of buffer
- * @param buffer Data buffer
- * @returns Hex-encoded hash
+ * Calcula el hash SHA-256 de un buffer.
+ * @param buffer - Buffer de datos.
+ * @returns Hash codificado en hexadecimal.
  */
 export function calculateHash(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');

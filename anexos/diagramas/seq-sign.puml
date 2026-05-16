@@ -1,38 +1,43 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Detalle de documento / Firmar" as ui
-control "Endpoints de firmas (/api/documents/:id/signatures)" as api
+boundary "DocumentDetails.tsx / SignModal" as ui
+control "SignatureController (/api/signatures)" as api
 control "SignatureService" as srv
-database "PostgreSQL" as db
-participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+control "DocumentPermissionService" as perm
+entity "DocumentRegistry" as sc
+database "Base de datos" as db
+participant "Wallet (EIP-6963 / WalletConnect)" as wallet
+control "EventListenerService" as listener
 
-user -> ui: Abre la accion "Firmar documento"
-ui -> ui: Recoge comentario opcional
-ui -> api: Preparar firma
-api -> srv: Validar version operativa y permisos
-srv -> db: Registrar firma en PREPARING
-db --> srv: signatureId y datos de firma
-srv --> api: Payload para firmar
-api --> ui: Firma preparada
+user -> ui: Abre "Firmar documento" e introduce comentario opcional
+ui -> api: POST /api/signatures/prepare {documentId, versionId, walletId, comment?}
+api -> srv: prepareSignature(documentId, versionId, userId, walletId, comment)
+srv -> perm: canView(blockchainId, walletAddress)
+perm -> sc: getUserPermission(docId, userAddress)
+sc --> perm: DocumentRole.VIEWER o superior
+perm --> srv: Acceso validado
+srv -> db: Verificar que no haya firmado ya esta version
+srv -> db: Crear signature en PREPARING
+db --> srv: signatureId, blockchainId, messageToSign
+srv --> api: {signatureId, messageToSign}
+api --> ui: 200 OK firma preparada
 
-ui -> wallet: Solicitar firma
-wallet -> sc: Registrar firma on-chain
+ui -> wallet: eth_signTypedData_v4(messageToSign)
+wallet -> sc: signDocument(docId, versionNumber, signatureBytes)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: Confirmar firma
-api -> srv: Registrar TX_SUBMITTED
-srv -> db: Actualizar firma pendiente
+ui -> api: POST /api/signatures/confirm {signatureId, txHash, walletAddress}
+api -> srv: confirmSignature(signatureId, txHash, walletAddress)
+srv -> db: Actualizar signature a TX_SUBMITTED
 db --> srv: OK
-srv --> api: En espera de sincronizacion
-api --> ui: Confirmacion registrada
+srv --> api: {status: "TX_SUBMITTED"}
+api --> ui: 200 OK confirmacion registrada
 
-sc -> listener: Evento de firma confirmado
-listener -> db: Marcar firma SYNCED y registrar evento
-listener -> ui: Refrescar panel de firmas
+sc -> listener: Evento DocumentSigned(docId, version, signer, timestamp, signatureHash)
+listener -> db: Actualizar signature a SYNCED, registrar evento
+listener -> ui: WebSocket / refrescar panel de firmas
 ui --> user: Firma incorporada al documento
 
 @enduml

@@ -1,6 +1,6 @@
 /**
- * Modal para firmar una versión de documento con blockchain
- * Permite al usuario añadir un comentario opcional y firma con su wallet
+ * Modal para firmar una versión de documento con blockchain.
+ * Permite al usuario añadir un comentario opcional y firmar con su wallet.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -18,16 +18,30 @@ import { FileSignature, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import type { Document } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
 
+/**
+ * Propiedades del componente SignDocumentModal.
+ */
 interface SignDocumentModalProps {
+  /** Indica si el modal está abierto. */
   isOpen: boolean;
+  /** Función para cerrar el modal. */
   onClose: () => void;
+  /** Función invocada cuando la firma se completa exitosamente. */
   onSuccess: () => void;
+  /** Documento que se va a firmar. */
   document: Document;
+  /** Número de versión operacional a firmar. */
   operationalVersionNumber: number;
 }
 
 type ProcessingStep = 'form' | 'signing' | 'success' | 'error';
 
+/**
+ * Modal que gestiona el flujo completo de firma digital de un documento en blockchain.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX del modal de firma.
+ */
 export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
   isOpen,
   onClose,
@@ -43,7 +57,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
   const [checkingSignature, setCheckingSignature] = useState(true);
   const [showWalletModal, setShowWalletModal] = useState(false);
 
-  // Check if user has already signed this version
+  // Verifica si el usuario ya ha firmado esta versión
   useEffect(() => {
     const checkIfSigned = async () => {
       if (!isOpen) return;
@@ -55,18 +69,18 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
 
         const { id: userId } = JSON.parse(currentUser);
         
-        // Get all signatures for this version
+        // Obtiene todas las firmas de esta versión
         const { signatures } = await signaturesApi.listByVersion(
           document.id,
           operationalVersionNumber
         );
 
-        // Check if current user has signed
+        // Verifica si el usuario actual ya ha firmado
         const hasSigned = signatures.some(sig => sig.userId === userId);
         setHasAlreadySigned(hasSigned);
       } catch (err) {
         console.error('Error checking signature:', err);
-        // Don't show error, just allow signing
+        // No muestra error, permite firmar
         setHasAlreadySigned(false);
       } finally {
         setCheckingSignature(false);
@@ -155,10 +169,10 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
         title={"Firmar Documento"}
       >
         <div className="space-y-4">
-        {/* Form Step */}
+        {/* Paso del formulario */}
         {step === 'form' && (
           <>
-            {/* Document Info */}
+            {/* Información del documento */}
             <div className="space-y-2 rounded-lg border border-border bg-secondary/35 p-4">
               <div>
                 <p className="text-sm text-muted-foreground">Documento</p>
@@ -182,7 +196,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
               />
             ) : (
               <>
-                {/* Comment Input */}
+                {/* Entrada de comentario */}
                 <div>
                   <Label htmlFor="sign-comment">
                     Comentario (opcional)
@@ -201,7 +215,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
                   </p>
                 </div>
 
-                {/* Info Message */}
+                {/* Mensaje informativo */}
                 <AlertMessage
                   type="info"
                   message="Al firmar, crearás una firma digital inmutable en blockchain. Se te pedirá que firmes con tu wallet conectada."
@@ -216,7 +230,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
               </>
             )}
 
-            {/* Actions */}
+            {/* Acciones */}
             <div className="flex justify-end gap-3">
               <Button
                 variant="outline"
@@ -246,7 +260,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
           </>
         )}
 
-        {/* Signing Step */}
+        {/* Paso de firma */}
         {step === 'signing' && (
           <div className="py-8 text-center">
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
@@ -262,7 +276,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
           </div>
         )}
 
-        {/* Success Step */}
+        {/* Paso de éxito */}
         {step === 'success' && (
           <div className="py-8 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -273,7 +287,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
           </div>
         )}
 
-        {/* Error Step */}
+        {/* Paso de error */}
         {step === 'error' && (
           <div className="py-8 text-center">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />

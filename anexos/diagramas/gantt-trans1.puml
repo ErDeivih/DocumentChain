@@ -13,8 +13,8 @@ Project starts 2026-04-20
 [T59: Configuracion Nginx y certificados SSL] starts at [T58: Despliegue en entorno de produccion Docker]'s end
 [T60: Configuracion del nodo IPFS autoalojado en produccion] lasts 2 days
 [T60: Configuracion del nodo IPFS autoalojado en produccion] starts at [T58: Despliegue en entorno de produccion Docker]'s end
-[T61: Validacion del smart contract en red real] lasts 2 days
-[T61: Validacion del smart contract en red real] starts at [T58: Despliegue en entorno de produccion Docker]'s end
+[T61: Validacion del DocumentRegistry en red real] lasts 2 days
+[T61: Validacion del DocumentRegistry en red real] starts at [T58: Despliegue en entorno de produccion Docker]'s end
 
 [Validacion y ajuste] lasts 7 days
 [Validacion y ajuste] starts at [Despliegue e infraestructura]'s end

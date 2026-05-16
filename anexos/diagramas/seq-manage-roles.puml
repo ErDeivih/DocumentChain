@@ -1,10 +1,10 @@
-@startuml
+﻿@startuml
 !include _sequence-style.puml
 actor Administrador as admin
 boundary "Panel de administracion / Usuarios" as ui
 control "Endpoints de administracion (/api/admin)" as api
 control "AdminUserService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 admin -> ui: Cambia el rol de un usuario
 ui -> api: Solicitar actualizacion de rol
@@ -15,3 +15,4 @@ srv --> api: Cambio confirmado
 api --> ui: Lista de usuarios actualizada
 ui --> admin: Nuevo rol visible en el panel
 @enduml
+

@@ -4,15 +4,17 @@ actor Usuario as user
 boundary "Historial de versiones" as ui
 control "Endpoints de versiones (/api/documents/:id/versions)" as api
 control "VersionService" as srv
-entity "IPFS" as ipfs
-database "PostgreSQL" as db
+entity "DocumentRegistry" as sc
+entity "IPFSService" as ipfs
+database "Base de datos" as db
 participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+control "EventListenerService" as listener
 
 user -> ui: Selecciona una version anterior para restaurarla
 ui -> api: Preparar restauracion
 api -> srv: Validar permisos y version origen
+srv -> sc: isOwner(blockchainId, walletAddress)
+sc --> srv: Propietario validado
 srv -> db: Recuperar version seleccionada y crear restauracion en PREPARING
 db --> srv: Datos de version y nueva restauracion
 srv -> ipfs: Reutilizar el contenido asociado a la version origen

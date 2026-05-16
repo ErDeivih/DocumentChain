@@ -1,0 +1,29 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0038: Listar Usuarios (Analisis BCE)
+
+actor "Administrador" as Admin
+boundary "PanelAdmin" as BF
+control "GestorAdmin" as CA
+entity "Usuario" as EU
+
+database "Base de datos" as DB
+
+Admin -> BF : 1. Accede al panel de administracion
+BF -> CA : 2. Solicita listado de usuarios
+CA -> CA : 3. Verifica rol de administrador
+note right : Control comprueba que el actor tiene permisos de administracion
+
+CA -> EU : 4. Recupera listado de usuarios
+EU -> DB : SELECT usuarios
+DB --> EU : listado usuarios
+EU --> CA : datos de usuarios
+
+CA -> CA : 5. Ordena y pagina resultados
+CA --> BF : 6. Devuelve listado paginado
+BF --> Admin : 7. Muestra tabla de usuarios
+
+@enduml
+
+

@@ -7,9 +7,15 @@ import { copyToClipboard, formatDate } from '../../lib/utils';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
+/**
+ * Propiedades del componente TransactionDetailModal.
+ */
 interface TransactionDetailModalProps {
+  /** Indica si el modal está abierto. */
   open: boolean;
+  /** Función para cerrar el modal. */
   onClose: () => void;
+  /** Detalles de la transacción y sus eventos; puede ser `null` si no hay datos. */
   details: {
     transaction: {
       hash: string;
@@ -35,6 +41,7 @@ interface TransactionDetailModalProps {
       } | null;
     }>;
   } | null;
+  /** Indica si se están cargando los detalles. */
   isLoading: boolean;
 }
 
@@ -48,12 +55,15 @@ const EVENT_COLORS: Record<string, string> = {
   DocumentArchived: 'bg-yellow-100 text-yellow-800',
   DocumentUnarchived: 'bg-emerald-100 text-emerald-800',
   OwnershipTransferred: 'bg-cyan-100 text-cyan-800',
-  UserSuspended: 'bg-red-100 text-red-800',
-  UserUnsuspended: 'bg-green-100 text-green-800',
-  SystemPaused: 'bg-red-100 text-red-800',
-  SystemUnpaused: 'bg-green-100 text-green-800',
 };
 
+/**
+ * Modal que muestra el detalle completo de una transacción blockchain,
+ * incluyendo información general y eventos decodificados del contrato.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX del modal de detalle de transacción.
+ */
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   open,
   onClose,
@@ -89,7 +99,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
         {!isLoading && details && (
           <div className="space-y-6">
-            {/* Transaction Info */}
+            {/* Información de la transacción */}
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h3 className="text-sm font-semibold flex items-center gap-2">
                 <Activity className="w-4 h-4" />
@@ -148,7 +158,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Events */}
+            {/* Eventos */}
             <div className="space-y-3">
               <h3 className="text-sm font-semibold flex items-center gap-2">
                 <FileText className="w-4 h-4" />
@@ -173,7 +183,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     )}
                   </div>
 
-                  {/* Document Link */}
+                  {/* Enlace al documento */}
                   {event.document && (
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-muted-foreground" />

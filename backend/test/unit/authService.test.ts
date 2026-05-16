@@ -96,11 +96,6 @@ function makeUser(overrides: Record<string, unknown> = {}) {
     publicKey: 'pk-test',
     encryptedPrivateKey: 'epk-test',
     keySalt: 'salt',
-    twoFactorEnabled: false,
-    twoFactorSecret: null,
-    isSuspended: false,
-    suspendedAt: null,
-    suspendReason: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastLogin: null,
@@ -164,21 +159,6 @@ describe('AuthService - login()', () => {
     expect(result.accessToken).toBe('access-token-abc');
     expect(result.user.username).toBe('testuser');
   });
-
-  it('allows login even when account is suspended (user needs token to unsuspend)', async () => {
-    const suspendedUser = makeUser({
-      isSuspended: true,
-      suspendReason: 'Testing self-suspension',
-    });
-    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(suspendedUser);
-    (Argon2Service.verify as jest.Mock).mockResolvedValue(true);
-    (TokenService.generateTokenPair as jest.Mock).mockResolvedValue(makeSession());
-    (mockPrisma.user.update as jest.Mock).mockResolvedValue(suspendedUser);
-
-    // Login must succeed so user can call /users/me/unsuspend
-    const result = await AuthService.login({ identifier: 'testuser', password: 'correctpass' });
-    expect(result.accessToken).toBeTruthy();
-  });
 });
 
 describe('AuthService - loginWithWallet()', () => {
@@ -218,24 +198,5 @@ describe('AuthService - loginWithWallet()', () => {
 
     expect(result.accessToken).toBeTruthy();
   });
-
-  it('allows wallet login even when account is suspended (user needs token to unsuspend)', async () => {
-    const suspendedUser = makeUser({ isSuspended: true, suspendReason: 'Manual suspension' });
-    (mockPrisma.wallet.findFirst as jest.Mock).mockResolvedValue({
-      walletAddress: TEST_WALLET_ADDRESS,
-      user: suspendedUser,
-    });
-    (TokenService.generateTokenPair as jest.Mock).mockResolvedValue(makeSession());
-    (mockPrisma.user.update as jest.Mock).mockResolvedValue(suspendedUser);
-
-    const validChallenge = `Sign this message to authenticate: user-123:${Date.now()}:aabbccddeeff`;
-    // Must succeed so suspended user can reach /users/me/unsuspend
-    const result = await AuthService.loginWithWallet({
-      walletAddress: TEST_WALLET_ADDRESS,
-      signature: '0xsig',
-      message: validChallenge,
-    });
-
-    expect(result.accessToken).toBeTruthy();
-  });
 });
+

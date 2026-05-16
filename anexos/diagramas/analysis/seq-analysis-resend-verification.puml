@@ -1,0 +1,30 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0012: Reenviar verificación de email (Análisis BCE)
+
+actor "Usuario (email no verificado)" as user
+boundary "Página de login / Aviso" as ui
+control "Gestor de autenticación" as ctrl
+entity "Cuenta de usuario" as account
+entity "Token de verificación" as token
+
+user -> ui: Seleccionar "Reenviar verificación"
+ui -> ctrl: Solicitar reenvío (email)
+
+alt Email no registrado o ya verificado
+    ctrl -> account: Buscar cuenta por email
+    account --> ctrl: No encontrado / ya verificado
+    ctrl --> ui: Solicitud procesada (sin revelar estado)
+    ui --> user: Mensaje genérico
+else Email pendiente de verificación
+    ctrl -> account: Buscar cuenta por email
+    account --> ctrl: Cuenta encontrada (pendiente)
+    ctrl -> token: Generar nuevo token de verificación
+    token --> ctrl: Token generado
+    ctrl -> ctrl: Enviar nuevo email de verificación
+    ctrl --> ui: Solicitud procesada
+    ui --> user: "Revisa tu email"
+end
+
+@enduml

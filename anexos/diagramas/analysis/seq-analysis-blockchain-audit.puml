@@ -1,0 +1,28 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0037: Auditoría blockchain (Análisis BCE)
+
+actor "Usuario con acceso" as user
+boundary "Página de auditoría" as ui
+control "Gestor de auditoría" as ctrl
+entity "Documento" as doc
+entity "Evento" as evt
+
+user -> ui: Solicitar auditoría (idDocumento)
+ui -> ctrl: Solicitar historial blockchain
+
+ctrl -> doc: Verificar permisos
+doc --> ctrl: Permisos verificados
+
+alt Sin acceso
+    ctrl --> ui: Acceso denegado
+    ui --> user: Mostrar error
+else Con acceso
+    ctrl -> evt: Obtener eventos blockchain del documento
+    evt --> ctrl: Lista de eventos (alta, firma, transferencia, archivado)
+    ctrl --> ui: Historial de eventos blockchain
+    ui --> user: Mostrar línea temporal de eventos con hash de transacción y bloque
+end
+
+@enduml

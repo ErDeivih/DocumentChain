@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Archivo de barril (barrel file) que centraliza la exportación de todos los componentes UI.
+ *
+ * Re-exporta los componentes base, tipos y utilidades utilizados en toda la interfaz
+ * para simplificar las rutas de importación y mantener la coherencia del diseño.
+ */
+
 // Componentes shadcn/ui actualizados
 export { Button, buttonVariants } from './Button';
 export type { ButtonProps } from './Button';
@@ -44,5 +51,3 @@ export type { BlockchainStatusBadgeProps, DataSourceIndicatorProps } from './Blo
 
 export { Table, TableCellStack } from './Table';
 export type { TableProps, Column } from './Table';
-
-

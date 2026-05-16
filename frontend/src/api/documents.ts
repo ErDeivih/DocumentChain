@@ -1,16 +1,39 @@
+/**
+ * @fileoverview API de documentos para el frontend.
+ *
+ * Proporciona métodos para crear, listar, descargar, archivar, transferir
+ * y gestionar versiones de documentos mediante el patrón prepare/confirm.
+ */
+
 import { api } from '../lib/api';
 import type { Document, PaginatedResponse, Version } from '../types';
 
+/**
+ * Respuesta de descarga de documento.
+ */
 export interface DocumentDownloadResponse {
+  /** Contenido del archivo como Blob. */
   blob: Blob;
+  /** Nombre del archivo. */
   filename: string;
+  /** Tipo MIME del archivo. */
   mimeType: string;
+  /** Indica si el archivo está cifrado. */
   isEncrypted: boolean;
+  /** Clave simétrica cifrada (si aplica). */
   encryptedSymmetricKey?: string;
+  /** Vector de inicialización (si aplica). */
   encryptionIV?: string;
+  /** Etiqueta de autenticación (si aplica). */
   encryptionAuthTag?: string;
 }
 
+/**
+ * Extrae el nombre de archivo del header Content-Disposition.
+ * @param contentDisposition - Valor del header.
+ * @param fallbackName - Nombre por defecto si no se encuentra.
+ * @returns Nombre de archivo extraído.
+ */
 function parseFilename(contentDisposition: string | undefined, fallbackName: string): string {
   if (!contentDisposition) {
     return fallbackName;
@@ -29,54 +52,85 @@ function parseFilename(contentDisposition: string | undefined, fallbackName: str
   return fallbackName;
 }
 
-// Types for prepare/confirm pattern (Backend Encryption Architecture)
+// Tipos para el patrón prepare/confirm (Arquitectura de Cifrado Backend)
+
+/**
+ * Datos de entrada para preparar la creación de un documento.
+ */
 export interface PrepareDocumentInput {
+  /** Nombre del documento. */
   name: string;
+  /** Descripción opcional. */
   description?: string;
+  /** Tipo MIME del archivo. */
   mimeType: string;
-  fileBuffer: ArrayBuffer;            // Unencrypted file (backend encrypts)
-  walletId: string;                   // Wallet used for signing
+  /** Buffer del archivo sin cifrar (el backend se encarga del cifrado). */
+  fileBuffer: ArrayBuffer;
+  /** Identificador de la wallet para firmar. */
+  walletId: string;
+  /** Visibilidad del documento. */
   visibility?: 'PRIVATE' | 'PUBLIC';
+  /** Identificador de carpeta opcional. */
   folderId?: string;
+  /** Etiquetas opcionales. */
   tags?: string[];
 }
 
+/**
+ * Respuesta de la preparación de creación de documento.
+ */
 export interface PrepareDocumentResponse {
-  docId: string;           // bytes32 for blockchain
-  ipfsCid: string;         // CID of encrypted file in IPFS
-  documentId: string;      // UUID of document in DB
+  /** Identificador bytes32 para blockchain. */
+  docId: string;
+  /** CID del archivo cifrado en IPFS. */
+  ipfsCid: string;
+  /** UUID del documento en base de datos. */
+  documentId: string;
+  /** Identificador público (si aplica). */
   publicId: string | null;
 }
 
+/**
+ * Datos de entrada para confirmar la creación de un documento.
+ */
 export interface ConfirmDocumentInput {
+  /** UUID del documento. */
   documentId: string;
-  txHash: string;          // Transaction hash from blockchain
-  blockchainId?: string;   // Optional: from blockchain event
+  /** Hash de la transacción blockchain. */
+  txHash: string;
+  /** Identificador blockchain opcional (desde evento). */
+  blockchainId?: string;
 }
 
+/** API de operaciones con documentos. */
 export const documentsApi = {
-  // ==================== NEW PREPARE/CONFIRM PATTERN ====================
+  // ==================== PATRÓN PREPARE/CONFIRM ====================
 
   /**
-   * Prepare a document for creation.
-   * 1. Frontend sends unencrypted file to backend (over HTTPS)
-   * 2. Backend encrypts file with AES-256-GCM
-   * 3. Backend encrypts symmetric key with user's public key
-   * 4. Backend uploads encrypted file to IPFS
-   * 5. Backend creates DB record with PREPARING status
-   * 6. Returns data needed for blockchain transaction
+   * Prepara la creación de un documento.
+   *
+   * Flujo:
+   * 1. El frontend envía el archivo sin cifrar al backend (sobre HTTPS).
+   * 2. El backend cifra el archivo con AES-256-GCM.
+   * 3. El backend cifra la clave simétrica con la clave pública del usuario.
+   * 4. El backend sube el archivo cifrado a IPFS.
+   * 5. El backend crea el registro en BD con estado PREPARING.
+   * 6. Devuelve los datos necesarios para la transacción blockchain.
+   *
+   * @param input - Datos de entrada para la preparación.
+   * @returns Respuesta con docId, ipfsCid y documentId.
    */
   prepareCreate: async (input: PrepareDocumentInput): Promise<PrepareDocumentResponse> => {
     const formData = new FormData();
-    
-    // Convert ArrayBuffer to Blob for upload (unencrypted)
+
+    // Convertir ArrayBuffer a Blob para subida (sin cifrar)
     const fileBlob = new Blob([input.fileBuffer], { type: input.mimeType });
     formData.append('encryptedFile', fileBlob, input.name);
     formData.append('name', input.name);
     formData.append('mimeType', input.mimeType);
     formData.append('walletId', input.walletId);
     formData.append('visibility', input.visibility || 'PRIVATE');
-    
+
     if (input.description) {
       formData.append('description', input.description);
     }
@@ -96,8 +150,12 @@ export const documentsApi = {
   },
 
   /**
-   * Confirm document creation after blockchain transaction.
-   * Call this after the user signs and submits the blockchain transaction.
+   * Confirma la creación de un documento tras la transacción blockchain.
+   *
+   * Llámalo después de que el usuario firme y envíe la transacción.
+   *
+   * @param input - Datos de confirmación.
+   * @returns Documento creado.
    */
   confirmCreate: async (input: ConfirmDocumentInput): Promise<{ document: Document }> => {
     const response = await api.post<{ document: Document }>('/documents/confirm', input);
@@ -105,15 +163,22 @@ export const documentsApi = {
   },
 
   /**
-   * Get documents created with a specific wallet.
+   * Obtiene los documentos creados con una wallet específica.
+   * @param walletId - Identificador de la wallet.
+   * @returns Lista de documentos.
    */
   getByWallet: async (walletId: string): Promise<{ documents: Document[] }> => {
     const response = await api.get<{ documents: Document[] }>(`/documents/wallet/${walletId}`);
     return response.data;
   },
 
-  // ==================== EXISTING METHODS ====================
+  // ==================== MÉTODOS EXISTENTES ====================
 
+  /**
+   * Lista los documentos del usuario con paginación y filtros.
+   * @param params - Parámetros de filtrado y paginación.
+   * @returns Respuesta paginada con documentos.
+   */
   list: async (params?: {
     includeArchived?: boolean;
     onlyArchived?: boolean;
@@ -127,19 +192,29 @@ export const documentsApi = {
     return response.data;
   },
 
+  /**
+   * Obtiene un documento por su ID.
+   * @param id - Identificador del documento.
+   * @returns Documento encontrado.
+   */
   get: async (id: string): Promise<{ document: Document }> => {
     const response = await api.get<{ document: Document }>(`/documents/${id}`);
     return response.data;
   },
 
   /**
-   * @deprecated Use prepareCreate + confirmCreate instead
-   * This method is kept for backward compatibility but will be removed.
+   * @deprecated Utilice prepareCreate + confirmCreate en su lugar.
+   * Este método se mantiene por compatibilidad pero será eliminado.
+   * @param file - Archivo a subir.
+   * @param name - Nombre del documento.
+   * @param password - Contraseña del usuario.
+   * @param options - Opciones adicionales.
+   * @returns Documento creado.
    */
   upload: async (
-    file: File, 
-    name: string, 
-    password: string, 
+    file: File,
+    name: string,
+    password: string,
     options?: {
       description?: string;
       folderId?: string;
@@ -169,6 +244,11 @@ export const documentsApi = {
     return response.data;
   },
 
+  /**
+   * Descarga un documento por su ID.
+   * @param id - Identificador del documento.
+   * @returns Datos del archivo descargado.
+   */
   download: async (id: string): Promise<DocumentDownloadResponse> => {
     const response = await api.get(`/documents/${id}/download`, {
       responseType: 'blob'
@@ -185,18 +265,44 @@ export const documentsApi = {
     };
   },
 
+  /**
+   * Archiva un documento.
+   * @param id - Identificador del documento.
+   * @returns Promesa vacía.
+   */
   archive: async (id: string): Promise<void> => {
-    await api.put(`/documents/${id}/archive`);
+    await api.post(`/documents/${id}/archive/prepare`);
+    await api.post(`/documents/${id}/archive/confirm`, { txHash: null });
   },
 
+  /**
+   * Desarchiva un documento.
+   * @param id - Identificador del documento.
+   * @returns Promesa vacía.
+   */
   unarchive: async (id: string): Promise<void> => {
-    await api.put(`/documents/${id}/unarchive`);
+    await api.post(`/documents/${id}/unarchive/prepare`);
+    await api.post(`/documents/${id}/unarchive/confirm`, { txHash: null });
   },
 
+  /**
+   * Elimina un documento.
+   * @param id - Identificador del documento.
+   * @returns Promesa vacía.
+   */
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/documents/${id}`);
+    await api.post(`/documents/${id}/delete/prepare`);
+    await api.post(`/documents/${id}/delete/confirm`, { txHash: null });
   },
 
+  /**
+   * Transfiere la propiedad de un documento a otro usuario.
+   * @param id - Identificador del documento.
+   * @param newOwnerId - Identificador del nuevo propietario.
+   * @param currentPassword - Contraseña del propietario actual.
+   * @param newOwnerPassword - Contraseña del nuevo propietario.
+   * @returns Promesa vacía.
+   */
   transfer: async (
     id: string,
     newOwnerId: string,
@@ -210,18 +316,24 @@ export const documentsApi = {
     });
   },
 
-  // ==================== NEW BLOCKCHAIN SERVICE METHODS ====================
+  // ==================== MÉTODOS DE SERVICIO BLOCKCHAIN ====================
 
   /**
-   * Rollback document creation (delete document + versions + IPFS)
-   * Used when blockchain transaction fails after prepare
+   * Revierte la creación de un documento (elimina documento, versiones e IPFS).
+   *
+   * Utilízalo cuando la transacción blockchain falle después de la preparación.
+   *
+   * @param documentId - UUID del documento.
+   * @returns Promesa vacía.
    */
   rollback: async (documentId: string): Promise<void> => {
     await api.post(`/documents/${documentId}/rollback`);
   },
 
   /**
-   * Prepare document for archiving
+   * Prepara el archivado de un documento.
+   * @param documentId - UUID del documento.
+   * @returns Identificador blockchain del documento.
    */
   prepareArchive: async (documentId: string): Promise<{ blockchainId: string }> => {
     const response = await api.post<{ blockchainId: string }>(`/documents/${documentId}/archive/prepare`);
@@ -229,20 +341,29 @@ export const documentsApi = {
   },
 
   /**
-   * Confirm document archiving after blockchain transaction
+   * Confirma el archivado tras la transacción blockchain.
+   * @param params - Parámetros de confirmación.
+   * @param params.documentId - UUID del documento.
+   * @param params.txHash - Hash de la transacción.
+   * @returns Promesa vacía.
    */
   confirmArchive: async (params: { documentId: string; txHash: string }): Promise<void> => {
     await api.post(`/documents/${params.documentId}/archive/confirm`, { txHash: params.txHash });
   },
 
   /**
-   * Prepare document transfer (Backend Encryption Architecture)
-   * 1. Frontend decrypts symmetric key with current owner's private key
-   * 2. Backend re-encrypts with new owner's public key
-   * 3. Backend updates document ownership after blockchain confirmation
+   * Prepara la transferencia de un documento (Arquitectura de Cifrado Backend).
+   *
+   * Flujo:
+   * 1. El frontend descifra la clave simétrica con la clave privada del propietario actual.
+   * 2. El backend re-cifra con la clave pública del nuevo propietario.
+   * 3. El backend actualiza la propiedad tras confirmación blockchain.
+   *
+   * @param params - Parámetros de la transferencia.
+   * @returns Datos preparados para la transacción blockchain.
    */
-  prepareTransfer: async (params: { 
-    documentId: string; 
+  prepareTransfer: async (params: {
+    documentId: string;
     newOwnerId: string;
     walletId: string;
     newOwnerWalletAddress: string;
@@ -266,15 +387,21 @@ export const documentsApi = {
   },
 
   /**
-   * Confirm document transfer after blockchain transaction
+   * Confirma la transferencia tras la transacción blockchain.
+   * @param params - Parámetros de confirmación.
+   * @param params.documentId - UUID del documento.
+   * @param params.transferId - Identificador de la transferencia.
+   * @param params.txHash - Hash de la transacción.
+   * @param params.signature - Firma adicional (opcional).
+   * @returns Promesa vacía.
    */
-  confirmTransfer: async (params: { 
-    documentId: string; 
+  confirmTransfer: async (params: {
+    documentId: string;
     transferId: string;
     txHash: string;
     signature?: string;
   }): Promise<void> => {
-    await api.post(`/documents/${params.documentId}/transfer/confirm`, { 
+    await api.post(`/documents/${params.documentId}/transfer/confirm`, {
       transferId: params.transferId,
       txHash: params.txHash,
       signature: params.signature || ''
@@ -282,7 +409,11 @@ export const documentsApi = {
   },
 
   /**
-   * Prepare version restore (create new version pointing to old IPFS)
+   * Prepara la restauración de una versión anterior.
+   * @param params - Parámetros de restauración.
+   * @param params.documentId - UUID del documento.
+   * @param params.versionNumber - Número de versión a restaurar.
+   * @returns Identificadores de la versión y del documento en blockchain.
    */
   prepareRestore: async (params: { documentId: string; versionNumber: number }): Promise<{
     versionId: string;
@@ -296,7 +427,11 @@ export const documentsApi = {
   },
 
   /**
-   * Confirm version restore after blockchain transaction
+   * Confirma la restauración de una versión tras la transacción blockchain.
+   * @param params - Parámetros de confirmación.
+   * @param params.versionId - Identificador de la versión.
+   * @param params.txHash - Hash de la transacción.
+   * @returns Versión restaurada.
    */
   confirmRestore: async (params: { versionId: string; txHash: string }): Promise<Version> => {
     const response = await api.post<{ version: Version }>(
@@ -307,7 +442,14 @@ export const documentsApi = {
   }
 };
 
-// Convenience function for upload (deprecated)
+/**
+ * Función de conveniencia para subir documentos (obsoleto).
+ * @deprecated Utilice documentsApi.prepareCreate + confirmCreate.
+ * @param file - Archivo a subir.
+ * @param password - Contraseña del usuario.
+ * @param options - Opciones adicionales.
+ * @returns Documento creado.
+ */
 export const uploadDocument = async (
   file: File,
   password: string,
@@ -320,9 +462,15 @@ export const uploadDocument = async (
   return result.document;
 };
 
-// Aliases for backward compatibility
+// Alias para compatibilidad hacia atrás
+
+/** Alias de {@link documentsApi.list}. */
 export const listDocuments = documentsApi.list;
+/** Alias de {@link documentsApi.get}. */
 export const getDocument = documentsApi.get;
+/** Alias de {@link documentsApi.download}. */
 export const downloadDocument = documentsApi.download;
+/** Alias de {@link documentsApi.archive}. */
 export const archiveDocument = documentsApi.archive;
+/** Alias de {@link documentsApi.delete}. */
 export const deleteDocument = documentsApi.delete;

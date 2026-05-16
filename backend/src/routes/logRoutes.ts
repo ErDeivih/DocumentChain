@@ -3,6 +3,10 @@ import { authenticate } from '../middleware/auth';
 import { isAdmin } from '../middleware/isAdmin';
 import * as logController from '../controllers/logController';
 
+/**
+ * Router de consulta y gestión de logs.
+ * Permite a administradores consultar, obtener estadísticas y limpiar archivos de log.
+ */
 const router = Router();
 
 /**

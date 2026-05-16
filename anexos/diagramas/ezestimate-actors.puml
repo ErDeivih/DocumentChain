@@ -17,7 +17,7 @@
     · Actor Simple — no aplica
     · Actor Medio — Servicio de Email (SMTP)
     · Actor Complejo — Usuario Web (navegador + wallet)
-    · Actor Complejo — Smart Contract (Ethereum / Sepolia)
+    · Actor Complejo — DocumentRegistry (Ethereum / Sepolia)
     · Actor Complejo — Nodo IPFS autoalojado (API REST interna)
   }
   ==

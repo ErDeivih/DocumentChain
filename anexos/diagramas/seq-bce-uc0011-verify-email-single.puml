@@ -1,0 +1,33 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0011: Verificar Email (Analisis BCE)
+
+actor Actor
+boundary "VistaVerificacion" as BF
+control "GestorAutenticacion" as CG
+entity "Usuario" as EU
+
+database "Base de datos" as DB
+
+Actor -> BF : 1. Accede a enlace de verificacion
+BF -> CG : 2. Envia token de verificacion
+CG -> EU : 3. Busca token en BD
+EU -> DB : consulta usuario por verification_token
+DB --> EU : datos usuario
+EU --> CG : usuario encontrado, token valido
+
+CG -> CG : 4. Verifica que el token no ha expirado
+note right : Control comprueba fecha de expiracion del token
+
+CG -> EU : 5. Marca email como verificado
+EU -> DB : UPDATE email_verified = true
+DB --> EU : confirmacion
+EU --> CG : email verificado
+
+CG --> BF : 6. Confirmacion de verificacion
+BF --> Actor : 7. Muestra exito, permite acceso completo
+
+@enduml
+
+

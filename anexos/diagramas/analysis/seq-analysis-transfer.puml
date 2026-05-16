@@ -1,0 +1,36 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0020: Transferir propiedad de documento (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Detalle / Modal transferencia" as ui
+control "Gestor de documentos" as ctrl
+entity "Documento" as doc
+entity "Usuario" as target
+
+user -> ui: Seleccionar "Transferir"
+ui --> user: Mostrar formulario (buscar nuevo propietario)
+
+user -> ui: Seleccionar destinatario
+ui -> ctrl: Solicitar transferencia (idDocumento, idNuevoPropietario)
+
+ctrl -> doc: Verificar propiedad
+doc --> ctrl: Propiedad verificada
+
+ctrl -> target: Verificar destinatario existe
+alt Destinatario no existe
+    target --> ctrl: No encontrado
+    ctrl --> ui: Error
+    ui --> user: Usuario no encontrado
+else Destinatario válido
+    target --> ctrl: Usuario válido
+    ctrl -> doc: Transferir propiedad
+    doc --> ctrl: Propiedad transferida
+    ctrl -> target: Notificar transferencia
+    target --> ctrl: Notificación enviada
+    ctrl --> ui: Transferencia completada
+    ui --> user: Confirmación
+end
+
+@enduml

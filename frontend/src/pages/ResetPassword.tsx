@@ -8,6 +8,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import AlertMessage from '../components/ui/AlertMessage';
 import { Lock, Shield } from 'lucide-react';
 
+/**
+ * Página para restablecer la contraseña mediante token y clave de recuperación.
+ *
+ * Valida el token proporcionado en la URL, solicita la clave de recuperación
+ * y la nueva contraseña, aplicando reglas de complejidad antes de enviar.
+ *
+ * @returns JSX.Element con el formulario de restablecimiento de contraseña.
+ */
 export const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -22,6 +30,11 @@ export const ResetPassword: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  /**
+   * Actualiza el estado del formulario cuando cambia un campo de entrada.
+   *
+   * @param e - Evento de cambio del input.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -29,6 +42,12 @@ export const ResetPassword: React.FC = () => {
     });
   };
 
+  /**
+   * Valida que el token, la clave de recuperación y la nueva contraseña
+   * cumplan con los requisitos de seguridad establecidos.
+   *
+   * @returns `true` si todos los campos son válidos, `false` en caso contrario.
+   */
   const validateForm = (): boolean => {
     if (!token) {
       setError('Token de restablecimiento inválido o faltante');
@@ -73,6 +92,14 @@ export const ResetPassword: React.FC = () => {
     return true;
   };
 
+  /**
+   * Gestiona el envío del formulario de restablecimiento de contraseña.
+   *
+   * Verifica la validez del formulario, envía los datos al servidor y,
+   * tras el éxito, programa la redirección al inicio de sesión.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

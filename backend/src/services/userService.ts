@@ -1,5 +1,17 @@
 import prisma from '../config/database';
 
+/**
+ * Perfil público de un usuario.
+ * @property id - ID del usuario
+ * @property username - Nombre de usuario único
+ * @property email - Correo electrónico
+ * @property fullName - Nombre completo
+ * @property role - Rol en el sistema
+ * @property publicKey - Clave pública para compartición segura
+ * @property avatarUrl - URL del avatar
+ * @property createdAt - Fecha de registro
+ * @property wallets - Carteras asociadas al usuario
+ */
 export interface UserProfile {
   id: string;
   username: string;
@@ -18,9 +30,15 @@ export interface UserProfile {
   // lastLogin: Date | null; // Removed from Prisma schema
 }
 
+/**
+ * Servicio de gestión de perfiles de usuario.
+ * Proporciona operaciones de consulta, búsqueda y actualización de datos de usuario.
+ */
 export class UserService {
   /**
-   * Get user profile by ID
+   * Obtener el perfil de un usuario por su ID.
+   * @param userId - ID del usuario
+   * @returns Perfil del usuario o null si no existe
    */
   static async getUserById(userId: string): Promise<UserProfile | null> {
     const user = await prisma.user.findUnique({
@@ -66,7 +84,9 @@ export class UserService {
   }
 
   /**
-   * Get user profile by username
+   * Obtener el perfil de un usuario por su nombre de usuario.
+   * @param username - Nombre de usuario
+   * @returns Perfil del usuario o null si no existe
    */
   static async getUserByUsername(username: string): Promise<UserProfile | null> {
     const user = await prisma.user.findUnique({
@@ -87,7 +107,9 @@ export class UserService {
   }
 
   /**
-   * Get user's public key by ID (for sharing documents)
+   * Obtener la clave pública de un usuario para compartir documentos.
+   * @param userId - ID del usuario
+   * @returns Clave pública o null
    */
   static async getUserPublicKey(userId: string): Promise<string | null> {
     const user = await prisma.user.findUnique({
@@ -99,7 +121,10 @@ export class UserService {
   }
 
   /**
-   * Update user profile
+   * Actualizar el perfil de un usuario.
+   * @param userId - ID del usuario
+   * @param updates - Campos a actualizar
+   * @returns Perfil actualizado
    */
   static async updateProfile(
     userId: string,
@@ -138,7 +163,10 @@ export class UserService {
   }
 
   /**
-   * Update user avatar
+   * Actualizar el avatar de un usuario.
+   * @param userId - ID del usuario
+   * @param avatarUrl - URL de la nueva imagen de avatar
+   * @returns Perfil actualizado
    */
   static async updateAvatar(userId: string, avatarUrl: string): Promise<UserProfile> {
     // Usar any temporalmente hasta que se regenere el cliente Prisma
@@ -161,7 +189,9 @@ export class UserService {
   }
 
   /**
-   * Remove user avatar
+   * Eliminar el avatar de un usuario.
+   * @param userId - ID del usuario
+   * @returns Perfil actualizado
    */
   static async removeAvatar(userId: string): Promise<UserProfile> {
     // Usar any temporalmente hasta que se regenere el cliente Prisma
@@ -184,8 +214,11 @@ export class UserService {
   }
 
   /**
-   * Search users by username (for sharing documents)
-   * Returns limited info for privacy
+   * Buscar usuarios por nombre de usuario para compartir documentos.
+   * Devuelve información limitada por privacidad.
+   * @param query - Texto de búsqueda
+   * @param limit - Máximo de resultados
+   * @returns Lista de usuarios coincidentes
    */
   static async searchUsers(query: string, limit: number = 10): Promise<Array<{
     id: string;
@@ -215,7 +248,10 @@ export class UserService {
   }
 
   /**
-   * Get all users (admin only)
+   * Obtener todos los usuarios (solo administradores).
+   * @param page - Número de página
+   * @param limit - Resultados por página
+   * @returns Lista paginada de usuarios
    */
   static async getAllUsers(page: number = 1, limit: number = 50): Promise<{
     users: UserProfile[];
@@ -253,8 +289,9 @@ export class UserService {
   }
 
   /**
-   * Delete user (admin only)
-   * Soft delete - keep data for audit but mark as inactive
+   * Eliminar un usuario (solo administradores).
+   * Actualmente realiza borrado físico de la base de datos.
+   * @param userId - ID del usuario a eliminar
    */
   static async deleteUser(userId: string): Promise<void> {
     // Check if user exists

@@ -1,5 +1,7 @@
-﻿@startuml
+@startuml
 !include _structure-style.puml
+title Diagrama de despliegue
+
 node "Cliente" as cliente {
     component "Aplicacion web" as frontend
     component "Wallet del usuario" as wallet
@@ -11,8 +13,8 @@ node "Servidor de aplicacion" as backend_node {
     component "Canal tiempo real" as ws
 }
 
-node "Persistencia" as db_node {
-    database "PostgreSQL" as postgres
+node "Capa de persistencia" as db_node {
+    database "Base de datos" as db
 }
 
 node "Almacenamiento distribuido" as ipfs_node {
@@ -20,7 +22,7 @@ node "Almacenamiento distribuido" as ipfs_node {
 }
 
 cloud "Red blockchain" as ethereum {
-    component "Contrato inteligente" as contract
+    component "DocumentRegistry" as contract
 }
 
 cloud "Proveedor de correo" as email_cloud {
@@ -30,12 +32,13 @@ cloud "Proveedor de correo" as email_cloud {
 frontend --> backend : HTTPS
 frontend --> wallet : firma de operaciones
 wallet --> contract : JSON-RPC
-backend --> postgres
+backend --> db
 backend --> ipfs
 backend --> email
 listeners --> contract
-listeners --> postgres
+listeners --> db
 ws --> frontend : notificaciones
 
 @enduml
+
 

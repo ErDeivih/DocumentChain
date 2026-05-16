@@ -1,0 +1,6379 @@
+ANEXO II
+Especificación de requisitos software.
+Diseño y desarrollo de una plataforma robótica para la
+agilización de procesos en la hostelería
+Trabajo de Fin de Grado
+Grado en Ingeniería Informática
+
+Julio 2022
+
+Autor
+David Cruz García
+
+Tutores
+André Filipe Sales Mendes
+Gabriel Villarrubia González
+Juan Francisco de Paz Santana
+
+Anexo II: Especificación de requisitos software
+
+Tabla de contenido
+1 INTRODUCCIÓN................................................................................................... 6
+2 PARTICIPANTES .................................................................................................. 7
+3 OBJETIVOS DEL SISTEMA .................................................................................. 9
+4 CATALOGO DE REQUISITOS DEL SISTEMA ................................................... 13
+4.1 REQUISITOS DE INFORMACIÓN................................................................ 13
+4.2 REQUISITOS FUNCIONALES...................................................................... 18
+4.2.1 DIAGRAMA DE PAQUETES .................................................................. 18
+4.2.2 DEFINICIÓN DE ACTORES................................................................... 18
+4.2.3 CASOS DE USO DEL SISTEMA ............................................................ 21
+4.2.3.1 GESTIÓN DE USUARIOS ............................................................... 21
+4.2.3.2 GESTIÓN DE BEBIDAS .................................................................. 35
+4.2.3.3 GESTIÓN DE RECETAS ................................................................. 43
+4.2.3.4 GESTIÓN DEL ROBOT ................................................................... 57
+4.3 REQUISITOS NO FUNCIONALES ............................................................... 64
+5 MATRIZ DE RASTREABILIDAD ......................................................................... 68
+6 REFERENCIAS ................................................................................................... 71
+
+2
+
+Anexo II: Especificación de requisitos software
+
+Índice de tablas
+Tabla 1. Organización .............................................................................................. 7
+Tabla 2. Participante Cruz García, David ................................................................. 7
+Tabla 3. Participante Sales Mendes, André Filipe .................................................... 7
+Tabla 4. Participante Villarrubia González, Gabriel................................................... 8
+Tabla 5. Participante De Paz Santana, Juan Francisco ............................................ 8
+Tabla 6. OBJ-001. Preparación de bebidas o coctels. .............................................. 9
+Tabla 7. OBJ-002. Gestión del brazo robótico. ......................................................... 9
+Tabla 8. OBJ-003. Altas, bajas y modificación de datos de usuarios ...................... 10
+Tabla 9. OBJ-004. Altas, bajas y modificación de bebidas. .................................... 10
+Tabla 10. OBJ-005. Altas, bajas y modificación de datos de recetas. ..................... 11
+Tabla 11. OBJ-006. Personalización en la disposición de las bebidas en el robot. . 11
+Tabla 12. OBJ-007. Almacenamiento y visualización de estadísticas. .................... 12
+Tabla 13. IRQ-001. Información sobre usuarios. .................................................... 13
+Tabla 14. IRQ-002. Información sobre roles. .......................................................... 14
+Tabla 15. IRQ-003. Información sobre los roles que corresponden a cada usuario.14
+Tabla 16. IRQ-004. Información sobre las bebidas. ................................................ 15
+Tabla 17. IRQ-005. Información sobre las posiciones de las bebidas. .................... 16
+Tabla 18. IRQ-006. Información sobre las recetas.................................................. 16
+Tabla 19. IRQ-007. Información sobre las bebidas de las recetas. ......................... 17
+Tabla 20. IRQ-008. Información sobre las estadísticas. ......................................... 17
+Tabla 21. ACT-001. Usuario no logueado. ............................................................. 19
+Tabla 22. ACT-002. Usuario logueado. .................................................................. 19
+Tabla 23. ACT-003. Cliente. ................................................................................... 20
+Tabla 24. ACT-004. Administrador. ........................................................................ 20
+Tabla 25. ACT-005. Sistema. ................................................................................. 20
+Tabla 26. UC-001. Registro. ................................................................................... 23
+Tabla 27. UC-002. Confirmar registro. .................................................................... 23
+Tabla 28. UC-003. Login. ....................................................................................... 24
+Tabla 29. UC-004. Restablecer contraseña. ........................................................... 26
+Tabla 30. UC-005. Enviar código de confirmación. ................................................. 26
+Tabla 31. UC-006. Enviar nueva contraseña. ......................................................... 27
+Tabla 32. UC-007. Modificar información perfil. ...................................................... 28
+Tabla 33. UC-008. Logout. ..................................................................................... 29
+Tabla 34. UC-009. Consultar información perfil. ..................................................... 30
+Tabla 35. UC-010. Consultar estadísticas personales. ........................................... 31
+Tabla 36. UC-011. Eliminar cuenta. ........................................................................ 32
+Tabla 37. UC-012. Cambiar configuración panel de control.................................... 33
+Tabla 38. UC-013. Consultar estadísticas generales. ............................................. 34
+Tabla 39. UC-014. Calcular estadísticas generales. ............................................... 35
+Tabla 40. UC-015. Añadir bebida. .......................................................................... 36
+Tabla 41. UC-016. Modificar bebida. ...................................................................... 37
+Tabla 42. UC-017. Eliminar bebida. ........................................................................ 38
+Tabla 43. UC-018. Activar bebida........................................................................... 39
+Tabla 44. UC-019. Asignar bebida a posición del robot. ......................................... 40
+Tabla 45. UC-020. Consultar bebidas..................................................................... 41
+Tabla 46. UC-021. Buscar bebidas. ........................................................................ 42
+Tabla 47. UC-022. Consultar bebidas posiciones robot. ......................................... 43
+Tabla 48. UC-023. Añadir receta. ........................................................................... 45
+3
+
+Anexo II: Especificación de requisitos software
+Tabla 49. UC-024. Asignar bebidas a receta. ......................................................... 46
+Tabla 50. UC-025. Asignar porcentajes a receta. ................................................... 48
+Tabla 51. UC-026. Modificar receta. ....................................................................... 49
+Tabla 52. UC-027. Eliminar receta. ........................................................................ 49
+Tabla 53. UC-028. Activar receta. .......................................................................... 50
+Tabla 54. UC-029. Comprobar bebidas activas. ..................................................... 51
+Tabla 55. UC-030. Consultar recetas. .................................................................... 52
+Tabla 56. UC-031. Buscar recetas. ........................................................................ 53
+Tabla 57. UC-032. Consultar bebidas en receta. .................................................... 54
+Tabla 58. UC-033. Consultar porcentajes en receta. .............................................. 55
+Tabla 59. UC-034. Preparar receta. ....................................................................... 57
+Tabla 60. UC-035. Activar robot. ............................................................................ 58
+Tabla 61. UC-036. Parar el robot............................................................................ 59
+Tabla 62. UC-037. Gestionar estado robot. ............................................................ 60
+Tabla 63. UC-038. Gestionar movimiento robot. ..................................................... 61
+Tabla 64. UC-039. Cálculo posiciones de las bebidas/dispensadores. ................... 62
+Tabla 65. UC-040. Gestión luces de aviso. ............................................................ 63
+Tabla 66. UC-041. Control manual del robot. ......................................................... 64
+Tabla 67. NFR-001. Portabilidad. ........................................................................... 64
+Tabla 68. NFR-002. Manejabilidad. ........................................................................ 65
+Tabla 69. NFR-003. Usabilidad. ............................................................................. 66
+Tabla 70. NFR-004. Confiabilidad. ......................................................................... 66
+Tabla 71. NFR-005. Disponibilidad. ........................................................................ 67
+Tabla 72. NFR-006. Despliegue. ............................................................................ 67
+Tabla 73. MTR-001. Matriz de rastreabilidad. ......................................................... 70
+
+4
+
+Anexo II: Especificación de requisitos software
+
+Índice de ilustraciones
+Ilustración 1. Diagrama de paquetes de requisitos funcionales. ............................. 18
+Ilustración 2. Jerarquía de actores. ........................................................................ 19
+Ilustración 3. Jerarquía CU de gestión de usuarios. ............................................... 21
+Ilustración 4. Jerarquía CU gestión de bebidas. ..................................................... 35
+Ilustración 5. Jerarquía CU gestión de recetas. ...................................................... 44
+Ilustración 6. Jerarquía CU gestión del robot. ......................................................... 57
+
+5
+
+Anexo II: Especificación de requisitos software
+
+1 INTRODUCCIÓN
+El sistema por desarrollar consiste en el diseño e implementación de un brazo
+robótico para la preparación de coctels y bebidas de forma autónoma dentro del sector
+hostelero. El usuario dispondrá de una aplicación asociada que le permita solicitar una
+bebida que el robot preparará de forma inmediata con las proporciones adecuadas para
+cada receta.
+Este anexo tiene como objetivo recoger la elicitación de requisitos software del
+sistema a desarrollar previamente presentado. Para ello, se desarrollará siguiendo la
+metodología de Durán y Bernárdez para la elicitación de requisitos de sistemas software,
+y, por tanto, se seguirá la siguiente estructura:
+•
+•
+•
+
+•
+
+Participantes en el sistema
+Objetivos del sistema
+Catálogo de requisitos del sistema
+o Requisitos de información
+o Requisitos funcionales
+▪ Definición de actores
+▪ Casos de uso del sistema
+▪ Diagrama de paquetes
+o Requisitos no funcionales
+Matriz de rastreabilidad del sistema
+
+6
+
+Anexo II: Especificación de requisitos software
+
+2 PARTICIPANTES
+El desarrollo del sistema cuenta con 4 participantes, entre los que se encuentran los
+3 tutores y el alumno (autor del proyecto), todos ellos pertenecientes a la misma
+organización, la Universidad de Salamanca.
+
+Organización
+
+Universidad de Salamanca
+
+Dirección
+
+Plaza de los Caídos, s/n, 37008, Salamanca
+
+Teléfono
+
+923294450
+
+Comentarios
+
+Sin comentarios
+Tabla 1. Organización
+
+Participante
+
+Cruz García, David
+
+Organización
+
+Universidad de Salamanca
+
+Rol
+
+Autor del proyecto (Desarrollador)
+
+Es desarrollador
+
+Sí
+
+Es cliente
+
+No
+
+Es usuario
+
+No
+
+Comentarios
+
+Sin comentarios
+Tabla 2. Participante Cruz García, David
+
+Participante
+
+Sales Mendes, André Filipe
+
+Organización
+
+Universidad de Salamanca
+
+Rol
+
+Tutor del proyecto
+
+Es desarrollador
+
+No
+
+Es cliente
+
+No
+
+Es usuario
+
+No
+
+Comentarios
+
+Sin comentarios
+Tabla 3. Participante Sales Mendes, André Filipe
+
+7
+
+Anexo II: Especificación de requisitos software
+
+Participante
+
+Villarrubia González, Gabriel
+
+Organización
+
+Universidad de Salamanca
+
+Rol
+
+Tutor del proyecto
+
+Es desarrollador
+
+No
+
+Es cliente
+
+No
+
+Es usuario
+
+No
+
+Comentarios
+
+Sin comentarios
+Tabla 4. Participante Villarrubia González, Gabriel
+
+Participante
+
+De Paz Santana, Juan Francisco
+
+Organización
+
+Universidad de Salamanca
+
+Rol
+
+Tutor del proyecto
+
+Es desarrollador
+
+No
+
+Es cliente
+
+No
+
+Es usuario
+
+No
+
+Comentarios
+
+Sin comentarios
+Tabla 5. Participante De Paz Santana, Juan Francisco
+
+8
+
+Anexo II: Especificación de requisitos software
+
+3 OBJETIVOS DEL SISTEMA
+Para satisfacer los requisitos planteados, el sistema deberá cumplir con una serie de
+objetivos:
+OBJ-001
+
+Preparación de bebidas o coctels
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá ser capaz de preparar las bebidas según la receta
+indicada.
+
+Subobjetivos
+
+Ninguno
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 6. OBJ-001. Preparación de bebidas o coctels.
+
+OBJ-002
+
+Gestión del brazo robótico
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá permitir al administrador tener control total sobre el
+robot.
+
+Subobjetivos
+
+Ninguno
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 7. OBJ-002. Gestión del brazo robótico.
+
+9
+
+Anexo II: Especificación de requisitos software
+
+OBJ-003
+
+Altas, bajas y modificación de datos de usuarios
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá permitir la alta, baja, modificación y eliminación de
+clientes en el sistema.
+
+Subobjetivos
+
+Ninguno
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 8. OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+OBJ-004
+
+Altas, bajas y modificación de datos de bebidas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá permitir al administrador la posibilidad de añadir,
+modificar o eliminar bebidas.
+
+Subobjetivos
+
+Ninguno
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 9. OBJ-004. Altas, bajas y modificación de bebidas.
+
+10
+
+Anexo II: Especificación de requisitos software
+
+OBJ-005
+
+Altas, bajas y modificación de datos de recetas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá permitir al administrador la posibilidad de añadir,
+modificar o eliminar recetas de coctels.
+
+Subobjetivos
+
+Ninguno
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 10. OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+OBJ-006
+
+Personalización en la disposición de las bebidas en el robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá permitir al administrador la posibilidad de cambiar la
+disposición y las bebidas del robot, permitiendo la preparación de
+nuevas recetas.
+
+Subobjetivos
+
+Ninguno
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+
+Tabla 11. OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+11
+
+Anexo II: Especificación de requisitos software
+
+OBJ-007
+
+Almacenamiento y visualización de estadísticas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+El sistema deberá permitir a los usuarios registrados en el sistema la
+visualización de estadísticas sobre el número de consumiciones
+solicitadas.
+
+Subobjetivos
+
+El sistema deberá permitir al administrador la visualización de
+estadísticas
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 12. OBJ-007. Almacenamiento y visualización de estadísticas.
+
+12
+
+Anexo II: Especificación de requisitos software
+
+4 CATALOGO DE REQUISITOS DEL SISTEMA
+A continuación, se presentarán los diferentes requisitos que el sistema deberá
+satisfacer (requisitos de información, funcionales y no funcionales).
+
+4.1 REQUISITOS DE INFORMACIÓN
+En este apartado se explicarán los requisitos de información, requisitos que indican
+que datos tiene que almacenar el sistema.
+
+IRQ-001
+
+Información sobre usuarios
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios.
+
+Descripción
+
+El sistema deberá almacenar información sobre los usuarios registrados
+en el sistema
+
+Datos específicos
+
+-
+
+ID
+Nombre de usuario
+Email
+Contraseña
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 13. IRQ-001. Información sobre usuarios.
+
+IRQ-002
+
+Información sobre roles
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+
+13
+
+Anexo II: Especificación de requisitos software
+
+De Paz Santana, Juan Francisco
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios.
+
+Descripción
+
+El sistema deberá almacenar información sobre los diferentes roles
+disponibles para los usuarios
+
+Datos específicos
+
+-
+
+ID
+Nombre del rol
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 14. IRQ-002. Información sobre roles.
+
+IRQ-003
+
+Información sobre los roles que corresponden a cada usuario
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios.
+
+Descripción
+
+El sistema deberá almacenar información sobre qué roles ocupa cada
+usuario
+
+Datos específicos
+
+-
+
+ID
+Usuario
+Rol
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+
+Tabla 15. IRQ-003. Información sobre los roles que corresponden a cada usuario.
+
+14
+
+Anexo II: Especificación de requisitos software
+
+IRQ-004
+
+Información sobre las bebidas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá almacenar información sobre las bebidas añadidas
+por el administrador.
+
+Datos específicos
+
+-
+
+ID
+Nombre
+Color (para diferenciarlas de forma visual)
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 16. IRQ-004. Información sobre las bebidas.
+
+IRQ-005
+
+Información sobre las posiciones de las bebidas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá almacenar información sobre las bebidas asignadas
+en cada posición del robot (en cada dispensador)
+
+Datos específicos
+
+-
+
+ID
+Bebida
+
+15
+
+Anexo II: Especificación de requisitos software
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 17. IRQ-005. Información sobre las posiciones de las bebidas.
+
+IRQ-006
+
+Información sobre las recetas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá almacenar información sobre las recetas añadidas
+creadas por el administrador
+
+Datos específicos
+
+-
+
+ID
+Nombre
+Descripción
+Imagen
+Activa
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 18. IRQ-006. Información sobre las recetas.
+
+´
+
+IRQ-007
+
+Información sobre las bebidas de las recetas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+16
+
+Anexo II: Especificación de requisitos software
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá almacenar información sobre las bebidas
+correspondientes a cada receta y en qué proporción se encuentra en
+ellas.
+
+Datos específicos
+
+-
+
+Bebida
+Receta
+Porcentaje
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 19. IRQ-007. Información sobre las bebidas de las recetas.
+
+IRQ-008
+
+Información sobre las estadísticas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-007. Almacenamiento y visualización de estadísticas.
+
+Descripción
+
+El sistema deberá almacenar información sobre las estadísticas de cada
+usuario
+
+Datos específicos
+
+-
+
+Usuario
+Receta
+Número de peticiones de cada receta
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 20. IRQ-008. Información sobre las estadísticas.
+
+17
+
+Anexo II: Especificación de requisitos software
+
+4.2 REQUISITOS FUNCIONALES
+En este apartado se explicarán los requisitos funcionales, requisitos que indican que
+servicios va a proporcionar el sistema y como debe comportarse en cada situación.
+
+4.2.1 DIAGRAMA DE PAQUETES
+Durante la fase de dominio del problema, se crea una división del sistema que permite
+visualizar y separar los diferentes servicios y situaciones en distintos paquetes. Esta
+división de puede representar mediante el diagrama de paquetes. Cada paquete será
+explicado posteriormente en el apartado “4.2.3 Casos de Uso del sistema”.
+
+Ilustración 1. Diagrama de paquetes de requisitos funcionales.
+
+4.2.2 DEFINICIÓN DE ACTORES
+En cuanto a los actores participantes, el sistema contará con 5 tipos de actores que
+realizarán determinadas acciones:
+-
+
+-
+
+-
+
+-
+
+Usuario no logueado: usuario que puede solicitar la preparación de bebidas sin
+necesidad de registro y que puede acceder al sistema realizando login con
+credenciales de usuario.
+Usuario logueado: usuario que ha accedido al sistema mediante unas
+credenciales y que puede realizar acciones adicionales a la solicitud de bebidas.
+Usuario cliente: especialización del usuario logueado que hace referencia a un
+cliente que puede solicitar bebidas y que dispone de un perfil y unas estadísticas
+asociadas. Dentro del sistema tendrá un rol “cliente”
+Usuario administrador: especialización del usuario logueado que hace
+referencia al administrador completo del sistema. Es el encargado de crear las
+bebidas, recetas, gestionar la aplicación y gestionar el robot. Dentro del sistema
+tendrá un rol de “admin”
+Sistema: usuario que hace referencia al propio sistema. El sistema actuará
+como un “usuario” en ciertas ocasiones como en el cálculo de estadísticas donde
+realizará ciertas acciones automáticas.
+
+Estos actores se organizan siguiendo la siguiente jerarquía:
+
+18
+
+Anexo II: Especificación de requisitos software
+
+Ilustración 2. Jerarquía de actores.
+
+A continuación, se explican las tablas asociadas a los actores descritos
+anteriormente:
+ACT-001
+
+Usuario no logueado
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+Actor que representa un usuario de la aplicación que no está logueado
+o incluso que no está registrado. Este actor puede iniciar sesión en el
+sistema o incluso pedir bebidas.
+
+Comentarios
+
+Sin comentarios
+Tabla 21. ACT-001. Usuario no logueado.
+
+ACT-002
+
+Usuario logueado
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+Actor que representa un usuario de la aplicación que ha iniciado sesión
+correctamente en el sistema. Este usuario puede realizar las mismas
+acciones que un usuario sin loguear, además de otras adicionales.
+
+Comentarios
+
+Sin comentarios
+Tabla 22. ACT-002. Usuario logueado.
+
+19
+
+Anexo II: Especificación de requisitos software
+
+ACT-003
+
+Cliente
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+Actor que representa un usuario de la aplicación que ha iniciado sesión
+y que dispone del rol “cliente”. Este actor puede pedir la preparación de
+alguna de las bebidas disponibles, consultar su perfil y revisar
+estadísticas de consumición asociadas a su usuario.
+
+Comentarios
+
+Sin comentarios
+Tabla 23. ACT-003. Cliente.
+
+ACT-004
+
+Administrador
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+Actor que representa un usuario de la aplicación que ha iniciado sesión
+y que dispone del rol “admin”. Este actor tiene control completo del
+sistema, disponiendo de un panel de control donde podrá gestionar las
+bebidas, las recetas, el propio robot, etc. Además, podrá realizar las
+mismas acciones que el actor “ACT-003 Cliente”.
+
+Comentarios
+
+Sin comentarios
+Tabla 24. ACT-004. Administrador.
+
+ACT-005
+
+Sistema
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Descripción
+
+Actor que representa al propio sistema. Este actor solo realizará
+acciones puntuales como el cálculo de estadísticas.
+
+Comentarios
+
+Sin comentarios
+Tabla 25. ACT-005. Sistema.
+
+20
+
+Anexo II: Especificación de requisitos software
+
+4.2.3 CASOS DE USO DEL SISTEMA
+En este apartado se explicarán los casos de uso del sistema, es decir, que
+funcionalidades debe proporcionar el sistema y como interaccionan el usuario y el
+sistema para que esto sea posible.
+Estos casos de uso se pueden dividir siguiendo el diagrama de paquetes
+anteriormente descrito en 4 paquetes: gestión de usuarios, gestión de bebidas, gestión
+de recetas o coctels y gestión del robot.
+
+4.2.3.1 GESTIÓN DE USUARIOS
+Este paquete hace referencia a los diferentes servicios necesarios en el sistema
+haciendo referencia a los usuarios, como pueden acceder al sistema y como se organiza
+todo el sistema para proporcionar un servicio correcto a los usuarios.
+Estos casos de uso se pueden representar mediante la siguiente jerarquía:
+
+Ilustración 3. Jerarquía CU de gestión de usuarios.
+
+21
+
+Anexo II: Especificación de requisitos software
+A continuación, se adjuntan las tablas correspondientes a los casos de uso
+mostrados en la jerarquía anterior:
+UC-001
+
+Registro
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-001 Usuario no logueado” pretenda
+registrarse en el sistema.
+
+Precondición
+
+El actor “ACT-001 Usuario no logueado” no ha iniciado sesión en el
+sistema.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-001” solicita registrarse en el sistema.
+
+p2
+
+El sistema solicita los datos del actor “ACT-001”.
+
+p3
+
+El actor “ACT-001” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+El sistema almacena convenientemente los datos introducidos
+
+p6
+
+El sistema envía un correo electrónico al email proporcionado
+para verificar al usuario.
+
+p7
+
+El sistema informa al usuario de la verificación necesaria vía
+email.
+
+p8
+
+Se realiza el caso de uso “CU-002 Confirmar registro”
+
+Postcondición
+
+El actor se queda en estado no valido a la espera de la verificación.
+
+Excepciones
+
+Paso
+
+Importancia
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p5
+
+Si el usuario o el email ya están dentro del sistema, u ocurre
+algún tipo de error, el sistema informará al usuario, y el caso de
+uso queda sin efecto.
+
+p6
+
+Si hay algún error enviando el correo electrónico, se informará
+al usuario, y el caso de uso queda sin efecto.
+
+Vital
+
+22
+
+Anexo II: Especificación de requisitos software
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 26. UC-001. Registro.
+
+UC-002
+
+Confirmar registro
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-001 Usuario no logueado” pretenda
+validar su registro dentro del sistema.
+
+Precondición
+
+Los datos introducidos en el registro por el actor “ACT-001” Usuario no
+logueado” son válidos y se ha enviado email de confirmación.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-001” recibe email de confirmación con un link.
+
+p2
+
+El actor “ACT-001” usa el enlace recibido y se redirige a la ruta
+de confirmación.
+
+p3
+
+El sistema verifica al usuario.
+
+Postcondición
+
+El actor queda validado dentro del sistema como un actor “ACT-003
+Cliente”.
+
+Excepciones
+
+Paso
+
+p3
+
+Acción
+Si ocurre algún fallo en la validación, el sistema informa al
+usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 27. UC-002. Confirmar registro.
+
+23
+
+Anexo II: Especificación de requisitos software
+
+UC-003
+
+Login
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-001 Usuario no logueado” pretenda
+iniciar sesión en el sistema.
+
+Precondición
+
+El actor “ACT-001 Usuario no logueado” dispone de una cuenta
+validada en el sistema.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-001” solicita iniciar sesión en el sistema.
+
+p2
+
+El sistema solicita las credenciales al actor “ACT-001”.
+
+p3
+
+El actor “ACT-001” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+El sistema devuelve una confirmación al usuario.
+
+Postcondición
+
+El actor “ACT-001” inicia sesión y pasa a ser un actor “ACT-002 Usuario
+logueado” (dependiendo del tipo de usuario que hay iniciado sesión,
+será cliente o administrador)
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p4
+
+Si hay algún error validando al usuario, el sistema informa al
+usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 28. UC-003. Login.
+
+24
+
+Anexo II: Especificación de requisitos software
+
+UC-004
+
+Restablecer contraseña
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-001 Usuario no logueado” quiera
+restablecer su contraseña de usuario.
+
+Precondición
+
+El actor “ACT-001 Usuario no logueado” no ha iniciado sesión en el
+sistema.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-001” solicita restablecer su contraseña.
+
+p2
+
+El sistema solicita el email del actor “ACT-001”.
+
+p3
+
+El actor “ACT-001” proporciona los datos solicitados.
+
+p4
+
+El sistema valida el email introducido si existe para algún
+usuario registrado
+
+p5
+
+Se realiza el caso de uso “CU-005 Enviar código de
+confirmación”
+
+p6
+
+El actor “ACT-001” recibe el código y lo introduce en el sistema.
+
+p7
+
+Se realiza el caso de uso “CU-006 Enviar nueva contraseña”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación del email falla, el sistema informa al usuario y
+se regresa al paso p2
+
+p5
+
+Si el código de confirmación introducido por el usuario no es el
+correcto, el sistema informa al usuario y el caso de uso queda
+sin efecto
+
+p6
+
+Si hay algún error enviando la nueva contraseña, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+25
+
+Anexo II: Especificación de requisitos software
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 29. UC-004. Restablecer contraseña.
+
+UC-005
+
+Enviar código de confirmación
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando sea necesario un código de confirmación para
+realizar una acción dentro del sistema por algún usuario con
+credenciales dentro del mismo.
+
+Precondición
+
+Se requiera un código para realizar alguna opción privilegiada sobre la
+cuenta de dicho usuario
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-001 Usuario no logueado” o “ACT-002 Usuario
+logueado” solicita un envío de código de confirmación
+realizando alguna acción que requiera de privilegios en su
+cuenta de usuario registrado.
+
+p2
+
+El sistema genera el código de confirmación.
+
+p3
+
+El sistema obtiene el email del actor implicado y envía el código
+a ese email.
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+p3
+
+Acción
+Si el email introducido por el usuario o buscado por el sistema
+no existe dentro del sistema, el sistema informa al usuario y el
+caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 30. UC-005. Enviar código de confirmación.
+
+26
+
+Anexo II: Especificación de requisitos software
+
+UC-006
+
+Enviar nueva contraseña
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-001 Usuario no logueado” desea
+recuperar su contraseña y ha introducido correctamente el código de
+confirmación.
+
+Precondición
+
+El código de confirmación ha sido introducido correctamente
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El sistema genera una nueva contraseña aleatoria.
+
+p2
+
+El sistema actualizar la contraseña
+
+p3
+
+El sistema envía al email del actor la nueva contraseña
+
+Postcondición
+
+El actor “ACT-001” ha recibido la nueva contraseña
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si se produce algún error al actualizar la contraseña en el
+sistema, el sistema informa al usuario y el caso de uso queda
+sin efecto
+
+p3
+
+Si se produce algún error al enviar la nueva contraseña, el
+sistema informa al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 31. UC-006. Enviar nueva contraseña.
+
+UC-007
+
+Modificar información perfil
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+27
+
+Anexo II: Especificación de requisitos software
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-002 Usuario logueado” pretenda
+modificar información de su perfil.
+
+Precondición
+
+El actor “ACT-001 Usuario logueado” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-002” solicita modificar su perfil en el sistema.
+
+p2
+
+El sistema solicita los nuevos datos al actor “ACT-002”.
+
+p3
+
+El actor “ACT-002” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+Se realiza el caso de uso “CU-005 Enviar código de
+confirmación”
+
+p6
+
+El sistema almacena convenientemente los datos introducidos
+e informa al usuario por email.
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p5
+
+Si el código de confirmación introducido por el usuario no es el
+correcto, el sistema informa al usuario y el caso de uso queda
+sin efecto.
+
+p6
+
+Si hay algún error almacenando los datos o enviando el correo
+electrónico, se informará al usuario, y el caso de uso queda sin
+efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 32. UC-007. Modificar información perfil.
+
+28
+
+Anexo II: Especificación de requisitos software
+
+UC-008
+
+Logout
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-002 Usuario logueado” pretenda
+cerrar sesión en el sistema.
+
+Precondición
+
+El actor “ACT-002 Usuario logueado” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-002” solicita cerrar sesión en el sistema.
+
+p2
+
+El sistema cierra la sesión asociada al usuario
+
+p3
+
+El sistema redirige al actor a la página principal
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si hay algún error en el proceso de cierre de sesión, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 33. UC-008. Logout.
+
+UC-009
+
+Consultar información perfil
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+
+29
+
+Anexo II: Especificación de requisitos software
+
+De Paz Santana, Juan Francisco
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+OBJ-007. Almacenamiento y visualización de estadísticas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-002 Usuario logueado” pretenda
+consultar la información de su perfil.
+
+Precondición
+
+El actor “ACT-002 Usuario logueado” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-002” solicita consultar su perfil en el sistema.
+
+p2
+
+El sistema localiza los datos del actor “ACT-002” logueado
+
+p3
+
+El sistema muestra los datos encontrados al usuario que los
+solicitó
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no hay ninguna sesión de usuario activa, este caso de uso
+queda sin efecto.
+
+p2
+
+Si no se puede encontrar al usuario en el sistema, se informa al
+usuario y este caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 34. UC-009. Consultar información perfil.
+
+UC-010
+
+Consultar estadísticas personales
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios.
+OBJ-007. Almacenamiento y visualización de estadísticas.
+
+30
+
+Anexo II: Especificación de requisitos software
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-002 Usuario logueado” pretenda
+consultar sus estadísticas personales
+
+Precondición
+
+El actor “ACT-002 Usuario logueado” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-002”
+personales.
+
+p2
+
+El sistema localiza las estadísticas del actor “ACT-002”
+logueado
+
+p3
+
+El sistema muestra las estadísticas al usuario que los solicitó
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+solicita
+
+consultar
+
+sus
+
+estadísticas
+
+Acción
+
+p2
+
+Si no hay ninguna sesión de usuario activa, este caso de uso
+queda sin efecto.
+
+p2
+
+Si no se puede encontrar al usuario en el sistema, se informa al
+usuario y este caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 35. UC-010. Consultar estadísticas personales.
+
+UC-011
+
+Eliminar cuenta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-003 Cliente” pretende eliminar su
+cuenta del sistema.
+
+31
+
+Anexo II: Especificación de requisitos software
+
+Precondición
+
+El actor “ACT-003 Cliente” ha iniciado sesión en el sistema y tiene una
+sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-003” solicita eliminar su cuenta del sistema.
+
+p2
+
+El sistema localiza el email del actor “ACT-003” logueado
+
+p3
+
+Se realiza el caso de uso “CU-005 Enviar código de
+confirmación”
+
+p4
+
+El sistema elimina al usuario del sistema y enviará un email al
+usuario para informarle sobre su eliminación del sistema.
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se encuentra la sesión activa del usuario, el sistema
+informa al usuario y el caso de uso queda sin efecto.
+
+p3
+
+Si el código de confirmación introducido por el usuario no es el
+correcto, el sistema informa al usuario y el caso de uso queda
+sin efecto.
+
+p4
+
+Si hay algún error eliminando los datos o enviando el correo
+electrónico, se informará al usuario, y el caso de uso queda sin
+efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 36. UC-011. Eliminar cuenta.
+
+UC-012
+
+Cambiar configuración panel de control
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+32
+
+Anexo II: Especificación de requisitos software
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+modificar alguna de sus configuraciones del panel de control.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita cambiar sus configuraciones en el
+panel de control
+
+p2
+
+El sistema le devuelve una serie de opciones a cambiar
+
+p3
+
+El actor “ACT-004” realiza una serie de cambios en el panel de
+control
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si no se encuentra la sesión activa del usuario, el sistema
+informa al usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 37. UC-012. Cambiar configuración panel de control.
+
+UC-013
+
+Consultar estadísticas generales
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios.
+OBJ-007. Almacenamiento y visualización de estadísticas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las estadísticas generales del sistema.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+33
+
+Anexo II: Especificación de requisitos software
+
+p1
+
+El actor “ACT-004” solicita consultar las estadísticas generales
+al sistema.
+
+p2
+
+Se realiza el caso de uso “CU-014 Calcular estadísticas
+generales”
+
+p3
+
+El sistema muestra las estadísticas al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no hay ninguna sesión de usuario activa, este caso de uso
+queda sin efecto.
+
+p2
+
+Si ocurre algún error en el cálculo de las estadísticas, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 38. UC-013. Consultar estadísticas generales.
+
+UC-014
+
+Calcular estadísticas generales
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las estadísticas generales del sistema.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha solicitado consultar las estadísticas
+generales.
+
+Secuencia normal
+
+Paso
+
+p1
+
+Acción
+El actor “ACT-005 Sistema” recopila todas las estadísticas
+registradas en el sistema.
+
+34
+
+Anexo II: Especificación de requisitos software
+
+p2
+
+El sistema realiza los cálculos oportunos para calculas las
+estadísticas generales
+
+p3
+
+El sistema muestra las estadísticas generales
+
+Postcondición
+
+Las estadísticas generales se han calculado correctamente.
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si ocurre algún error en el cálculo de las estadísticas, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 39. UC-014. Calcular estadísticas generales.
+
+4.2.3.2 GESTIÓN DE BEBIDAS
+Este paquete hace referencia a los diferentes servicios relacionados con las bebidas
+del sistema, como pueden ser el añadir, modificar o eliminar bebidas del sistema,
+consultarlas o incluso cambiar las posiciones de las bebidas para el robot.
+Estos casos de uso se pueden representar mediante la siguiente jerarquía:
+
+Ilustración 4. Jerarquía CU gestión de bebidas.
+
+35
+
+Anexo II: Especificación de requisitos software
+A continuación, se explican las tablas asociadas a estos casos de uso mostrados en
+la jerarquía:
+UC-015
+
+Añadir bebida
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda añadir
+una nueva bebida en el sistema.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita añadir una bebida en el sistema.
+
+p2
+
+El sistema solicita los datos de la bebida al actor “ACT-001”.
+
+p3
+
+El actor “ACT-001” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+El sistema almacena convenientemente los datos introducidos
+
+Postcondición
+
+El actor se queda en estado no valido a la espera de la verificación.
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p5
+
+Si la bebida ya está dentro del sistema, u ocurre algún tipo de
+error, el sistema informará al usuario, y el caso de uso queda
+sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 40. UC-015. Añadir bebida.
+
+36
+
+Anexo II: Especificación de requisitos software
+
+UC-016
+
+Modificar bebida
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda
+modificar una bebida registrada en el sistema
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita modificar una de las bebidas
+registrada en el sistema.
+
+p2
+
+El sistema solicita los nuevos datos al actor “ACT-004”.
+
+p3
+
+El actor “ACT-004” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+El sistema almacena convenientemente los datos introducidos.
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p5
+
+Si hay algún error almacenando los datos de la bebida, se
+informará al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 41. UC-016. Modificar bebida.
+
+37
+
+Anexo II: Especificación de requisitos software
+
+UC-017
+
+Eliminar bebida
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda eliminar
+una bebida registrada en el sistema
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita eliminar una de las bebidas
+registrada en el sistema.
+
+p2
+
+El sistema localiza la bebida dentro de la lista de bebidas
+registrada en el sistema
+
+p3
+
+El sistema elimina la bebida de la lista de bebidas registrada
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se puede localizar la bebida dentro de la lista de bebidas,
+el sistema informa al usuario y se regresa al paso p2
+
+p3
+
+Si ocurre algún error en la eliminación de la bebida, se
+informará al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 42. UC-017. Eliminar bebida.
+
+g
+
+38
+
+Anexo II: Especificación de requisitos software
+
+UC-018
+
+Activar bebida
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda activar
+una bebida registrada en el sistema
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita activar una de las bebidas registrada
+en el sistema.
+
+p2
+
+Se realiza el caso de uso “CU-019 Asignar bebida a posición
+del robot”
+
+p3
+
+El sistema activa la bebida
+
+Postcondición
+
+La bebida queda activa y lista en el sistema
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se puede localizar la bebida dentro de la lista de bebidas,
+el sistema informa al usuario y el caso de uso queda sin efecto.
+
+p3
+
+Si ocurre algún error en la activación de la bebida, se informará
+al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 43. UC-018. Activar bebida.
+
+39
+
+Anexo II: Especificación de requisitos software
+
+UC-019
+
+Asignar bebida a posición del robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot..
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda activar
+una bebida registrada en el sistema y tiene que asignarla a una posición
+del robot para ello.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita asignar a una posición una bebida
+específica
+
+p2
+
+El sistema busca la bebida en la lista de bebidas
+
+p3
+
+El sistema asigna dicha bebida a la posición indicada por el
+actor “ACT-004”
+
+Postcondición
+
+La bebida queda asignada a una posición
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se puede localizar la bebida dentro de la lista de bebidas,
+el sistema informa al usuario y el caso de uso queda sin efecto.
+
+p3
+
+Si ocurre algún error en la asignación de la bebida, se informará
+al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 44. UC-019. Asignar bebida a posición del robot.
+
+40
+
+Anexo II: Especificación de requisitos software
+
+UC-020
+
+Consultar bebidas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las bebidas registradas en el sistema.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita consultar las bebidas registradas en
+el sistema
+
+p2
+
+El sistema recopila toda la información sobre las bebidas
+registradas
+
+p3
+
+El sistema muestra las bebidas al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si hay un error al recopilar toda la información, el sistema
+informa al usuario y este caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 45. UC-020. Consultar bebidas.
+
+UC-021
+
+Buscar bebidas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+41
+
+Anexo II: Especificación de requisitos software
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende buscar
+una bebida dentro de las bebidas consultadas en el caso de uso “CU025 Consultar bebidas”
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita buscar una bebida específica dentro
+del sistema
+
+p2
+
+El sistema busca la bebida en la lista de bebidas
+
+p3
+
+El sistema muestra la bebida buscada al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si no existe la bebida, el sistema informa al usuario y este caso
+de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 46. UC-021. Buscar bebidas.
+
+UC-022
+
+Consultar bebidas posiciones robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-004. Altas, bajas y modificación de bebidas.
+
+42
+
+Anexo II: Especificación de requisitos software
+
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las bebidas activas en alguna posición del robot.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita consultar las bebidas registradas en
+posiciones del robot en el sistema
+
+p2
+
+El sistema recopila toda la información sobre las bebidas
+registradas en las posiciones del robot
+
+p3
+
+El sistema muestra las bebidas al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si hay un error al recopilar toda la información, el sistema
+informa al usuario y este caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 47. UC-022. Consultar bebidas posiciones robot.
+
+4.2.3.3 GESTIÓN DE RECETAS
+Este paquete hace referencia a los diferentes servicios relacionados con las recetas
+del sistema, como pueden ser el añadir, modificar o eliminar recetas, consultarlas o
+prepararlas
+Estos casos de uso se pueden representar mediante la siguiente jerarquía:
+
+43
+
+Anexo II: Especificación de requisitos software
+
+Ilustración 5. Jerarquía CU gestión de recetas.
+
+A continuación, se explican las tablas asociadas a estos casos de uso mostrados en
+la jerarquía:
+UC-023
+
+Añadir receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda añadir
+una nueva receta en el sistema.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+44
+
+Anexo II: Especificación de requisitos software
+
+p1
+
+El actor “ACT-004” solicita añadir una receta en el sistema.
+
+p2
+
+El sistema solicita los datos de la receta al actor “ACT-004”.
+
+p3
+
+El actor “ACT-004” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+El sistema almacena convenientemente los datos introducidos
+
+p6
+
+Se realiza el caso de uso “CU-024 Asignar bebidas a receta”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p5
+
+Si la receta ya está dentro del sistema, u ocurre algún tipo de
+error, el sistema informará al usuario, y el caso de uso queda
+sin efecto.
+
+p6
+
+Si ocurre algún error en la asignación de las bebidas a la receta,
+el sistema informará al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 48. UC-023. Añadir receta.
+
+UC-024
+
+Asignar bebidas a receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+45
+
+Anexo II: Especificación de requisitos software
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda añadir
+una nueva receta en el sistema y es necesario asignarle las bebidas
+indicadas por el usuario.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita asignarle ciertas bebidas a una
+receta
+
+p2
+
+El sistema solicita las bebidas al actor “ACT-004”.
+
+p3
+
+El actor “ACT-001” proporciona las bebidas pertinentes.
+
+p4
+
+El sistema busca las bebidas en la lista de bebidas y la receta
+en la lista de recetas
+
+p5
+
+Se realiza el caso de uso “CU-025 Asignar porcentajes a
+receta”
+
+p6
+
+El sistema asigna las bebidas a la receta
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la búsqueda de las bebidas y la receta fallan, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+p5
+
+Si ocurre algún error en la asignación de los porcentajes de las
+bebidas de la receta, el sistema informará al usuario y el caso
+de uso queda sin efecto
+
+p6
+
+Si ocurre algún error en la asignación de las bebidas a la receta,
+el sistema informará al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 49. UC-024. Asignar bebidas a receta.
+
+46
+
+Anexo II: Especificación de requisitos software
+
+UC-025
+
+Asignar porcentajes a receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda añadir
+una nueva receta en el sistema y es necesario asignarle las bebidas
+indicadas por el usuario con unos porcentajes específicos.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita asignar unos porcentajes a las
+bebidas de una receta
+
+p2
+
+El sistema solicita los porcentajes de las bebidas al actor “ACT004”.
+
+p3
+
+El actor “ACT-004” proporciona los datos pertinentes.
+
+p4
+
+El sistema busca las bebidas en la lista de bebidas de la receta
+
+p5
+
+Se asignan a las bebidas el porcentaje especificado por el
+usuario
+
+p6
+
+El sistema almacena convenientemente los datos
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la búsqueda de las bebidas y la receta fallan, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+p5
+
+Si ocurre algún error en la asignación de los porcentajes de las
+bebidas de la receta, el sistema informará al usuario y el caso
+de uso queda sin efecto
+
+p6
+
+Si ocurre algún error en el almacenamiento de os datos, el
+sistema informará al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+47
+
+Anexo II: Especificación de requisitos software
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 50. UC-025. Asignar porcentajes a receta.
+
+UC-026
+
+Modificar receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda
+modificar una receta registrada en el sistema
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita modificar una de las recetas
+registradas en el sistema.
+
+p2
+
+El sistema solicita los nuevos datos al actor “ACT-004”.
+
+p3
+
+El actor “ACT-004” proporciona los datos solicitados.
+
+p4
+
+El sistema valida los datos introducidos.
+
+p5
+
+El sistema almacena convenientemente los datos introducidos
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p4
+
+Si la validación de datos falla, el sistema informa al usuario y se
+regresa al paso p2
+
+p5
+
+Si hay algún error almacenando los datos de la receta, se
+informará al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+48
+
+Anexo II: Especificación de requisitos software
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 51. UC-026. Modificar receta.
+
+UC-027
+
+Eliminar receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda eliminar
+una receta registrada en el sistema
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita eliminar una de las recetas
+registradas en el sistema.
+
+p2
+
+El sistema localiza la receta dentro de la lista de recetas
+registrada en el sistema
+
+p3
+
+El sistema elimina la receta de la lista de recetas registrada-
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se puede localizar la receta dentro de la lista de recetas,
+el sistema informa al usuario y se regresa al paso p2
+
+p3
+
+Si ocurre algún error en la eliminación de la receta, se informará
+al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 52. UC-027. Eliminar receta.
+
+49
+
+Anexo II: Especificación de requisitos software
+
+UC-028
+
+Activar receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda activar
+una receta registrada en el sistema
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita activar una de las recetas registrada
+en el sistema.
+
+p2
+
+Se realiza el caso de uso “CU-029 Comprobar bebidas activas”
+
+p3
+
+El sistema activa la receta
+
+Postcondición
+
+La receta queda activa y lista en el sistema
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se puede localizar la receta dentro de la lista de recetas,
+el sistema informa al usuario y el caso de uso queda sin efecto.
+
+p3
+
+Si ocurre algún error en la activación de la receta, se informará
+al usuario, y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 53. UC-028. Activar receta.
+
+50
+
+Anexo II: Especificación de requisitos software
+
+UC-029
+
+Comprobar bebidas activas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretenda activar
+una receta registrada en el sistema y tiene que comprobar si las bebidas
+asignadas a la receta están o no activas
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita comprobar las bebidas asignadas a
+una posición, y, por tanto, activas.
+
+p2
+
+El sistema busca las bebidas asignadas a las posiciones.
+
+p3
+
+El sistema compara las bebidas asignadas a la receta con las
+bebidas activas
+
+p4
+
+El sistema devuelve una confirmación al usuario
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se pueden obtener las bebidas activas, el sistema informa
+al usuario y el caso de uso queda sin efecto.
+
+p3
+
+Si ocurre algún error en la comprobación de la bebida, se
+informará al usuario, y el caso de uso queda sin efecto.
+
+p3
+
+Si alguna de las bebidas asignada a la receta no está activa, el
+sistema devolverá “NO” al usuario, indicando que no
+puede activarse dicha receta.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 54. UC-029. Comprobar bebidas activas.
+
+51
+
+Anexo II: Especificación de requisitos software
+
+UC-030
+
+Consultar recetas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las recetas registradas en el sistema.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita consultar las recetas registradas en
+el sistema
+
+p2
+
+El sistema recopila toda la información sobre las recetas
+registradas
+
+p3
+
+El sistema muestra las recetas al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si hay un error al recopilar toda la información, el sistema
+informa al usuario y este caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 55. UC-030. Consultar recetas.
+
+UC-031
+
+Buscar recetas
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+52
+
+Anexo II: Especificación de requisitos software
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende buscar
+una receta dentro de las recetas consultadas en el caso de uso “CU035 Consultar recetas”
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita buscar una receta específica dentro
+del sistema
+
+p2
+
+El sistema busca la receta en la lista de recetas
+
+p3
+
+El sistema muestra la receta buscada al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si no existe la receta, el sistema informa al usuario y este caso
+de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 56. UC-031. Buscar recetas.
+
+UC-032
+
+Consultar bebidas en receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+
+53
+
+Anexo II: Especificación de requisitos software
+
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las bebidas de una receta
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita buscar una receta específica dentro
+del sistema
+
+p2
+
+El sistema busca la receta en la lista de recetas
+
+p3
+
+El sistema busca las bebidas asignadas a dicha receta
+
+p4
+
+Se realiza el caso de uso “CU-033 Consultar porcentajes de
+receta”
+
+p5
+
+El sistema muestra las bebidas al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no existe la receta, el sistema informa al usuario y este caso
+de uso queda sin efecto.
+
+p3
+
+Si no se pueden recuperar las bebidas de la receta, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 57. UC-032. Consultar bebidas en receta.
+
+UC-033
+
+Consultar porcentajes en receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+54
+
+Anexo II: Especificación de requisitos software
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+consultar las bebidas de una receta y sus porcentajes.
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor “ACT-004” solicita los porcentajes de las bebidas de
+una receta
+
+p2
+
+El sistema pregunta al actor “ACT-004” por las bebidas y la
+receta
+
+p3
+
+El sistema busca las bebidas asignadas a dicha receta
+
+p4
+
+El sistema busca los porcentajes de las bebidas asignadas a
+dicha receta
+
+p5
+
+El sistema muestra los porcentajes al actor “ACT-004”
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no existe la receta y/o las bebidas, el sistema informa al
+usuario y este caso de uso queda sin efecto.
+
+p3
+
+Si no se pueden recuperar las bebidas de la receta, el sistema
+informa al usuario y el caso de uso queda sin efecto
+
+p4
+
+Si no se pueden recuperar los porcentajes de las bebidas de la
+receta, el sistema informa al usuario y el caso de uso queda sin
+efecto
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 58. UC-033. Consultar porcentajes en receta.
+
+55
+
+Anexo II: Especificación de requisitos software
+
+UC-034
+
+Preparar receta
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+OBJ-007. Almacenamiento y visualización de estadísticas.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-001 Usuario no logueado” o el actor
+“ACT-002 Usuario logueado” pretende preparar una de las recetas
+registradas en el sistema.
+
+Precondición
+
+Ninguna
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor solicita preparar una de las recetas registrada en el
+sistema.
+
+p2
+
+El sistema busca la receta en la lista de recetas
+
+p3
+
+Se realiza el caso de uso “CU-032 Consultar bebidas en receta”
+
+p4
+
+Se realiza el caso de uso “CU-029 Comprobar bebidas activas”
+
+p5
+
+Se realiza el caso de uso “CU-038 Gestionar movimiento robot”
+
+Postcondición
+
+La receta queda activa y lista en el sistema
+
+Excepciones
+
+Paso
+
+Acción
+
+p2
+
+Si no se puede localizar la receta dentro de la lista de recetas,
+el sistema informa al usuario y el caso de uso queda sin efecto.
+
+p3
+
+Si ocurre algún error en la consulta de las bebidas de la receta,
+se informará al usuario, y el caso de uso queda sin efecto.
+
+p4
+
+Si ocurre algún error o algo alguna de las bebidas no está
+activa, el sistema informará al usuario y el caso de uso queda
+sin efecto.
+
+p5
+
+Si ocurre algún error en la comunicación con el robot, el sistema
+informará al usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+56
+
+Anexo II: Especificación de requisitos software
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 59. UC-034. Preparar receta.
+
+4.2.3.4 GESTIÓN DEL ROBOT
+Este paquete hace referencia a los diferentes servicios relacionados con la
+comunicación con el robot y toda la gestión necesaria para el mismo.
+Estos casos de uso se pueden representar mediante la siguiente jerarquía:
+
+Ilustración 6. Jerarquía CU gestión del robot.
+
+A continuación, se explican las tablas asociadas a estos casos de uso mostrados en
+la jerarquía:
+UC-035
+
+Activar robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+
+57
+
+Anexo II: Especificación de requisitos software
+
+De Paz Santana, Juan Francisco
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende arrancar
+el robot
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor solicita activar el robot
+
+p2
+
+El sistema activa la comunicación serial con el robot
+
+p3
+
+El sistema ofrece feedback al usuario
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si ocurre algún error en la comunicación, el sistema informa al
+usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 60. UC-035. Activar robot.
+
+UC-036
+
+Parar robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende parar el
+robot
+
+58
+
+Anexo II: Especificación de requisitos software
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor solicita parar el robot
+
+p2
+
+El sistema finaliza la comunicación serial con el robot
+
+p3
+
+El sistema ofrece feedback al usuario
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si ocurre algún error en la comunicación con el robot, el sistema
+informa al usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 61. UC-036. Parar el robot.
+
+UC-037
+
+Gestionar estado robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” pretende
+gestionar el estado el robot
+
+Precondición
+
+El actor “ACT-004 Administrador” ha iniciado sesión en el sistema y
+tiene una sesión activa.
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El actor solicita información sobre el robot
+
+p2
+
+El sistema recopila información sobre el robot
+
+59
+
+Anexo II: Especificación de requisitos software
+
+El sistema muestra la información al actor “ACT-004”
+
+p3
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p2
+
+Acción
+Si ocurre algún error en la recopilación de información, el
+sistema informa al usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 62. UC-037. Gestionar estado robot.
+
+UC-038
+
+Gestionar movimiento robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-002. Gestión del brazo robótico.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-005 Sistema” mueve el robot para
+preparar una receta solicitada
+
+Precondición
+
+Se ha solicitado preparar una receta
+
+Secuencia normal
+
+Paso
+
+Acción
+
+p1
+
+El usuario solicita gestionar el movimiento del robot.
+
+p2
+
+Se realiza el caso de uso “CU-039 Calculo posiciones de las
+bebidas/dispensadores”
+
+p3
+
+El sistema calcula los movimientos necesarios según las
+posiciones de las bebidas y sus porcentajes en la receta
+
+p4
+
+El sistema se comunica con el robot para indicarle los
+movimientos a realizar
+
+60
+
+Anexo II: Especificación de requisitos software
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+Acción
+
+P2
+
+Si ocurre algún error en el cálculo de las posiciones según la
+receta, el sistema informa al usuario y el caso de uso queda sin
+efecto.
+
+p3
+
+Si ocurre algún error en el cálculo de los movimientos con las
+bebidas, el sistema informa al usuario y el caso de uso queda
+sin efecto
+
+p4
+
+Si ocurre algún error en la comunicación con el robot, el
+sistema informa al usuario y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 63. UC-038. Gestionar movimiento robot.
+
+UC-039
+
+Cálculo posiciones de las bebidas/dispensadores
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-002. Gestión del brazo robótico.
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-005 Sistema” pretende calcular las
+posiciones según las bebidas y en qué dispensadores del robot están
+colocadas
+
+Precondición
+
+Se ha solicitado por algún actor mover el robot a una determinada
+bebida.
+
+Secuencia normal
+
+Paso
+
+p1
+
+Acción
+El sistema recopila las bebidas activas en los dispensadores.
+Se realiza el caso de uso “CU-029 Comprobar bebidas activas”
+
+61
+
+Anexo II: Especificación de requisitos software
+
+p2
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+El sistema calcula las posiciones según la bebida y el
+dispensador en el que se encuentre
+
+Acción
+
+p1
+
+Si ocurre algún error en la recopilación de información, el
+sistema informa al usuario y el caso de uso queda sin efecto.
+
+p2
+
+Si ocurre algún error en el cálculo, el sistema informa al usuario
+y el caso de uso queda sin efecto.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 64. UC-039. Cálculo posiciones de las bebidas/dispensadores.
+
+UC-040
+
+Gestión luces de aviso
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-005 Sistema” está preparando una
+receta y necesita avisar cuando está lista el coctel para el usuario.
+
+Precondición
+
+Se han calculado los movimientos necesarios para preparar el coctel
+
+Secuencia normal
+
+Paso
+
+Postcondición
+
+Acción
+
+p1
+
+El sistema prepara la activación de las luces al comenzar y
+finalizar la preparación de la receta
+
+p2
+
+El sistema se comunica con el robot indicándole el momento
+oportuno para activar las luces
+
+Ninguna
+
+62
+
+Anexo II: Especificación de requisitos software
+
+Excepciones
+
+Paso
+
+Acción
+Si ocurre algún error en la comunicación con el robot, el sistema
+informa al usuario y el caso de uso queda sin efecto.
+
+p2
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 65. UC-040. Gestión luces de aviso.
+
+UC-041
+
+Control manual del robot
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá comportarse tal como se describe en el siguiente
+caso de uso cuando el actor “ACT-004 Administrador” quiera controlar
+manualmente el robot para calibración u otras operaciones.
+
+Precondición
+
+Ninguna
+
+Secuencia normal
+
+Paso
+
+p1
+
+El actor “ACT-004 Administrador” solicita al sistema mover el
+robot
+
+p2
+
+El sistema convierte esa petición a una funcional para el robot
+
+p3
+
+El sistema se comunica con el robot indicándole las
+operaciones a realizar
+
+Postcondición
+
+Ninguna
+
+Excepciones
+
+Paso
+
+p3
+Importancia
+
+Acción
+
+Acción
+Si ocurre algún error en la comunicación con el robot, el sistema
+informa al usuario y el caso de uso queda sin efecto.
+
+Vital
+
+63
+
+Anexo II: Especificación de requisitos software
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 66. UC-041. Control manual del robot.
+
+4.3 REQUISITOS NO FUNCIONALES
+En este apartado se explicarán los requisitos no funcionales del sistema. Estos
+requisitos especifican criterios o restricciones del sistema que afectan a su diseño e
+implementación.
+El sistema por diseñar debe cumplir con los siguientes requisitos no funcionales:
+NFR-001
+
+Portabilidad
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá trabajar en diferentes plataformas, ya sea en móvil,
+ordenadores u otros dispositivos.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 67. NFR-001. Portabilidad.
+
+64
+
+Anexo II: Especificación de requisitos software
+
+NFR-002
+
+Manejabilidad
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá ser manejable para los usuarios.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 68. NFR-002. Manejabilidad.
+
+NFR-003
+
+Usabilidad
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-003. Altas, bajas y modificación de datos de usuarios
+OBJ-004. Altas, bajas y modificación de bebidas.
+OBJ-005. Altas, bajas y modificación de datos de recetas.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá ser usable para los usuarios (deberá tener un tiempo
+de aprendizaje relativamente rápido)
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+65
+
+Anexo II: Especificación de requisitos software
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 69. NFR-003. Usabilidad.
+
+NFR-004
+
+Confiabilidad
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá ser confiable, con una tasa de fallos relativamente
+pequeña.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 70. NFR-004. Confiabilidad.
+
+NFR-005
+
+Disponibilidad
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+OBJ-006. Personalización en la disposición de las bebidas en el robot.
+
+Descripción
+
+El sistema deberá estar disponible el mayor tiempo posible.
+
+66
+
+Anexo II: Especificación de requisitos software
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 71. NFR-005. Disponibilidad.
+
+NFR-006
+
+Despliegue
+
+Versión
+
+1.0
+
+Autores
+
+Cruz García, David
+
+Fuentes
+
+Sales Mendes, André Filipe
+Villarrubia González, Gabriel
+De Paz Santana, Juan Francisco
+
+Dependencias
+
+OBJ-001. Preparación de bebidas o coctels.
+OBJ-002. Gestión del brazo robótico.
+
+Descripción
+
+El sistema deberá disponer de un despliegue de los servidores web
+sencillo.
+
+Importancia
+
+Vital
+
+Urgencia
+
+Inmediato
+
+Estado
+
+Validado
+
+Estabilidad
+
+Alta
+
+Comentarios
+
+Sin comentarios
+Tabla 72. NFR-006. Despliegue.
+
+67
+
+Anexo II: Especificación de requisitos software
+
+5 MATRIZ DE RASTREABILIDAD
+La matriz de rastreabilidad es una matriz donde se puede ver, de una forma visual,
+rápida y sencilla, la relación entre los requisitos definidos y los objetivos que se
+persiguen con el proyecto.
+En el caso de este sistema, la matriz de rastreabilidad es:
+
+MTR-001
+
+OBJ-001
+
+OBJ-002
+
+OBJ-003
+
+IRQ-001
+
+X
+
+IRQ-002
+
+X
+
+IRQ-003
+
+X
+
+OBJ-004
+
+OBJ-005
+
+X
+
+X
+
+IRQ-004
+
+X
+
+IRQ-005
+
+X
+
+IRQ-006
+
+X
+
+X
+
+IRQ-007
+
+X
+
+X
+
+X
+
+X
+
+IRQ-008
+
+OBJ-006
+
+OBJ-007
+
+X
+X
+
+X
+
+UC-001
+
+X
+
+UC-002
+
+X
+
+UC-003
+
+X
+
+UC-004
+
+X
+
+UC-005
+
+X
+
+UC-006
+
+X
+
+UC-007
+
+X
+
+UC-008
+
+X
+
+UC-009
+
+X
+
+X
+
+UC-010
+
+X
+
+X
+
+UC-011
+
+X
+
+UC-012
+
+X
+
+UC-013
+
+X
+
+UC-014
+
+X
+
+X
+
+68
+
+Anexo II: Especificación de requisitos software
+
+UC-015
+
+X
+
+X
+
+X
+
+X
+
+UC-016
+
+X
+
+X
+
+X
+
+X
+
+UC-017
+
+X
+
+X
+
+X
+
+X
+
+UC-018
+
+X
+
+X
+
+X
+
+X
+
+UC-019
+
+X
+
+UC-020
+
+X
+
+X
+
+UC-021
+
+X
+
+X
+
+UC-022
+
+X
+
+UC-023
+
+X
+
+X
+
+X
+
+X
+
+UC-024
+
+X
+
+X
+
+X
+
+X
+
+UC-025
+
+X
+
+X
+
+X
+
+UC-026
+
+X
+
+X
+
+X
+
+UC-027
+
+X
+
+UC-028
+
+X
+
+X
+
+X
+
+X
+
+UC-029
+
+X
+
+X
+
+X
+
+X
+
+UC-030
+
+X
+
+X
+
+X
+
+UC-031
+
+X
+
+X
+
+X
+
+UC-032
+
+X
+
+X
+
+X
+
+UC-033
+
+X
+
+X
+
+X
+
+UC-034
+
+X
+
+X
+
+X
+
+X
+
+UC-035
+
+X
+
+X
+
+UC-036
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+UC-037
+
+X
+
+UC-038
+
+X
+
+X
+
+X
+
+UC-039
+
+X
+
+X
+
+X
+
+UC-040
+
+X
+
+UC-041
+
+X
+
+NFR-001
+
+X
+
+X
+
+NFR-002
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+NFR-003
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+X
+
+69
+
+Anexo II: Especificación de requisitos software
+
+NFR-004
+
+X
+
+X
+
+NFR-005
+
+X
+
+X
+
+NFR-006
+
+X
+
+X
+
+X
+
+Tabla 73. MTR-001. Matriz de rastreabilidad.
+
+70
+
+Anexo II: Especificación de requisitos software
+
+6 REFERENCIAS
+•
+•
+•
+
+•
+•
+
+Rumbaugh, J., Jacobson, I., Booch, G. “El Lenguaje Unificado de Modelado.
+Manual de Referencia”. 2ª ed., Addison-Wesley. 2007
+Pressman, R. S. “Ingeniería del Software: Un Enfoque Práctico”. 7ª Edición.
+McGraw-Hill. 2010.
+Amador Durán Toro y Beatriz Barnárdez Jiménez. “Metodología para la
+Elicitación de Requisitos de Sistemas Software”. 2000 (visitado el 20-052022)
+o http://www.lsi.us.es/docs/informes/lsi-2000-10.pdf
+Visual Paradigm User´s Guide (visitado el 20-05-2022)
+o https://www.visual-paradigm.com/support/documents/vpuserguide.jsp
+Jacobson, I., Booch, G., Rumbaugh, J. “El Proceso Unificado de Desarrollo
+de Software”. Addison-Wesley, 2000
+
+71
+
+

@@ -27,11 +27,22 @@ declare global {
   }
 }
 
+/**
+ * Propiedades del componente WalletManager.
+ */
 interface WalletManagerProps {
+  /** Indica si se debe abrir automáticamente el conector de wallets al montar. */
   autoOpenConnector?: boolean;
+  /** Función opcional invocada cuando una wallet se conecta exitosamente. */
   onWalletConnected?: () => void;
 }
 
+/**
+ * Componente para gestionar la conexión, etiquetado y eliminación de wallets del usuario.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX del gestor de wallets.
+ */
 export const WalletManager: React.FC<WalletManagerProps> = ({
   autoOpenConnector = false,
   onWalletConnected,

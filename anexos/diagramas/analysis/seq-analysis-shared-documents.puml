@@ -1,0 +1,33 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0032: Ver documentos compartidos conmigo (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Página Compartidos conmigo" as ui
+control "Gestor de compartición" as ctrl
+entity "Compartido" as share
+entity "Documento" as doc
+
+user -> ui: Solicitar "Compartidos conmigo"
+ui -> ctrl: Solicitar documentos compartidos
+
+ctrl -> share: Obtener comparticiones donde el usuario es destinatario
+share --> ctrl: Lista de comparticiones
+
+loop Para cada compartición
+    ctrl -> doc: Obtener datos del documento
+    doc --> ctrl: Metadatos del documento
+end
+
+ctrl --> ui: Lista de documentos compartidos (metadatos + permisos)
+ui --> user: Mostrar biblioteca de documentos compartidos
+
+user -> ui: Aplicar filtro (compartido por, permisos, fecha)
+ui -> ctrl: Solicitar filtrado
+ctrl -> share: Aplicar filtros
+share --> ctrl: Resultados filtrados
+ctrl --> ui: Resultados
+ui --> user: Actualizar vista
+
+@enduml

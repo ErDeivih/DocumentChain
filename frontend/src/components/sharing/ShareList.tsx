@@ -6,18 +6,28 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import AlertMessage from '../ui/AlertMessage';
-import { formatDate } from '../../lib/utils';
+import { formatRelativeTime } from '../../lib/utils';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { SavedWallet } from '../../contexts/WalletManagerContext';
 import { Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
 
+/**
+ * Props del componente ShareList.
+ */
 interface ShareListProps {
+  /** Lista de comparticiones del documento. */
   shares: ShareDocument[];
+  /** Identificador del documento compartido. */
   documentId: string;
+  /** Indica si el usuario actual es el propietario del documento. */
   isOwner?: boolean;
 }
 
+/**
+ * Lista de comparticiones de un documento.
+ * Muestra los usuarios con acceso y permite revocar permisos mediante firma blockchain.
+ */
 export const ShareList: React.FC<ShareListProps> = ({
   shares,
   documentId,
@@ -128,7 +138,7 @@ export const ShareList: React.FC<ShareListProps> = ({
                     {share.user?.fullName || share.user?.username || 'Usuario Desconocido'}
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Compartido {formatDate(share.createdAt)}
+                    Compartido {formatRelativeTime(share.createdAt)}
                   </p>
                 </div>
               </div>

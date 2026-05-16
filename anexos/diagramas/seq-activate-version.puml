@@ -2,17 +2,38 @@
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Detalle / pestana Versiones" as ui
-control "Endpoints de versiones\n(/api/documents/:id/versions)" as versionApi
-control "Servicio de versiones" as srv
-database "PostgreSQL" as db
+control "Endpoints de versiones\n(/api/documents/:id/operational-version)" as versionApi
+control "VersionService" as srv
+entity "DocumentRegistry" as sc
+database "Base de datos" as db
+participant "Wallet del usuario (navegador o WalletConnect)" as wallet
+control "EventListenerService" as listener
 
 user -> ui: Selecciona una version como operativa
-ui -> versionApi: Cambiar version operativa
+ui -> versionApi: Preparar cambio de version operativa
 versionApi -> srv: Validar documento, version y permisos
-srv -> db: Actualizar referencia operativa y registrar evento
+srv -> sc: isOwner(blockchainId, walletAddress)
+sc --> srv: Propietario validado
+srv -> db: Registrar operacion preparada
+db --> srv: Datos para firmar
+srv --> versionApi: Payload blockchain
+versionApi --> ui: Cambio preparado
+
+ui -> wallet: Solicitar firma
+wallet -> sc: Cambiar version operativa on-chain
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> versionApi: Confirmar cambio
+versionApi -> srv: Registrar TX_SUBMITTED
+srv -> db: Actualizar estado transaccional
 db --> srv: OK
-srv --> versionApi: Cambio completado
-versionApi --> ui: Historial actualizado
+srv --> versionApi: Pendiente de sincronizacion
+versionApi --> ui: Confirmacion registrada
+
+sc -> listener: Evento de version operativa cambiada
+listener -> db: Marcar version operativa y SYNCED
+listener -> ui: Refrescar historial de versiones
 ui --> user: La version queda marcada como operativa
 
 @enduml

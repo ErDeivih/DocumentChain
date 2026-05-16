@@ -1,6 +1,6 @@
 ﻿@startuml
 !include _structure-style.puml
-title Patron Prepare / Confirm
+title Patron prepare-confirm de operaciones
 
 [*] --> PREPARING : La aplicacion prepara la operacion
 

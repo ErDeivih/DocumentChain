@@ -1,12 +1,22 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente Input.
+ * @property label - Etiqueta que se muestra encima del campo.
+ * @property helperText - Texto de ayuda que se muestra debajo del campo.
+ * @property className - Clases CSS adicionales.
+ */
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   helperText?: string;
 }
 
+/**
+ * Componente de entrada de texto con soporte para etiqueta y texto de ayuda.
+ * @param props - Props del componente Input.
+ */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, helperText, ...props }, ref) => {
     return (

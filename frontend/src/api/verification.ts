@@ -2,7 +2,9 @@ import { api } from '../lib/api';
 import { VerificationResult } from '../types';
 
 /**
- * Verify a document by uploading a file
+ * Verifica un documento subiendo un archivo.
+ * @param file - Archivo a verificar.
+ * @returns Resultado de la verificación.
  */
 export async function verifyByFile(file: File): Promise<VerificationResult> {
   const formData = new FormData();
@@ -18,7 +20,9 @@ export async function verifyByFile(file: File): Promise<VerificationResult> {
 }
 
 /**
- * Verify a document by IPFS hash
+ * Verifica un documento mediante su hash IPFS.
+ * @param ipfsHash - Hash de IPFS.
+ * @returns Resultado de la verificación.
  */
 export async function verifyByIPFS(ipfsHash: string): Promise<VerificationResult> {
   const response = await api.post('/verify/ipfs', { ipfsHash });
@@ -26,7 +30,9 @@ export async function verifyByIPFS(ipfsHash: string): Promise<VerificationResult
 }
 
 /**
- * Verify a document by blockchain ID
+ * Verifica un documento mediante su identificador blockchain.
+ * @param blockchainId - Identificador en blockchain.
+ * @returns Resultado de la verificación.
  */
 export async function verifyByBlockchain(blockchainId: string): Promise<VerificationResult> {
   const response = await api.post('/verify/blockchain', { blockchainId });

@@ -1,0 +1,29 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0008: Editar preferencias (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Página de configuración" as ui
+control "Gestor de usuarios" as ctrl
+entity "Cuenta de usuario" as account
+
+user -> ui: Seleccionar "Configuración"
+ui -> ctrl: Solicitar preferencias actuales
+
+ctrl -> account: Obtener preferencias
+account --> ctrl: Preferencias actuales
+
+ctrl --> ui: Datos de configuración
+ui --> user: Mostrar formulario (notificaciones, tema, idioma, privacidad)
+
+user -> ui: Modificar preferencias
+ui -> ctrl: Guardar cambios (nuevas preferencias)
+
+ctrl -> account: Actualizar preferencias
+account --> ctrl: Preferencias actualizadas
+
+ctrl --> ui: Confirmación
+ui --> user: Cambios guardados
+
+@enduml

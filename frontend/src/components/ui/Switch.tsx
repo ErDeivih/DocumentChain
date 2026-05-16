@@ -1,11 +1,21 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente Switch.
+ * @property checked - Estado activado o desactivado del interruptor.
+ * @property onCheckedChange - Función que se ejecuta cuando cambia el estado.
+ * @property className - Clases CSS adicionales.
+ */
 interface SwitchProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
 }
 
+/**
+ * Componente de interruptor de palanca con estilos personalizados.
+ * @param props - Props del componente Switch.
+ */
 const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
   ({ className, checked = false, onCheckedChange, disabled, ...props }, ref) => {
     const handleClick = () => {

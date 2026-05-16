@@ -1,0 +1,3709 @@
+% ============================================================
+%  PLANTILLA OFICIAL -- Universidad de Salamanca
+%  Grado en Ingeniería Informática
+%  Compilar con: lualatex AnexoI_Especificaciones.tex
+% ============================================================
+
+% ============================================================
+% NOTA ENCODING (2026-03-27): Archivo corregido a UTF-8.
+% Los caracteres acentuados (tildes) habian sido danados por
+% una operacion de I/O con codificacion ISO-8859-1 en PS5.
+% Patron 1 (AnexoI): U+FFFD para a/e/i/n/u; '?' para 'o'.
+%   Solucion: diccionario de contexto + regex (fix_accents_v2.py, fix3.py).
+% Patron 2 (AnexoII-V): todos los acentos como '?' literal.
+%   Solucion: vacabulario de 462 entradas (fix_annexes_all.py, fix_final.py).
+% REGLA: Siempre usar Python 3 + io.open(path,'w',encoding='utf-8').
+%        NUNCA usar Set-Content de PowerShell 5 (anade BOM o rompe tildes).
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+
+% ============================================================
+% 1. PAQUETES Y CONFIGURACIÓN GENERAL
+% ============================================================
+
+\usepackage{fontspec}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{longtable}
+\usepackage{enumitem}
+\setlist[enumerate,itemize]{noitemsep, topsep=2pt, parsep=0pt, partopsep=0pt}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+
+\usepackage{geometry}
+\geometry{
+    left       = 2.5cm,
+    right      = 2.5cm,
+    top        = 3cm,
+    bottom     = 2.5cm,
+    headheight = 55pt,
+    headsep    = 0.8cm
+}
+
+\usepackage{pdflscape}
+\usepackage{eso-pic}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\usepackage{listings}
+\definecolor{lightgray}{rgb}{0.96, 0.96, 0.96}
+\definecolor{darkblue}{rgb}{0.0, 0.0, 0.6}
+\definecolor{darkorange}{rgb}{0.8, 0.4, 0.0}
+
+\lstset{
+    basicstyle      = \ttfamily\scriptsize,
+    breaklines      = true,
+    frame           = single,
+    backgroundcolor = \color{lightgray},
+    keywordstyle    = \color{darkblue}\bfseries,
+    stringstyle     = \color{darkorange},
+    showstringspaces= false,
+}
+
+% ============================================================
+% 2. ENCABEZADO Y PIE DE PÁGINA
+% ============================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{\tituloInforme}\\[-1pt]\fontsize{10}{12}\selectfont\subtituloInforme}}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+
+
+% ============================================================
+% SOPORTE ENCABEZADO/PIE EN PÁGINAS APAISADAS (landscape)
+% ============================================================
+\newif\iflscape\lscapefalse
+
+\let\origlandscape\landscape
+\let\origendlandscape\endlandscape
+\renewenvironment{landscape}{%
+  \origlandscape\lscapetrue\thispagestyle{empty}%
+}{%
+  \origendlandscape\lscapefalse%
+}
+
+\AddToShipoutPictureFG{%
+  \iflscape
+    \begin{tikzpicture}[remember picture, overlay]
+      % pdflscape rota CW para visualización:
+      % lado IZQUIERDO físico (west) = ARRIBA del apaisado → encabezado
+                        % Cabecera con logo y texto apilado en la banda de encabezado (west = arriba)
+      \node[rotate=90, anchor=center, inner sep=0pt]
+        at ([xshift=1.0cm]current page.west)
+        {\makebox[\textheight]{%
+                                        \includegraphics[height=1.1cm]{USAL-Logo-3820702873.png}\hfill%
+                                        \shortstack[r]{\fontsize{10}{12}\selectfont\textbf{\tituloInforme}\\[-1pt]\fontsize{10}{12}\selectfont\subtituloInforme}}};
+      % lado DERECHO físico (east) = ABAJO del apaisado → número de página
+      \node[rotate=90, anchor=center, inner sep=0pt]
+        at ([xshift=-1.5cm]current page.east)
+        {\color{gray}\rule[0.5ex]{5cm}{0.8pt}%
+         \hspace{0.4cm}\textcolor{black}{\textbf{\thepage}}\hspace{0.4cm}%
+         \color{gray}\rule[0.5ex]{5cm}{0.8pt}};
+    \end{tikzpicture}%
+  \fi%
+}
+
+% ============================================================
+% 3. DATOS DEL INFORME
+% ============================================================
+
+\newcommand{\tituloInforme}{Anexo I: Especificaciones del sistema}
+\newcommand{\subtituloInforme}{Sistema de Gestión Documental mediante Blockchain}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+\newcommand{\autorUno}{David Pérez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia González}
+\newcommand{\tutorDos}{Sergio García González}
+\newcommand{\ucsubsubsection}[1]{%
+    \subsubsection*{#1}%
+    \phantomsection%
+    \addcontentsline{toc}{subsubsection}{#1}%
+}
+
+% ============================================================
+% 4. DOCUMENTO
+% ============================================================
+\graphicspath{{diagramas/}}
+\begin{document}
+
+% ------------------------------------------------------------
+% PORTADA
+% ------------------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingeniería Informática \par}
+    \vspace{1.5cm}
+
+    {\huge\bfseries \tituloInforme \par}
+    \vspace{0.5cm}
+    {\Large\bfseries \subtituloInforme \par}
+    \vspace{1.8cm}
+
+    \includegraphics[width=0.34\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{1.8cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{2cm}
+    
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vfill
+
+    \asignatura
+
+    \vspace{1cm}
+\end{titlepage}
+
+\setcounter{page}{2}
+\pagestyle{fancy}
+
+% ------------------------------------------------------------
+% ÍNDICE
+% ------------------------------------------------------------
+\tableofcontents
+\newpage
+
+\listoffigures
+\newpage
+
+\listoftables
+\newpage
+
+% ============================================================
+% CONTENIDO DEL ANEXO I
+% ============================================================
+
+\section{Introducción}
+
+Este anexo recoge la especificación completa de requisitos del sistema \textbf{DocumentChain}, un sistema de gestión documental descentralizado basado en tecnología blockchain y almacenamiento distribuido IPFS. El documento sigue la metodología de elicitación de requisitos de \textbf{Durán y Bernárdez}, estableciendo un contrato claro entre el desarrollador, los tutores y el tribunal evaluador.
+
+DocumentChain permite a los usuarios gestionar documentos de forma segura mediante:
+\begin{itemize}
+    \item Protección criptográfica de documentos privados con AES-256-GCM
+    \item Almacenamiento distribuido sobre una capa IPFS compatible
+    \item Registro inmutable en blockchain Ethereum
+    \item Control de acceso granular mediante smart contracts
+    \item Firmas digitales verificables on-chain
+    \item Versionado completo de documentos
+    \item Gestión multi-wallet para firma de operaciones blockchain
+\end{itemize}
+
+La especificación se estructura en tres tipos de requisitos:
+\begin{itemize}
+    \item \textbf{Requisitos de Información (IRQ)}: Entidades y datos que el sistema debe almacenar
+    \item \textbf{Requisitos No Funcionales (NFR)}: Restricciones de calidad, rendimiento y seguridad
+    \item \textbf{Requisitos Funcionales (UC)}: Casos de uso y funcionalidades específicas
+\end{itemize}
+
+\subsection*{Criterio de consolidación funcional del catálogo UC}
+
+El catálogo funcional de referencia del proyecto queda fijado en \textbf{42 casos de uso principales} (Tabla~\ref{tab:consolidacion-uc}). La reducción respecto al inventario inicial no implica la eliminación de capacidades implementadas, sino la \textbf{agrupación de operaciones auxiliares, variantes y acciones de soporte} dentro de casos de uso de mayor entidad funcional para evitar atomizar el catálogo con UC de alcance demasiado pequeño o dependiente.
+
+Siguiendo este criterio, operaciones como el registro con wallet opcional, la configuración avanzada de segundo factor, la edición puntual de metadatos, la organización documental mediante carpetas y etiquetas, la consulta y configuración de notificaciones y determinadas acciones administrativas especializadas se documentan como \textbf{subflujos o extensiones} de casos de uso principales ya retenidos. Así, las funcionalidades siguen formando parte del sistema entregado, pero no se mantienen como UC independientes a efectos de especificación, trazabilidad y correspondencia con los anexos posteriores.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{2.6cm}|p{6.0cm}|p{5.0cm}|}
+    \hline
+    \textbf{UC integrados} & \textbf{Funcionalidad absorbida} & \textbf{UC principales donde se documenta} \\
+    \hline
+    UC-0002 & Registro con wallet opcional durante el alta inicial & UC-0001 Registrar Usuario \\
+    \hline
+    UC-0017, UC-0018 & Configuración avanzada del segundo factor y regeneración de códigos de respaldo & UC-0009 Gestionar Perfil y UC-0003 Validar Segundo Factor en el Inicio de Sesión \\
+    \hline
+    UC-0026 & Edición puntual de metadatos y atributos secundarios del documento & UC-0018 Ver Detalle de Documento \\
+    \hline
+    UC-0038 & Ajuste fino de permisos sobre accesos ya concedidos & UC-0033 Compartir Documento y UC-0034 Revocar Acceso a Documento \\
+    \hline
+    UC-0041, UC-0042 & Organización documental mediante carpetas y etiquetas & UC-0017 Listar Documentos y UC-0018 Ver Detalle de Documento \\
+    \hline
+    UC-0051 a UC-0055 & Operaciones administrativas especializadas sobre usuarios y estado global del sistema & UC-0038 Ver Estadísticas Globales del Sistema, UC-0041 Listar Usuarios y UC-0042 Gestionar Roles de Usuario \\
+    \hline
+    UC-0056, UC-0057 & Consulta de notificaciones y preferencias asociadas a la cuenta & UC-0009 Gestionar Perfil, UC-0017 Listar Documentos y UC-0038 Ver Estadísticas Globales del Sistema \\
+    \hline
+    \end{tabular}
+    \caption{Consolidación del catálogo funcional en 42 casos de uso principales}
+    \label{tab:consolidacion-uc}
+\end{table}
+
+\section{Lista de usuarios participantes}
+
+\subsection{Participante -- David Pérez Velasco}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{Participante} & David Pérez Velasco \\
+    \hline
+    \textbf{Organización} & Universidad de Salamanca \\
+    \hline
+    \textbf{Rol} & Desarrollador / Alumno \\
+    \hline
+    \textbf{Es desarrollador} & Sí \\
+    \hline
+    \textbf{Es cliente} & No \\
+    \hline
+    \textbf{Es usuario} & Sí \\
+    \hline
+    \textbf{Comentarios} & Responsable completo del desarrollo del sistema \\
+    \hline
+    \end{tabular}
+    \caption{Participante -- David Pérez Velasco}
+\end{table}
+
+\subsection{Participante -- Gabriel Villarrubia González}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{Participante} & Gabriel Villarrubia González \\
+    \hline
+    \textbf{Organización} & Universidad de Salamanca \\
+    \hline
+    \textbf{Rol} & Tutor / Director \\
+    \hline
+    \textbf{Es desarrollador} & No \\
+    \hline
+    \textbf{Es cliente} & Sí \\
+    \hline
+    \textbf{Es usuario} & No \\
+    \hline
+    \textbf{Comentarios} & Supervisión técnica y validación de requisitos \\
+    \hline
+    \end{tabular}
+    \caption{Participante -- Gabriel Villarrubia González}
+\end{table}
+
+\subsection{Participante -- Sergio García González}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{Participante} & Sergio García González \\
+    \hline
+    \textbf{Organización} & Universidad de Salamanca \\
+    \hline
+    \textbf{Rol} & Tutor / Director \\
+    \hline
+    \textbf{Es desarrollador} & No \\
+    \hline
+    \textbf{Es cliente} & Sí \\
+    \hline
+    \textbf{Es usuario} & No \\
+    \hline
+    \textbf{Comentarios} & Supervisión técnica y validación de requisitos \\
+    \hline
+    \end{tabular}
+    \caption{Participante -- Sergio García González}
+\end{table}
+
+\section{Objetivos del proyecto}
+
+\subsection{OBJ-0001: Gestionar usuarios y seguridad}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{OBJ-0001} & Gestionar usuarios y seguridad \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & El sistema debe proporcionar un módulo completo de gestión de usuarios con autenticación robusta mediante JWT y validación de control de wallet mediante firma EIP-191 para las operaciones blockchain que lo requieran. Debe soportar múltiples wallets por usuario (máximo 5), autenticación de dos factores (2FA), recuperación de contraseña y gestión de perfiles. Los roles de usuario (USER, ADMIN) determinarán el acceso a funcionalidades administrativas. \\
+    \hline
+    \textbf{Subobjetivos} & Ninguno \\
+    \hline
+    \textbf{Importancia} & Vital \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Crítico para la seguridad del sistema completo \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del objetivo OBJ-0001}
+\end{table}
+
+\subsection{OBJ-0002: Integración blockchain y almacenamiento descentralizado}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{OBJ-0002} & Integración blockchain y almacenamiento descentralizado \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Integrar un smart contract de Ethereum con OpenZeppelin para registro inmutable de documentos, control de acceso basado en roles y eventos on-chain. Incorporar una capa de almacenamiento IPFS autoalojada, materializada mediante un nodo Kubo persistente y accesible por API HTTP. Sincronizar eventos blockchain con base de datos PostgreSQL mediante event listeners. \\
+    \hline
+    \textbf{Subobjetivos} & Ninguno \\
+    \hline
+    \textbf{Importancia} & Vital \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Core del sistema descentralizado \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del objetivo OBJ-0002}
+\end{table}
+
+\subsection{OBJ-0003: Protección criptográfica y gestión de claves}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{OBJ-0003} & Protección criptográfica y gestión de claves \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Implementar protección criptográfica para documentos privados mediante AES-256-GCM y claves simétricas específicas por documento o versión. Utilizar pares RSA-OAEP de 4096 bits para proteger esas claves simétricas durante descargas, comparticiones y transferencias privadas. Conservar las contraseñas con Argon2id y cifrar la clave privada del usuario con AES-256-GCM derivando material criptográfico desde la contraseña o desde la clave de recuperación, según el flujo. Contemplar además la publicación explícita de documentos públicos mediante identificador compartible, enlace y código QR. \\
+    \hline
+    \textbf{Subobjetivos} & Ninguno \\
+    \hline
+    \textbf{Importancia} & Vital \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & La privacidad se aplica por defecto a los documentos privados; la publicación pública requiere activación explícita y cambia deliberadamente el modelo de acceso. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del objetivo OBJ-0003}
+\end{table}
+
+\subsection{OBJ-0004: Versionado y trazabilidad completa}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{OBJ-0004} & Versionado y trazabilidad completa \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Permitir múltiples versiones por documento con seguimiento completo en blockchain. Implementar versión operativa (activa) y capacidad de restaurar versiones antiguas. Registrar timeline completo de eventos (creación, modificación, firma, compartir, transferencia). Mantener estadísticas detalladas por documento y usuario. \\
+    \hline
+    \textbf{Subobjetivos} & Ninguno \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Esencial para auditoría y compliance \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del objetivo OBJ-0004}
+\end{table}
+
+\subsection{OBJ-0005: Firmas digitales verificables}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{OBJ-0005} & Firmas digitales verificables \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Implementar sistema de firmas digitales on-chain donde cualquier usuario con acceso a un documento puede firmarlo mediante su wallet. Las firmas se registran en el smart contract con timestamp blockchain. Permitir comentarios en firmas y verificación de autenticidad. \\
+    \hline
+    \textbf{Subobjetivos} & Ninguno \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Proporciona no repudio y validez legal \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del objetivo OBJ-0005}
+\end{table}
+
+\subsection{OBJ-0006: Control de acceso granular}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{OBJ-0006} & Control de acceso granular \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Implementar sistema de permisos con roles: OWNER (control total), EDITOR (lectura y escritura), VIEWER (solo lectura) y NONE (sin acceso). Los permisos vigentes se consultan on-chain y el backend conserva la proyección operativa necesaria para la interfaz, la trazabilidad y las notificaciones. Debe permitirse la revocación de acceso y la transferencia de propiedad. \\
+    \hline
+    \textbf{Subobjetivos} & Ninguno \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Flexible para colaboración multi-usuario \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del objetivo OBJ-0006}
+\end{table}
+
+\section{Catálogo de requisitos del sistema}
+
+\subsection{Requisitos de información}
+
+\subsubsection{IRQ-0001: Datos de usuario y autenticación}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0001} & Datos de usuario y autenticación \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Información completa de usuarios del sistema incluyendo credenciales, perfiles, y wallets blockchain asociadas. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Usuario:}
+    \begin{itemize}
+        \item ID único, Username, Email (únicos)
+        \item Password hash, Nombre completo, Rol (USER/ADMIN)
+        \item Par de claves criptográficas (pública/privada encriptada)
+        \item Clave de recuperación, 2FA (secret, códigos backup)
+        \item Estado de suspensión (boolean + motivo)
+        \item Timestamps (creación, actualización)
+    \end{itemize}
+    
+    \textbf{Wallet:}
+    \begin{itemize}
+        \item ID único
+        \item Dirección de wallet (checksum)
+        \item Es primaria (boolean)
+        \item Está conectada (boolean)
+        \item Alias/nickname
+        \item Fecha de añadido
+        \item Último uso
+    \end{itemize}
+    
+    \textbf{Sesión:}
+    \begin{itemize}
+        \item ID único
+        \item Access token (JWT)
+        \item Refresh token (único)
+        \item Fecha de expiración de tokens
+        \item Timestamp de creación
+        \item Timestamp de éltimo uso
+    \end{itemize} \\
+    \hline
+    \textbf{Importancia} & Vital \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Máximo 5 wallets por usuario. Soporte para autenticación tradicional y vinculación de wallets para operaciones firmadas. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0001}
+\end{table}
+
+\subsubsection{IRQ-0002: Documentos y versionado}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0002} & Documentos y versionado \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Información de documentos almacenados con metadatos, versiones y referencias criptográficas. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Documento:}
+    \begin{itemize}
+        \item ID único, Blockchain ID, Nombre, Descripción
+        \item Tipo MIME, Tamaño, Hash de contenido, Extensión
+        \item Carpeta (FK), Etiquetas, Propietario (FK)
+        \item Clave simétrica encriptada, IV y Auth tag de cifrado
+        \item Estado blockchain (PREPARING/TX\_SUBMITTED/SYNCED/FAILED), TxHash
+        \item Archivado (boolean), Timestamps (creación)
+    \end{itemize}
+    
+    \textbf{Versión:}
+    \begin{itemize}
+        \item ID único, Documento (FK), Usuario creador (FK)
+        \item Número de versión, CID de IPFS
+        \item Clave simétrica encriptada, IV, Auth tag
+        \item Comentario, Es operativa (activa), Estado blockchain, TxHash
+    \end{itemize}
+    
+    \textbf{Document Share Key:}
+    \begin{itemize}
+        \item ID único, Documento (FK), Usuario destinatario (FK)
+        \item Clave simétrica re-encriptada con la clave pública del destinatario
+        \item Timestamp de creación
+    \end{itemize} \\
+    \hline
+    \textbf{Importancia} & Vital \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Soporta versionado ilimitado. Solo una versión operativa a la vez. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0002}
+\end{table}
+
+\subsubsection{IRQ-0003: Organización y etiquetado}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0003} & Organización y etiquetado \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Estructuras para organizar documentos mediante carpetas jerárquicas y etiquetas (tags) libres. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Carpeta:}
+    \begin{itemize}
+        \item ID único
+        \item ID de usuario (FK)
+        \item Nombre
+        \item Descripción
+        \item ID de carpeta padre (FK, nullable)
+        \item Color (hex)
+        \item Icono
+        \item Es compartida (boolean)
+        \item Timestamps (creación, actualización)
+    \end{itemize}
+    
+    \textbf{Etiquetas (tags):}
+    \begin{itemize}
+        \item Array de cadenas de texto libre asociadas al documento
+        \item Máximo 20 etiquetas por documento
+        \item Longitud máxima 50 caracteres por etiqueta
+    \end{itemize} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Carpetas soportan jerarquía multinivel. Las etiquetas son texto libre sin restricciones de color ni icono. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0003}
+\end{table}
+
+\subsubsection{IRQ-0004: Firmas digitales}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0004} & Firmas digitales \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Registro de firmas digitales on-chain con metadata adicional. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Firma de Documento:}
+    \begin{itemize}
+        \item ID único
+        \item ID de documento (FK)
+        \item ID de versión (FK)
+        \item ID de usuario firmante (FK)
+        \item ID de wallet firmante (FK)
+        \item Timestamp de firma
+        \item Estado blockchain
+        \item TxHash blockchain
+        \item Error blockchain (si aplica)
+        \item Reintentos (contador)
+    \end{itemize} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Una firma por versión por usuario. Inmutable una vez registrada en blockchain. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0004}
+\end{table}
+
+\subsubsection{IRQ-0005: Eventos y auditoría}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0005} & Eventos y auditoría \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Registro completo de todos los eventos del sistema sincronizados desde blockchain. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Evento:}
+    \begin{itemize}
+        \item ID único
+        \item Tipo de evento (DocumentCreated, VersionCreated, Signed, etc.)
+        \item ID de usuario (FK)
+        \item ID de documento (FK, nullable)
+        \item Metadata JSON (datos adicionales)
+        \item Transaction hash
+        \item Número de bloque
+        \item Timestamp del bloque
+        \item Timestamp de registro local
+    \end{itemize} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Permite auditoría completa y timeline de documentos. Sincronizado con blockchain. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0005}
+\end{table}
+
+\subsubsection{IRQ-0006: Estadísticas y métricas}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0006} & Estadísticas y métricas \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Métricas agregadas para usuarios, documentos y sistema global. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Document Stats:}
+    \begin{itemize}
+        \item Total descargas
+        \item Última actividad
+    \end{itemize}
+    
+    \textbf{System Stats:}
+    \begin{itemize}
+        \item Tipo (daily/weekly/monthly), Período (inicio-fin)
+        \item Último bloque sincronizado
+    \end{itemize} \\
+    
+    \textbf{Nota:} Las métricas de usuario (documentos totales, tamaño, firmas, etc.) se computan dinámicamente sobre las tablas operativas. No se mantiene una tabla de estadísticas desnormalizada por usuario. \\
+    \hline
+    \textbf{Importancia} & Media \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Optimizado para dashboard de administración. Actualizado incremental. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0006}
+\end{table}
+
+\subsubsection{IRQ-0007: Notificaciones y comunicaciones}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{IRQ-0007} & Notificaciones y comunicaciones \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Sistema de notificaciones in-app y por email con preferencias configurables. \\
+    \hline
+    \textbf{Datos específicos} & 
+    \textbf{Notificación:}
+    \begin{itemize}
+        \item ID único
+        \item ID de usuario (FK)
+        \item Tipo (document\_shared, version\_created, signature\_added, etc.)
+        \item Título
+        \item Mensaje
+        \item Metadata JSON
+        \item Leída (boolean)
+        \item Fecha de lectura
+        \item Timestamp de creación
+    \end{itemize}
+    
+    \textbf{Preferencias de Notificación:}
+    \begin{itemize}
+        \item Email para documentos compartidos
+        \item Email para nuevas versiones
+        \item Email para firmas
+        \item Email para transferencias
+        \item Notificaciones in-app habilitadas
+        \item Email digest (daily, weekly, never)
+    \end{itemize}
+    
+    \textbf{Verificación de Email:}
+    \begin{itemize}
+        \item Token de verificación
+        \item Email a verificar
+        \item Fecha de expiración
+        \item Verificado (boolean)
+    \end{itemize}
+    
+    \textbf{Recuperación de Contraseña:}
+    \begin{itemize}
+        \item Token de reset
+        \item Fecha de expiración
+        \item Usado (boolean)
+    \end{itemize} \\
+    \hline
+    \textbf{Importancia} & Media \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Integrado con sistema de email configurable (SMTP/Sendgrid/MS365). WebSocket para notificaciones en tiempo real. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito IRQ-0007}
+\end{table}
+
+\subsection{Requisitos no funcionales}
+
+\subsubsection{NFR-0001: Seguridad y privacidad de datos}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{NFR-0001} & Seguridad y privacidad de datos \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Máximos estándares de seguridad para protección de datos sensibles. \\
+    \hline
+    \textbf{Restricciones} & 
+    \begin{enumerate}
+        \item Cifrado AES-256-GCM para documentos privados; la publicación pública solo puede realizarse de forma explícita y mostrando aviso previo al usuario
+        \item Claves privadas nunca enviadas al backend (solo en memoria cliente)
+        \item Auto-clear de claves después de 15 minutos de inactividad
+        \item HTTPS obligatorio (TLS 1.3)
+        \item Argon2id para hashing de contraseñas
+        \item JWT con refresh tokens rotativos
+        \item CORS configurado restrictivamente
+        \item Headers de seguridad HTTP (HSTS, X-Frame-Options, CSP)
+        \item Rate limiting en endpoints críticos
+        \item Validación estricta de entrada (sanitización)
+        \item Protección contra SQL injection, XSS, CSRF
+        \item Auditoría completa de accesos
+        \item Logs de seguridad encriptados
+        \item Backup encriptado de base de datos
+    \end{enumerate} \\
+    \hline
+    \textbf{Importancia} & Vital \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Cumple estándares OWASP Top 10. Los documentos privados se cifran antes de almacenarse de forma persistente y el descifrado operativo para lectura, compartición y transferencia se realiza en el cliente autenticado. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito NFR-0001}
+\end{table}
+
+\subsubsection{NFR-0002: Rendimiento y escalabilidad}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{NFR-0002} & Rendimiento y escalabilidad \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & El sistema debe mantener rendimiento óptimo bajo carga y escalar horizontalmente. \\
+    \hline
+    \textbf{Restricciones} & 
+    \begin{enumerate}
+        \item Tamaño máximo de archivo: 100 MB
+        \item Tiempo de respuesta API < 2 segundos (p95)
+        \item Upload de documentos < 10 segundos para archivos de 10 MB
+        \item Download/desencriptado < 5 segundos para archivos de 10 MB
+        \item Concurrencia: mínimo 50 usuarios simultáneos
+        \item Integración con nodo IPFS autoalojado, con soporte de redundancia cuando se despliega en clúster propio
+        \item Pool de conexiones PostgreSQL optimizado
+        \item índices en campos frecuentemente consultados
+        \item Lazy loading y paginación en listados
+        \item Compresión gzip en respuestas HTTP
+        \item Streaming para uploads/downloads grandes
+        \item Event listeners con manejo de backpressure
+        \item Reintentos exponenciales para transacciones blockchain
+    \end{enumerate} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Arquitectura preparada para escalar horizontalmente con balanceador de carga. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito NFR-0002}
+\end{table}
+
+\subsubsection{NFR-0003: Usabilidad y experiencia de usuario}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{NFR-0003} & Usabilidad y experiencia de usuario \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Interfaz intuitiva y responsive con feedback claro al usuario. \\
+    \hline
+    \textbf{Restricciones} & 
+    \begin{enumerate}
+        \item Interfaz responsive (mobile-first)
+        \item Soporte para navegadores modernos (Chrome, Firefox, Safari, Edge)
+        \item Mensajes de error claros y accionables
+        \item Loading indicators en operaciones asíncronas
+        \item Confirmación para acciones destructivas
+        \item Drag \& drop para subida de archivos
+        \item Preview de documentos cuando sea posible
+        \item Búsqueda y filtrado intuitivos
+        \item Shortcuts de teclado para power users
+        \item Tema claro/oscuro
+        \item Notificaciones toast no intrusivas
+        \item Formularios con validación en tiempo real
+        \item Accesibilidad WCAG 2.1 nivel AA
+    \end{enumerate} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Diseñado con Tailwind CSS y componentes React reutilizables. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito NFR-0003}
+\end{table}
+
+\subsubsection{NFR-0004: Disponibilidad y tolerancia a fallos}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{NFR-0004} & Disponibilidad y tolerancia a fallos \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Sistema resiliente con recuperación automática ante fallos. \\
+    \hline
+    \textbf{Restricciones} & 
+    \begin{enumerate}
+        \item Disponibilidad objetivo: 99.5\% (permite ~3.6 horas downtime/mes)
+        \item Health check endpoint (/api/health)
+        \item Logs estructurados con niveles apropiados
+        \item Reintentos automáticos para fallos transitorios
+        \item Circuit breaker en smart contract (pausable)
+        \item Transacciones blockchain con manejo de estados intermedios
+        \item Rollback de operaciones fallidas
+        \item No se pierden documentos si falla transacción blockchain
+        \item Backup diario automatizado de PostgreSQL
+        \item Nodo IPFS autoalojado con persistencia local y opción de replicación cuando se despliega en clúster
+        \item Monitoreo de salud de servicios
+        \item Manejo graceful de desconexión de red
+    \end{enumerate} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Patrón Prepare/Confirm para transacciones blockchain evita inconsistencias. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito NFR-0004}
+\end{table}
+
+\subsubsection{NFR-0005: Mantenibilidad y documentación}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{NFR-0005} & Mantenibilidad y documentación \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Código limpio, bien documentado y fácil de mantener. \\
+    \hline
+    \textbf{Restricciones} & 
+    \begin{enumerate}
+        \item TypeScript estricto (strict mode)
+        \item ESLint y Prettier configurados
+        \item Arquitectura en capas (Controllers $\rightarrow$ Services $\rightarrow$ Repositories)
+        \item Separación clara de responsabilidades
+        \item Código autoexplicativo con nomenclatura clara
+        \item Comentarios JSDoc en funciones públicas
+        \item Tests unitarios para lógica de negocio crítica
+        \item Tests de integración para API
+        \item Documentación de API (Swagger/OpenAPI)
+        \item README con instrucciones de setup
+        \item Variables de entorno documentadas (.env.example)
+        \item Git con commits semánticos
+        \item Versionado semántico (SemVer)
+    \end{enumerate} \\
+    \hline
+    \textbf{Importancia} & Alta \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Facilita onboarding de nuevos desarrolladores y evolución del sistema. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito NFR-0005}
+\end{table}
+
+\subsubsection{NFR-0006: Portabilidad y despliegue}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{NFR-0006} & Portabilidad y despliegue \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Sistema portable y fácil de desplegar en múltiples entornos. \\
+    \hline
+    \textbf{Restricciones} & 
+    \begin{enumerate}
+        \item Docker Compose para la orquestación de servicios autoalojados, incluido el nodo IPFS propio
+        \item Scripts PowerShell para desarrollo Windows
+        \item Variables de entorno para configuración
+        \item Sin hardcodeo de credenciales
+        \item Base de datos PostgreSQL (portable a AWS RDS, Azure, etc.)
+        \item Compatible con proveedores blockchain (Infura, Alchemy, nodo propio)
+        \item Frontend como SPA (deployable en CDN)
+        \item Backend stateless (horizontalmente escalable)
+        \item Logs a stdout (compatible con sistemas de logs centralizados)
+        \item Scripts de migración de BD versionados (Prisma Migrate)
+    \end{enumerate} \\
+    \hline
+    \textbf{Importancia} & Media \\
+    \hline
+    \textbf{Estado} & Completado \\
+    \hline
+    \textbf{Estabilidad} & Alta \\
+    \hline
+    \textbf{Comentarios} & Preparado para despliegue en cloud (AWS, Azure, GCP) o on-premise. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del requisito NFR-0006}
+\end{table}
+
+\subsection{Requisitos funcionales}
+
+\subsubsection{Diagramas de actores}
+
+\subsubsection{ACT-01: Usuario}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{ACT-01} & Usuario \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Usuario estándar del sistema con rol USER. Puede gestionar sus propios documentos, compartir, firmar, crear versiones, y colaborar con otros usuarios. \\
+    \hline
+    \textbf{Responsabilidades} & 
+    \begin{enumerate}
+        \item Registrarse y autenticarse en el sistema
+        \item Conectar múltiples wallets de Ethereum
+        \item Subir y descargar documentos
+        \item Crear y gestionar carpetas
+        \item Crear nuevas versiones de documentos
+        \item Firmar documentos digitalmente
+        \item Compartir documentos con otros usuarios
+        \item Gestionar permisos de acceso a sus documentos
+        \item Transferir propiedad de documentos
+        \item Archivar y restaurar documentos
+        \item Ver timeline y estadísticas
+        \item Configurar perfil y notificaciones
+        \item Activar 2FA para mayor seguridad
+    \end{enumerate} \\
+    \hline
+    \textbf{Comentarios} & Actor principal del sistema. Interactúa con todos los módulos funcionales. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del actor ACT-01}
+\end{table}
+
+\subsubsection{ACT-02: Administrador}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{ACT-02} & Administrador \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Usuario con rol ADMIN. Tiene todas las capacidades de un usuario normal más funcionalidades administrativas para supervisión y gestión del sistema. \\
+    \hline
+    \textbf{Responsabilidades} & 
+    \begin{enumerate}
+        \item Todas las responsabilidades de Usuario
+        \item Ver estadísticas globales del sistema
+        \item Listar todos los usuarios
+        \item Crear nuevos administradores
+        \item Modificar roles de usuarios
+        \item Suspender o eliminar usuarios
+        \item Ver logs de auditoría completos
+        \item Pausar/despausar el smart contract (emergencias)
+        \item Sincronizar administradores con blockchain
+        \item Ver estado del sistema (salud de servicios)
+        \item Acceder al auditor blockchain
+    \end{enumerate} \\
+    \hline
+    \textbf{Comentarios} & Hereda de Usuario. Acceso solo por consola (no auto-registro). \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del actor ACT-02}
+\end{table}
+
+\subsubsection{ACT-03: Smart Contract (DocumentRegistry)}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{ACT-03} & Smart Contract (DocumentRegistry) \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Contrato inteligente desplegado en Ethereum que mantiene el registro inmutable de documentos, versiones, permisos y firmas. \\
+    \hline
+    \textbf{Responsabilidades} & 
+    \begin{enumerate}
+        \item Registrar creación de documentos
+        \item Registrar creación de versiones
+        \item Gestionar permisos de documentos (OWNER, VIEWER, EDITOR)
+        \item Registrar firmas digitales
+        \item Validar permisos antes de operaciones
+        \item Emitir eventos para sincronización
+        \item Permitir transferencias de propiedad
+        \item Soportar pausa de emergencia (Pausable)
+        \item Control de acceso basado en roles (AccessControl)
+        \item Mantener contadores y enumeraciones
+    \end{enumerate} \\
+    \hline
+    \textbf{Comentarios} & Actor no humano. Fuente única de verdad para estado blockchain. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del actor ACT-03}
+\end{table}
+
+\subsubsection{ACT-04: Nodo IPFS autoalojado}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{ACT-04} & Nodo IPFS autoalojado \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Servicio de almacenamiento IPFS autoalojado, materializado mediante un nodo Kubo persistente y consumido por el backend a través de API HTTP. \\
+    \hline
+    \textbf{Responsabilidades} & 
+    \begin{enumerate}
+        \item Almacenar archivos cifrados o públicos según la política de visibilidad
+        \item Generar CID (Content Identifier) único por archivo
+        \item Mantener persistencia del contenido en el backend configurado
+        \item Pinning automático o persistencia equivalente del contenido
+        \item Unpinning al eliminar documentos
+        \item Servir contenido mediante HTTP Gateway
+        \item Mantener disponibilidad operativa del contenido sobre almacenamiento persistente
+    \end{enumerate} \\
+    \hline
+    \textbf{Comentarios} & Actor no humano. El backend interactúa vía API HTTP del nodo Kubo autoalojado. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del actor ACT-04}
+\end{table}
+
+\subsubsection{ACT-05: Sistema de Email}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{ACT-05} & Sistema de Email \\
+    \hline
+    \textbf{Versión} & 1.0 \\
+    \hline
+    \textbf{Autores} & David Pérez Velasco \\
+    \hline
+    \textbf{Fuentes} & A. Durán, B. Bernárdez \\
+    \hline
+    \textbf{Descripción} & Servicio externo de envío de emails configurado via SMTP, Sendgrid o Microsoft 365. \\
+    \hline
+    \textbf{Responsabilidades} & 
+    \begin{enumerate}
+        \item Enviar emails de verificación de cuenta
+        \item Enviar emails de recuperación de contraseña
+        \item Enviar notificaciones de documentos compartidos
+        \item Enviar notificaciones de nuevas versiones
+        \item Enviar notificaciones de firmas
+        \item Enviar digest periódico de actividad (opcional)
+    \end{enumerate} \\
+    \hline
+    \textbf{Comentarios} & Actor externo. Sistema de fallback: email mock en desarrollo. \\
+    \hline
+    \end{tabular}
+    \caption{Especificación del actor ACT-05}
+\end{table}
+
+\subsubsection{Diagramas de casos de uso}
+
+\textbf{NOTA}: Los diagramas se incluirán en formato PlantUML. Ejecutar los archivos .puml separados para generar las imágenes.
+
+
+
+\textit{Los diagramas detallados de cada paquete se encuentran en los archivos PlantUML separados en la carpeta diagramas/.}
+
+\textbf{NOTA PARA COMPILACIÓN}: Coloque aquí las imágenes generadas desde PlantUML. Ejemplo: el diagrama general de casos de uso se muestra en la Figura~\ref{fig:usecase-general}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{diagramas/usecase-general.png}
+    \caption{Diagrama general de casos de uso del sistema}
+    \label{fig:usecase-general}
+\end{figure}
+
+\subsubsection{Casos de Uso Detallados}
+
+A continuación se detallan los casos de uso del sistema con un nivel de detalle propio de especificación de requisitos. Cada ficha resume la interacción funcional entre 4 y 8 pasos, agrupando validaciones técnicas y tareas internas que se desarrollan con mayor profundidad en el Anexo II.
+
+\ucsubsubsection{UC-0001: Registrar Usuario}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0001} & Registrar Usuario \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Descripción} & Permite a un nuevo usuario crear una cuenta en el sistema con generación automática de claves criptográficas. \\
+\hline
+\textbf{Precondición} & El usuario no debe estar registrado previamente. \\
+\hline
+\textbf{Secuencia normal} & 
+\textbf{Paso 1:} El usuario accede al formulario de registro e introduce sus datos básicos.\newline
+\textbf{Paso 2:} El sistema valida que el nombre de usuario, el email y la contraseña cumplen las restricciones definidas.\newline
+\textbf{Paso 3:} El backend crea la cuenta y genera el material criptográfico asociado al usuario.\newline
+\textbf{Paso 4:} El sistema protege las credenciales sensibles, persiste la información del nuevo usuario y muestra la \textit{Recovery Key}.\newline
+\textbf{Paso 5:} El sistema genera el proceso de verificación de email y envía el correo correspondiente.\newline
+\textbf{Paso 6:} El usuario guarda la \textit{Recovery Key} y queda pendiente de confirmar el correo antes del primer inicio de sesión.\\
+\hline
+\textbf{Postcondición} & Usuario registrado con cuenta creada pero pendiente de verificación de email. Hasta confirmar el correo no se concede acceso operativo al área autenticada. \\
+\hline
+\textbf{Excepciones} & 
+\textbf{Paso 2:} Username o email ya existen $\rightarrow$ Error 409 Conflict.\newline
+\textbf{Paso 3:} Contraseña débil $\rightarrow$ Error 400 con requisitos.\newline
+\textbf{Paso 5:} Fallo al enviar email $\rightarrow$ Continúa, pero se notifica al usuario para que pueda solicitar un reenvío posterior.\\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Primer punto de entrada al sistema. Proceso completamente automático. \\
+\hline
+\caption{Especificación del caso de uso UC-0001}
+\end{longtable}
+
+\ucsubsubsection{UC-0002: Iniciar Sesión}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0002} & Iniciar Sesión \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, NFR-0003 \\
+\hline
+\textbf{Descripción} & Permite a un usuario registrado y con correo verificado autenticarse en el sistema mediante credenciales de email o username y contraseña, incorporando un segundo paso de verificación cuando la cuenta tiene 2FA activo. \\
+\hline
+\textbf{Precondición} & El usuario debe estar registrado en el sistema, con cuenta no suspendida y con el correo ya verificado. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a \texttt{/login} e introduce username o email y contraseña. \newline
+\textbf{Paso 2:} El frontend envía \texttt{POST /auth/login}. \newline
+\textbf{Paso 3:} El sistema valida las credenciales y comprueba el estado de la cuenta, incluyendo la verificación previa del correo. \newline
+\textbf{Paso 4:} Si el usuario no tiene 2FA activo, el sistema emite JWT y token de refresco. \newline
+\textbf{Paso 5:} Si el usuario tiene 2FA activo, el sistema devuelve un token temporal y solicita un segundo factor. \newline
+\textbf{Paso 6:} Tras completar la validación correspondiente, el sistema registra la sesión activa y redirige al usuario a \texttt{/app/documents}. \\
+\hline
+\textbf{Postcondición} & Usuario autenticado con JWT válido. Sesión activa registrada en PostgreSQL. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Credenciales incorrectas $\rightarrow$ Error 401 ``Credenciales inválidas''. Rate limiting: bloqueo temporal tras 5 intentos en 15 minutos.\newline
+\textbf{Paso 3:} Correo no verificado $\rightarrow$ Error 401 indicando que es obligatorio verificar el email antes de iniciar sesión. La interfaz ofrece acceso al reenvío del mensaje de verificación.\newline
+\textbf{Paso 3:} Cuenta suspendida $\rightarrow$ Error 403.\newline
+\textbf{Paso 5/6:} Código TOTP o código de respaldo incorrecto $\rightarrow$ Error 401.\\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El sistema implementa rate limiting para prevenir ataques de fuerza bruta. La wallet queda fuera del proceso de login y se reserva para firmas de operaciones blockchain. \\
+\hline
+\caption{Especificación del caso de uso UC-0002}
+\end{longtable}
+
+\ucsubsubsection{UC-0003: Validar Segundo Factor en el Inicio de Sesión}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0003} & Validar Segundo Factor en el Inicio de Sesión \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite completar el proceso de autenticación de una cuenta con 2FA mediante código TOTP o código de respaldo, después de haber validado correctamente usuario y contraseña. \\
+\hline
+\textbf{Precondición} & El usuario ha superado la validación de credenciales y la cuenta tiene autenticación de dos factores activada. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} Tras \texttt{POST /auth/login}, el frontend recibe \texttt{requires2FA=true} y un token temporal.\newline\textbf{Paso 2:} El usuario introduce un código TOTP o un código de respaldo.\newline\textbf{Paso 3:} El frontend envía \texttt{POST /auth/2fa/verify-login}.\newline\textbf{Paso 4:} El sistema valida el código frente al secreto TOTP o frente al listado de códigos de respaldo.\newline\textbf{Paso 5:} Si la validación es correcta, el sistema emite JWT, token de refresco y registra la sesión.\newline\textbf{Paso 6:} El usuario es redirigido a la aplicación principal. \\
+\hline
+\textbf{Postcondición} & Usuario autenticado con JWT válido. Sesión registrada en la base de datos. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 4:} Código TOTP inválido $\rightarrow$ Error 401.\newline\textbf{Paso 4:} Código de respaldo ya utilizado o inexistente $\rightarrow$ Error 401.\newline\textbf{Paso 3:} Token temporal expirado $\rightarrow$ Reinicio del proceso de login. \\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Este caso de uso sustituye al antiguo acceso con wallet. La autenticación final del sistema combina contraseña y, cuando procede, un segundo factor verificable. \\
+\hline
+\caption{Especificación del caso de uso UC-0003}
+\end{longtable}
+
+\ucsubsubsection{UC-0004: Cerrar Sesión}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0004} & Cerrar Sesión \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & UC-0002, NFR-0001 \\
+\hline
+\textbf{Descripción} & Permite al usuario finalizar su sesión activa de forma segura, invalidando los tokens de autenticación en el servidor y eliminando las credenciales y claves criptográficas almacenadas en el cliente. \\
+\hline
+\textbf{Precondición} & El usuario debe tener una sesión activa con JWT válido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario selecciona ``Cerrar sesión'' en el menú de perfil.\newline
+\textbf{Paso 2:} El frontend envía petición con el refresh token.\newline
+\textbf{Paso 3:} El backend invalida y elimina el refresh token de la base de datos.\newline
+\textbf{Paso 4:} El backend registra el evento de cierre de sesión en los logs del sistema.\newline
+\textbf{Paso 5:} El frontend elimina el JWT y el refresh token del almacenamiento local.\newline
+\textbf{Paso 6:} El frontend limpia el estado de la aplicación: documentos en caché, clave privada RSA descifrada en RAM y datos de usuario en memoria.\newline
+\textbf{Paso 7:} El frontend redirige a la página de inicio de sesión.\\
+\hline
+\textbf{Postcondición} & Sesión invalidada en el servidor. Tokens eliminados en el cliente. Clave privada RSA descifrada borrada de la memoria RAM. Cualquier petición posterior con el JWT antiguo es rechazada. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} Fallo de red $\rightarrow$ El frontend realiza la limpieza local (pasos 5-7) igualmente para garantizar que el usuario quede desconectado localmente.\newline
+\textbf{Paso 3:} Token ya expirado en servidor $\rightarrow$ El backend ignora graciosamente; la limpieza local procede con normalidad.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La clave privada descifrada solo se mantiene en memoria durante la sesión activa y se elimina al cerrar sesión. El panel de administración permite forzar el cierre remoto de sesiones cuando resulta necesario. \\
+\hline
+\caption{Especificación del caso de uso UC-0004}
+\end{longtable}
+
+\ucsubsubsection{UC-0005: Conectar Wallet}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0005} & Conectar Wallet \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, OBJ-0002, IRQ-0001, NFR-0001, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite al usuario vincular una o varias wallets de Ethereum a su cuenta para utilizarlas en las operaciones que requieren firma sobre blockchain. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. La dirección a vincular no debe estar asociada previamente a otra cuenta y el usuario no debe haber alcanzado el límite de wallets permitido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la gestión de wallets y solicita vincular una nueva dirección. \newline
+\textbf{Paso 2:} El sistema ofrece el medio de conexión disponible y el usuario selecciona la wallet que desea asociar. \newline
+\textbf{Paso 3:} El sistema solicita una prueba de control sobre esa wallet. \newline
+\textbf{Paso 4:} El usuario autoriza la comprobación desde su wallet. \newline
+\textbf{Paso 5:} El sistema valida la prueba, registra la wallet y la asocia a la cuenta. \newline
+\textbf{Paso 6:} Si es la primera wallet del usuario, queda marcada como principal. \\
+\hline
+\textbf{Postcondición} & Wallet verificada y asociada a la cuenta del usuario para futuras operaciones firmadas. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} No hay ningún medio de conexión disponible o el usuario cancela la vinculación $\rightarrow$ La operación no continúa.\newline
+\textbf{Paso 4:} La prueba de control no resulta válida $\rightarrow$ La wallet no se asocia.\newline
+\textbf{Paso 5:} La wallet ya pertenece a otra cuenta o se ha alcanzado el límite permitido $\rightarrow$ El sistema rechaza la vinculación.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La wallet vinculada complementa la operativa blockchain de la cuenta y se reserva para operaciones que requieren consentimiento expreso del usuario. \\
+\hline
+\caption{Especificación del caso de uso UC-0005}
+\end{longtable}
+
+\ucsubsubsection{UC-0006: Eliminar Wallet}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0006} & Eliminar Wallet \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, UC-0005 \\
+\hline
+\textbf{Descripción} & Permite al usuario eliminar una wallet previamente asociada a su cuenta. El sistema impide la eliminación si con ello la cuenta se queda sin ninguna wallet operativa para firmar acciones blockchain. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario tiene al menos una wallet registrada. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario accede a la gestión de wallets y selecciona la dirección que desea eliminar.\newline\textbf{Paso 2:} El sistema comprueba que la eliminación no deja a la cuenta sin un medio válido para operar.\newline\textbf{Paso 3:} El sistema solicita confirmación.\newline\textbf{Paso 4:} El usuario confirma la eliminación.\newline\textbf{Paso 5:} El sistema desvincula la wallet de la cuenta y actualiza la lista mostrada al usuario. \\
+\hline
+\textbf{Postcondición} & La wallet queda eliminada de la cuenta del usuario y deja de estar disponible para futuras operaciones blockchain. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 3:} Es la única wallet registrada $\rightarrow$ Error 400 ``No se puede eliminar la única wallet operativa de la cuenta''.\newline\textbf{Paso 3:} La wallet es la principal y no existe otra wallet disponible $\rightarrow$ Error 400.\newline\textbf{Paso 6:} Wallet no encontrada o no pertenece al usuario $\rightarrow$ Error 404. \\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Operación reversible a nivel de datos (puede añadirse de nuevo la wallet), pero la sesión activa no se invalida por este cambio. \\
+\hline
+\caption{Especificación del caso de uso UC-0006}
+\end{longtable}
+
+\ucsubsubsection{UC-0007: Establecer Wallet Principal}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0007} & Establecer Wallet Principal \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, OBJ-0002, IRQ-0001, NFR-0003, UC-0005 \\
+\hline
+\textbf{Descripción} & Permite al usuario designar una de sus wallets como la wallet principal utilizada por defecto en las operaciones blockchain (subir documentos, firmar, compartir). \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario tiene al menos dos wallets registradas o una que aún no es la principal. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario accede a la gestión de wallets.\newline\textbf{Paso 2:} Selecciona la wallet que desea utilizar por defecto.\newline\textbf{Paso 3:} El sistema valida que la wallet pertenece al usuario.\newline\textbf{Paso 4:} El sistema actualiza la wallet principal de la cuenta.\newline\textbf{Paso 5:} La interfaz refleja el cambio y la deja preseleccionada para futuras operaciones. \\
+\hline
+\textbf{Postcondición} & La wallet seleccionada queda marcada como principal. Todas las operaciones blockchain posteriores usarán esta wallet por defecto. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 3:} La wallet no pertenece al usuario o no existe $\rightarrow$ El sistema rechaza el cambio.\newline\textbf{Paso 4:} La wallet ya estaba marcada como principal $\rightarrow$ No se producen cambios adicionales. \\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La wallet principal se propone por defecto cuando el usuario debe firmar una operación, aunque puede cambiarla antes de confirmar. \\
+\hline
+\caption{Especificación del caso de uso UC-0007}
+\end{longtable}
+
+\ucsubsubsection{UC-0008: Renombrar/Etiquetar Wallet}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0008} & Renombrar/Etiquetar Wallet \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0003, UC-0005 \\
+\hline
+\textbf{Descripción} & Permite al usuario asignar una etiqueta descriptiva a cada wallet para distinguirla con facilidad cuando dispone de varias. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario tiene al menos una wallet registrada. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario accede a la gestión de wallets y elige la dirección que quiere etiquetar.\newline\textbf{Paso 2:} El sistema muestra la etiqueta actual, si existe.\newline\textbf{Paso 3:} El usuario introduce la nueva denominación y la confirma.\newline\textbf{Paso 4:} El sistema guarda la etiqueta.\newline\textbf{Paso 5:} La interfaz muestra la wallet con la nueva identificación. \\
+\hline
+\textbf{Postcondición} & La wallet muestra la etiqueta personalizada en todos los contextos de la interfaz. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 5:} Etiqueta vacía $\rightarrow$ Se borra la etiqueta existente (operación válida).\newline\textbf{Paso 5:} Etiqueta demasiado larga (>100 caracteres) $\rightarrow$ Error 400. \\
+\hline
+\textbf{Importancia} & Baja \\
+\hline
+\textbf{Urgencia} & Baja \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Función de conveniencia especialmente útil para usuarios con múltiples wallets (personal, trabajo, hardware wallet). \\
+\hline
+\caption{Especificación del caso de uso UC-0008}
+\end{longtable}
+
+\ucsubsubsection{UC-0009: Gestionar Perfil}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0009} & Gestionar Perfil \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0003, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite al usuario autenticado actualizar su información personal: nombre completo, nombre de usuario, dirección de email y foto de perfil (avatar). \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a su perfil y consulta los datos actuales.\newline
+\textbf{Paso 2:} El usuario modifica los campos permitidos, como nombre, alias, email o avatar.\newline
+\textbf{Paso 3:} El sistema valida la unicidad y el formato de la información actualizada.\newline
+\textbf{Paso 4:} El backend guarda los cambios en la base de datos.\newline
+\textbf{Paso 5:} Si se modifica el email, el sistema reinicia su verificación y envía un nuevo correo de confirmación.\newline
+\textbf{Paso 6:} La interfaz confirma que la actualización se ha realizado correctamente.\\
+\hline
+\textbf{Postcondición} & Información del usuario actualizada en PostgreSQL. Si el email cambió, se requiere nueva verificación antes de poder usar el email nuevo para iniciar sesión. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Username ya en uso por otro usuario $\rightarrow$ Error 409 ``Nombre de usuario no disponible''.\newline
+\textbf{Paso 3:} Email ya registrado por otro usuario $\rightarrow$ Error 409 ``Email ya registrado en el sistema''.\newline
+\textbf{Paso 3:} Avatar con formato no soportado (no PNG/JPG/WEBP) o tamaño $>$2MB $\rightarrow$ Error 400 ``Formato o tamaño inválido''.\\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El username admite únicamente caracteres alfanuméricos, guiones y guiones bajos. El avatar se redimensiona automáticamente a 200x200 px en el backend. \\
+\hline
+\caption{Especificación del caso de uso UC-0009}
+\end{longtable}
+
+\ucsubsubsection{UC-0010: Desactivar Propia Cuenta}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0010} & Desactivar Propia Cuenta \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001 \\
+\hline
+\textbf{Descripción} & Permite al propio usuario suspender voluntariamente su cuenta, bloqueando el acceso al sistema e invalidando todas sus sesiones activas. La suspensión se propaga también a las wallets en la blockchain. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. La cuenta no está ya suspendida. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario accede al apartado de privacidad y solicita desactivar su cuenta.\newline\textbf{Paso 2:} El sistema muestra una advertencia y solicita confirmación.\newline\textbf{Paso 3:} El usuario confirma la suspensión.\newline\textbf{Paso 4:} El sistema marca la cuenta como suspendida y bloquea su operativa.\newline\textbf{Paso 5:} El sistema invalida las sesiones activas y desconecta al usuario.\newline\textbf{Paso 6:} La suspensión queda reflejada también en la capa blockchain asociada a sus wallets. \\
+\hline
+\textbf{Postcondición} & Cuenta suspendida y sin sesiones activas válidas. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 3:} El usuario cancela la operación $\rightarrow$ La cuenta permanece activa.\newline\textbf{Paso 6:} La propagación a blockchain no puede completarse en ese momento $\rightarrow$ El sistema registra la incidencia para su tratamiento posterior. \\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Baja \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Caso de uso de privacidad y seguridad. Permite al usuario proteger su cuenta inmediatamente si sospecha de un compromiso. La reactivación se realiza mediante UC-0011. \\
+\hline
+\caption{Especificación del caso de uso UC-0010}
+\end{longtable}
+
+\ucsubsubsection{UC-0011: Reactivar Propia Cuenta}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0011} & Reactivar Propia Cuenta \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, UC-0010 \\
+\hline
+\textbf{Descripción} & Permite a un usuario con cuenta suspendida por él mismo (ver UC-0010) reactivarla para recuperar el acceso al sistema. \\
+\hline
+\textbf{Precondición} & El usuario tiene una cuenta suspendida voluntariamente (no por administrador). El usuario recuerda sus credenciales de acceso. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario intenta acceder con sus credenciales habituales.\newline\textbf{Paso 2:} El sistema detecta que la suspensión fue voluntaria y ofrece la reactivación.\newline\textbf{Paso 3:} El usuario solicita recuperar la cuenta y confirma la acción.\newline\textbf{Paso 4:} El sistema reactiva la cuenta y restablece su operativa.\newline\textbf{Paso 5:} El sistema vuelve a habilitar sus wallets asociadas.\newline\textbf{Paso 6:} El usuario recupera el acceso normal a la aplicación. \\
+\hline
+\textbf{Postcondición} & Cuenta reactivada en base de datos y blockchain. El usuario puede operar normalmente. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 2:} La suspensión fue impuesta por un administrador $\rightarrow$ El sistema no muestra la opción de reactivación; solo el admin puede reactivarla.\newline\textbf{Paso 5:} Credenciales inválidas $\rightarrow$ Error 401. \\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Baja \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Solo es posible si la suspensión fue iniciada por el propio usuario. Las suspensiones administrativas requieren intervención de un administrador. \\
+\hline
+\caption{Especificación del caso de uso UC-0011}
+\end{longtable}
+
+\ucsubsubsection{UC-0012: Cambiar Contraseña}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0012} & Cambiar Contraseña \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, OBJ-0003, IRQ-0001, NFR-0001, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite al usuario autenticado cambiar su contraseña manteniendo el acceso coherente a los elementos privados protegidos por sus credenciales. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario debe conocer su contraseña actual. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la sección de seguridad e introduce la contraseña actual y la nueva contraseña. \newline
+\textbf{Paso 2:} El sistema valida la fortaleza de la nueva contraseña y que coincida con la confirmación. \newline
+\textbf{Paso 3:} El sistema verifica la contraseña actual y actualiza la protección de las credenciales privadas asociadas al usuario. \newline
+\textbf{Paso 4:} El sistema guarda la nueva configuración de acceso. \newline
+\textbf{Paso 5:} El sistema invalida las demás sesiones activas del usuario como medida de seguridad. \\
+\hline
+\textbf{Postcondición} & Contraseña actualizada y resto de sesiones activas invalidadas. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} La nueva contraseña no cumple la política definida o no coincide con la confirmación $\rightarrow$ El cambio no se procesa.\newline
+\textbf{Paso 3:} La contraseña actual no es correcta $\rightarrow$ El sistema rechaza la operación.\newline
+\textbf{Paso 4:} No puede actualizarse la protección de las credenciales privadas $\rightarrow$ El cambio se cancela por completo.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La operación conserva la misma clave privada del usuario, actualizando únicamente su protección con la nueva contraseña y manteniendo vigente la recovery key registrada. \\
+\hline
+\caption{Especificación del caso de uso UC-0012}
+\end{longtable}
+
+\ucsubsubsection{UC-0013: Recuperar Contraseña}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0013} & Recuperar Contraseña \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, OBJ-0003, IRQ-0001, NFR-0001 \\
+\hline
+\textbf{Descripción} & Permite a un usuario recuperar el acceso a su cuenta cuando ha olvidado su contraseña mediante un enlace de restablecimiento enviado por correo. Para conservar el acceso a los documentos privados debe aportar además la clave de recuperación entregada en el registro. \\
+\hline
+\textbf{Precondición} & El usuario debe tener acceso al email registrado en el sistema. El usuario debe disponer de la clave de recuperación generada durante el registro para recuperar el acceso a documentos cifrados. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario solicita el restablecimiento de contraseña introduciendo su email. \newline
+\textbf{Paso 2:} El sistema envía un enlace de restablecimiento al email del usuario (válido durante 1 hora). \newline
+\textbf{Paso 3:} El usuario accede al enlace e introduce la nueva contraseña y su clave de recuperación. \newline
+\textbf{Paso 4:} El sistema actualiza la protección asociada a la cuenta y a los contenidos privados cuando la clave de recuperación es correcta. \newline
+\textbf{Paso 5:} El sistema actualiza las credenciales e invalida todas las sesiones activas previas. \newline
+\textbf{Paso 6:} El usuario puede acceder de nuevo al sistema con la nueva contraseña. \\
+\hline
+\textbf{Postcondición} & Contraseña restablecida y sesiones previas invalidadas. Si la clave de recuperación se ha aportado correctamente, también se conserva el acceso a los documentos privados. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 1:} El correo indicado no está registrado $\rightarrow$ El sistema responde de forma neutra sin revelar la existencia de la cuenta.\newline
+\textbf{Paso 3:} El enlace ha expirado o ya fue utilizado $\rightarrow$ El restablecimiento no puede completarse.\newline
+\textbf{Paso 4:} No se aporta una clave de recuperación válida $\rightarrow$ La cuenta puede recuperarse, pero no se garantiza el acceso posterior a los documentos privados ya protegidos.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La clave de recuperación se genera una única vez en el registro y se muestra al usuario para que la guarde. Sin ella, el sistema puede restablecer la autenticación, pero no devolver el acceso a los documentos privados ya protegidos. \\
+\hline
+\caption{Especificación del caso de uso UC-0013}
+\end{longtable}
+
+\ucsubsubsection{UC-0014: Verificar Email}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0014} & Verificar Email \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, UC-0001 \\
+\hline
+\textbf{Descripción} & Permite al usuario confirmar la propiedad de su dirección de email haciendo clic en el enlace de verificación recibido por correo electrónico, desbloqueando el acceso completo a todas las funcionalidades del sistema. \\
+\hline
+\textbf{Precondición} & El usuario debe haber recibido el email de verificación (enviado automáticamente en UC-0001 o al cambiar el email en UC-0009). El token de verificación debe estar vigente. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario abre el correo electrónico de verificación enviado por el sistema.\newline
+\textbf{Paso 2:} El usuario hace clic en el enlace de verificación incluido en el email.\newline
+\textbf{Paso 3:} El navegador realiza \texttt{GET /email/verify/:token}.\newline
+\textbf{Paso 4:} El backend busca el token en la base de datos.\newline
+\textbf{Paso 5:} El backend valida que el token no haya expirado.\newline
+\textbf{Paso 6:} El backend marca el registro de verificación como usado y actualiza el campo \texttt{User.emailVerified = true}.\newline
+\textbf{Paso 7:} El sistema muestra una pantalla de confirmación de verificación exitosa con acceso directo al inicio de sesión.\newline
+\textbf{Paso 8:} Si existía una sesión ya iniciada pero bloqueada por correo pendiente, la interfaz elimina ese bloqueo y permite continuar sin incoherencias locales.\\
+\hline
+\textbf{Postcondición} & Email marcado como verificado. El usuario tiene acceso completo a todas las funcionalidades del sistema. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 4:} Token no encontrado $\rightarrow$ Error de verificación inválida. El usuario puede solicitar un nuevo envío del correo desde la propia pantalla.\newline
+\textbf{Paso 5:} Token expirado (más de 24 horas) $\rightarrow$ Error de verificación expirada. El sistema ofrece la opción de reenviar el email.\newline
+\textbf{Paso 6:} Email ya verificado previamente $\rightarrow$ El sistema informa de que la cuenta ya estaba confirmada y permite volver al inicio de sesión.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La verificación del correo es requisito previo para el inicio de sesión con contraseña y para el acceso al área autenticada. \\
+\hline
+\caption{Especificación del caso de uso UC-0014}
+\end{longtable}
+
+\ucsubsubsection{UC-0015: Reenviar Email de Verificación}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0015} & Reenviar Email de Verificación \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, IRQ-0007, NFR-0001, UC-0014 \\
+\hline
+\textbf{Descripción} & Permite al usuario solicitar el reenvío de un email de verificación de cuenta cuando el original no fue recibido, fue eliminado o su token ha expirado. \\
+\hline
+\textbf{Precondición} & El email de la cuenta aún no ha sido verificado. El flujo puede iniciarse desde el login, desde la pantalla \texttt{/verify-email} o desde una sesión previamente autenticada pero bloqueada. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario observa el aviso de correo pendiente o un error de verificación y decide solicitar un nuevo mensaje.\newline\textbf{Paso 2:} El frontend recopila el email de la cuenta y envía \texttt{POST /email/resend-verification}.\newline\textbf{Paso 3:} El sistema comprueba en \texttt{User.emailVerified} si la cuenta sigue pendiente.\newline\textbf{Paso 4:} Si el correo sigue sin verificarse, el sistema invalida cualquier token anterior y genera uno nuevo con expiración renovada.\newline\textbf{Paso 5:} El sistema envía el nuevo email de verificación al correo registrado.\newline\textbf{Paso 6:} El sistema informa al usuario de que el email ha sido enviado. \\
+\hline
+\textbf{Postcondición} & Nuevo token de verificación generado y email enviado. El token anterior queda invalidado. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 3:} Email ya verificado $\rightarrow$ Respuesta informativa indicando que la cuenta ya está confirmada.\newline\textbf{Paso 2/3:} Demasiadas solicitudes en poco tiempo $\rightarrow$ Error 429 (rate limiting).\newline\textbf{Paso 5:} Fallo en el servicio SMTP $\rightarrow$ Error 500 con mensaje descriptivo. \\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Los tokens de verificación de email tienen una ventana de expiración. El rate limiting protege contra el abuso de reenvíos masivos y el flujo está disponible incluso sin sesión iniciada, siempre que el usuario aporte el email de la cuenta. \\
+\hline
+\caption{Especificación del caso de uso UC-0015}
+\end{longtable}
+
+\ucsubsubsection{UC-0016: Subir Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0016} & Subir Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Descripción} & Permite a un usuario subir un documento al sistema, elegir si será privado o público, registrarlo en blockchain y, cuando proceda, obtener un identificador compartible para acceso mediante enlace y QR. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con wallet conectada. \\
+\hline
+\textbf{Secuencia normal} & 
+\textbf{Paso 1:} El usuario selecciona el archivo e informa los metadatos básicos, incluyendo la visibilidad.\newline
+\textbf{Paso 2:} El sistema valida el contenido, aplica la política de protección correspondiente y lo almacena en el backend de almacenamiento configurado.\newline
+\textbf{Paso 3:} El backend prepara la transacción, genera un mensaje legible con el título del documento y la dirección del contrato, y solicita la firma al usuario mediante su wallet.\newline
+\textbf{Paso 4:} El usuario confirma el mensaje legible en la wallet y el frontend envía la firma al backend para completar el registro on-chain.\newline
+\textbf{Paso 5:} Una vez confirmada la transacción, el documento queda disponible en la biblioteca del usuario y, si es público, se habilita su acceso mediante enlace y código QR.\\
+\hline
+\textbf{Postcondición} & Documento registrado en blockchain y almacenado en IPFS con la política seleccionada: cifrado si es privado; accesible mediante \texttt{publicId}, enlace y QR si es público. \\
+\hline
+\textbf{Excepciones} & 
+\textbf{Paso 1:} El archivo no supera las validaciones de tamaño o formato $\rightarrow$ La subida se rechaza.\newline
+\textbf{Paso 2:} El almacenamiento no está disponible $\rightarrow$ La operación queda cancelada y se informa al usuario.\newline
+\textbf{Paso 3:} El usuario rechaza la firma en la wallet $\rightarrow$ Operación cancelada.\newline
+\textbf{Paso 4:} El backend rechaza la firma o el mensaje no coincide $\rightarrow$ Error 400.\newline
+\textbf{Paso 5:} La transacción revierte o no se confirma on-chain $\rightarrow$ El documento no pasa a estado operativo.\\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El patrón Prepare/Confirm evita inconsistencias entre IPFS, base de datos y blockchain. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario verifique en la wallet qué documento está creando antes de firmar. La publicación pública es siempre optativa y exige una advertencia explícita porque elimina el cifrado del contenido. \\
+\hline
+\caption{Especificación del caso de uso UC-0016}
+\end{longtable}
+
+\ucsubsubsection{UC-0017: Listar Documentos}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0017} & Listar Documentos \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, NFR-0003, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite al usuario autenticado visualizar todos sus documentos propios y los que tienen compartidos con él, con opciones de filtrado, ordenación y paginación. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la biblioteca de documentos.\newline
+\textbf{Paso 2:} El sistema recupera los documentos propios del usuario según los criterios de ordenación y paginación vigentes.\newline
+\textbf{Paso 3:} El usuario puede aplicar filtros por nombre, clasificación, tipo o estado.\newline
+\textbf{Paso 4:} El sistema actualiza el listado y muestra los metadatos relevantes de cada documento.\newline
+\textbf{Paso 5:} El usuario selecciona, ordena o cambia el modo de visualización según necesite.\\
+\hline
+\textbf{Postcondición} & Lista de documentos visible. El usuario puede seleccionar un documento para ver su detalle. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} El usuario no tiene documentos propios ni compartidos $\rightarrow$ Se muestra estado vacío con botón de carga de primer documento.\newline
+\textbf{Paso 2:} Error de red $\rightarrow$ Se muestra mensaje de error con opción de reintento.\\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La lista de esta vista contiene únicamente documentos propios. Los documentos compartidos con el usuario se consultan mediante UC-0035 en la ruta específica \texttt{/app/shared}. Los documentos archivados se muestran mediante la pestaña correspondiente dentro de la misma vista. \\
+\hline
+\caption{Especificación del caso de uso UC-0017}
+\end{longtable}
+
+\ucsubsubsection{UC-0018: Ver Detalle de Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0018} & Ver Detalle de Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, IRQ-0002, IRQ-0003, IRQ-0005, NFR-0003, UC-0017 \\
+\hline
+\textbf{Descripción} & Permite al usuario con acceso ver la información detallada de un documento: metadatos principales, historial, versiones y, si es propietario, operaciones de compartición privada, publicación pública mediante enlace/QR y transferencia. La consulta de firmantes se realiza desde la pestaña de versiones. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario debe ser propietario del documento o tener al menos rol VIEWER. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede al detalle desde el listado o mediante navegación directa.\newline
+\textbf{Paso 2:} El sistema comprueba el acceso y recupera la información relevante del documento.\newline
+\textbf{Paso 3:} La interfaz muestra metadatos, historial, versiones y las acciones autorizadas para el rol del usuario. Desde la pestaña de versiones puede abrirse la consulta de firmantes de cada versión.\newline
+\textbf{Paso 4:} Si el documento es público y el usuario es propietario, se habilitan además las acciones de distribución por enlace y código QR.\\
+\hline
+\textbf{Postcondición} & El usuario visualiza toda la información del documento. Puede iniciar operaciones sobre el documento (descargar, firmar, compartir de forma privada o distribuir enlace público, según corresponda) desde esta vista. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Usuario sin permisos $\rightarrow$ Error 403 ``No tienes acceso a este documento''. Redirige al listado.\newline
+\textbf{Paso 2:} Documento no encontrado $\rightarrow$ Error 404, redirige al listado.\\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La vista de detalle sirve como punto central de todas las operaciones sobre un documento. Los botones de acción se muestran u ocultan según permisos, estado blockchain y visibilidad; un documento público no utiliza el mismo flujo de compartición privada que uno cifrado. \\
+\hline
+\caption{Especificación del caso de uso UC-0018}
+\end{longtable}
+
+\ucsubsubsection{UC-0019: Descargar Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0019} & Descargar Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, IRQ-0002, IRQ-0003, NFR-0001, NFR-0002, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite descargar el contenido de un documento o de una versión concreta. En documentos privados, la descarga incluye descifrado e integridad en cliente; en documentos públicos, la obtención se realiza directamente mediante el enlace público. \\
+\hline
+\textbf{Precondición} & Si el documento es privado, el usuario debe estar autenticado y tener permiso de acceso, y el documento debe estar en estado SYNCED. Si es público, basta con disponer del enlace público válido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario solicita la descarga desde la vista autenticada o desde el enlace público.\newline
+\textbf{Paso 2:} El sistema identifica si se trata de un documento privado o público y aplica el flujo de recuperación correspondiente.\newline
+\textbf{Paso 3:} En los documentos privados, el cliente realiza el descifrado y la verificación de integridad antes de entregar el archivo.\newline
+\textbf{Paso 4:} En los documentos públicos, el contenido se sirve directamente mediante el identificador público.\\
+\hline
+\textbf{Postcondición} & Archivo descargado en el dispositivo del usuario: descifrado e íntegro si se trata de un documento privado, o recuperado directamente si se trata de un documento público. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} El usuario no dispone de acceso a un documento privado $\rightarrow$ La descarga se deniega.\newline
+\textbf{Paso 3:} El descifrado o la comprobación de integridad fallan $\rightarrow$ El archivo no se entrega.\newline
+\textbf{Paso 4:} El identificador público o el contenido solicitado no están disponibles $\rightarrow$ Se informa de error de acceso o disponibilidad.\\
+\hline
+\textbf{Importancia} & Vital \\
+\hline
+\textbf{Urgencia} & Inmediata \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & En los documentos privados, el descifrado y la verificación de integridad ocurren en el navegador. En los públicos no intervienen claves de descifrado: el acceso abierto forma parte del diseño seleccionado por el propietario. \\
+\hline
+\caption{Especificación del caso de uso UC-0019}
+\end{longtable}
+
+\ucsubsubsection{UC-0020: Archivar Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0020} & Archivar Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, NFR-0003, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite al propietario del documento moverlo a un estado archivado, ocultándolo del listado principal sin eliminarlo ni afectar su registro en blockchain. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario debe ser propietario del documento. El documento debe estar en estado SYNCED. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El propietario selecciona el documento desde el listado o desde su detalle.\newline
+\textbf{Paso 2:} Solicita archivarlo.\newline
+\textbf{Paso 3:} El sistema advierte de que el documento dejará de aparecer en la vista principal y solicita confirmación.\newline
+\textbf{Paso 4:} El usuario confirma la acción.\newline
+\textbf{Paso 5:} El sistema marca el documento como archivado y lo mueve a la vista correspondiente.\\
+\hline
+\textbf{Postcondición} & Documento marcado como archivado en PostgreSQL. No aparece en el listado principal. Su contenido en IPFS y el registro en blockchain permanecen inalterados. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} El documento ya está archivado $\rightarrow$ El menú muestra la opción ``Desarchivar'' en su lugar.\newline
+\textbf{Paso 2:} Usuario sin permisos de propietario $\rightarrow$ Opción no visible en la interfaz.\\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El archivado es una operación reversible. Los documentos archivados permanecen accesibles desde la vista o el filtro ``Archivados''. \\
+\hline
+\caption{Especificación del caso de uso UC-0020}
+\end{longtable}
+
+\ucsubsubsection{UC-0021: Desarchivar Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0021} & Desarchivar Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, IRQ-0002, NFR-0003, UC-0020 \\
+\hline
+\textbf{Descripción} & Permite al propietario devolver a estado activo un documento previamente archivado. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El documento existe en estado archivado y el usuario es su propietario. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El usuario accede a la sección de documentos archivados.\newline\textbf{Paso 2:} Selecciona el documento que desea recuperar.\newline\textbf{Paso 3:} Solicita la desarchivación y confirma la acción.\newline\textbf{Paso 4:} El sistema procesa el cambio de estado.\newline\textbf{Paso 5:} Una vez validado, el documento vuelve a la lista activa y queda reflejado en el historial del sistema. \\
+\hline
+\textbf{Postcondición} & El documento vuelve a aparecer en la lista activa del usuario y el cambio queda reflejado en su historial. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 3:} El usuario no es propietario o el documento no está archivado $\rightarrow$ El sistema rechaza la operación.\newline\textbf{Paso 4:} La reactivación no puede completarse $\rightarrow$ El documento permanece archivado y se informa de la incidencia. \\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Operación inversa a UC-0020 (Archivar Documento). \\
+\hline
+\caption{Especificación del caso de uso UC-0021}
+\end{longtable}
+
+\ucsubsubsection{UC-0022: Eliminar Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0022} & Eliminar Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, IRQ-0002, NFR-0001, NFR-0005, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite al propietario eliminar un documento del sistema, desanclándolo de IPFS (para que el contenido sea eventually eliminado) y marcándolo como eliminado en la base de datos. El registro en blockchain es inmutable y permanece para siempre. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario debe ser el propietario del documento. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El propietario selecciona la opción de eliminación desde el detalle del documento.\newline
+\textbf{Paso 2:} El sistema solicita una confirmación explícita al tratarse de una operación irreversible sobre el estado operativo.\newline
+\textbf{Paso 3:} El backend valida la titularidad del documento y ejecuta la eliminación lógica en PostgreSQL.\newline
+\textbf{Paso 4:} El sistema ordena al backend IPFS retirar la persistencia del contenido y deja constancia del evento.\newline
+\textbf{Paso 5:} La interfaz vuelve al listado principal mostrando la confirmación de la operación.\\
+\hline
+\textbf{Postcondición} & Documento marcado como eliminado en PostgreSQL (soft delete). CID desanclado de IPFS (el contenido desaparecerá progresivamente con la recolección de basura). El registro en blockchain (hash, CID, metadatos) es permanente e inmutable. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 5:} Usuario no es propietario $\rightarrow$ Error 403 ``Solo el propietario puede eliminar el documento''.\newline
+\textbf{Paso 7:} Error al desanclar de IPFS $\rightarrow$ Se registra el error en logs; el soft delete procede igualmente. El contenido IPFS se desanclará en un reintento posterior.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El diseño blockchain implica que los hashes y CIDs quedan registrados permanentemente. La eliminación de IPFS es eventual y depende del garbage collector del clúster. Esta limitación se informa claramente al usuario en el diálogo de confirmación. \\
+\hline
+\caption{Especificación del caso de uso UC-0022}
+\end{longtable}
+
+\ucsubsubsection{UC-0023: Transferir Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0023} & Transferir Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, OBJ-0006, IRQ-0002, IRQ-0005, NFR-0001, NFR-0002, UC-0016 \\
+\hline
+\textbf{Descripción} & Permite al propietario de un documento ceder su propiedad completa a otro usuario del sistema. La transferencia implica el re-cifrado de la clave simétrica del documento con la clave pública del nuevo propietario y la actualización del control de acceso en blockchain. \\
+\hline
+\textbf{Precondición} & Usuario autenticado y propietario del documento. El destinatario debe ser un usuario registrado en el sistema con wallet vinculada. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} El propietario inicia la transferencia desde el detalle del documento y selecciona al nuevo titular.\newline\textbf{Paso 2:} El sistema recupera la información criptográfica necesaria para preparar el cambio de titularidad.\newline\textbf{Paso 3:} El backend re-protege la clave del documento para el nuevo propietario y devuelve los datos de la operación.\newline\textbf{Paso 4:} El usuario firma la transacción de transferencia con su wallet.\newline\textbf{Paso 5:} Tras la confirmación on-chain, el sistema sincroniza la nueva titularidad en el estado operativo.\newline\textbf{Paso 6:} El documento pasa a pertenecer al nuevo usuario y el anterior pierde el control salvo nueva compartición. \\
+\hline
+\textbf{Postcondición} & El documento pertenece al nuevo propietario. El propietario anterior pierde el acceso salvo que sea re-invitado. La transferencia queda registrada en blockchain y en el timeline. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 2:} Usuario destinatario no encontrado $\rightarrow$ Error 404.\newline\textbf{Paso 2:} Usuario destinatario suspendido $\rightarrow$ Error 400.\newline\textbf{Paso 6:} Error en el descifrado de la clave simétrica $\rightarrow$ Error 400.\newline\textbf{Paso 8:} Transacción rechazada en la wallet conectada $\rightarrow$ Sin cambios en base de datos. \\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Operación criptográficamente compleja: implica re-cifrado asimétrico de la clave simétrica del documento. Es irreversible sin la cooperación del nuevo propietario. \\
+\hline
+\caption{Especificación del caso de uso UC-0023}
+\end{longtable}
+
+\ucsubsubsection{UC-0024: Buscar Documentos}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0024} & Buscar Documentos \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, NFR-0003, UC-0017 \\
+\hline
+    \textbf{Descripción} & Permite al usuario buscar documentos propios y compartidos aplicando múltiples filtros simultáneos: texto libre en nombre y descripción, tipo de archivo, carpeta, estado blockchain, firmante, etiquetas y rango de fechas. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario introduce un término en la barra de búsqueda global o accede al panel de búsqueda avanzada.\newline
+\textbf{Paso 2:} El frontend aplica debounce de 300ms antes de enviar la petición.\newline
+\textbf{Paso 3:} El frontend envía con los parámetros: q (texto libre), type (tipo MIME), folderId, blockchainStatus, signedBy, tags, dateFrom, dateTo, page, limit.\newline
+\textbf{Paso 4:} El backend construye la consulta Prisma filtrando únicamente documentos accesibles por el usuario (propios o compartidos).\newline
+\textbf{Paso 5:} El backend ejecuta la búsqueda de texto sobre campos name y description usando búsqueda insensible a mayúsculas.\newline
+\textbf{Paso 6:} El backend aplica los filtros adicionales especificados.\newline
+\textbf{Paso 7:} El backend devuelve la lista paginada de resultados con el total de coincidencias.\newline
+\textbf{Paso 8:} El frontend muestra los resultados resaltando el término buscado en los nombres de documento.\\
+\hline
+\textbf{Postcondición} & Lista de documentos coincidentes con los filtros aplicados, disponible para el usuario. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 7:} Sin resultados para los filtros aplicados $\rightarrow$ El sistema muestra mensaje ``No se encontraron documentos'' con sugerencia de ampliar los filtros.\newline
+\textbf{Paso 2:} Término de búsqueda menor a 2 caracteres $\rightarrow$ No se ejecuta la búsqueda hasta superar el mínimo.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La búsqueda siempre está restringida a documentos accesibles por el usuario. Nunca devuelve documentos eliminados (isDeleted = true). \\
+\hline
+\caption{Especificación del caso de uso UC-0024}
+\end{longtable}
+
+\ucsubsubsection{UC-0025: Crear Nueva Versión}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0025} & Crear Nueva Versión \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, IRQ-0002, IRQ-0003, NFR-0001, NFR-0002, UC-0016, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite al propietario o usuario con rol EDITOR cargar una nueva versión del contenido de un documento existente, manteniendo el historial completo de versiones anteriores y heredando la visibilidad del documento original antes de registrarla en blockchain. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido y wallet conectada. El usuario debe ser propietario o tener rol EDITOR sobre el documento. El documento debe estar en estado SYNCED. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario autorizado selecciona un nuevo archivo desde la pestaña de versiones e introduce, si lo desea, un comentario de cambio.\newline
+\textbf{Paso 2:} El sistema aplica a la nueva versión la misma política de visibilidad y protección que al documento original.\newline
+\textbf{Paso 3:} El backend registra la nueva versión en el almacenamiento configurado, prepara la transacción blockchain y genera un mensaje legible con el título del documento y el número de versión.\newline
+\textbf{Paso 4:} El usuario revisa el mensaje legible en su wallet y confirma la firma; el frontend envía la firma al backend para completar el registro on-chain.\newline
+\textbf{Paso 5:} Tras la confirmación de la transacción, la nueva versión pasa a formar parte del historial y se convierte automáticamente en la versión operativa.\\
+\hline
+\textbf{Postcondición} & Nueva versión registrada en blockchain e IPFS, heredando la visibilidad del documento original. La versión anterior permanece en el historial y la nueva pasa a ser la operativa automáticamente. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 1:} El archivo no es válido o no cumple las restricciones del documento $\rightarrow$ La operación se rechaza.\newline
+\textbf{Paso 3:} El almacenamiento no confirma la carga $\rightarrow$ La nueva versión no queda registrada.\newline
+\textbf{Paso 4:} El usuario rechaza la firma $\rightarrow$ Operación cancelada.\newline
+\textbf{Paso 4:} El backend rechaza la firma o el mensaje no coincide $\rightarrow$ Error 400.\newline
+\textbf{Paso 5:} La transacción revierte o no se confirma $\rightarrow$ La versión no pasa a estado operativo.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Cada versión tiene su propio CID de IPFS, su hash SHA-256 y su registro en blockchain. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario verifique en la wallet qué versión está registrando antes de firmar. En documentos privados, cada versión conserva su propia metadata de cifrado; en documentos públicos, cada versión queda accesible desde la ruta pública correspondiente. \\
+\hline
+\caption{Especificación del caso de uso UC-0025}
+\end{longtable}
+
+\ucsubsubsection{UC-0026: Listar Versiones}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0026} & Listar Versiones \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, NFR-0003, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite al usuario con acceso al documento visualizar el historial completo de versiones: número de versión, fecha de creación, comentario de cambios, tamaño, estado blockchain y si es la versión operativa actual. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. El usuario debe tener acceso al documento (propietario o cualquier rol compartido). \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la vista de detalle del documento.\newline
+\textbf{Paso 2:} El usuario navega a la pestaña ``Versiones''.\newline
+\textbf{Paso 3:} El frontend envía al backend.\newline
+\textbf{Paso 4:} El backend verifica los permisos del usuario sobre el documento.\newline
+\textbf{Paso 5:} El backend devuelve la lista de versiones ordenadas por número de versión descendente, con: número, fecha, comentario, tamaño del archivo, hash SHA-256, CID de IPFS, txHash blockchain, estado (SYNCED/PREPARING/FAILED) e indicador de versión operativa.\newline
+\textbf{Paso 6:} El frontend muestra la lista con la versión operativa destacada.\newline
+\textbf{Paso 7:} El usuario puede seleccionar una versión para descargarla o restaurarla.\\
+\hline
+\textbf{Postcondición} & Historial de versiones visible. El usuario puede iniciar operaciones sobre versiones específicas. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 4:} Usuario sin acceso $\rightarrow$ Error 403.\newline
+\textbf{Paso 5:} Documento sin versiones (estado PREPARING) $\rightarrow$ Se muestra mensaje indicando que el registro está en proceso.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Toda versión con estado SYNCED tiene su correspondiente registro inmutable en blockchain, accesible mediante el txHash para verificación externa en el explorador blockchain configurado. \\
+\hline
+\caption{Especificación del caso de uso UC-0026}
+\end{longtable}
+
+\ucsubsubsection{UC-0027: Establecer Versión Operativa}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0027} & Establecer Versión Operativa \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, UC-0026 \\
+\hline
+\textbf{Descripción} & Permite al propietario marcar una versión específica como la versión operativa del documento, que es la que se descarga por defecto y la que se presenta al abrir el documento. \\
+\hline
+\textbf{Precondición} & Usuario autenticado. El usuario debe ser propietario del documento. La versión seleccionada debe estar en estado SYNCED. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario abre el historial de versiones del documento.\newline
+\textbf{Paso 2:} El usuario selecciona la versión que desea convertir en operativa y confirma la acción.\newline
+\textbf{Paso 3:} El backend comprueba la titularidad y actualiza el estado operativo de las versiones del documento.\newline
+\textbf{Paso 4:} El sistema registra el cambio para mantener la trazabilidad interna.\newline
+\textbf{Paso 5:} La interfaz refresca el historial destacando la nueva versión activa.\\
+\hline
+\textbf{Postcondición} & La versión seleccionada es ahora la operativa. Las descargas posteriores del documento sin especificar versión obtendrán esta. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Usuario sin permisos de propietario $\rightarrow$ Error 403.\newline
+\textbf{Paso 5:} Versión ya es la operativa $\rightarrow$ Operación completada sin cambios con mensaje informativo.\\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Cambiar la versión operativa no elimina ni oculta las otras versiones. Todas siguen siendo accesibles y descargables desde la pestaña de versiones. \\
+\hline
+\caption{Especificación del caso de uso UC-0027}
+\end{longtable}
+
+\ucsubsubsection{UC-0028: Restaurar Versión Anterior}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0028} & Restaurar Versión Anterior \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, UC-0026, UC-0027 \\
+\hline
+\textbf{Descripción} & Permite al propietario recuperar una versión anterior del documento estableciéndola como operativa, sin eliminar las versiones más recientes del historial. \\
+\hline
+\textbf{Precondición} & Usuario autenticado y propietario del documento. El documento debe tener más de una versión en historial. La versión objetivo debe estar en estado SYNCED. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la pestaña ``Versiones'' del documento.\newline
+\textbf{Paso 2:} El usuario identifica la versión anterior a la que desea volver.\newline
+\textbf{Paso 3:} El usuario hace clic en ``Restaurar esta versión''.\newline
+\textbf{Paso 4:} El sistema muestra un diálogo de confirmación indicando que la versión seleccionada pasará a ser la operativa, y que las versiones más recientes no se eliminarán.\newline
+\textbf{Paso 5:} El usuario confirma la restauración.\newline
+\textbf{Paso 6:} El sistema ejecuta UC-0027 para establecer la versión seleccionada como operativa.\newline
+\textbf{Paso 7:} El frontend actualiza la vista mostrando la versión restaurada como la actual operativa.\\
+\hline
+\textbf{Postcondición} & La versión anterior es ahora la versión operativa del documento. El historial completo permanece accesible. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Usuario sin permisos de propietario $\rightarrow$ Opción no disponible en la interfaz.\newline
+\textbf{Paso 6:} Error al actualizar versión operativa $\rightarrow$ Error 500, se muestra mensaje y se mantiene la versión operativa anterior.\\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La restauración es únicamente un cambio de la versión operativa; no realiza ninguna operación en blockchain ya que no crea contenido nuevo. \\
+\hline
+\caption{Especificación del caso de uso UC-0028}
+\end{longtable}
+
+\ucsubsubsection{UC-0029: Descargar Versión Específica}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0029} & Descargar Versión Específica \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0003, IRQ-0002, NFR-0001, UC-0019, UC-0026 \\
+\hline
+\textbf{Descripción} & Permite al usuario con acceso descargar una versión concreta del documento (no necesariamente la operativa). El flujo sigue la rama privada o pública descrita en UC-0019 según la visibilidad del documento. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. El usuario debe tener acceso al documento. La versión seleccionada debe estar en estado SYNCED. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario selecciona la versión deseada dentro del historial del documento.\newline
+\textbf{Paso 2:} El sistema recupera esa versión concreta y aplica el flujo de descarga definido para documentos privados o públicos.\newline
+\textbf{Paso 3:} El archivo se entrega identificando la versión solicitada.\\
+\hline
+\textbf{Postcondición} & Versión específica descargada en el dispositivo del usuario, con verificación criptográfica en el caso de documentos privados. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} La versión no está disponible o el usuario no tiene acceso $\rightarrow$ La descarga se rechaza.\newline
+\textbf{Paso 2:} Falla la recuperación o la validación de integridad $\rightarrow$ El archivo no se entrega.\\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La descarga de versiones utiliza el CID y la metadata propios de cada versión. La interfaz distingue entre versiones privadas, que requieren descifrado, y versiones públicas, que pueden consultarse por enlace compartible. \\
+\hline
+\caption{Especificación del caso de uso UC-0029}
+\end{longtable}
+
+\ucsubsubsection{UC-0030: Firmar Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0030} & Firmar Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Descripción} & Permite a un usuario con acceso firmar digitalmente una versión específica de un documento. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con permiso de lectura en el documento. Wallet conectada. No haber firmado previamente esta versión. \\
+\hline
+\textbf{Secuencia normal} & 
+\textbf{Paso 1:} El usuario abre el documento o la versión que desea firmar.\newline
+\textbf{Paso 2:} El sistema muestra la confirmación de firma y permite añadir un comentario si procede.\newline
+\textbf{Paso 3:} El backend prepara la operación, genera un mensaje legible que incluye el título del documento, el número de versión y la dirección del contrato, y devuelve los datos necesarios para la firma.\newline
+\textbf{Paso 4:} El usuario revisa el mensaje legible en su wallet y confirma la firma.\newline
+\textbf{Paso 5:} El frontend envía la firma al backend, que completa el registro on-chain.\newline
+\textbf{Paso 6:} La blockchain registra la firma y el sistema sincroniza su estado operativo.\newline
+\textbf{Paso 7:} El propietario recibe la notificación correspondiente y la interfaz actualiza el listado de firmas.\\
+\hline
+\textbf{Postcondición} & Firma registrada inmutablemente en blockchain y visible para todos los usuarios con acceso. \\
+\hline
+\textbf{Excepciones} & 
+\textbf{Paso 2:} Usuario ya firmó esta versión $\rightarrow$ Error 409.\newline
+\textbf{Paso 2:} Usuario sin permiso $\rightarrow$ Error 403.\newline
+\textbf{Paso 4:} Usuario rechaza la firma $\rightarrow$ Operación cancelada.\newline
+\textbf{Paso 5:} El backend rechaza la firma o el mensaje no coincide $\rightarrow$ Error 400.\newline
+\textbf{Paso 6:} La transacción revierte $\rightarrow$ Estado FAILED, firma no registrada.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Proporciona no repudio legal. La firma incluye hash de contenido. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario pueda verificar en la wallet qué documento está firmando antes de confirmar. \\
+\hline
+\caption{Especificación del caso de uso UC-0030}
+\end{longtable}
+
+\ucsubsubsection{UC-0031: Ver Firmas de un Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0031} & Ver Firmas de un Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0004, IRQ-0004, NFR-0001, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite al usuario con acceso al documento consultar las firmas registradas para cada versión, abrir el perfil reducido de cada firmante y revisar la wallet utilizada, la versión firmada, el estado de sincronización y la transacción asociada. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. El usuario debe tener acceso al documento. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la vista de detalle del documento.\newline
+\textbf{Paso 2:} El usuario navega a la pestaña ``Versiones'' y selecciona la acción ``Ver firmantes'' sobre la versión deseada.\newline
+\textbf{Paso 3:} El frontend solicita al backend las firmas registradas para esa versión.\newline
+\textbf{Paso 4:} El backend verifica los permisos del usuario sobre el documento.\newline
+\textbf{Paso 5:} El backend consulta la base de datos filtrando por versionId y compone para cada firma un perfil reducido del firmante.\newline
+\textbf{Paso 6:} El backend devuelve la lista con: identidad operativa del firmante, dirección de wallet, número de versión firmada, fecha de registro, txHash y estado (SYNCED/TX\_SUBMITTED/PREPARING/FAILED). Si la cuenta original ya no está disponible, utiliza la instantánea histórica almacenada con la firma.\newline
+\textbf{Paso 7:} El frontend muestra un modal con la lista de firmantes y un panel de detalle para la firma seleccionada.\\
+\hline
+\textbf{Postcondición} & Lista de firmas visible para la versión consultada. El usuario puede identificar al firmante y verificar la evidencia blockchain asociada mediante UC-0032. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 4:} Usuario sin acceso al documento $\rightarrow$ Error 403.\newline
+\textbf{Paso 6:} Versión sin firmas $\rightarrow$ Se muestra estado vacío con mensaje ``Esta versión todavía no tiene firmas registradas''.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Cada firma es única por combinación documento-versión-usuario. Un mismo usuario no puede firmar la misma versión dos veces. Además, la firma conserva una instantánea mínima del firmante para mantener la trazabilidad visible incluso si su cuenta o su wallet operativa cambian posteriormente. \\
+\hline
+\caption{Especificación del caso de uso UC-0031}
+\end{longtable}
+
+\ucsubsubsection{UC-0032: Verificar Firma en Blockchain}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0032} & Verificar Firma en Blockchain \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0004, IRQ-0004, NFR-0001, NFR-0002, UC-0031 \\
+\hline
+\textbf{Descripción} & Permite al usuario comprobar criptográficamente la validez de una firma digital consultando directamente el smart contract de Ethereum, proporcionando prueba independiente de la base de datos del sistema. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. El usuario debe tener acceso al documento. La firma debe existir en la lista de firmas del documento. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede al listado de firmas del documento y selecciona la firma a comprobar.\newline
+\textbf{Paso 2:} El sistema localiza el identificador blockchain del documento y la referencia de la firma.\newline
+\textbf{Paso 3:} El backend consulta directamente el smart contract para recuperar la firma on-chain.\newline
+\textbf{Paso 4:} El sistema compara la información obtenida con la proyección almacenada localmente.\newline
+\textbf{Paso 5:} El backend devuelve el resultado de la comprobación y los datos relevantes.\newline
+\textbf{Paso 6:} La interfaz muestra si la firma es consistente y ofrece acceso a la transacción externa.\\
+\hline
+\textbf{Postcondición} & El usuario tiene certeza criptográfica de la validez de la firma, verificada directamente en la blockchain de Ethereum. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 5:} Nodo Ethereum no disponible $\rightarrow$ Error 503 ``Servicio blockchain temporalmente no disponible''.\newline
+\textbf{Paso 6:} La firma no existe en blockchain (solo en base de datos local) $\rightarrow$ Resultado INVÁLIDO con advertencia de inconsistencia.\newline
+\textbf{Paso 7:} Datos on-chain no coinciden con datos locales $\rightarrow$ Resultado INVÁLIDO, posible manipulación de la base de datos local.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & La verificación directa en blockchain es la fuente de verdad definitiva. Permite auditorías independientes de la plataforma. El acceso al explorador blockchain configurado permite verificar la transacción sin depender de la propia interfaz. \\
+\hline
+\caption{Especificación del caso de uso UC-0032}
+\end{longtable}
+
+\ucsubsubsection{UC-0033: Compartir Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0033} & Compartir Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Descripción} & Permite al propietario compartir un documento con otro usuario otorgándole permisos específicos de lectura o escritura. \\
+\hline
+\textbf{Precondición} & Usuario autenticado y propietario del documento. Usuario destinatario existente en el sistema. Wallet conectada. \\
+\hline
+\textbf{Secuencia normal} & 
+\textbf{Paso 1:} El usuario autorizado abre la acción de compartición y selecciona destinatario y nivel de acceso.\newline
+\textbf{Paso 2:} El sistema prepara el permiso y la información criptográfica necesaria para que el destinatario pueda acceder al documento cuando corresponda.\newline
+\textbf{Paso 3:} La concesión de permisos se confirma mediante la operación firmada en blockchain.\newline
+\textbf{Paso 4:} El sistema actualiza la lista de accesos y notifica al destinatario.\\
+\hline
+\textbf{Postcondición} & Destinatario tiene acceso al documento según el rol otorgado. Puede consultarlo y, si el permiso es EDITOR, crear nuevas versiones y firmar. \\
+\hline
+\textbf{Excepciones} & 
+\textbf{Paso 1:} El destinatario no existe o no es elegible para recibir el acceso $\rightarrow$ La compartición se rechaza.\newline
+\textbf{Paso 2:} No puede prepararse la información de acceso $\rightarrow$ La operación se cancela.\newline
+\textbf{Paso 3:} La firma o la confirmación blockchain fallan $\rightarrow$ El permiso no queda concedido.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El descifrado de la clave simétrica se realiza en el cliente autenticado y el backend completa la re-cifra para el destinatario o nuevo propietario sobre HTTPS. El contenido binario del documento no se vuelve a descifrar en servidor durante esta operación. \\
+\hline
+\caption{Especificación del caso de uso UC-0033}
+\end{longtable}
+
+\ucsubsubsection{UC-0034: Revocar Acceso a Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0034} & Revocar Acceso a Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0004, IRQ-0005, NFR-0001, UC-0033 \\
+\hline
+\textbf{Descripción} & Permite al propietario revocar el acceso de un usuario a un documento, eliminando el permiso vigente en blockchain y actualizando la proyección operativa del sistema. \\
+\hline
+\textbf{Precondición} & Usuario autenticado y propietario del documento. El usuario al que se le revoca el acceso debe tener permisos vigentes sobre el documento. Wallet conectada. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El propietario abre la gestión de accesos y selecciona la revocación del usuario correspondiente.\newline
+\textbf{Paso 2:} El sistema solicita confirmación e informa de las limitaciones sobre copias ya descargadas.\newline
+\textbf{Paso 3:} El backend prepara la operación de revocación.\newline
+\textbf{Paso 4:} El usuario firma la transacción con su wallet.\newline
+\textbf{Paso 5:} La blockchain elimina el permiso y el sistema sincroniza esa revocación en su estado operativo.\newline
+\textbf{Paso 6:} El usuario afectado es notificado y deja de aparecer como destinatario con acceso vigente.\\
+\hline
+\textbf{Postcondición} & El usuario revocado ya no puede acceder al documento desde el sistema. Cualquier copia local ya descargada previamente permanece fuera del alcance de la revocación. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} Intentar revocar al propietario $\rightarrow$ Opción no disponible en la interfaz.\newline
+\textbf{Paso 4:} Usuario rechaza la firma $\rightarrow$ Operación cancelada, permisos sin cambios.\newline
+\textbf{Paso 5:} La transacción revierte $\rightarrow$ Error, permisos sin cambios en ambos sistemas.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Tras la revocación, el usuario no puede descifrar el documento aunque conserve copias del cifrado, porque necesitaría su clave simétrica (eliminada del sistema). Archivos ya descargados en local permanecen accesibles fuera del sistema. \\
+\hline
+\caption{Especificación del caso de uso UC-0034}
+\end{longtable}
+
+\ucsubsubsection{UC-0035: Ver Documentos Compartidos Conmigo}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0035} & Ver Documentos Compartidos Conmigo \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0002, IRQ-0005, NFR-0003, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite al usuario ver de forma diferenciada todos los documentos que otros usuarios han compartido con él, mostrando el propietario, el rol asignado y los permisos disponibles. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. El usuario debe tener al menos un documento compartido con él. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la sección ``Compartidos conmigo'' desde el menú lateral de navegación.\newline
+\textbf{Paso 2:} El frontend envía al backend.\newline
+\textbf{Paso 3:} El backend consulta la base de datos filtrando por el userId del usuario autenticado donde el rol no sea NONE.\newline
+\textbf{Paso 4:} El backend devuelve la lista de documentos compartidos con metadatos del documento, nombre del propietario y rol actual del usuario.\newline
+\textbf{Paso 5:} El frontend muestra la lista con indicador del rol para cada documento compartido, distinguiendo visualmente entre acceso de lectura y acceso de escritura.\newline
+\textbf{Paso 6:} El usuario puede hacer clic en cualquier documento para acceder a su vista de detalle y realizar operaciones según su rol.\\
+\hline
+\textbf{Postcondición} & El usuario visualiza todos los documentos compartidos con él activos, con sus roles correspondientes. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} No hay documentos compartidos con el usuario $\rightarrow$ Se muestra estado vacío con mensaje descriptivo.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Los documentos compartidos también aparecen en el listado general (UC-0017), pero esta vista filtrada mejora la organización y permite al usuario distinguir claramente entre documentos propios y recibidos. \\
+\hline
+\caption{Especificación del caso de uso UC-0035}
+\end{longtable}
+
+\ucsubsubsection{UC-0036: Ver Timeline de Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0036} & Ver Timeline de Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, OBJ-0004, IRQ-0007, NFR-0001, UC-0018 \\
+\hline
+\textbf{Descripción} & Permite al usuario visualizar el historial cronológico de todos los eventos registrados sobre un documento específico: creación, nuevas versiones, firmas, comparticiones, cambios de permisos, descargas y archivados. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. El usuario debe tener acceso al documento. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a la vista de detalle del documento.\newline
+\textbf{Paso 2:} El usuario navega a la pestaña ``Timeline''.\newline
+\textbf{Paso 3:} El frontend envía con parámetros opcionales de filtrado por tipo de evento y rango de fechas.\newline
+\textbf{Paso 4:} El backend verifica los permisos del usuario sobre el documento.\newline
+\textbf{Paso 5:} El backend consulta la base de datos filtrando por documentId y aplicando los filtros.\newline
+\textbf{Paso 6:} El backend devuelve los eventos ordenados cronológicamente (más reciente primero): tipo de evento, fecha, usuario que realizó la acción, datos adicionales y txHash blockchain si aplica.\newline
+\textbf{Paso 7:} El frontend renderiza la línea de tiempo con iconos diferenciados por tipo de evento y colores según tipo de evento.\newline
+\textbf{Paso 8:} El usuario puede abrir el txHash en el explorador blockchain configurado para contrastar la evidencia externa.\\
+\hline
+\textbf{Postcondición} & Historial completo de eventos del documento visible y filtrable. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 4:} Usuario sin acceso $\rightarrow$ Error 403.\newline
+\textbf{Paso 6:} No hay eventos adicionales $\rightarrow$ Se muestra solo el evento de creación del documento.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Los eventos relacionados con blockchain incluyen el txHash para verificación externa. Los eventos de metadatos solo se registran en la base de datos local. \\
+\hline
+\caption{Especificación del caso de uso UC-0036}
+\end{longtable}
+
+\ucsubsubsection{UC-0037: Ver Estadísticas Personales}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0037} & Ver Estadísticas Personales \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0003, IRQ-0007, NFR-0003, UC-0002 \\
+\hline
+\textbf{Descripción} & Permite al usuario consultar indicadores personales básicos derivados de su actividad documental: número de documentos propios, documentos compartidos con él, versiones, firmas y consumo de almacenamiento dentro de la cuota disponible. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El usuario accede a una vista autenticada de la aplicación que muestra indicadores resumidos, como la barra lateral o paneles de contexto.\newline
+\textbf{Paso 2:} El frontend solicita al backend las métricas agregadas del usuario autenticado.\newline
+\textbf{Paso 3:} El backend consulta y agrega datos de documentos, comparticiones, versiones, firmas y almacenamiento consumido.\newline
+\textbf{Paso 4:} El backend devuelve contadores resumidos y la cuota de almacenamiento utilizada.\newline
+\textbf{Paso 5:} El frontend presenta estos indicadores en formato compacto para informar al usuario de su estado operativo, especialmente del espacio disponible y del volumen de actividad.\\
+\hline
+\textbf{Postcondición} & El usuario conoce sus indicadores personales básicos sin abandonar el flujo principal de trabajo. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Usuario sin documentos ni actividad $\rightarrow$ Métricas en 0 y cuota disponible íntegra.\newline
+\textbf{Paso 2:} Error al recuperar estadísticas $\rightarrow$ La interfaz oculta los indicadores resumidos, pero el resto de vistas sigue siendo operable.\\
+\hline
+\textbf{Importancia} & Media \\
+\hline
+\textbf{Urgencia} & Baja \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & En la versión final no se expone como dashboard analítico independiente; se materializa como servicio de métricas resumidas reutilizado por la interfaz autenticada. Las métricas personales se computan dinámicamente sobre las tablas operativas; no se mantiene una tabla de estadísticas desnormalizada por usuario. \\
+\hline
+\caption{Especificación del caso de uso UC-0037}
+\end{longtable}
+
+\ucsubsubsection{UC-0038: Ver Estadísticas Globales del Sistema}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0038} & Ver Estadísticas Globales del Sistema \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, OBJ-0003, IRQ-0007, NFR-0001, UC-0002, UC-0042 \\
+\hline
+\textbf{Descripción} & Permite al administrador del sistema consultar el estado agregado de la plataforma desde el panel administrativo: usuarios, documentos, almacenamiento consumido, estado de servicios y actividad reciente. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido y rol ADMIN. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El administrador accede al panel de administración (\texttt{/app/dashboard}).\newline
+\textbf{Paso 2:} El frontend envía al backend.\newline
+\textbf{Paso 3:} El backend verifica que el usuario tiene rol ADMIN.\newline
+\textbf{Paso 4:} El backend consulta SystemStats y agrega datos de múltiples tablas, además de indicadores de disponibilidad de servicios.\newline
+\textbf{Paso 5:} El backend devuelve: total de usuarios, administradores, documentos, almacenamiento total consumido y listado de usuarios recientes.\newline
+\textbf{Paso 6:} El frontend renderiza tarjetas de resumen, cajas de estado de servicios y pestañas para resumen, gestión de usuarios, logs del sistema y actividad reciente.\\
+\hline
+\textbf{Postcondición} & El administrador tiene visibilidad completa del estado y uso de la plataforma. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Usuario sin rol ADMIN $\rightarrow$ Error 403 ``Acceso restringido al panel de administración''.\newline
+\textbf{Paso 4:} Servicio de estadísticas no disponible $\rightarrow$ El panel muestra error recuperable y permite reintento.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El acceso está estrictamente limitado al rol ADMIN. La vista actual prioriza indicadores operativos y salud del sistema frente a analítica avanzada con gráficas históricas. \\
+\hline
+\caption{Especificación del caso de uso UC-0038}
+\end{longtable}
+
+\ucsubsubsection{UC-0039: Verificar Autenticidad de Documento}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0039} & Verificar Autenticidad de Documento \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0004, OBJ-0005, IRQ-0002, IRQ-0004, IRQ-0005, NFR-0001, NFR-0002 \\
+\hline
+\textbf{Descripción} & Permite a cualquier persona (sin necesidad de estar registrada) verificar criptográficamente la existencia, integridad y trazabilidad de un documento en la blockchain, comprobando que no ha sido alterado desde su registro. \\
+\hline
+\textbf{Precondición} & Ninguna. Este caso de uso es de acceso público y no requiere autenticación. \\
+\hline
+\textbf{Secuencia normal} & \textbf{Paso 1:} La persona accede al área de verificación pública.\newline\textbf{Paso 2:} Elige el método de comprobación: aportar el archivo, indicar el identificador de almacenamiento o facilitar el identificador blockchain.\newline\textbf{Paso 3:} El sistema procesa la información recibida y localiza el registro correspondiente.\newline\textbf{Paso 4:} El sistema contrasta la huella del documento, cuando procede, con la registrada en blockchain.\newline\textbf{Paso 5:} El sistema devuelve el resultado de la comprobación con los datos de trazabilidad disponibles.\newline\textbf{Paso 6:} La interfaz presenta el resultado de forma comprensible para el usuario. \\
+\hline
+\textbf{Postcondición} & El usuario conoce el estado criptográfico del documento: si existe en blockchain, si su contenido coincide con el original y la cadena de custodia completa. \\
+\hline
+\textbf{Excepciones} & \textbf{Paso 4:} Documento no encontrado en blockchain $\rightarrow$ Resultado ``Documento no registrado''.\newline\textbf{Paso 4:} Hash del archivo no coincide con el registrado $\rightarrow$ Resultado ``Documento alterado''.\newline\textbf{Paso 3:} Archivo supera el límite de tamaño (100~MB) $\rightarrow$ Error 413. \\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Feature diferencial del sistema: permite la verificación trustless sin depender del servidor de DocumentChain. Cualquier tercero puede auditar la autenticidad de un documento. \\
+\hline
+\caption{Especificación del caso de uso UC-0039}
+\end{longtable}
+
+\ucsubsubsection{UC-0040: Auditoría Blockchain}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0040} & Auditoría Blockchain \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0002, OBJ-0004, IRQ-0007, NFR-0001, NFR-0002, UC-0038 \\
+\hline
+\textbf{Descripción} & Permite al administrador verificar la integridad del sistema consultando directamente el smart contract de Ethereum: estado del contrato, estadísticas on-chain, eventos recientes y verificación de documentos específicos por su blockchainId. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con rol ADMIN. Nodo Ethereum disponible y sincronizado. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El administrador accede al auditor blockchain desde el panel de administración.\newline
+\textbf{Paso 2:} El sistema consulta el estado del contrato, la red, los contadores principales y la salud del acceso on-chain.\newline
+\textbf{Paso 3:} El administrador puede revisar eventos y métricas recientes del contrato.\newline
+\textbf{Paso 4:} Si desea auditar un documento concreto, introduce su identificador blockchain.\newline
+\textbf{Paso 5:} El backend recupera los datos on-chain y los contrasta con el estado operativo almacenado localmente.\newline
+\textbf{Paso 6:} La interfaz presenta el resultado de la comprobación e indica si existen inconsistencias.\\
+\hline
+\textbf{Postcondición} & El administrador puede verificar la integridad del sistema y detectar inconsistencias entre la base de datos local y el registro blockchain. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 2:} Nodo Ethereum no disponible $\rightarrow$ Error 503 con la última hora de sincronización conocida.\newline
+\textbf{Paso 5:} El blockchainId no existe en el contrato $\rightarrow$ ``Documento no encontrado en blockchain'' (puede indicar estado PREPARING o FAILED).\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El auditor blockchain es esencial para garantizar que la base de datos local no ha sido manipulada. La fuente de verdad definitiva es siempre el smart contract en Ethereum. \\
+\hline
+\caption{Especificación del caso de uso UC-0040}
+\end{longtable}
+
+\ucsubsubsection{UC-0041: Listar Usuarios}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0041} & Listar Usuarios \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, UC-0042 \\
+\hline
+\textbf{Descripción} & Permite al administrador consultar el listado completo de usuarios registrados en el sistema, con capacidad de búsqueda, filtrado por estado y rol, y paginación. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con rol ADMIN. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El administrador accede a la gestión de usuarios.\newline
+\textbf{Paso 2:} El sistema recupera el listado de cuentas registradas.\newline
+\textbf{Paso 3:} El administrador puede buscar, ordenar y filtrar por rol o estado.\newline
+\textbf{Paso 4:} El sistema actualiza la vista con los usuarios que cumplen los criterios indicados.\newline
+\textbf{Paso 5:} El administrador puede seleccionar una cuenta para revisar o iniciar acciones administrativas posteriores.\\
+\hline
+\textbf{Postcondición} & El administrador dispone de la lista completa de usuarios con su estado actual. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 3:} Usuario sin rol ADMIN $\rightarrow$ Error 403.\newline
+\textbf{Paso 4:} Sin usuarios que coincidan con el filtro $\rightarrow$ Lista vacía con mensaje informativo.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Alta \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & Los datos sensibles como contraseñas y claves privadas nunca se exponen en este listado. El administrador puede exportar el listado en CSV. \\
+\hline
+\caption{Especificación del caso de uso UC-0041}
+\end{longtable}
+
+\ucsubsubsection{UC-0042: Gestionar Roles de Usuario}
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+\hline
+\textbf{UC-0042} & Gestionar Roles de Usuario \\
+\hline
+\textbf{Versión} & 1.0 \\
+\hline
+\textbf{Autores} & David Pérez Velasco \\
+\hline
+\textbf{Fuentes} & A. Durán, B. Bernárdez \\
+\hline
+\textbf{Dependencias} & OBJ-0001, IRQ-0001, NFR-0001, UC-0041 \\
+\hline
+\textbf{Descripción} & Permite al administrador cambiar el rol de un usuario entre USER y ADMIN, otorgando o revocando privilegios administrativos sobre el sistema. \\
+\hline
+\textbf{Precondición} & Usuario autenticado con JWT válido y rol ADMIN. Usuario destino existente en el sistema. \\
+\hline
+\textbf{Secuencia normal} &
+\textbf{Paso 1:} El administrador localiza al usuario desde la gestión de usuarios.\newline
+\textbf{Paso 2:} Selecciona el nuevo rol y confirma el cambio.\newline
+\textbf{Paso 3:} El backend valida que la operación no compromete la administración mínima del sistema.\newline
+\textbf{Paso 4:} El sistema actualiza el rol del usuario y revoca sus sesiones activas para aplicar el cambio.\newline
+\textbf{Paso 5:} La operación queda registrada en auditoría.\newline
+\textbf{Paso 6:} La interfaz actualiza el listado mostrando el nuevo rol.\\
+\hline
+\textbf{Postcondición} & Rol del usuario actualizado. Sesiones previas invalidadas. Cambio registrado en auditoría. \\
+\hline
+\textbf{Excepciones} &
+\textbf{Paso 6:} El administrador intenta degradar su propio rol $\rightarrow$ Error 400 ``No puede cambiar su propio rol''.\newline
+\textbf{Paso 6:} El cambio resultaría en 0 administradores $\rightarrow$ Error 400 ``Debe existir al menos un administrador''.\\
+\hline
+\textbf{Importancia} & Alta \\
+\hline
+\textbf{Urgencia} & Media \\
+\hline
+\textbf{Estado} & Completado \\
+\hline
+\textbf{Estabilidad} & Alta \\
+\hline
+\textbf{Comentarios} & El sistema garantiza que siempre exista al menos un usuario con rol ADMIN. La asignación del primer ADMIN se realiza manualmente tras la instalación. \\
+\hline
+\caption{Especificación del caso de uso UC-0042}
+\end{longtable}
+
+\section{Matrices de rastreabilidad}
+
+Las matrices de rastreabilidad establecen relaciones entre los diferentes tipos de requisitos y objetivos, permitiendo verificar cobertura completa y trazabilidad bidireccional.
+
+\subsection{Matriz IRQ-OBJ}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\hline
+\textbf{ID} & \textbf{OBJ-0001} & \textbf{OBJ-0002} & \textbf{OBJ-0003} & \textbf{OBJ-0004} & \textbf{OBJ-0005} & \textbf{OBJ-0006} \\
+\hline
+\hline
+\textbf{IRQ-0001} & X & X & X & & & \\
+\hline
+\textbf{IRQ-0002} & & X & X & & & \\
+\hline
+\textbf{IRQ-0003} & & X & X & & & \\
+\hline
+\textbf{IRQ-0004} & & X & & X & & \\
+\hline
+\textbf{IRQ-0005} & & X & X & X & & \\
+\hline
+\textbf{IRQ-0006} & & & X & & & \\
+\hline
+\textbf{IRQ-0007} & X & X & X & X & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad IRQ-OBJ}
+\label{tab:matriz-irq-obj}
+\end{table}
+
+\subsection{Matriz NFR-IRQ}
+
+{\setlength{\tabcolsep}{3pt}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|p{1.6cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|}
+\hline
+\textbf{ID} & \textbf{IRQ-0001} & \textbf{IRQ-0002} & \textbf{IRQ-0003} & \textbf{IRQ-0004} & \textbf{IRQ-0005} & \textbf{IRQ-0006} & \textbf{IRQ-0007} \\
+\hline
+\hline
+\textbf{NFR-0001} & X & X & X & X & X & & X \\
+\hline
+\textbf{NFR-0002} & & X & X & X & & & X \\
+\hline
+\textbf{NFR-0003} & X & X & X & & X & X & X \\
+\hline
+\textbf{NFR-0004} & & & & & & & \\
+\hline
+\textbf{NFR-0005} & & X & & & & & \\
+\hline
+\textbf{NFR-0006} & & & & & & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad NFR-IRQ}
+\label{tab:matriz-nfr-irq}
+\end{table}}
+
+\subsection{Matriz NFR-NFR}
+
+{\setlength{\tabcolsep}{3pt}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|p{1.6cm}|p{1.65cm}|p{1.65cm}|p{1.65cm}|p{1.65cm}|p{1.65cm}|p{1.65cm}|}
+\hline
+\textbf{ID} & \textbf{NFR-0001} & \textbf{NFR-0002} & \textbf{NFR-0003} & \textbf{NFR-0004} & \textbf{NFR-0005} & \textbf{NFR-0006} \\
+\hline
+\hline
+\textbf{NFR-0001} & --- & X & X & X & X & \\
+\hline
+\textbf{NFR-0002} & X & --- & X & X & & X \\
+\hline
+\textbf{NFR-0003} & X & X & --- & & & \\
+\hline
+\textbf{NFR-0004} & X & X & & --- & & X \\
+\hline
+\textbf{NFR-0005} & X & & & & --- & X \\
+\hline
+\textbf{NFR-0006} & & X & & X & X & --- \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad NFR-NFR (dependencias entre requisitos no funcionales)}
+\label{tab:matriz-nfr-nfr}
+\end{table}}
+
+\subsection{Matriz NFR-OBJ}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\hline
+\textbf{ID} & \textbf{OBJ-0001} & \textbf{OBJ-0002} & \textbf{OBJ-0003} & \textbf{OBJ-0004} & \textbf{OBJ-0005} & \textbf{OBJ-0006} \\
+\hline
+\hline
+\textbf{NFR-0001} & X & X & X & & X & X \\
+\hline
+\textbf{NFR-0002} & & X & & X & & \\
+\hline
+\textbf{NFR-0003} & X & & & & & X \\
+\hline
+\textbf{NFR-0004} & & X & & X & X & \\
+\hline
+\textbf{NFR-0005} & X & X & & & & \\
+\hline
+\textbf{NFR-0006} & X & X & & & & \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad NFR-OBJ}
+\label{tab:matriz-nfr-obj}
+\end{table}
+
+\subsection{Matriz UC-NFR}
+
+\begin{center}
+{\small
+\begin{longtable}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\caption{Matriz de rastreabilidad UC-NFR} \label{tab:matriz-uc-nfr} \\
+\hline
+\textbf{ID} & \textbf{NFR-0001} & \textbf{NFR-0002} & \textbf{NFR-0003} & \textbf{NFR-0004} & \textbf{NFR-0005} & \textbf{NFR-0006} \\
+\hline
+\hline
+\endhead
+\textbf{UC-0001} & X &  & X &  &  &  \\
+\hline
+\textbf{UC-0002} & X &  & X &  &  &  \\
+\hline
+\textbf{UC-0003} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0004} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0005} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0006} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0007} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0008} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0009} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0010} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0011} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0012} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0013} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0014} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0015} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0016} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0017} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0018} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0019} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0020} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0021} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0022} & X &  &  &  & X &  \\
+\hline
+\textbf{UC-0023} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0024} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0025} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0026} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0027} &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0028} &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0029} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0030} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0031} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0032} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0033} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0034} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0035} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0036} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0037} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0038} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0039} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0040} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0041} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0042} & X &  &  &  &  &  \\
+\hline
+
+\end{longtable}
+}
+\end{center}
+
+
+\subsection{Matriz UC-IRQ}
+
+{\setlength{\tabcolsep}{3pt}
+\begin{center}
+{\footnotesize
+\begin{longtable}{|p{1.6cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|p{1.55cm}|}
+\caption{Matriz de rastreabilidad UC-IRQ} \label{tab:matriz-uc-irq} \\
+\hline
+\textbf{ID} & \textbf{IRQ-0001} & \textbf{IRQ-0002} & \textbf{IRQ-0003} & \textbf{IRQ-0004} & \textbf{IRQ-0005} & \textbf{IRQ-0006} & \textbf{IRQ-0007} \\
+\hline
+\hline
+\endhead
+\textbf{UC-0001} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0002} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0003} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0004} &  &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0005} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0006} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0007} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0008} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0009} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0010} & X &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0011} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0012} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0013} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0014} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0015} & X &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0016} &  & X &  &  & X &  &  \\
+\hline
+\textbf{UC-0017} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0018} &  & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0019} &  & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0020} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0021} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0022} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0023} &  & X &  &  & X &  &  \\
+\hline
+\textbf{UC-0024} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0025} &  & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0026} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0027} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0028} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0029} &  & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0030} &  & X &  & X &  &  &  \\
+\hline
+\textbf{UC-0031} &  &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0032} &  &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0033} &  & X &  &  & X &  &  \\
+\hline
+\textbf{UC-0034} &  &  &  &  & X &  &  \\
+\hline
+\textbf{UC-0035} &  & X &  &  & X &  &  \\
+\hline
+\textbf{UC-0036} &  &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0037} &  &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0038} &  &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0039} &  & X &  & X & X &  &  \\
+\hline
+\textbf{UC-0040} &  &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0041} & X &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0042} & X &  &  &  &  &  &  \\
+\hline
+\end{longtable}
+}
+\end{center}
+
+\subsection{Matriz UC-UC}
+
+La matriz UC-UC agrupa los 42 casos de uso principales en siete paquetes funcionales y muestra las dependencias de ejecución entre ellos. Una X indica que el paquete de la fila requiere la funcionalidad del paquete de la columna para su correcto funcionamiento.
+
+Las operaciones de organización documental y de notificaciones se consideran en esta versión subflujos transversales integrados principalmente en los paquetes de documentos, compartición y auditoría, por lo que no se representan como paquetes independientes dentro de la matriz.
+
+{\setlength{\tabcolsep}{3pt}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|p{3.0cm}|p{1.1cm}|p{1.1cm}|p{1.3cm}|p{1.1cm}|p{1.2cm}|p{1.1cm}|p{1.1cm}|}
+\hline
+\textbf{Paquete} & \textbf{Acceso} & \textbf{Docs} & \textbf{Versio\-nado} & \textbf{Firmas} & \textbf{Compar\-tir} & \textbf{Audit.} & \textbf{Admin} \\
+\hline
+\hline
+\textbf{Acceso\newline(01--15)} & --- & & & & & & \\
+\hline
+\textbf{Documentos\newline(16--24)} & X & --- & & & & & \\
+\hline
+\textbf{Versionado\newline(25--29)} & X & X & --- & & & & \\
+\hline
+\textbf{Firmas\newline(30--32)} & X & X & X & --- & & & \\
+\hline
+\textbf{Compartir\newline(33--36)} & X & X & & & --- & & \\
+\hline
+\textbf{Auditoría\newline(37--40)} & X & X & X & X & X & --- & \\
+\hline
+\textbf{Administración\newline(41--42)} & X & & & & & X & --- \\
+\hline
+\end{tabular}
+\caption{Matriz de rastreabilidad UC-UC (dependencias entre paquetes de casos de uso)}
+\label{tab:matriz-uc-uc}
+\end{table}}
+
+\subsection{Matriz UC-OBJ}
+
+\begin{center}
+{\small
+\begin{longtable}{|p{2.2cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
+\caption{Matriz de rastreabilidad UC-OBJ} \label{tab:matriz-uc-obj} \\
+\hline
+\textbf{ID} & \textbf{OBJ-0001} & \textbf{OBJ-0002} & \textbf{OBJ-0003} & \textbf{OBJ-0004} & \textbf{OBJ-0005} & \textbf{OBJ-0006} \\
+\hline
+\hline
+\endhead
+\textbf{UC-0001} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0002} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0003} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0004} &  &  &  &  &  &  \\
+\hline
+\textbf{UC-0005} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0006} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0007} & X & X &  &  &  &  \\
+\hline
+\textbf{UC-0008} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0009} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0010} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0011} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0012} & X &  & X &  &  &  \\
+\hline
+\textbf{UC-0013} & X &  & X &  &  &  \\
+\hline
+\textbf{UC-0014} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0015} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0016} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0017} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0018} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0019} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0020} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0021} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0022} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0023} &  & X & X &  &  & X \\
+\hline
+\textbf{UC-0024} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0025} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0026} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0027} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0028} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0029} &  & X & X &  &  &  \\
+\hline
+\textbf{UC-0030} &  &  &  &  & X &  \\
+\hline
+\textbf{UC-0031} &  & X &  & X &  &  \\
+\hline
+\textbf{UC-0032} &  & X &  & X &  &  \\
+\hline
+\textbf{UC-0033} &  &  &  &  &  & X \\
+\hline
+\textbf{UC-0034} &  & X &  & X &  &  \\
+\hline
+\textbf{UC-0035} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0036} &  &  & X & X &  &  \\
+\hline
+\textbf{UC-0037} &  &  & X &  &  &  \\
+\hline
+\textbf{UC-0038} & X &  & X &  &  &  \\
+\hline
+\textbf{UC-0039} &  & X &  & X & X &  \\
+\hline
+\textbf{UC-0040} &  & X &  & X &  &  \\
+\hline
+\textbf{UC-0041} & X &  &  &  &  &  \\
+\hline
+\textbf{UC-0042} & X &  &  &  &  &  \\
+\hline
+
+\end{longtable}
+}
+\end{center}
+
+
+\section{Propuesta arquitectónica}
+
+La arquitectura de DocumentChain se organiza en capas funcionales desacopladas que permiten el funcionamiento independiente y coordinado de cada subsistema.
+
+\subsection{Arquitectura por paquetes}
+
+Los tres subsistemas de persistencia operan coordinadamente y al mismo nivel dentro de la arquitectura: PostgreSQL para estado relacional mutable, IPFS para contenido binario asociado a cada versión y Ethereum para registro verificable e inmutable. En documentos privados ese contenido se cifra; en documentos públicos se publica en claro de forma explícita.
+
+\begin{itemize}
+    \item \textbf{Paquete de presentación}: Aplicación SPA React + TypeScript + Vite que gestiona la interfaz de usuario, el cifrado local y la comunicación con wallets compatibles.
+    \item \textbf{Paquete de aplicación}: Backend Node.js + Express + TypeScript que expone la API REST y los WebSockets, y orquesta la lógica de negocio.
+    \item \textbf{Paquete de datos relacionales}: Base de datos PostgreSQL accedida mediante Prisma ORM. Almacena metadatos operativos, sesiones, estadísticas y trazas de auditoría consultables.
+    \item \textbf{Paquete blockchain}: Smart contract DocumentRegistry en Solidity desplegado en Ethereum. Actúa como fuente de verdad verificable para propiedad, firmas, permisos y trazabilidad inmutable.
+    \item \textbf{Paquete de almacenamiento distribuido}: backend IPFS compatible que almacena los archivos preparados por el backend sobre un nodo Kubo autoalojado. En documentos privados conserva contenido cifrado con AES-256-GCM; en documentos públicos conserva el binario en claro asociado a un \texttt{publicId}. El CID devuelto se referencia tanto en la BD como en blockchain.
+    \item \textbf{Paquete de comunicación asíncrona}: Event listeners que escuchan eventos del smart contract y sincronizan el estado de la BD con el estado definitivo de la blockchain.
+\end{itemize}
+
+\subsection{Diagrama de arquitectura}
+
+La arquitectura del sistema se ilustra en la Figura~\ref{fig:arquitectura}.
+
+\clearpage
+\begin{landscape}
+\begin{figure}[p]
+    \centering
+    \includegraphics[width=\linewidth,height=0.82\textheight,keepaspectratio]{diagramas/arquitectura.png}
+    \caption{Arquitectura del sistema DocumentChain por paquetes funcionales}
+    \label{fig:arquitectura}
+\end{figure}
+\end{landscape}
+\clearpage
+
+\section{Glosario}
+
+\begin{description}
+    \item[AES-256-GCM] Advanced Encryption Standard con modo Galois/Counter Mode, algoritmo de cifrado simétrico.
+    \item[Argon2id] Función de derivación de claves resistente a ataques de fuerza bruta.
+    \item[Blockchain] Registro distribuido e inmutable de transacciones.
+    \item[CID] Content Identifier, identificador único de contenido en IPFS basado en hash criptográfico.
+    \item[CUID] Collision-resistant Unique Identifier, generador de IDs únicos.
+    \item[RSA-OAEP] Esquema de cifrado asimétrico utilizado para proteger claves simétricas de documentos privados.
+    \item[EIP-191] Ethereum Improvement Proposal para firmas de mensajes estándar.
+    \item[Event Listener] Servicio que escucha eventos emitidos por smart contracts.
+    \item[IPFS] InterPlanetary File System, sistema de archivos distribuido peer-to-peer.
+    \item[JWT] JSON Web Token, estándar de token de autenticación.
+    \item[OpenZeppelin] Biblioteca de smart contracts seguros y auditados.
+    \item[Pinning] Mantener contenido permanentemente disponible en IPFS.
+    \item[Prisma] ORM moderno para TypeScript y Node.js.
+    \item[Re-encriptación] Proceso de cambiar el cifrado de una clave sin exponer el contenido.
+    \item[Smart Contract] Programa auto-ejecutable desplegado en blockchain.
+    \item[TOTP] Time-based One-Time Password, para autenticación de dos factores.
+    \item[TxHash] Transaction Hash, identificador único de transacción blockchain.
+    \item[Wallet] Monedero de criptomonedas con clave privada para firmar transacciones.
+    \item[PublicId] Identificador público corto que permite resolver un documento publicado mediante enlace o código QR.
+\end{description}
+
+\section*{Bibliografía}
+\addcontentsline{toc}{section}{Bibliografía}
+\begin{enumerate}
+  \item Durán, A. y Bernárdez, B. (2001). \textit{Metodología de elicitación de requisitos software}. Universidad de Sevilla.
+  \item OpenZeppelin. (2024). \textit{OpenZeppelin Contracts}. https://docs.openzeppelin.com/contracts
+  \item Protocol Labs. (2024). \textit{IPFS Documentation}. https://docs.ipfs.io
+  \item Buterin, V. (2014). \textit{Ethereum White Paper}. https://ethereum.org
+\end{enumerate}
+
+\end{document}

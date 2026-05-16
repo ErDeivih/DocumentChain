@@ -6,21 +6,25 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
 import { Alert, AlertDescription } from '../components/ui/Alert';
-import { Lock, AlertCircle, Shield } from 'lucide-react';
+import { Lock, AlertCircle } from 'lucide-react';
 
 /**
- * Login Page - Traditional authentication only
- * Users login with username/email and password
- * Wallets are ONLY for signing blockchain transactions, NOT for login
+ * Página de inicio de sesión mediante autenticación tradicional.
+ *
+ * Permite a los usuarios acceder con su nombre de usuario o correo electrónico
+ * y contraseña.
+ * Las wallets se utilizan exclusivamente para firmar transacciones en blockchain,
+ * nunca para autenticarse.
+ *
+ * @returns JSX.Element con el formulario de inicio de sesión.
  */
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, pendingTwoFactor, verifyTwoFactor, cancelTwoFactorLogin } = useAuth();
+  const { login } = useAuth();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [twoFactorCode, setTwoFactorCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -37,6 +41,14 @@ export const Login: React.FC = () => {
     }
   }, []);
 
+  /**
+   * Gestiona el envío del formulario de credenciales.
+   *
+  * Valida los campos obligatorios, ejecuta el login y redirige al usuario
+  * en caso de exito.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -49,10 +61,8 @@ export const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const result = await login({ username, password });
-      if (!result.requires2FA) {
-        navigate(from, { replace: true });
-      }
+      await login({ username, password });
+      navigate(from, { replace: true });
     } catch (err: any) {
       // Extract detailed error message from API response
       let errorMessage = 'Error al iniciar sesión. Por favor, verifique sus credenciales.';
@@ -70,58 +80,20 @@ export const Login: React.FC = () => {
     }
   };
 
-  const handleTwoFactorSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!twoFactorCode.trim()) {
-      setError('Introduzca un código 2FA o un código de respaldo');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await verifyTwoFactor(twoFactorCode);
-      setTwoFactorCode('');
-      navigate(from, { replace: true });
-    } catch (err: any) {
-      let errorMessage = 'No se pudo verificar el segundo factor.';
-
-      if (err.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const isTwoFactorStep = !!pendingTwoFactor;
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_34%),radial-gradient(circle_at_right_top,_rgba(45,212,191,0.12),_transparent_28%),linear-gradient(135deg,#f4fbff_0%,#e7f3fb_48%,#eef7ff_100%)] p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex items-center justify-center mb-4">
             <div className="bg-primary p-3 rounded-full">
-              {isTwoFactorStep ? (
-                <Shield className="w-8 h-8 text-primary-foreground" />
-              ) : (
-                <Lock className="w-8 h-8 text-primary-foreground" />
-              )}
+              <Lock className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-center">
-            {isTwoFactorStep ? 'Verificación 2FA' : 'Iniciar Sesión - DocumentChain'}
+            Iniciar Sesión - DocumentChain
           </CardTitle>
           <CardDescription className="text-center">
-            {isTwoFactorStep
-              ? `Segundo factor requerido para ${pendingTwoFactor?.user.username ?? 'la cuenta seleccionada'}`
-              : 'Gestión segura de documentos en blockchain'}
+            Gestión segura de documentos en blockchain
           </CardDescription>
         </CardHeader>
 
@@ -149,121 +121,65 @@ export const Login: React.FC = () => {
             </Alert>
           )}
 
-          {notice && !isTwoFactorStep && (
+          {notice && (
             <Alert className="mb-4">
               <AlertDescription>{notice}</AlertDescription>
             </Alert>
           )}
 
-          {isTwoFactorStep ? (
-            <>
-              <Alert className="mb-4">
-                <Shield className="h-4 w-4" />
-                <AlertDescription>
-                  Introduzca el código de su aplicación autenticadora o uno de sus códigos de respaldo.
-                </AlertDescription>
-              </Alert>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Nombre de usuario o Email</Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Introduzca su nombre de usuario o email"
+                required
+                disabled={isLoading}
+                autoComplete="username"
+              />
+            </div>
 
-              <form onSubmit={handleTwoFactorSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="twoFactorCode">Código 2FA o de respaldo</Label>
-                  <Input
-                    id="twoFactorCode"
-                    type="text"
-                    value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value.trim())}
-                    placeholder="123456 (TOTP) o ABCD1234 (código de respaldo)"
-                    required
-                    disabled={isLoading}
-                    autoComplete="one-time-code"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Ingrese el código de 6 dígitos de su aplicación autenticadora, o uno de sus códigos de respaldo de 8 caracteres si no tiene acceso al dispositivo.
-                  </p>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Introduzca su contraseña"
+                required
+                disabled={isLoading}
+                autoComplete="current-password"
+              />
+            </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    disabled={isLoading}
-                    onClick={() => {
-                      cancelTwoFactorLogin();
-                      setTwoFactorCode('');
-                      setError(null);
-                    }}
-                  >
-                    Volver
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="default"
-                    className="flex-1"
-                    isLoading={isLoading}
-                  >
-                    {isLoading ? 'Verificando...' : 'Verificar'}
-                  </Button>
-                </div>
-              </form>
-            </>
-          ) : (
-            <>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Nombre de usuario o Email</Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Introduzca su nombre de usuario o email"
-                    required
-                    disabled={isLoading}
-                    autoComplete="username"
-                  />
-                </div>
+            <Button
+              type="submit"
+              variant="default"
+              className="w-full"
+              isLoading={isLoading}
+            >
+              {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
+          </form>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Introduzca su contraseña"
-                    required
-                    disabled={isLoading}
-                    autoComplete="current-password"
-                  />
-                </div>
+          <div className="mt-4 text-center">
+            <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
+              ¿Olvidó su contraseña?
+            </Link>
+          </div>
 
-                <Button
-                  type="submit"
-                  variant="default"
-                  className="w-full"
-                  isLoading={isLoading}
-                >
-                  {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                </Button>
-              </form>
-
-              <div className="mt-4 text-center">
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
-                  ¿Olvidó su contraseña?
-                </Link>
-              </div>
-
-              <div className="mt-4 text-center">
-                <p className="text-sm text-muted-foreground">
-                  ¿No tiene una cuenta?{' '}
-                  <Link to="/register" className="text-primary hover:underline font-medium">
-                    Regístrese aquí
-                  </Link>
-                </p>
-              </div>
-            </>
-          )}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              ¿No tiene una cuenta?{' '}
+              <Link to="/register" className="text-primary hover:underline font-medium">
+                Regístrese aquí
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

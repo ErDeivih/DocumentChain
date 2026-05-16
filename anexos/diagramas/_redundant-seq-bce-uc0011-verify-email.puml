@@ -1,0 +1,45 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0011 y UC-0012: Verificar Email y Reenviar Verificacion (Analisis BCE)
+
+actor Actor
+boundary "VistaRegistro" as BF
+control "GestorAutenticacion" as CG
+entity "Usuario" as EU
+
+database "Base de datos" as DB
+boundary "SistemaEmail" as EM
+
+group UC-0011: Verificar Email
+  Actor -> BF : 1. Accede a enlace de verificacion
+  BF -> CG : 2. Envia token de verificacion
+  CG -> EU : 3. Busca token de verificacion
+  EU -> DB : consulta usuario por token
+  DB --> EU : datos usuario
+  EU --> CG : usuario encontrado
+  CG -> EU : 4. Marca email como verificado
+  EU -> DB : UPDATE email_verified = true
+  DB --> EU : confirmacion
+  EU --> CG : email verificado
+  CG --> BF : 5. Confirmacion
+  BF --> Actor : 6. Muestra exito, permite acceso completo
+end
+
+group UC-0012: Reenviar Email de Verificacion
+  Actor -> BF : 7. Solicita reenviar verificacion
+  BF -> CG : 8. Peticion de reenvio
+  CG -> EU : 9. Verifica que email no esta verificado
+  EU -> DB : consulta estado verificacion
+  DB --> EU : email no verificado
+  EU --> CG : confirmado pendiente
+  CG -> CG : 10. Genera nuevo token
+  CG -> EM : 11. Envia email de verificacion
+  EM --> CG : email enviado
+  CG --> BF : 12. Confirmacion
+  BF --> Actor : 13. Muestra instrucciones
+end
+
+@enduml
+
+

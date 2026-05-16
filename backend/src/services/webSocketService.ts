@@ -7,22 +7,18 @@ import { JWT_SECRET } from '../config/jwt';
 const isLoopbackOrigin = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
 /**
- * WebSocketService - Comunicación en tiempo real
- * 
+ * Servicio de comunicación en tiempo real mediante WebSocket.
+ * Gestiona conexiones autenticadas por JWT, salas por usuario y broadcast de eventos.
+ *
  * Características:
  * - Autenticación mediante JWT
  * - Rooms por usuario (user:userId)
  * - Tracking de conexiones múltiples por usuario
  * - Envío de notificaciones push instantáneas
  * - Broadcast a todos los usuarios
- * 
- * Arquitectura:
- * - Cliente se conecta con token JWT
- * - Server valida token y registra socket
- * - Server puede enviar mensajes a usuario específico o broadcast
- * 
- * ⚠️ IMPORTANTE: WebSocket para datos en TIEMPO REAL
- * NO sustituye a la BD (notificaciones se guardan siempre en BD)
+ *
+ * ⚠️ IMPORTANTE: WebSocket para datos en TIEMPO REAL.
+ * NO sustituye a la base de datos; las notificaciones se persisten siempre.
  */
 class WebSocketService {
   private io: SocketIOServer | null = null;

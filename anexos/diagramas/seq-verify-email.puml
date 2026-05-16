@@ -1,10 +1,10 @@
-@startuml
+﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Pagina de verificacion de email" as ui
 control "Endpoints de email (/api/email)" as api
 control "EmailController" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Abre el enlace recibido por correo
 ui -> api: Verificar token
@@ -18,3 +18,4 @@ srv --> api: Verificacion completada
 api --> ui: Correo validado
 ui --> user: Acceso disponible sin avisos pendientes
 @enduml
+

@@ -1,0 +1,50 @@
+@startuml
+!include _structure-style.puml
+title Ciclo de vida del documento
+
+[*] --> DRAFT : Usuario prepara documento
+
+state DRAFT : Documento en preparacion\n(metadatos definidos, sin contenido en IPFS)
+
+DRAFT --> PREPARING : POST /prepare\n(cifrado local + carga a IPFS)
+
+state PREPARING : Contenido cifrado en IPFS\nEsperando firma del usuario
+
+PREPARING --> TX_PENDING : Usuario firma transaccion
+
+state TX_PENDING : Transaccion enviada a blockchain\nEsperando confirmacion
+
+TX_PENDING --> SYNCED : Evento DocumentRegistered emitido\nEventListenerService sincroniza BD
+
+state SYNCED : Documento activo y sincronizado\nEstado operativo normal
+
+SYNCED --> PREPARING_ARCHIVE : Usuario solicita archivar
+
+state PREPARING_ARCHIVE : Esperando firma para archivar
+
+PREPARING_ARCHIVE --> ARCHIVED : Transaccion de archivado confirmada
+
+state ARCHIVED : Documento archivado\n(oculto en listados, preservado)
+
+ARCHIVED --> SYNCED : Usuario desarchiva
+
+SYNCED --> TRANSFERRED : Owner transfiere propiedad
+
+state TRANSFERRED : Propiedad transferida a nuevo owner\nDocumento permanece activo
+
+ARCHIVED --> DELETED : Owner elimina permanentemente
+
+state DELETED : Documento eliminado\n(registro en BD, contenido eliminado de IPFS)
+
+note right of SYNCED
+  Las operaciones de versionado,
+  firma y comparticion mantienen
+  el documento en estado SYNCED
+end note
+
+note right of PREPARING
+  Si el usuario rechaza la firma,
+  el estado vuelve a DRAFT
+end note
+
+@enduml

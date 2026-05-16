@@ -14,7 +14,6 @@ import './workers/blockchainSync'; // Start blockchain sync worker
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { generalLimiter, authLimiter, uploadLimiter, auditLimiter } from './middleware/rateLimiter';
-import { checkSystemPaused } from './middleware/checkSystemPaused';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -27,17 +26,16 @@ import publicDocumentRoutes from './routes/publicDocuments';
 import versionRoutes from './routes/versions';
 import signatureRoutes from './routes/signatures';
 import shareRoutes from './routes/shares';
-import statsRoutes from './routes/stats';
 import folderRoutes from './routes/folderRoutes';
 import verificationRoutes from './routes/verificationRoutes';
 import logRoutes from './routes/logRoutes';
 import auditRoutes from './routes/audit'; // Auditoría pública (sin autenticación)
 import healthRoutes from './routes/health.routes';
-import notificationRoutes from './routes/notification.routes';
 import adminRoutes from './routes/admin'; // Admin panel routes
 import timelineRoutes from './routes/timeline'; // Timeline routes
 import configRoutes from './routes/config'; // Blockchain config routes
 import transferRoutes from './routes/transferRoutes'; // Transfer ownership routes
+import notificationRoutes from './routes/notifications';
 
 // Import services
 import webSocketService from './services/webSocketService';
@@ -46,6 +44,9 @@ import eventListenerService from './services/eventListenerService';
 // Cargar variables de entorno
 dotenv.config();
 
+/**
+ * Instancia principal de la aplicación Express.
+ */
 const app: Express = express();
 
 // The app is served behind nginx in Docker and demo environments.
@@ -103,10 +104,6 @@ app.get('/api-docs.json', (req, res) => {
 // Rate limiting global
 app.use('/api/', generalLimiter);
 
-// System pause check (Circuit Breaker Pattern)
-// Bloquea operaciones de escritura cuando el sistema está pausado
-app.use('/api/', checkSystemPaused);
-
 // API Routes con rate limiters específicos
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
@@ -120,17 +117,16 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/versions', versionRoutes);
 app.use('/api/signatures', signatureRoutes);
 app.use('/api/shares', shareRoutes);
-app.use('/api/stats', statsRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/verify', verificationRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/audit', auditLimiter, auditRoutes); // Auditoría pública (SIN autenticación requerida)
 app.use('/api/health', healthRoutes); // Health check endpoints
-app.use('/api/notifications', notificationRoutes); // Notification endpoints
 app.use('/api/admin', adminRoutes); // Admin panel (requires admin role)
 app.use('/api/timeline', timelineRoutes); // Document timeline
 app.use('/api/config', configRoutes); // Blockchain config (contracts, ABIs)
 app.use('/api/transfers', transferRoutes); // Transfer ownership
+app.use('/api/notifications', notificationRoutes);
 
 // Rutas de prueba
 app.get('/', (req: Request, res: Response) => {
@@ -158,6 +154,13 @@ let mainServer: http.Server | https.Server | null = null;
 let redirectServer: http.Server | null = null;
 let isShuttingDown = false;
 
+/**
+ * Cierra de forma controlada un servidor HTTP o HTTPS.
+ *
+ * @param server - Instancia del servidor a cerrar, o `null`.
+ * @param name - Nombre descriptivo del servidor (para logging).
+ * @returns Promesa que se resuelve cuando el servidor ha cerrado.
+ */
 const closeServer = (server: http.Server | https.Server | null, name: string): Promise<void> => {
   if (!server) {
     return Promise.resolve();
@@ -177,6 +180,12 @@ const closeServer = (server: http.Server | https.Server | null, name: string): P
   });
 };
 
+/**
+ * Inicia el apagado ordenado de la aplicación ante una señal del sistema.
+ * Cierra WebSockets, servidores, listeners de eventos y la conexión a base de datos.
+ *
+ * @param signal - Nombre de la señal recibida (por ejemplo, `SIGINT` o `SIGTERM`).
+ */
 const shutdown = async (signal: string): Promise<void> => {
   if (isShuttingDown) {
     logger.warn(`Apagado ya en curso, señal ignorada: ${signal}`);
@@ -212,6 +221,10 @@ process.once('SIGTERM', () => {
   void shutdown('SIGTERM');
 });
 
+/**
+ * Crea e inicia el servidor HTTP con los tiempos de espera configurados
+ * para soportar subidas grandes, e inicializa los servicios de WebSocket y blockchain.
+ */
 const startHttpServer = () => {
   const httpServer = http.createServer(app);
   mainServer = httpServer;
@@ -290,4 +303,7 @@ if (USE_HTTPS) {
   startHttpServer();
 }
 
+/**
+ * Exportación por defecto de la instancia de Express para pruebas y uso externo.
+ */
 export default app;

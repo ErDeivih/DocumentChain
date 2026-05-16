@@ -1,0 +1,45 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0027: Firmar documento (Análisis BCE)
+
+actor "Usuario autenticado con wallet" as user
+boundary "Modal de firma" as ui
+control "Gestor de firmas" as ctrl
+entity "Documento" as doc
+entity "Versión" as ver
+entity "Firma" as sig
+entity "Wallet" as wallet
+
+user -> ui: Seleccionar "Firmar"
+ui -> ctrl: Solicitar firma (idDocumento)
+ctrl -> doc: Verificar permisos y estado
+doc --> ctrl: Documento accesible, no archivado
+
+ctrl -> ver: Obtener versión operacional
+ver --> ctrl: Versión operacional
+
+ui --> user: Mostrar modal (seleccionar wallet, confirmar)
+
+user -> ui: Seleccionar wallet y confirmar firma
+ui -> ctrl: Solicitar firma con wallet (idDocumento, idWallet)
+
+ctrl -> wallet: Verificar wallet pertenece al usuario
+wallet --> ctrl: Wallet válida
+
+ctrl -> sig: Crear solicitud de firma (documento, versión, wallet)
+sig --> ctrl: Solicitud de firma creada
+
+ctrl -> wallet: Solicitar firma criptográfica (hash del documento)
+wallet --> ctrl: Firma criptográfica generada
+
+ctrl -> sig: Registrar firma (hash, wallet, timestamp)
+sig --> ctrl: Firma registrada
+
+ctrl -> doc: Actualizar estado de firmas
+doc --> ctrl: Estado actualizado
+
+ctrl --> ui: Documento firmado
+ui --> user: Confirmación + certificado de firma
+
+@enduml

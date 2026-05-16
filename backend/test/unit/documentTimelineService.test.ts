@@ -25,6 +25,7 @@ jest.mock('../../src/config/database', () => ({
 jest.mock('../../src/lib/blockchain/queries', () => ({
   BlockchainQueries: {
     canRead: jest.fn(),
+    isOwner: jest.fn(),
   },
 }));
 
@@ -49,6 +50,7 @@ describe('DocumentTimelineService', () => {
     mockPrisma.wallet.findFirst.mockResolvedValue({
       walletAddress: '0xabc',
     } as any);
+    mockBlockchainQueries.isOwner.mockResolvedValue(true);
     mockPrisma.version.findMany.mockResolvedValue([
       {
         id: 'version-1',
@@ -184,6 +186,7 @@ describe('DocumentTimelineService', () => {
     mockPrisma.wallet.findFirst.mockResolvedValue({
       walletAddress: '0xrecipient',
     } as any);
+    mockBlockchainQueries.isOwner.mockResolvedValue(false);
     mockBlockchainQueries.canRead.mockResolvedValue(true);
     mockPrisma.version.findMany.mockResolvedValue([] as any);
     mockPrisma.documentSignature.findMany.mockResolvedValue([] as any);

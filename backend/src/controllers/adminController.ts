@@ -4,13 +4,21 @@ import { Argon2Service } from '../services/argon2Service';
 import { KeyManager } from '../lib/crypto/KeyManager';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
-import { SystemService } from '../services/systemService';
 import { BlockchainAdminService } from '../services/blockchainAdminService';
 
+/**
+ * Controlador de administración.
+ * Gestiona las operaciones exclusivas de los administradores del sistema,
+ * incluyendo la gestión de usuarios, estadísticas y sincronización con blockchain.
+ */
 export class AdminController {
   /**
-   * Obtener todos los usuarios (solo admin)
-   * GET /api/admin/users
+   * Obtiene todos los usuarios registrados en el sistema.
+   * Endpoint: GET /api/admin/users
+   *
+   * @param req - Objeto de solicitud HTTP autenticado como administrador.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de usuarios y sus metadatos.
    */
   static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
@@ -23,10 +31,6 @@ export class AdminController {
           role: true,
           createdAt: true,
           updatedAt: true,
-          twoFactorEnabled: true,
-          isSuspended: true,
-          suspendedAt: true,
-          suspendReason: true,
           _count: {
             select: {
               documents: true,
@@ -49,9 +53,12 @@ export class AdminController {
   }
 
   /**
-   * Actualizar rol de usuario (solo admin)
-   * PUT /api/admin/users/:userId/role
-   * Body: { role: 'USER' | 'ADMIN' }
+   * Actualiza el rol de un usuario específico.
+   * Endpoint: PUT /api/admin/users/:userId/role
+   *
+   * @param req - Objeto de solicitud HTTP. El cuerpo debe contener { role: 'USER' | 'ADMIN' }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el usuario actualizado.
    */
   static async updateUserRole(req: Request, res: Response): Promise<void> {
     try {
@@ -139,9 +146,12 @@ export class AdminController {
   }
 
   /**
-   * Crear nuevo usuario administrador (solo admin)
-   * POST /api/admin/users
-   * Body: { username, email, password, fullName? }
+   * Crea un nuevo usuario con rol de administrador.
+   * Endpoint: POST /api/admin/users
+   *
+   * @param req - Objeto de solicitud HTTP. El cuerpo debe contener { username, email, password, fullName? }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el administrador creado y su clave de recuperación.
    */
   static async createAdminUser(req: Request, res: Response): Promise<void> {
     try {
@@ -202,20 +212,7 @@ export class AdminController {
         }
       });
 
-      // Crear estadísticas
-      await prisma.userStats.create({
-        data: {
-          userId: newAdmin.id,
-          totalDocuments: 0,
-          totalSize: BigInt(0),
-          totalShared: 0,
-          totalDownloads: 0,
-          totalSignatures: 0,
-          totalTransfers: 0,
-          totalRestores: 0,
-          totalUnpins: 0
-        }
-      });
+      // Estadísticas de usuario se calculan dinámicamente desde blockchain
 
       logger.info(`Nuevo usuario admin creado: ${newAdmin.username} por ${req.user?.userId}`);
 
@@ -255,8 +252,12 @@ export class AdminController {
   }
 
   /**
-   * Eliminar usuario (solo admin)
-   * DELETE /api/admin/users/:userId
+   * Elimina un usuario del sistema de forma permanente.
+   * Endpoint: DELETE /api/admin/users/:userId
+   *
+   * @param req - Objeto de solicitud HTTP. Los parámetros deben incluir el ID del usuario.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de eliminación.
    */
   static async deleteUser(req: Request, res: Response): Promise<void> {
     try {
@@ -318,8 +319,12 @@ export class AdminController {
   }
 
   /**
-   * Obtener estadísticas del sistema (solo admin)
-   * GET /api/admin/stats
+   * Obtiene estadísticas generales del sistema.
+   * Endpoint: GET /api/admin/stats
+   *
+   * @param req - Objeto de solicitud HTTP autenticado como administrador.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el resumen estadístico del sistema.
    */
   static async getSystemStats(req: Request, res: Response): Promise<void> {
     try {
@@ -327,15 +332,11 @@ export class AdminController {
         totalUsers,
         totalAdmins,
         totalDocuments,
-        totalStorageUsed,
         recentUsers
       ] = await Promise.all([
         prisma.user.count(),
         prisma.user.count({ where: { role: 'ADMIN' } }),
         prisma.document.count(),
-        prisma.userStats.aggregate({
-          _sum: { totalSize: true }
-        }),
         prisma.user.findMany({
           take: 5,
           orderBy: { createdAt: 'desc' },
@@ -354,112 +355,12 @@ export class AdminController {
           totalAdmins,
           totalRegularUsers: totalUsers - totalAdmins,
           totalDocuments,
-          totalStorageUsed: totalStorageUsed._sum?.totalSize?.toString() || '0',
           recentUsers
         }
       });
     } catch (error: any) {
       logger.error('Error al obtener estadísticas del sistema:', error);
       res.status(500).json({ error: 'Error al obtener las estadísticas del sistema' });
-    }
-  }
-
-  /**
-   * Obtener estado del sistema (pausa de emergencia)
-   * GET /api/admin/system/status
-   */
-  static async getSystemStatus(req: Request, res: Response): Promise<void> {
-    try {
-      const status = await SystemService.getSystemStatus();
-
-      res.status(200).json({
-        success: true,
-        status
-      });
-    } catch (error: any) {
-      logger.error('Error al obtener estado del sistema:', error);
-      res.status(500).json({ error: 'Error al obtener el estado del sistema' });
-    }
-  }
-
-  /**
-   * Pausar el sistema (Circuit Breaker)
-   * POST /api/admin/system/pause
-   * Body: { reason: string }
-   */
-  static async pauseSystem(req: Request, res: Response): Promise<void> {
-    try {
-      const { reason } = req.body;
-
-      if (!reason || reason.trim().length === 0) {
-        res.status(400).json({ error: 'Debe proporcionar una razón para pausar el sistema' });
-        return;
-      }
-
-      const userId = req.user?.userId as string;
-
-      logger.warn(`[ADMIN] Usuario ${userId} está pausando el sistema, razón: ${reason}`);
-
-      const status = await SystemService.pauseSystem({
-        userId,
-        reason: reason.trim()
-      });
-
-      res.status(200).json({
-        success: true,
-        message: 'Sistema pausado correctamente',
-        status
-      });
-    } catch (error: any) {
-      logger.error('Error al pausar el sistema:', error);
-      res.status(500).json({ error: 'Error al pausar el sistema: ' + error.message });
-    }
-  }
-
-  /**
-   * Despausar el sistema
-   * POST /api/admin/system/unpause
-   */
-  static async unpauseSystem(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId as string;
-
-      logger.info(`[ADMIN] Usuario ${userId} está despausando el sistema`);
-
-      const status = await SystemService.unpauseSystem(userId);
-
-      res.status(200).json({
-        success: true,
-        message: 'Sistema despausado correctamente',
-        status
-      });
-    } catch (error: any) {
-      logger.error('Error al despausar el sistema:', error);
-      res.status(500).json({ error: 'Error al despausar el sistema: ' + error.message });
-    }
-  }
-
-  /**
-   * Sincronizar todos los administradores con blockchain
-   * POST /api/admin/sync/admins
-   */
-  static async syncAdminsToBlockchain(req: Request, res: Response): Promise<void> {
-    try {
-      logger.info(`[ADMIN] Usuario ${req.user?.userId} solicitó sincronizar administradores con blockchain`);
-
-      const results = await BlockchainAdminService.syncAllAdmins();
-
-      const successful = results.filter(r => r.success).length;
-      const failed = results.filter(r => !r.success).length;
-
-      res.status(200).json({
-        success: true,
-        message: `Sincronización completada: ${successful} exitosas, ${failed} fallidas`,
-        results
-      });
-    } catch (error: any) {
-      logger.error('Error al sincronizar administradores:', error);
-      res.status(500).json({ error: 'Error al sincronizar administradores: ' + error.message });
     }
   }
 }

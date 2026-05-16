@@ -23,6 +23,14 @@ import notificationService, { NotificationType } from './notificationService';
 // Types
 // ============================================
 
+/**
+ * Información básica de una firma digital.
+ * @property id - Identificador de la firma
+ * @property documentId - ID del documento firmado
+ * @property versionId - ID de la versión firmada
+ * @property signerWalletId - Wallet utilizada para firmar
+ * @property blockchainStatus - Estado de sincronización en blockchain
+ */
 export interface SignatureInfo {
   id: string;
   documentId: string;
@@ -31,6 +39,15 @@ export interface SignatureInfo {
   blockchainStatus: BlockchainStatus;
 }
 
+/**
+ * Resumen del firmante de un documento.
+ * @property userId - ID del usuario firmante
+ * @property username - Nombre de usuario
+ * @property fullName - Nombre completo
+ * @property walletAddress - Dirección de la wallet firmante
+ * @property source - Origen de los datos (live o snapshot histórico)
+ * @property avatarUrl - URL del avatar
+ */
 export interface SignerSummary {
   userId: string | null;
   username: string | null;
@@ -40,6 +57,19 @@ export interface SignerSummary {
   avatarUrl: string | null;
 }
 
+/**
+ * Vista completa de una firma digital.
+ * @property id - Identificador de la firma
+ * @property documentId - ID del documento
+ * @property versionId - ID de la versión
+ * @property versionNumber - Número de versión
+ * @property userId - ID del usuario
+ * @property signerWalletId - Wallet del firmante
+ * @property signedAt - Fecha de firma
+ * @property blockchainStatus - Estado en blockchain
+ * @property blockchainTxHash - Hash de la transacción
+ * @property signer - Datos del firmante
+ */
 export interface SignatureView {
   id: string;
   documentId: string;
@@ -53,6 +83,13 @@ export interface SignatureView {
   signer: SignerSummary;
 }
 
+/**
+ * Datos de entrada para preparar una firma.
+ * @property documentId - ID del documento a firmar
+ * @property versionNumber - Número de versión objetivo
+ * @property signerUserId - ID del usuario firmante
+ * @property signerWalletId - Wallet del firmante
+ */
 export interface PrepareSignatureInput {
   documentId: string;
   versionNumber: number;
@@ -60,6 +97,14 @@ export interface PrepareSignatureInput {
   signerWalletId: string;
 }
 
+/**
+ * Resultado de la preparación de una firma.
+ * @property blockchainId - ID del documento en blockchain
+ * @property versionId - Número de versión
+ * @property contentHash - Hash del contenido del documento
+ * @property messageToSign - Mensaje legible para firmar en MetaMask
+ * @property signatureId - ID de la firma creada en base de datos
+ */
 export interface PrepareSignatureResult {
   blockchainId: string;
   versionId: number;
@@ -68,6 +113,13 @@ export interface PrepareSignatureResult {
   signatureId: string;
 }
 
+/**
+ * Datos de entrada para confirmar una firma.
+ * @property signatureId - ID de la firma en base de datos
+ * @property txHash - Hash de la transacción blockchain
+ * @property ecdsaSignature - Firma ECDSA del contentHash
+ * @property confirmerUserId - ID del usuario que confirma
+ */
 export interface ConfirmSignatureInput {
   signatureId: string;
   txHash: string;
@@ -79,6 +131,11 @@ export interface ConfirmSignatureInput {
 // Signature Service Class
 // ============================================
 
+/**
+ * Servicio de gestión de firmas digitales sobre documentos.
+ * Implementa el patrón prepare/confirm donde el backend prepara el registro
+ * y el frontend firma la transacción en blockchain.
+ */
 export class SignatureService {
   /**
    * Prepare a signature for creation
@@ -131,26 +188,17 @@ export class SignatureService {
       throw new Error('No se pueden firmar documentos archivados');
     }
 
-    // Check if user has access (owner or shared) using the same wallet-aware
-    // strategy as the shared document detail flow.
-    let hasAccess = document.ownerId === signerUserId;
+    // Verify access: if blockchainId exists, consult smart contract FIRST (single source of truth).
+    // Fallback to PostgreSQL ownerId only for documents not yet on chain.
+    let hasAccess: boolean;
 
-    if (!hasAccess) {
-      const blockchainDocuments = await BlockchainQueries.getUserDocuments(signerWallet.walletAddress);
-      hasAccess = blockchainDocuments.includes(document.blockchainId);
-    }
-
-    if (!hasAccess) {
-      const { ShareService } = await import('./shareService');
-      const fallbackShares = await ShareService.getSharedWithUser(signerUserId);
-      hasAccess = fallbackShares.some((share) => share.documentId === documentId);
-    }
-
-    if (!hasAccess) {
+    if (document.blockchainId) {
       hasAccess = await DocumentPermissionService.canView(
         document.blockchainId,
         signerWallet.walletAddress
       );
+    } else {
+      hasAccess = document.ownerId === signerUserId;
     }
 
     if (!hasAccess) {

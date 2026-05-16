@@ -1,6 +1,11 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Valor del contexto de pestañas.
+ * @property value - Valor de la pestaña activa.
+ * @property onValueChange - Función que cambia la pestaña activa.
+ */
 interface TabsContextValue {
   value: string;
   onValueChange: (value: string) => void;
@@ -8,6 +13,14 @@ interface TabsContextValue {
 
 const TabsContext = React.createContext<TabsContextValue | undefined>(undefined);
 
+/**
+ * Props del componente Tabs.
+ * @property defaultValue - Valor inicial de la pestaña activa.
+ * @property value - Valor controlado de la pestaña activa.
+ * @property onValueChange - Función que se ejecuta al cambiar de pestaña.
+ * @property children - Contenido de las pestañas.
+ * @property className - Clases CSS adicionales.
+ */
 interface TabsProps {
   defaultValue?: string;
   value?: string;
@@ -16,6 +29,10 @@ interface TabsProps {
   className?: string;
 }
 
+/**
+ * Componente contenedor de pestañas que gestiona el estado activo.
+ * @param props - Props del componente Tabs.
+ */
 const Tabs: React.FC<TabsProps> = ({
   defaultValue,
   value: controlledValue,
@@ -41,6 +58,10 @@ const Tabs: React.FC<TabsProps> = ({
   );
 };
 
+/**
+ * Lista de botones de navegación de pestañas.
+ * @param props - Props del componente TabsList.
+ */
 const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
@@ -55,10 +76,19 @@ const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
 );
 TabsList.displayName = 'TabsList';
 
+/**
+ * Props del componente TabsTrigger.
+ * @property value - Valor de la pestaña que activa este botón.
+ * @property className - Clases CSS adicionales.
+ */
 interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value: string;
 }
 
+/**
+ * Botón que activa una pestaña específica.
+ * @param props - Props del componente TabsTrigger.
+ */
 const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
   ({ className, value, ...props }, ref) => {
     const context = React.useContext(TabsContext);
@@ -90,10 +120,19 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
 );
 TabsTrigger.displayName = 'TabsTrigger';
 
+/**
+ * Props del componente TabsContent.
+ * @property value - Valor de la pestaña cuyo contenido se renderiza.
+ * @property className - Clases CSS adicionales.
+ */
 interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string;
 }
 
+/**
+ * Contenido asociado a una pestaña específica.
+ * @param props - Props del componente TabsContent.
+ */
 const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
   ({ className, value, children, ...props }, ref) => {
     const context = React.useContext(TabsContext);

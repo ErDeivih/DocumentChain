@@ -1,0 +1,606 @@
+ANEXO VII
+Esquemas electrónicos, diseño y montaje del
+robot.
+Diseño y desarrollo de una plataforma robótica para la
+agilización de procesos en la hostelería
+Trabajo de Fin de Grado
+Grado en Ingeniería Informática
+
+Julio 2022
+
+Autor
+David Cruz García
+
+Tutores
+André Filipe Sales Mendes
+Gabriel Villarrubia González
+Juan Francisco de Paz Santana
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Tabla de contenido
+1 Introducción ............................................................................ 5
+2 Manual de montaje ................................................................... 6
+2.1 Listados de piezas .............................................................. 7
+2.2 Cortes y fabricación piezas de madera ............................... 9
+2.3 Montaje ............................................................................. 10
+3 Manual de cableado ................................................................ 22
+4 Resultado final ........................................................................ 24
+5 Referencias ............................................................................. 26
+
+2
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Índice de tablas
+Tabla 1. Listado de piezas........................................................................................ 8
+Tabla 2. Listado de piezas 3D .................................................................................. 8
+Tabla 3. Piezas montaje base con laterales. .......................................................... 10
+Tabla 4. Piezas montaje fondo parar dispensadores. ............................................. 11
+Tabla 5. Piezas para montaje piezas robot ............................................................. 12
+Tabla 6. Piezas montaje listones. ........................................................................... 13
+Tabla 7. Piezas montaje barras soporte robot. ....................................................... 14
+Tabla 8. Piezas montaje plataforma deslizante. ..................................................... 15
+Tabla 9. Piezas montaje empuje dispensadores. ................................................... 16
+Tabla 10. Piezas montaje barras de acero y otros componentes. ........................... 17
+Tabla 11. Piezas montaje caja arduino y ramps ..................................................... 18
+Tabla 12. Piezas montaje cajas traseras. ............................................................... 19
+Tabla 13. Piezas montaje cadena. ......................................................................... 20
+
+3
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Índice de ilustraciones
+Ilustración 1. Cortes base y fondo con tablero DM nº 1. ........................................... 9
+Ilustración 2. Cortes laterales con tablero DM nº2. ................................................... 9
+Ilustración 3. Cortes listones. ................................................................................... 9
+Ilustración 4. Cortes barras de soporte bajo robot con tablero DM nº2. .................... 9
+Ilustración 5. Montaje base con laterales................................................................ 10
+Ilustración 6. Montaje fondo para dispensadores. .................................................. 11
+Ilustración 7. Montaje primeras piezas del robot. .................................................... 12
+Ilustración 8. Montaje primeras piezas del robot vista superior. .............................. 12
+Ilustración 9. Montaje de listones en la parte trasera .............................................. 13
+Ilustración 10. Montaje de barras de soporte bajo el robot. .................................... 14
+Ilustración 11. Montaje base deslizante del robot. .................................................. 15
+Ilustración 12. Montaje tornillos y empuje de dispensadores a la base deslizante. . 16
+Ilustración 13. Montaje barras, base deslizante y resto de componentes. .............. 17
+Ilustración 14. Montaje componentes anteriores, visto desde detrás. ..................... 17
+Ilustración 15. Montaje caja para Arduino, Ramps y cableado. .............................. 18
+Ilustración 16. Montaje cajas traseras. ................................................................... 19
+Ilustración 17. Montaje cadena. .............................................................................. 20
+Ilustración 18. Montaje cadena en la estructura. .................................................... 20
+Ilustración 19. Cableado completo. ........................................................................ 23
+
+4
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+1 Introducción
+En este documento se recogerán el manual de montaje y de cableado necesarios
+para la construcción del robot, además del listado de piezas necesario para cada fase
+del montaje.
+Una vez finalizado ambos manuales que explican de forma visual como llevar a cabo
+el montaje del robot, se mostrará el resultado final obtenido.
+
+5
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+6
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+2.1 Listados de piezas
+
+LISTADO DE PIEZAS
+Cantidad
+
+Nombre y descripción
+
+2
+
+Tableros 120x60x1,6cm de madera DM
+
+4
+
+Listones de madera de 4,4x1,8x60cm
+
+2
+
+Barras de acero de 1m de largo (Φ8mm)
+
+6
+
+Dispensadores de líquido de 45ml
+
+1
+
+Fuente de alimentación de 12V
+
+1
+
+Raspberry PI 4
+
+1
+
+Arduino MEGA 2560
+
+1
+
+Controlador RAMPS 1.4
+
+2
+
+Controlador motor de pasos Pololu A4988
+
+3
+
+Motores de pasos NEMA 17
+
+1
+
+Switch fin de carrera
+
+1
+
+Polea 5mm y 20 dientes
+
+1
+
+Correa GT2 2mm con paso de 6mm (5m de longitud)
+
+1
+
+Diodo led RGB
+
+3
+
+Resistencias 270Ω
+
+3
+
+Rodamiento de bolas de movimiento lineal, Φ8mm
+
+1
+
+Ventilador 40x40mm
+
+1
+
+Ventilador 50x50mm
+
+36
+
+Tornillos para madera, M3.5
+
+24
+
+Tornillos M3
+
+16
+
+Tuercas M3
+
+5
+
+Tornillos M4
+
+7
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+4
+
+Tuercas M4
+
+10
+
+Puntas
+Tabla 1. Listado de piezas
+
+LISTADO DE PIEZAS IMPRESAS EN 3D
+Cantidad
+
+Nombre y descripción
+
+1
+
+Base izquierda con tensor para correa
+
+1
+
+Base derecha con espacio para motor y fin de carrera
+
+1
+
+Plataforma deslizante para vaso con espacio para motores y LED
+
+1
+
+Paleta de empuje de dispensadores
+
+2
+
+Tornillos personalizados para empuje de la paleta de empuje
+
+40
+
+Piezas para montaje de cadena de cables
+
+1
+
+Caja para Raspberry PI 4
+
+1
+
+Caja para Arduino, ramps y cableado
+
+2
+
+Tapones para agujeros pasacables
+
+4
+
+Patas para la estructura
+Tabla 2. Listado de piezas 3D
+
+8
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+2.2 Cortes y fabricación piezas de madera
+
+Ilustración 1. Cortes base y fondo con tablero DM nº 1.
+
+Ilustración 2. Cortes laterales
+con tablero DM nº2.
+
+Ilustración 3. Cortes listones.
+
+Ilustración 4. Cortes barras de soporte bajo robot con tablero DM nº2.
+
+9
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+2.3 Montaje
+
+Ilustración 5. Montaje base con laterales.
+
+Cantidad
+
+Nombre
+
+1
+
+Base de madera (32x120cm)
+
+2
+
+Laterales de madera
+
+4
+
+Tornillos madera M3.5
+Tabla 3. Piezas montaje base con laterales.
+
+10
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 6. Montaje fondo para dispensadores.
+
+Cantidad
+
+Nombre
+
+1
+
+Fondo para dispensadores (28x120cm)
+
+4
+
+Tornillos madera M3.5
+Tabla 4. Piezas montaje fondo parar dispensadores.
+
+11
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 7. Montaje primeras piezas del robot.
+
+Ilustración 8. Montaje primeras piezas del robot vista superior.
+
+Cantidad
+
+Nombre
+
+1
+
+Pieza 3D base izquierda con tensor para correa
+
+1
+
+Pieza 3D base derecha con espacio para motor y fin de carrera
+
+2
+
+Pieza 3D tapones para agujeros pasacables
+
+7
+
+Tornillos madera M3.5
+Tabla 5. Piezas para montaje piezas robot
+
+12
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 9. Montaje de listones en la parte trasera
+
+Cantidad
+
+Nombre
+
+4
+
+Listones de madera
+
+12
+
+Tornillos madera M3.5
+Tabla 6. Piezas montaje listones.
+
+13
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 10. Montaje de barras de soporte bajo el robot.
+
+Cantidad
+
+Nombre
+
+2
+
+Barras de soporte bajo robot
+
+10
+
+Puntas
+Tabla 7. Piezas montaje barras soporte robot.
+
+14
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 11. Montaje base deslizante del robot.
+
+Cantidad
+
+Nombre
+
+1
+
+Pieza 3D plataforma deslizante para vaso con espacio para motores y
+LED
+
+2
+
+Motores NEMA 17
+
+3
+
+Rodamientos de bolas para movimiento lineal
+
+1
+
+Led RGB
+
+8
+
+Tornillos M3
+Tabla 8. Piezas montaje plataforma deslizante.
+
+15
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 12. Montaje tornillos y empuje de dispensadores a la base deslizante.
+
+Cantidad
+
+Nombre
+
+1
+
+Paleta de empuje de dispensadores
+
+2
+
+Tornillos personalizados para empuje de la paleta de empuje
+Tabla 9. Piezas montaje empuje dispensadores.
+
+16
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 13. Montaje barras, base deslizante y resto de componentes.
+
+Ilustración 14. Montaje componentes anteriores, visto desde detrás.
+
+Cantidad
+
+Nombre
+
+2
+
+Barras de acero de 1m
+
+4
+
+Tornillos M4
+
+4
+
+Tuercas M4
+
+1
+
+Motor nema 17
+
+1
+
+Fin de carrera
+Tabla 10. Piezas montaje barras de acero y otros componentes.
+
+17
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 15. Montaje caja para Arduino, Ramps y cableado.
+
+Cantidad
+
+Nombre
+
+1
+
+Pieza 3D base caja
+
+2
+
+Pieza 3D lateral
+
+1
+
+Pieza 3D lateral pequeño principal
+
+1
+
+Pieza 3D lateral pequeño trasero
+
+1
+
+Pieza 3D pieza superior
+
+16
+
+Tornillo M3
+
+16
+
+Tuercas M3
+Tabla 11. Piezas montaje caja arduino y ramps
+
+18
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 16. Montaje cajas traseras.
+
+Cantidad
+
+Nombre
+
+1
+
+Piezas 3D Caja para RAMPS y Arduino
+
+1
+
+Pieza 3D Caja para Raspberry PI
+
+3
+
+Tornillo madera M3.5
+Tabla 12. Piezas montaje cajas traseras.
+
+19
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 17. Montaje cadena.
+
+Ilustración 18. Montaje cadena en la estructura.
+
+Cantidad
+
+Nombre
+
+40
+
+Pieza 3D Cadena
+
+1
+
+Pieza 3D Fin de cadena
+
+2
+
+Tornillo madera M3.5
+Tabla 13. Piezas montaje cadena.
+
+20
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 19. Montaje de las patas.
+
+Cantidad
+
+Nombre
+
+4
+
+Pieza 3D Patas
+
+4
+
+Tornillo madera M3.5
+
+21
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+22
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 20. Cableado completo.
+
+23
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+24
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+Ilustración 21. Parte delantera del robot.
+
+Ilustración 22. Parte trasera del robot.
+
+25
+
+Anexo VII: Esquemas electrónicos, diseño y montaje del robot.
+
+5 Referencias
+•
+•
+•
+•
+
+Documentación SketchUp (visitado el 20-02-2022)
+o https://www.sketchup.com/taxonomy/term/296
+Documentación Arduino (visitado el 11-03-2022)
+o https://www.arduino.cc/reference/es/
+Documentación Ramps 1.4 (visitado el 11-03-2022)
+o https://reprap.org/wiki/RAMPS_1.4/es
+Documentación Raspberry PI (visitado el 5-03-2022)
+o https://www.raspberrypi.com/documentation/
+
+26
+
+

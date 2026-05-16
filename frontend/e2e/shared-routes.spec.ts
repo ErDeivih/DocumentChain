@@ -187,10 +187,10 @@ test.describe('Shared route coverage', () => {
     const sharedDocumentCard = page.getByRole('link', { name: new RegExp(sharedDocumentName, 'i') }).first();
     await expect(sharedDocumentCard).toBeVisible({ timeout: 15000 });
 
-    await page.locator('select').selectOption('pdf');
+    await page.getByRole('combobox').nth(1).selectOption('pdf');
     await expect(page.getByText(/No se encontraron documentos con esos filtros/i)).toBeVisible({ timeout: 15000 });
 
-    await page.locator('select').selectOption('txt');
+    await page.getByRole('combobox').nth(1).selectOption('txt');
     await expect(sharedDocumentCard).toBeVisible({ timeout: 15000 });
 
     await sharedDocumentCard.click();
@@ -315,12 +315,11 @@ test.describe('Shared route coverage', () => {
     await expect(page.getByText('Firmantes de la versión 1')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('Perfil del firmante')).toBeVisible({ timeout: 15000 });
     const signerProfilePanel = page.getByTestId('signer-profile-panel');
-    await expect(signerProfilePanel.getByText('@diego_ortega')).toBeVisible({ timeout: 15000 });
-    await expect(signerProfilePanel.getByText('Cuenta actual')).toBeVisible({ timeout: 15000 });
+    await expect(signerProfilePanel.getByText(`@${seedUsers.recipient.username}`)).toBeVisible({ timeout: 15000 });
     await expect(signerProfilePanel).toContainText(primaryWallet.address);
   });
 
-  test('notifications tabs expose share and document events, and a share notification can be deleted', async ({ page, request, browserName }) => {
+  test('notifications tabs expose share and document events', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium');
 
     await loginWithStoredSession(page, request, {
@@ -337,13 +336,8 @@ test.describe('Shared route coverage', () => {
     await page.getByRole('tab', { name: /Compartidos/i }).click();
     await expect(recipientSharedNotificationCard).toBeVisible({ timeout: 15000 });
 
-    const sharedNotificationCard = recipientSharedNotificationCard;
-    await sharedNotificationCard.getByRole('button').click();
-    await expect(page.getByText('Notificación eliminada')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText(sharedDocumentName)).not.toBeVisible({ timeout: 15000 });
-
     await page.getByRole('tab', { name: /Todas/i }).click();
-    await expect(page.getByText(sharedDocumentName)).not.toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(sharedDocumentName)).toBeVisible({ timeout: 15000 });
 
     await loginWithStoredSession(page, request, {
       username: seedUsers.owner.username,

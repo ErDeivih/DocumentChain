@@ -2,9 +2,16 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { useSocketListener } from '../../hooks/useSocketListener';
 
+/**
+ * Layout principal de la aplicación.
+ * Envuelve la interfaz con el encabezado (Header), la barra lateral (Sidebar)
+ * y el área de contenido principal donde se renderizan las rutas anidadas.
+ */
 export const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  useSocketListener();
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-transparent">

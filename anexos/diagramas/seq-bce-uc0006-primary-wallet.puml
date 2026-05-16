@@ -1,0 +1,34 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0006: Establecer Wallet Principal (Analisis BCE)
+
+actor Actor
+boundary "SelectorWallet" as BF
+control "GestorWallets" as CW
+entity "Wallet" as EW
+
+database "Base de datos" as DB
+
+Actor -> BF : 1. Selecciona wallet como principal
+BF -> CW : 2. Peticion de cambio
+CW -> EW : 3. Verifica que la wallet pertenece al usuario
+EW -> DB : consulta wallets
+DB --> EW : wallet valida
+EW --> CW : verificacion OK
+
+CW -> EW : 4. Desmarca wallet principal anterior
+EW -> DB : UPDATE anterior primary = false
+DB --> EW : confirmacion
+
+CW -> EW : 5. Marca nueva wallet como principal
+EW -> DB : UPDATE primary = true
+DB --> EW : confirmacion
+EW --> CW : wallet principal actualizada
+
+CW --> BF : 6. Confirmacion
+BF --> Actor : 7. Muestra nueva wallet principal
+
+@enduml
+
+

@@ -6,20 +6,35 @@ import { JWT_SECRET } from '../config/jwt';
 
 const ACCESS_TOKEN_EXPIRY = '15m';  // 15 minutos
 const REFRESH_TOKEN_EXPIRY = '7d';  // 7 días
-const TEMP_TOKEN_EXPIRY = '5m';     // 5 minutos (para 2FA)
 
+/**
+ * Payload contenido en los tokens JWT.
+ * @property userId - ID del usuario
+ * @property username - Nombre de usuario
+ * @property role - Rol del usuario en el sistema
+ */
 export interface TokenPayload {
   userId: string;
   username: string;
   role: string;
 }
 
+/**
+ * Par de tokens generados durante la autenticación.
+ * @property accessToken - Token de acceso de corta duración
+ * @property refreshToken - Token de refresco de larga duración
+ * @property expiresIn - Tiempo de expiración del access token en segundos
+ */
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
 }
 
+/**
+ * Servicio de generación, refresco y revocación de tokens JWT.
+ * Gestiona sesiones de usuario mediante access tokens y refresh tokens.
+ */
 export class TokenService {
   /**
    * Generar par de tokens (access + refresh)
@@ -173,51 +188,5 @@ export class TokenService {
 
     logger.info('Todas las sesiones de usuario revocadas', { userId, count: result.count });
     return result.count;
-  }
-
-  /**
-   * Generar token temporal para 2FA (5 minutos)
-   * No se guarda en BD, solo se usa para verificar 2FA
-   */
-  static async generateTempToken(
-    userId: string,
-    username: string
-  ): Promise<string> {
-    const tempToken = jwt.sign(
-      {
-        userId,
-        username,
-        type: '2fa-temp',
-        timestamp: Date.now()
-      },
-      JWT_SECRET,
-      { expiresIn: TEMP_TOKEN_EXPIRY }
-    );
-
-    logger.debug('Token temporal 2FA generado', { userId });
-
-    return tempToken;
-  }
-
-  /**
-   * Verificar token temporal de 2FA
-   * Retorna payload si es válido
-   */
-  static verifyTempToken(tempToken: string): { userId: string; username: string } {
-    try {
-      const decoded = jwt.verify(tempToken, JWT_SECRET) as any;
-
-      if (decoded.type !== '2fa-temp') {
-        throw new Error('Tipo de token inválido');
-      }
-
-      return {
-        userId: decoded.userId,
-        username: decoded.username
-      };
-    } catch (error) {
-      logger.error('Error al verificar token temporal', { error });
-      throw new Error('Token temporal inválido o expirado');
-    }
   }
 }

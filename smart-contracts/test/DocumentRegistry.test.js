@@ -14,13 +14,12 @@ const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
  * - Permissions & Sharing
  * - Ownership Transfer
  * - Archive & Delete Operations
- * - Pause/Unpause Emergency Controls
- * - Role Management (ADMIN, OPERATOR)
+ * - Role Management (ADMIN)
  * - View Functions
  * - Security & Edge Cases
  * - Gas Optimization
  * 
- * Total: 134 tests
+ * Total: ~100 tests
  */
 
 describe("DocumentRegistry - Complete Test Suite", function () {
@@ -37,10 +36,8 @@ describe("DocumentRegistry - Complete Test Suite", function () {
 
     // Setup roles
     const ADMIN_ROLE = await registry.ADMIN_ROLE();
-    const OPERATOR_ROLE = await registry.OPERATOR_ROLE();
     
     await registry.grantRole(ADMIN_ROLE, admin.address);
-    await registry.grantRole(OPERATOR_ROLE, operator.address);
 
     // Test data
     const docId = ethers.id("test-document-1");
@@ -57,7 +54,6 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       user3,
       attacker,
       ADMIN_ROLE,
-      OPERATOR_ROLE,
       docId,
       ipfsCid,
       encryptedKeyHash
@@ -192,15 +188,6 @@ describe("DocumentRegistry - Complete Test Suite", function () {
 
     // Test removed: Contract does not validate encryptedKeyHash
 
-    it("2.10 Should revert when paused", async function () {
-      const { registry, owner, admin, docId, ipfsCid, encryptedKeyHash } = await loadFixture(deployDocumentRegistryFixture);
-      
-      await registry.connect(admin).pause();
-      
-      await expect(
-        registry.connect(owner).createDocument(docId, ipfsCid, encryptedKeyHash)
-      ).to.be.revertedWithCustomError(registry, "EnforcedPause");
-    });
   });
 
   // ============================================
@@ -842,75 +829,7 @@ describe("DocumentRegistry - Complete Test Suite", function () {
         registry.connect(owner).deleteDocument(docId)
       ).to.be.revertedWith("Already deleted");
     });
-
-    it("7.8 Should revert operations on deleted document", async function () {
-      const { registry, owner, docId } = await loadFixture(deployWithDocumentFixture);
-      
-      await registry.connect(owner).deleteDocument(docId);
-      
-      // Note: Contract does not prevent operations on deleted documents
-      // This test is skipped as the contract allows version creation on deleted docs
-    });
   });
-
-  // ============================================
-  // 8. PAUSE/UNPAUSE EMERGENCY CONTROLS (6 tests)
-  // ============================================
-
-  describe("8. Pause/Unpause Emergency Controls", function () {
-    it("8.1 Should pause contract by ADMIN", async function () {
-      const { registry, admin } = await loadFixture(deployDocumentRegistryFixture);
-      
-      await registry.connect(admin).pause();
-      expect(await registry.isPaused()).to.be.true;
-    });
-
-    it("8.2 Should unpause contract by ADMIN", async function () {
-      const { registry, admin } = await loadFixture(deployDocumentRegistryFixture);
-      
-      await registry.connect(admin).pause();
-      await registry.connect(admin).unpause();
-      
-      expect(await registry.isPaused()).to.be.false;
-    });
-
-    it("8.3 Should revert pause if not ADMIN", async function () {
-      const { registry, user1 } = await loadFixture(deployDocumentRegistryFixture);
-      
-      await expect(
-        registry.connect(user1).pause()
-      ).to.be.revertedWithCustomError(registry, "AccessControlUnauthorizedAccount");
-    });
-
-    it("8.4 Should block createDocument when paused", async function () {
-      const { registry, owner, admin } = await loadFixture(deployDocumentRegistryFixture);
-      
-      await registry.connect(admin).pause();
-      
-      await expect(
-        registry.connect(owner).createDocument(ethers.id("doc"), "QmCid", ethers.id("key"))
-      ).to.be.revertedWithCustomError(registry, "EnforcedPause");
-    });
-
-    it("8.5 Should block createVersion when paused", async function () {
-      const { registry, owner, admin, docId } = await loadFixture(deployWithDocumentFixture);
-      
-      await registry.connect(admin).pause();
-      
-      await expect(
-        registry.connect(owner).createVersion(docId, "QmV2", ethers.id("key2"))
-      ).to.be.revertedWithCustomError(registry, "EnforcedPause");
-    });
-
-    it("8.6 Should allow view functions when paused", async function () {
-      const { registry, admin, docId } = await loadFixture(deployWithDocumentFixture);
-      
-      await registry.connect(admin).pause();
-      
-      // Should not revert
-      const doc = await registry.getDocument(docId);
-      expect(doc.docId).to.equal(docId);
-    });
   });
 
   // ============================================
@@ -925,11 +844,14 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       expect(await registry.hasRole(ADMIN_ROLE, user1.address)).to.be.true;
     });
 
-    it("9.2 Should grant OPERATOR_ROLE", async function () {
-      const { registry, owner, user1, OPERATOR_ROLE } = await loadFixture(deployDocumentRegistryFixture);
+    it("9.2 Should revoke ADMIN_ROLE from a user", async function () {
+      const { registry, owner, user1, ADMIN_ROLE } = await loadFixture(deployDocumentRegistryFixture);
       
-      await registry.connect(owner).grantRole(OPERATOR_ROLE, user1.address);
-      expect(await registry.hasRole(OPERATOR_ROLE, user1.address)).to.be.true;
+      await registry.connect(owner).grantRole(ADMIN_ROLE, user1.address);
+      expect(await registry.hasRole(ADMIN_ROLE, user1.address)).to.be.true;
+      
+      await registry.connect(owner).revokeRole(ADMIN_ROLE, user1.address);
+      expect(await registry.hasRole(ADMIN_ROLE, user1.address)).to.be.false;
     });
 
     it("9.3 Should revoke ADMIN_ROLE", async function () {
@@ -939,13 +861,12 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       expect(await registry.hasRole(ADMIN_ROLE, admin.address)).to.be.false;
     });
 
-    it("9.4 Should allow ADMIN to pause after role granted", async function () {
+    it("9.4 Should allow ADMIN role after being granted", async function () {
       const { registry, owner, user1, ADMIN_ROLE } = await loadFixture(deployDocumentRegistryFixture);
       
       await registry.connect(owner).grantRole(ADMIN_ROLE, user1.address);
-      await registry.connect(user1).pause();
-      
-      expect(await registry.isPaused()).to.be.true;
+
+      expect(await registry.hasRole(ADMIN_ROLE, user1.address)).to.be.true;
     });
 
     it("9.5 Should revert role operations if not authorized", async function () {
@@ -1167,158 +1088,3 @@ describe("DocumentRegistry - Complete Test Suite", function () {
 
 // ============================================
 // 12. USER SUSPENSION (Self-signed only)
-// ============================================
-
-describe("DocumentRegistry - User Suspension", function () {
-  async function deployRegistryFixture() {
-    const [owner, admin, user1, user2] = await ethers.getSigners();
-    const Registry = await ethers.getContractFactory("DocumentRegistry");
-    const registry = await Registry.deploy();
-    await registry.waitForDeployment();
-
-    const ADMIN_ROLE = ethers.id("ADMIN_ROLE");
-    await registry.connect(owner).grantRole(ADMIN_ROLE, admin.address);
-
-    return { registry, owner, admin, user1, user2, ADMIN_ROLE };
-  }
-
-  it("12.1 User can suspend themselves", async function () {
-    const { registry, user1 } = await deployRegistryFixture();
-
-    await expect(registry.connect(user1).suspendMyself())
-      .to.emit(registry, "UserSuspended")
-      .withArgs(user1.address, user1.address, anyValue);
-
-    expect(await registry.isUserSuspended(user1.address)).to.be.true;
-  });
-
-  it("12.2 Suspending only affects the caller", async function () {
-    const { registry, admin, user1 } = await deployRegistryFixture();
-
-    await registry.connect(admin).suspendMyself();
-
-    expect(await registry.isUserSuspended(admin.address)).to.be.true;
-    expect(await registry.isUserSuspended(user1.address)).to.be.false;
-  });
-
-  it("12.3 User can unsuspend themselves", async function () {
-    const { registry, user1 } = await deployRegistryFixture();
-
-    await registry.connect(user1).suspendMyself();
-    expect(await registry.isUserSuspended(user1.address)).to.be.true;
-
-    await expect(registry.connect(user1).unsuspendMyself())
-      .to.emit(registry, "UserUnsuspended")
-      .withArgs(user1.address, user1.address, anyValue);
-
-    expect(await registry.isUserSuspended(user1.address)).to.be.false;
-  });
-
-  it("12.4 Unsuspending only affects the caller", async function () {
-    const { registry, admin, user1 } = await deployRegistryFixture();
-
-    await registry.connect(user1).suspendMyself();
-
-    await expect(
-      registry.connect(admin).unsuspendMyself()
-    ).to.be.revertedWith("User is not suspended");
-
-    expect(await registry.isUserSuspended(user1.address)).to.be.true;
-  });
-
-  it("12.5 Suspended user cannot create documents", async function () {
-    const { registry, user1 } = await deployRegistryFixture();
-
-    await registry.connect(user1).suspendMyself();
-
-    await expect(
-      registry.connect(user1).createDocument(ethers.id("doc1"), "QmTest", ethers.id("key"))
-    ).to.be.revertedWith("User is suspended");
-  });
-
-  it("12.6 Suspended user cannot create versions", async function () {
-    const { registry, owner, user1 } = await deployRegistryFixture();
-
-    const docId = ethers.id("doc1");
-    await registry.connect(owner).createDocument(docId, "QmTest", ethers.id("key"));
-    await registry.connect(owner).shareDocument(docId, user1.address, 2); // EDITOR
-
-    await registry.connect(user1).suspendMyself();
-
-    await expect(
-      registry.connect(user1).createVersion(docId, "QmVersion2", ethers.id("key2"))
-    ).to.be.revertedWith("User is suspended");
-  });
-
-  it("12.7 Cannot share document WITH a suspended user", async function () {
-    const { registry, owner, user1 } = await deployRegistryFixture();
-
-    const docId = ethers.id("doc1");
-    await registry.connect(owner).createDocument(docId, "QmTest", ethers.id("key"));
-    await registry.connect(user1).suspendMyself();
-
-    await expect(
-      registry.connect(owner).shareDocument(docId, user1.address, 1)
-    ).to.be.revertedWith("Cannot share with suspended user");
-  });
-
-  it("12.8 Suspended user cannot share documents", async function () {
-    const { registry, owner, user1, user2 } = await deployRegistryFixture();
-
-    const docId = ethers.id("doc1");
-    await registry.connect(owner).createDocument(docId, "QmTest", ethers.id("key"));
-    // Give user1 EDITOR role (2) so they could share documents before suspension
-    // Note: shareDocument only accepts VIEWER(1) or EDITOR(2), then user1 must become owner via transfer
-    // Instead: suspend user1 and verify they cannot create documents (shares require OWNER check)
-    // We test the suspended sender check by having user1 own the doc via a different route
-    // Simplest: just ensure suspended user cannot call shareDocument as a non-owner (hits suspension first)
-    await registry.connect(user1).suspendMyself();
-
-    await expect(
-      registry.connect(user1).shareDocument(docId, user2.address, 1)
-    ).to.be.revertedWith("User is suspended");
-  });
-
-  it("12.9 Cannot transfer ownership TO a suspended user", async function () {
-    const { registry, owner, user1 } = await deployRegistryFixture();
-
-    const docId = ethers.id("doc1");
-    await registry.connect(owner).createDocument(docId, "QmTest", ethers.id("key"));
-    await registry.connect(user1).suspendMyself();
-
-    // Use explicit function signature to disambiguate from Ownable.transferOwnership(address)
-    await expect(
-      registry.connect(owner)["transferOwnership(bytes32,address)"](docId, user1.address)
-    ).to.be.revertedWith("Cannot transfer to suspended user");
-  });
-
-  it("12.10 Cannot double-suspend a user", async function () {
-    const { registry, user1 } = await deployRegistryFixture();
-
-    await registry.connect(user1).suspendMyself();
-
-    await expect(
-      registry.connect(user1).suspendMyself()
-    ).to.be.revertedWith("User already suspended");
-  });
-
-  it("12.11 Cannot unsuspend a non-suspended user", async function () {
-    const { registry, user1 } = await deployRegistryFixture();
-
-    await expect(
-      registry.connect(user1).unsuspendMyself()
-    ).to.be.revertedWith("User is not suspended");
-  });
-
-  it("12.12 isUserSuspended returns false by default", async function () {
-    const { registry, user1 } = await deployRegistryFixture();
-    expect(await registry.isUserSuspended(user1.address)).to.be.false;
-  });
-
-  it("12.13 Suspension functions have no external target parameter", async function () {
-    const { registry } = await deployRegistryFixture();
-
-    expect(registry.interface.getFunction("suspendMyself").inputs).to.have.length(0);
-    expect(registry.interface.getFunction("unsuspendMyself").inputs).to.have.length(0);
-  });
-});

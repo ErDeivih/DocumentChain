@@ -1,10 +1,13 @@
 /**
- * Document Routes - Refactored for Frontend Wallet Signatures
- * 
- * New prepare/confirm pattern:
- * - POST /prepare: Upload encrypted file, get data for blockchain signing
- * - POST /confirm: Confirm after blockchain transaction submitted
- * 
+ * Rutas de Gestion de Documentos - Refactorizadas para firmas con wallet en el frontend
+ *
+ * Nuevo patron prepare/confirm:
+ * - POST /prepare: Sube el archivo cifrado y devuelve los datos para la firma blockchain
+ * - POST /confirm: Confirma la operacion tras la firma de la transaccion por el usuario
+ *
+ * Router de gestion de documentos.
+ * Expone endpoints para crear, consultar, descargar, archivar, transferir, eliminar y compartir documentos,
+ * asi como gestionar versiones y firmas asociadas.
  */
 
 import { Router } from 'express';
@@ -12,7 +15,6 @@ import { DocumentController } from '../controllers/documentController';
 import { VersionController } from '../controllers/versionController';
 import { SignatureController } from '../controllers/signatureController';
 import { ShareController } from '../controllers/shareController';
-import { StatsController } from '../controllers/statsController';
 import { authenticate } from '../middleware/auth';
 import { paginationMiddleware } from '../middleware/pagination';
 import { uploadEncrypted } from '../middleware/upload';
@@ -24,6 +26,9 @@ import {
   documentUserParamsSchema,
   documentVersionParamsSchema,
   documentVersionNumberParamsSchema,
+  prepareSetOperationalSchema,
+  confirmSetOperationalSchema,
+  updateDocumentSchema,
 } from '../schemas/document.schema';
 
 const router = Router();
@@ -97,24 +102,25 @@ router.get('/:documentId/download', authenticate, validateParams(documentIdSchem
 router.post('/:documentId/archive/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.prepareArchiveDocument);
 router.post('/:documentId/archive/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.confirmArchiveDocument);
 
-// Legacy lifecycle endpoints still used by the current frontend detail view.
-router.put('/:documentId/archive', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.archiveDocument);
-router.put('/:documentId/unarchive', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.unarchiveDocument);
-router.delete('/:documentId', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.deleteDocument);
-
 // Transfer prepare/confirm (new pattern)
 router.post('/:documentId/transfer/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.prepareTransferDocument);
 router.post('/:documentId/transfer/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.confirmTransferDocument);
+
+// Delete prepare/confirm
+router.post('/:documentId/delete/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.prepareDeleteDocument);
+router.post('/:documentId/delete/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.confirmDeleteDocument);
+
+// Unarchive prepare/confirm
+router.post('/:documentId/unarchive/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.prepareUnarchiveDocument);
+router.post('/:documentId/unarchive/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), DocumentController.confirmUnarchiveDocument);
+
+// Update metadata (direct - no blockchain operation)
+router.put('/:documentId', authenticate, generalLimiter, validateParams(documentIdSchema), validateBody(updateDocumentSchema), DocumentController.updateDocument);
 
 // ============================================
 // Document Signatures
 // ============================================
 router.get('/:documentId/signatures', authenticate, validateParams(documentIdSchema), SignatureController.getDocumentSignatures);
-
-// ============================================
-// Document Stats
-// ============================================
-router.get('/:documentId/stats', authenticate, validateParams(documentIdSchema), StatsController.getDocumentStats);
 
 // ============================================
 // Document Sharing (NEW: prepare/confirm pattern)
@@ -172,14 +178,15 @@ router.get('/:documentId/check-permission', authenticate, blockchainLimiter, val
 // Version Routes
 // ============================================
 router.get('/:documentId/versions', authenticate, validateParams(documentIdSchema), VersionController.getVersions);
-router.put('/:documentId/operational-version', authenticate, generalLimiter, validateParams(documentIdSchema), validateBody(documentOperationalVersionSchema), VersionController.setOperational);
+// NEW: prepare/confirm pattern for operational version (on-chain)
+router.post('/:documentId/operational-version/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), validateBody(prepareSetOperationalSchema), VersionController.prepareSetOperational);
+router.post('/:documentId/operational-version/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), validateBody(confirmSetOperationalSchema), VersionController.confirmSetOperational);
 // NEW: prepare/confirm pattern for versions
 router.post('/:documentId/versions/prepare', authenticate, uploadLimiter, uploadEncrypted, validateParams(documentIdSchema), VersionController.prepareVersion);
 router.post('/:documentId/versions/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), VersionController.confirmVersion);
 // NEW: restore prepare/confirm
 router.post('/:documentId/versions/restore/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), VersionController.prepareRestoreVersion);
-router.put('/:documentId/versions/:versionId/operational', authenticate, generalLimiter, validateParams(documentVersionParamsSchema), VersionController.setOperational);
-router.post('/:documentId/versions/:versionId/restore', authenticate, validateParams(documentVersionParamsSchema), VersionController.restoreVersion);
+router.post('/:documentId/versions/restore/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), VersionController.confirmRestoreVersion);
 // Signatures for a specific version number (for frontend listByVersion)
 router.get('/:documentId/versions/:versionNumber/signatures', authenticate, validateParams(documentVersionNumberParamsSchema), SignatureController.getVersionSignaturesByNumber);
 

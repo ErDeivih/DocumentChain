@@ -1,13 +1,21 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Configuracion / Notificaciones" as ui
+boundary "Settings.tsx / Seguridad y Cuenta" as ui
 control "Endpoints de notificaciones (/api/notifications)" as api
-control "PreferenceService" as srv
-database "PostgreSQL" as db
+control "NotificationService" as srv
+database "Base de datos" as db
+
+user -> ui: Abre el bloque de notificaciones
+ui -> api: GET /notifications/preferences
+api -> srv: Recuperar configuracion vigente
+srv -> db: Buscar preferencias del usuario
+db --> srv: Preferencias actuales
+srv --> api: Datos listos
+api --> ui: Cargar estado de interruptores
 
 user -> ui: Ajusta sus preferencias de aviso
-ui -> api: Guardar preferencias
+ui -> api: PUT /notifications/preferences
 api -> srv: Validar y persistir configuracion
 srv -> db: Crear o actualizar preferencias del usuario
 db --> srv: OK
@@ -16,4 +24,5 @@ api --> ui: Confirmacion registrada
 ui --> user: Configuracion actualizada
 
 @enduml
+
 

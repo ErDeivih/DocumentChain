@@ -1,27 +1,28 @@
 @startuml
 !include _structure-style.puml
 left to right direction
+title Casos de uso - Comparticion
 
 actor "Usuario" as USER
 actor "Blockchain" as SC
 
-rectangle "Gestion de Comparticion" {
-  usecase "UC-0033: Compartir Documento" as UC37
-  usecase "UC-0034: Revocar Acceso" as UC39
-  usecase "UC-0035: Ver Compartidos Conmigo" as UC40
+rectangle "Modulo de comparticion" {
+  usecase "UC-0030: Compartir Documento" as UC30
+  usecase "UC-0031: Revocar Acceso" as UC31
+  usecase "UC-0032: Ver Compartidos Conmigo" as UC32
 }
 
-UC37 -[hidden]down-> UC39
-UC39 -[hidden]down-> UC40
+UC30 -[hidden]down-> UC31
+UC31 -[hidden]down-> UC32
 
-USER --> UC37
-USER --> UC39
-USER --> UC40
+USER --> UC30
+USER --> UC31
+USER --> UC32
 
-SC --> UC37
-SC --> UC39
+SC --> UC30
+SC --> UC31
 
-note right of UC37
+note right of UC30
   Los ajustes de permisos se integran
   como pasos dentro del ciclo de
   comparticion y revocacion.

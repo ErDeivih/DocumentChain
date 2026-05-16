@@ -1,23 +1,36 @@
 /**
- * WalletConnect Helper
- * Proporciona funcionalidad para conectar wallets móviles mediante WalletConnect
+ * Helper de WalletConnect.
+ * Proporciona funcionalidad para conectar wallets móviles mediante WalletConnect.
  */
 
 import EthereumProvider from '@walletconnect/ethereum-provider';
 import { BrowserProvider } from 'ethers';
 
-// Project ID de WalletConnect (obtener desde https://cloud.walletconnect.com/)
+/**
+ * Identificador de proyecto de WalletConnect.
+ * Se obtiene preferentemente desde la variable de entorno `VITE_WALLETCONNECT_PROJECT_ID`;
+ * de lo contrario, se utiliza un valor de respaldo.
+ */
 const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '4c4e4a0e8c5c6e8e2a4c8e4a0e8c5c6e';
 
+/**
+ * Clase helper para gestionar conexiones WalletConnect v2.
+ *
+ * Permite conectar wallets móviles mediante código QR, firmar mensajes,
+ * cambiar de red y verificar el estado de la sesión.
+ */
 export class WalletConnectHelper {
+  /** Instancia interna del proveedor WalletConnect. */
   private provider: EthereumProvider | null = null;
 
   /**
-   * Conectar wallet mediante WalletConnect (muestra QR code)
+   * Conecta una wallet mediante WalletConnect mostrando un modal con código QR.
+   *
+   * @returns Dirección de la cuenta conectada y proveedor de ethers.
+   * @throws {Error} Si no se puede establecer la conexión o no se obtiene ninguna cuenta.
    */
   async connect(): Promise<{ address: string; provider: BrowserProvider }> {
     try {
-      // Crear proveedor WalletConnect
       this.provider = await EthereumProvider.init({
         projectId: WALLETCONNECT_PROJECT_ID,
         chains: [1], // Ethereum mainnet requerido por WalletConnect v2
@@ -39,10 +52,8 @@ export class WalletConnectHelper {
         },
       });
 
-      // Habilitar sesión (muestra QR)
       await this.provider.connect();
 
-      // Obtener cuenta conectada
       const accounts = await this.provider.request<string[]>({
         method: 'eth_requestAccounts',
       });
@@ -52,13 +63,10 @@ export class WalletConnectHelper {
       }
 
       const address = accounts[0];
-
-      // Crear proveedor de ethers
       const ethersProvider = new BrowserProvider(this.provider);
 
       return { address, provider: ethersProvider };
     } catch (error: any) {
-      // Limpiar proveedor si falla
       if (this.provider) {
         await this.provider.disconnect().catch(() => {});
         this.provider = null;
@@ -68,7 +76,7 @@ export class WalletConnectHelper {
   }
 
   /**
-   * Desconectar wallet de WalletConnect
+   * Desconecta la sesión activa de WalletConnect y limpia el proveedor interno.
    */
   async disconnect(): Promise<void> {
     if (this.provider) {
@@ -83,14 +91,18 @@ export class WalletConnectHelper {
   }
 
   /**
-   * Verificar si hay una sesión activa
+   * Verifica si existe una sesión de WalletConnect activa.
+   *
+   * @returns `true` si el proveedor está inicializado y conectado.
    */
   isConnected(): boolean {
     return this.provider !== null && this.provider.connected;
   }
 
   /**
-   * Obtener dirección actual
+   * Obtiene la dirección de la cuenta actualmente conectada.
+   *
+   * @returns Dirección en formato checksummed, o `null` si no hay sesión.
    */
   async getAddress(): Promise<string | null> {
     if (!this.provider) return null;
@@ -106,7 +118,11 @@ export class WalletConnectHelper {
   }
 
   /**
-   * Firmar mensaje con WalletConnect
+   * Firma un mensaje arbitrario utilizando la wallet conectada vía WalletConnect.
+   *
+   * @param message - Mensaje en claro a firmar.
+   * @returns Firma hexadecimal del mensaje.
+   * @throws {Error} Si no hay proveedor inicializado.
    */
   async signMessage(message: string): Promise<string> {
     if (!this.provider) {
@@ -119,7 +135,10 @@ export class WalletConnectHelper {
   }
 
   /**
-   * Cambiar de red en WalletConnect
+   * Solicita el cambio de red en la wallet conectada.
+   *
+   * @param chainId - Identificador numérico de la red destino.
+   * @throws {Error} Si no hay proveedor inicializado.
    */
   async switchChain(chainId: number): Promise<void> {
     if (!this.provider) {
@@ -133,9 +152,14 @@ export class WalletConnectHelper {
   }
 }
 
-// Instancia singleton
+/** Instancia singleton del helper de WalletConnect. */
 let walletConnectInstance: WalletConnectHelper | null = null;
 
+/**
+ * Obtiene la instancia singleton de {@link WalletConnectHelper}.
+ *
+ * @returns La instancia única del helper.
+ */
 export const getWalletConnectInstance = (): WalletConnectHelper => {
   if (!walletConnectInstance) {
     walletConnectInstance = new WalletConnectHelper();

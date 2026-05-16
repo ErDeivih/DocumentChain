@@ -1,6 +1,6 @@
-﻿@startuml
+@startuml
 !include _structure-style.puml
-title Arquitectura del sistema por paquetes funcionales
+title Arquitectura funcional del sistema
 
 package "Presentacion" {
     [Aplicacion web] as React
@@ -8,7 +8,7 @@ package "Presentacion" {
     [Canal tiempo real cliente] as SIOClient
 }
 
-package "Aplicacion" {
+package "Capa de aplicacion" {
     [Rutas] as Router
     [Autenticacion y permisos] as Auth
     [Servicios de dominio] as Svc
@@ -16,17 +16,17 @@ package "Aplicacion" {
     [Sincronizador blockchain] as EvtListener
 }
 
-package "Persistencia" {
+package "Capa de persistencia" {
     [Repositorios] as Repo
-    database "PostgreSQL" as DB
+    database "Base de datos" as DB
 }
 
 package "Almacenamiento distribuido" {
     [IPFS compatible] as IPFS
 }
 
-package "Blockchain" {
-    [Contrato inteligente] as SC
+package "Red blockchain" {
+    [DocumentRegistry] as SC
     [Nodo blockchain de prueba] as ETH
 }
 
@@ -50,4 +50,5 @@ EvtListener --> ETH
 EvtListener --> Repo
 EvtListener --> SIOServer
 @enduml
+
 

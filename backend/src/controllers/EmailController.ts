@@ -8,14 +8,19 @@ import { logger } from '../utils/logger';
 const prisma = new PrismaClient();
 
 /**
- * Email Controller
- * Maneja verificación de email y reset de contraseña
- * Arquitectura MVC: Controller Layer
+ * Controlador de correo electrónico.
+ * Gestiona la verificación de direcciones de email, solicitudes de restablecimiento
+ * de contraseña y reenvío de enlaces de verificación.
+ * Arquitectura MVC: Capa de Controlador.
  */
 export class EmailController {
   /**
-   * Verifica el email del usuario con el token
-   * GET /api/email/verify/:token
+   * Verifica la dirección de email del usuario mediante un token.
+   * Endpoint: GET /api/email/verify/:token
+   *
+   * @param req - Objeto de solicitud HTTP. Los parámetros deben incluir el token de verificación.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de verificación.
    */
   static async verifyEmail(req: Request, res: Response): Promise<void> {
     try {
@@ -84,8 +89,12 @@ export class EmailController {
   }
 
   /**
-   * Solicita un reset de contraseña
-   * POST /api/email/forgot-password
+   * Solicita el restablecimiento de contraseña para un usuario.
+   * Endpoint: POST /api/email/forgot-password
+   *
+   * @param req - Objeto de solicitud HTTP con { email } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con un mensaje genérico de confirmación por seguridad.
    */
   static async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
@@ -130,12 +139,17 @@ export class EmailController {
         }
       });
 
-      // Enviar email
-      await emailService.sendPasswordResetEmail(
-        user.email,
-        user.username,
-        token
-      );
+      // Enviar email (el fallo de envío no debe impedir la respuesta exitosa:
+      // el token ya está creado y el usuario no debe recibir un 500 por problemas SMTP)
+      try {
+        await emailService.sendPasswordResetEmail(
+          user.email,
+          user.username,
+          token
+        );
+      } catch (emailError) {
+        logger.warn(`No se pudo enviar el email de restablecimiento a ${user.email}: ${emailError instanceof Error ? emailError.message : String(emailError)}`);
+      }
 
       logger.info(`Solicitud de restablecimiento de contraseña para usuario: ${user.username}`);
 
@@ -150,8 +164,12 @@ export class EmailController {
   }
 
   /**
-   * Resetea la contraseña con el token
-   * POST /api/email/reset-password
+   * Restablece la contraseña del usuario utilizando un token válido.
+   * Endpoint: POST /api/email/reset-password
+   *
+   * @param req - Objeto de solicitud HTTP con { token, newPassword } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de cambio de contraseña.
    */
   static async resetPassword(req: Request, res: Response): Promise<void> {
     try {
@@ -247,8 +265,12 @@ export class EmailController {
   }
 
   /**
-   * Reenvía email de verificación
-   * POST /api/email/resend-verification
+   * Reenvía el correo de verificación a un usuario no verificado.
+   * Endpoint: POST /api/email/resend-verification
+   *
+   * @param req - Objeto de solicitud HTTP con { email } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de envío.
    */
   static async resendVerification(req: Request, res: Response): Promise<void> {
     try {

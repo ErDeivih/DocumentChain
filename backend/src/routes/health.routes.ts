@@ -1,6 +1,10 @@
 import express from 'express';
 import healthController from '../controllers/healthController';
 
+/**
+ * Router de health checks.
+ * Proporciona endpoints para verificar el estado operativo del backend y sus dependencias.
+ */
 const router = express.Router();
 
 /**

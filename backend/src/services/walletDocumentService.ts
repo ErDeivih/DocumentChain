@@ -13,6 +13,13 @@ import { DocumentPermissionService } from './documentPermissionService';
 // Types
 // ============================================
 
+/**
+ * Actividad agregada de una wallet.
+ * @property created - Documentos creados
+ * @property shared - Documentos compartidos
+ * @property signed - Documentos firmados
+ * @property versions - Versiones creadas
+ */
 export interface WalletActivity {
   created: any[];
   shared: any[];
@@ -20,13 +27,16 @@ export interface WalletActivity {
   versions: any[];
 }
 
-// ============================================
-// Wallet Document Service Class
-// ============================================
-
+/**
+ * Servicio de consulta de documentos organizados por wallet.
+ * Proporciona agregaciones de actividad y resúmenes de uso por dirección.
+ */
 export class WalletDocumentService {
   /**
-   * Get documents created with a specific wallet
+   * Obtener documentos creados con una wallet específica.
+   * @param userId - ID del usuario propietario
+   * @param walletId - ID de la wallet
+   * @returns Lista de documentos creados por esa wallet
    */
   static async getDocumentsByWallet(userId: string, walletId: string): Promise<any[]> {
     // Verify wallet belongs to user
@@ -58,7 +68,9 @@ export class WalletDocumentService {
   }
 
   /**
-   * Get documents shared to a wallet address
+   * Obtener documentos compartidos con una dirección de wallet.
+   * @param walletAddress - Dirección Ethereum
+   * @returns Lista de documentos compartidos (excluyendo propiedad)
    */
   static async getSharedToWallet(walletAddress: string): Promise<any[]> {
     // Find wallet by address
@@ -80,13 +92,27 @@ export class WalletDocumentService {
     const documents = await prisma.document.findMany({
       where: {
         blockchainId: { in: blockchainIds },
-        // Exclude own documents (owned, not just shared)
-        NOT: { ownerId: wallet.userId },
       },
       orderBy: { id: 'desc' },
     });
 
-    return documents.map(d => ({
+    // Filter out documents owned on-chain (or by DB fallback)
+    const filteredDocuments = [];
+    for (const doc of documents) {
+      if (doc.blockchainId) {
+        const isOwner = await DocumentPermissionService.isOwner(doc.blockchainId, wallet.walletAddress);
+        if (!isOwner) {
+          filteredDocuments.push(doc);
+        }
+      } else {
+        // Fallback: exclude by DB ownerId
+        if (doc.ownerId !== wallet.userId) {
+          filteredDocuments.push(doc);
+        }
+      }
+    }
+
+    return filteredDocuments.map(d => ({
       id: d.id,
       blockchainId: d.blockchainId,
       name: d.name,
@@ -97,7 +123,10 @@ export class WalletDocumentService {
   }
 
   /**
-   * Get documents signed with a wallet
+   * Obtener documentos firmados con una wallet específica.
+   * @param userId - ID del usuario propietario
+   * @param walletId - ID de la wallet
+   * @returns Lista de documentos firmados
    */
   static async getSignedByWallet(userId: string, walletId: string): Promise<any[]> {
     // Verify wallet belongs to user
@@ -131,7 +160,9 @@ export class WalletDocumentService {
   }
 
   /**
-   * Get complete activity of a wallet
+   * Obtener la actividad completa de una wallet.
+   * @param walletId - ID de la wallet
+   * @returns Actividad agregada (creados, compartidos, firmados, versiones)
    */
   static async getWalletActivity(walletId: string): Promise<WalletActivity> {
     const wallet = await prisma.wallet.findUnique({
@@ -210,7 +241,9 @@ export class WalletDocumentService {
   }
 
   /**
-   * Get all documents from all wallets of a user
+   * Obtener todos los documentos agrupados por wallet de un usuario.
+   * @param userId - ID del usuario
+   * @returns Mapa de wallet a documentos y total
    */
   static async getAllUserDocuments(userId: string): Promise<{
     byWallet: Map<string, any[]>;
@@ -245,7 +278,9 @@ export class WalletDocumentService {
   }
 
   /**
-   * Get wallet summary for dashboard
+   * Obtener un resumen de wallets para el dashboard.
+   * @param userId - ID del usuario
+   * @returns Resumen con conteos de documentos, firmas y versiones por wallet
    */
   static async getWalletSummary(userId: string): Promise<{
     wallets: Array<{

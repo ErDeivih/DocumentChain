@@ -15,94 +15,97 @@
 \contentsline {section}{\numberline {3}Diseño de datos}{12}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Objetos de datos y estructuras de datos}{12}{subsection.3.1}%
 \contentsline {subsubsection}{\numberline {3.1.1}Diagrama de clases de análisis}{12}{subsubsection.3.1.1}%
-\contentsline {subsection}{\numberline {3.2}Estructuras de archivo y bases de datos}{12}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Diagrama Entidad-Relación}{13}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Diagrama conjunto: base de datos y blockchain}{13}{subsection.3.4}%
-\contentsline {subsection}{\numberline {3.5}Persistencia coordinada: PostgreSQL, IPFS y blockchain}{15}{subsection.3.5}%
-\contentsline {subsubsection}{\numberline {3.5.1}Base de datos relacional (PostgreSQL)}{16}{subsubsection.3.5.1}%
-\contentsline {subsubsection}{\numberline {3.5.2}Almacenamiento distribuido (nodo Kubo autoalojado)}{16}{subsubsection.3.5.2}%
-\contentsline {subsubsection}{\numberline {3.5.3}Blockchain (Smart Contract en Ethereum)}{17}{subsubsection.3.5.3}%
-\contentsline {subsubsection}{\numberline {3.5.4}Estructuras de datos del smart contract}{18}{subsubsection.3.5.4}%
-\contentsline {paragraph}{Tipos y roles}{18}{section*.12}%
-\contentsline {paragraph}{Struct Document}{18}{section*.13}%
-\contentsline {paragraph}{Struct Version}{18}{section*.15}%
-\contentsline {paragraph}{Struct Signature}{19}{section*.17}%
-\contentsline {paragraph}{Mappings de estado}{19}{section*.19}%
-\contentsline {paragraph}{Modelo coordinado de verdad y operación}{20}{section*.21}%
-\contentsline {subsubsection}{\numberline {3.5.5}Flujo de persistencia coordinado}{20}{subsubsection.3.5.5}%
-\contentsline {section}{\numberline {4}Diseño arquitectónico}{20}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Arquitectura de capas}{20}{subsection.4.1}%
-\contentsline {subsubsection}{\numberline {4.1.1}Capas del Sistema}{20}{subsubsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {4.1.2}Diagrama de paquetes}{22}{subsubsection.4.1.2}%
-\contentsline {subsection}{\numberline {4.2}Patrones de diseño aplicados}{22}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Prepare/Confirm Pattern (Transacciones Blockchain)}{22}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}Repository Pattern}{23}{subsubsection.4.2.2}%
-\contentsline {subsubsection}{\numberline {4.2.3}Service Layer Pattern}{23}{subsubsection.4.2.3}%
-\contentsline {subsubsection}{\numberline {4.2.4}Event-Driven Architecture}{24}{subsubsection.4.2.4}%
-\contentsline {subsubsection}{\numberline {4.2.5}Circuit Breaker (Pausable Contract)}{24}{subsubsection.4.2.5}%
-\contentsline {subsection}{\numberline {4.3}Diagrama de clases de diseño}{24}{subsection.4.3}%
-\contentsline {subsubsection}{\numberline {4.3.1}Arquitectura del sistema por componentes}{26}{subsubsection.4.3.1}%
-\contentsline {section}{\numberline {5}Diseño de la interfaz}{28}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Representación de las interfaces del sistema}{28}{subsection.5.1}%
-\contentsline {subsubsection}{\numberline {5.1.1}Componentes principales}{28}{subsubsection.5.1.1}%
-\contentsline {subsection}{\numberline {5.2}Prototipos de la interfaz de los componentes del sistema}{29}{subsection.5.2}%
-\contentsline {subsubsection}{\numberline {5.2.1}Vista de inicio de sesión}{29}{subsubsection.5.2.1}%
-\contentsline {subsubsection}{\numberline {5.2.2}Vista de registro}{30}{subsubsection.5.2.2}%
-\contentsline {subsubsection}{\numberline {5.2.3}Vista principal de documentos}{31}{subsubsection.5.2.3}%
-\contentsline {subsubsection}{\numberline {5.2.4}Vista de detalle de documento}{32}{subsubsection.5.2.4}%
-\contentsline {subsubsection}{\numberline {5.2.5}Vista de compartir documento}{33}{subsubsection.5.2.5}%
-\contentsline {subsubsection}{\numberline {5.2.6}Vista de documentos compartidos}{34}{subsubsection.5.2.6}%
-\contentsline {subsubsection}{\numberline {5.2.7}Vista de administración (Solo Admin)}{34}{subsubsection.5.2.7}%
-\contentsline {subsubsection}{\numberline {5.2.8}Vista de auditoría blockchain}{35}{subsubsection.5.2.8}%
-\contentsline {subsubsection}{\numberline {5.2.9}Vista de verificación pública}{36}{subsubsection.5.2.9}%
-\contentsline {subsubsection}{\numberline {5.2.10}Vista de perfil de usuario}{37}{subsubsection.5.2.10}%
-\contentsline {subsubsection}{\numberline {5.2.11}Vista de configuración}{38}{subsubsection.5.2.11}%
-\contentsline {section}{\numberline {6}Diseño procedimental}{38}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Diagramas de secuencia}{38}{subsection.6.1}%
-\contentsline {subsubsection}{\numberline {6.1.1}Secuencia: Registro de usuario}{39}{subsubsection.6.1.1}%
-\contentsline {subsubsection}{\numberline {6.1.2}Secuencia: Iniciar Sesión}{39}{subsubsection.6.1.2}%
-\contentsline {subsubsection}{\numberline {6.1.3}Secuencia: Cerrar Sesión}{40}{subsubsection.6.1.3}%
-\contentsline {subsubsection}{\numberline {6.1.4}Secuencia: Conectar Wallet}{40}{subsubsection.6.1.4}%
-\contentsline {subsubsection}{\numberline {6.1.5}Secuencia: Gestionar Perfil}{41}{subsubsection.6.1.5}%
-\contentsline {subsubsection}{\numberline {6.1.6}Secuencia: Cambiar Contraseña}{42}{subsubsection.6.1.6}%
-\contentsline {subsubsection}{\numberline {6.1.7}Secuencia: Recuperar Contraseña}{43}{subsubsection.6.1.7}%
-\contentsline {subsubsection}{\numberline {6.1.8}Secuencia: Verificar Email}{43}{subsubsection.6.1.8}%
-\contentsline {subsubsection}{\numberline {6.1.9}Secuencia: Subir documento}{44}{subsubsection.6.1.9}%
-\contentsline {subsubsection}{\numberline {6.1.10}Secuencia: Listar Documentos}{44}{subsubsection.6.1.10}%
-\contentsline {subsubsection}{\numberline {6.1.11}Secuencia: Ver Detalle de Documento}{45}{subsubsection.6.1.11}%
-\contentsline {subsubsection}{\numberline {6.1.12}Secuencia: Descargar documento}{45}{subsubsection.6.1.12}%
-\contentsline {subsubsection}{\numberline {6.1.13}Secuencia: Archivar Documento}{46}{subsubsection.6.1.13}%
-\contentsline {subsubsection}{\numberline {6.1.14}Secuencia: Eliminar Documento}{47}{subsubsection.6.1.14}%
-\contentsline {subsubsection}{\numberline {6.1.15}Secuencia: Transferir Documento}{47}{subsubsection.6.1.15}%
-\contentsline {subsubsection}{\numberline {6.1.16}Secuencia: Buscar Documentos}{48}{subsubsection.6.1.16}%
-\contentsline {subsubsection}{\numberline {6.1.17}Secuencia: Crear nueva versión}{48}{subsubsection.6.1.17}%
-\contentsline {subsubsection}{\numberline {6.1.18}Secuencia: Listar Versiones}{49}{subsubsection.6.1.18}%
-\contentsline {subsubsection}{\numberline {6.1.19}Secuencia: Establecer Versión Operativa}{49}{subsubsection.6.1.19}%
-\contentsline {subsubsection}{\numberline {6.1.20}Secuencia: Restaurar Versión Anterior}{49}{subsubsection.6.1.20}%
-\contentsline {subsubsection}{\numberline {6.1.21}Secuencia: Descargar Versión Específica}{50}{subsubsection.6.1.21}%
-\contentsline {subsubsection}{\numberline {6.1.22}Secuencia: Firmar Documento}{50}{subsubsection.6.1.22}%
-\contentsline {subsubsection}{\numberline {6.1.23}Secuencia: Ver Firmas de un Documento}{51}{subsubsection.6.1.23}%
-\contentsline {subsubsection}{\numberline {6.1.24}Secuencia: Verificar Firma en Blockchain}{51}{subsubsection.6.1.24}%
-\contentsline {subsubsection}{\numberline {6.1.25}Secuencia: Compartir Documento}{52}{subsubsection.6.1.25}%
-\contentsline {subsubsection}{\numberline {6.1.26}Secuencia: Revocar Acceso a Documento}{52}{subsubsection.6.1.26}%
-\contentsline {subsubsection}{\numberline {6.1.27}Secuencia: Ver Documentos Compartidos Conmigo}{53}{subsubsection.6.1.27}%
-\contentsline {subsubsection}{\numberline {6.1.28}Secuencia: Ver Timeline de Documento}{53}{subsubsection.6.1.28}%
-\contentsline {subsubsection}{\numberline {6.1.29}Secuencia: Ver Estadísticas Personales}{53}{subsubsection.6.1.29}%
-\contentsline {subsubsection}{\numberline {6.1.30}Secuencia: Ver Estadísticas Globales del Sistema}{54}{subsubsection.6.1.30}%
-\contentsline {subsubsection}{\numberline {6.1.31}Secuencia: Auditoría Blockchain}{54}{subsubsection.6.1.31}%
-\contentsline {subsubsection}{\numberline {6.1.32}Secuencia: Listar Usuarios (Admin)}{55}{subsubsection.6.1.32}%
-\contentsline {subsubsection}{\numberline {6.1.33}Secuencia: Gestionar Roles de Usuario}{55}{subsubsection.6.1.33}%
-\contentsline {subsection}{\numberline {6.2}Diagramas de caso de uso-diseño}{55}{subsection.6.2}%
-\contentsline {subsubsection}{\numberline {6.2.1}Colaboración: UC-0016 Subir Documento}{56}{subsubsection.6.2.1}%
-\contentsline {subsubsection}{\numberline {6.2.2}Colaboración: UC-0030 Firmar Documento}{56}{subsubsection.6.2.2}%
-\contentsline {subsubsection}{\numberline {6.2.3}Flujo complementario: Publicación pública durante la subida}{57}{subsubsection.6.2.3}%
-\contentsline {subsubsection}{\numberline {6.2.4}Flujo complementario: Compartición mediante enlace y código QR}{57}{subsubsection.6.2.4}%
-\contentsline {section}{\numberline {7}Referencia cruzada a los requisitos}{58}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Matriz IRQ -- Componente de diseño}{58}{subsection.7.1}%
-\contentsline {subsection}{\numberline {7.2}Matriz UC -- Clases de análisis}{58}{subsection.7.2}%
-\contentsline {subsection}{\numberline {7.3}Cobertura de requisitos no funcionales}{59}{subsection.7.3}%
-\contentsline {section}{\numberline {8}Plan de desarrollo e implementación}{59}{section.8}%
-\contentsline {subsection}{\numberline {8.1}Diagrama de despliegue}{59}{subsection.8.1}%
-\contentsline {subsection}{\numberline {8.2}Tecnologías de cada componente}{61}{subsection.8.2}%
-\contentsline {section}{\numberline {9}Glosario}{61}{section.9}%
-\contentsline {section}{Bibliografía}{62}{section*.83}%
+\contentsline {subsection}{\numberline {3.2}Estructuras de archivo y bases de datos}{14}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Diagrama Entidad-Relación}{14}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Diagrama conjunto: base de datos y blockchain}{17}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Persistencia coordinada: PostgreSQL, IPFS y blockchain}{18}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Base de datos relacional (PostgreSQL)}{19}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Almacenamiento distribuido (nodo Kubo autoalojado)}{19}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}Blockchain (Smart Contract en Ethereum)}{20}{subsubsection.3.5.3}%
+\contentsline {subsubsection}{\numberline {3.5.4}Estructuras de datos del smart contract}{20}{subsubsection.3.5.4}%
+\contentsline {paragraph}{Tipos y roles}{21}{section*.11}%
+\contentsline {paragraph}{Struct Document}{21}{section*.12}%
+\contentsline {paragraph}{Struct Version}{21}{section*.14}%
+\contentsline {paragraph}{Struct Signature}{22}{section*.16}%
+\contentsline {paragraph}{Mappings de estado}{22}{section*.18}%
+\contentsline {paragraph}{Modelo coordinado de verdad y operación}{23}{section*.20}%
+\contentsline {subsubsection}{\numberline {3.5.5}Flujo de persistencia coordinado}{23}{subsubsection.3.5.5}%
+\contentsline {section}{\numberline {4}Diseño arquitectónico}{23}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Arquitectura de capas}{23}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Capas del Sistema}{23}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}Diagrama de paquetes}{25}{subsubsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.2}Patrones de diseño aplicados}{25}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Prepare/Confirm Pattern (Transacciones Blockchain)}{25}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Repository Pattern}{26}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Service Layer Pattern}{26}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}Event-Driven Architecture}{27}{subsubsection.4.2.4}%
+\contentsline {subsubsection}{\numberline {4.2.5}Circuit Breaker (Pausable Contract)}{27}{subsubsection.4.2.5}%
+\contentsline {subsection}{\numberline {4.3}Diagrama de clases de diseño}{27}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Arquitectura del sistema por componentes}{29}{subsubsection.4.3.1}%
+\contentsline {section}{\numberline {5}Diseño de la interfaz}{31}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Representación de las interfaces del sistema}{31}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Componentes principales}{31}{subsubsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.2}Prototipos de la interfaz de los componentes del sistema}{32}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Vista de inicio de sesión}{32}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Vista de registro}{33}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Vista principal de documentos}{34}{subsubsection.5.2.3}%
+\contentsline {subsubsection}{\numberline {5.2.4}Vista de detalle de documento}{35}{subsubsection.5.2.4}%
+\contentsline {subsubsection}{\numberline {5.2.5}Vista de compartir documento}{36}{subsubsection.5.2.5}%
+\contentsline {subsubsection}{\numberline {5.2.6}Vista de documentos compartidos}{37}{subsubsection.5.2.6}%
+\contentsline {subsubsection}{\numberline {5.2.7}Vista de administración (Solo Admin)}{37}{subsubsection.5.2.7}%
+\contentsline {subsubsection}{\numberline {5.2.8}Vista de auditoría blockchain}{38}{subsubsection.5.2.8}%
+\contentsline {subsubsection}{\numberline {5.2.9}Vista de verificación pública}{39}{subsubsection.5.2.9}%
+\contentsline {subsubsection}{\numberline {5.2.10}Vista de perfil de usuario}{40}{subsubsection.5.2.10}%
+\contentsline {subsubsection}{\numberline {5.2.11}Vista de configuración}{41}{subsubsection.5.2.11}%
+\contentsline {section}{\numberline {6}Diseño procedimental}{41}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Diagramas de secuencia}{41}{subsection.6.1}%
+\contentsline {subsubsection}{\numberline {6.1.1}Secuencia: Registro de usuario}{42}{subsubsection.6.1.1}%
+\contentsline {subsubsection}{\numberline {6.1.2}Secuencia: Iniciar Sesión}{42}{subsubsection.6.1.2}%
+\contentsline {subsubsection}{\numberline {6.1.3}Secuencia: Validar Segundo Factor en el Inicio de Sesión}{43}{subsubsection.6.1.3}%
+\contentsline {subsubsection}{\numberline {6.1.4}Secuencia: Cerrar Sesión}{43}{subsubsection.6.1.4}%
+\contentsline {subsubsection}{\numberline {6.1.5}Secuencia: Conectar Wallet}{44}{subsubsection.6.1.5}%
+\contentsline {subsubsection}{\numberline {6.1.6}Secuencia: Gestionar Perfil}{45}{subsubsection.6.1.6}%
+\contentsline {subsubsection}{\numberline {6.1.7}Secuencia: Cambiar Contraseña}{47}{subsubsection.6.1.7}%
+\contentsline {subsubsection}{\numberline {6.1.8}Secuencia: Recuperar Contraseña}{47}{subsubsection.6.1.8}%
+\contentsline {subsubsection}{\numberline {6.1.9}Secuencia: Verificar Email}{48}{subsubsection.6.1.9}%
+\contentsline {subsubsection}{\numberline {6.1.10}Secuencia: Subir documento}{49}{subsubsection.6.1.10}%
+\contentsline {subsubsection}{\numberline {6.1.11}Secuencia: Listar Documentos}{49}{subsubsection.6.1.11}%
+\contentsline {subsubsection}{\numberline {6.1.12}Secuencia: Ver Detalle de Documento}{49}{subsubsection.6.1.12}%
+\contentsline {subsubsection}{\numberline {6.1.13}Secuencia: Descargar documento}{50}{subsubsection.6.1.13}%
+\contentsline {subsubsection}{\numberline {6.1.14}Secuencia: Archivar Documento}{50}{subsubsection.6.1.14}%
+\contentsline {subsubsection}{\numberline {6.1.15}Secuencia: Eliminar Documento}{51}{subsubsection.6.1.15}%
+\contentsline {subsubsection}{\numberline {6.1.16}Secuencia: Transferir Documento}{52}{subsubsection.6.1.16}%
+\contentsline {subsubsection}{\numberline {6.1.17}Secuencia: Buscar Documentos}{52}{subsubsection.6.1.17}%
+\contentsline {subsubsection}{\numberline {6.1.18}Secuencia: Crear nueva versión}{52}{subsubsection.6.1.18}%
+\contentsline {subsubsection}{\numberline {6.1.19}Secuencia: Listar Versiones}{53}{subsubsection.6.1.19}%
+\contentsline {subsubsection}{\numberline {6.1.20}Secuencia: Establecer Versión Operativa}{53}{subsubsection.6.1.20}%
+\contentsline {subsubsection}{\numberline {6.1.21}Secuencia: Restaurar Versión Anterior}{54}{subsubsection.6.1.21}%
+\contentsline {subsubsection}{\numberline {6.1.22}Secuencia: Descargar Versión Específica}{54}{subsubsection.6.1.22}%
+\contentsline {subsubsection}{\numberline {6.1.23}Secuencia: Firmar Documento}{55}{subsubsection.6.1.23}%
+\contentsline {subsubsection}{\numberline {6.1.24}Secuencia: Ver Firmas de un Documento}{55}{subsubsection.6.1.24}%
+\contentsline {subsubsection}{\numberline {6.1.25}Secuencia: Verificar Firma en Blockchain}{55}{subsubsection.6.1.25}%
+\contentsline {subsubsection}{\numberline {6.1.26}Secuencia: Compartir Documento}{56}{subsubsection.6.1.26}%
+\contentsline {subsubsection}{\numberline {6.1.27}Secuencia: Revocar Acceso a Documento}{56}{subsubsection.6.1.27}%
+\contentsline {subsubsection}{\numberline {6.1.28}Secuencia: Ver Documentos Compartidos Conmigo}{57}{subsubsection.6.1.28}%
+\contentsline {subsubsection}{\numberline {6.1.29}Secuencia: Ver Timeline de Documento}{57}{subsubsection.6.1.29}%
+\contentsline {subsubsection}{\numberline {6.1.30}Secuencia: Ver Estadísticas Personales}{57}{subsubsection.6.1.30}%
+\contentsline {subsubsection}{\numberline {6.1.31}Secuencia: Ver Estadísticas Globales del Sistema}{58}{subsubsection.6.1.31}%
+\contentsline {subsubsection}{\numberline {6.1.32}Secuencia: Auditoría Blockchain}{58}{subsubsection.6.1.32}%
+\contentsline {subsubsection}{\numberline {6.1.33}Secuencia: Listar Usuarios (Admin)}{59}{subsubsection.6.1.33}%
+\contentsline {subsubsection}{\numberline {6.1.34}Secuencia: Gestionar Roles de Usuario}{59}{subsubsection.6.1.34}%
+\contentsline {subsection}{\numberline {6.2}Subflujos y extensiones de los casos de uso principales}{59}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Diagramas de caso de uso-diseño}{64}{subsection.6.3}%
+\contentsline {subsubsection}{\numberline {6.3.1}Colaboración: UC-0016 Subir Documento}{65}{subsubsection.6.3.1}%
+\contentsline {subsubsection}{\numberline {6.3.2}Colaboración: UC-0030 Firmar Documento}{65}{subsubsection.6.3.2}%
+\contentsline {subsubsection}{\numberline {6.3.3}Flujo complementario: Publicación pública durante la subida}{66}{subsubsection.6.3.3}%
+\contentsline {subsubsection}{\numberline {6.3.4}Flujo complementario: Compartición mediante enlace y código QR}{66}{subsubsection.6.3.4}%
+\contentsline {section}{\numberline {7}Referencia cruzada a los requisitos}{67}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Matriz IRQ -- Componente de diseño}{67}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Matriz UC -- Clases de análisis}{67}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Cobertura de requisitos no funcionales}{68}{subsection.7.3}%
+\contentsline {section}{\numberline {8}Plan de desarrollo e implementación}{68}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Diagrama de despliegue}{68}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Tecnologías de cada componente}{70}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}Descripci\'on de nodos de despliegue}{71}{subsection.8.3}%
+\contentsline {section}{\numberline {9}Glosario}{71}{section.9}%
+\contentsline {section}{Bibliografía}{72}{section*.95}%

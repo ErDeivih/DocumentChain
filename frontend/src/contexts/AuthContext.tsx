@@ -4,33 +4,41 @@ import type { User, AuthResponse, LoginRequest, RegisterRequest } from '../types
 import { getErrorMessage } from '../lib/api';
 import { SecureStorage } from '../lib/crypto/SecureStorage';
 
-interface PendingTwoFactorLogin {
-  tempToken: string;
-  user: User;
-}
-
-interface LoginResult {
-  requires2FA: boolean;
-}
-
+/**
+ * Contrato del contexto de autenticación.
+ * Provee el estado de la sesión y las acciones de autenticación disponibles.
+ */
 interface AuthContextType {
+  /** Usuario autenticado actualmente, o `null` si no hay sesión. */
   user: User | null;
+  /** Token de acceso JWT actual, o `null` si no está autenticado. */
   accessToken: string | null;
-  pendingTwoFactor: PendingTwoFactorLogin | null;
+  /** Indica si se está validando la sesión almacenada durante el montaje. */
   isLoading: boolean;
+  /** `true` si existe un usuario y un token de acceso válidos. */
   isAuthenticated: boolean;
-  login: (credentials: LoginRequest) => Promise<LoginResult>;
-  verifyTwoFactor: (token: string) => Promise<void>;
-  cancelTwoFactorLogin: () => void;
+  /** Inicia sesión con credenciales tradicionales. */
+  login: (credentials: LoginRequest) => Promise<void>;
+  /** Registra un nuevo usuario en el sistema. */
   register: (data: RegisterRequest) => Promise<{ recoveryKey?: string }>;
+  /** Cierra la sesión actual y limpia el almacenamiento. */
   logout: () => Promise<void>;
+  /** Refresca los datos del usuario desde el backend. */
   refreshUser: () => Promise<void>;
+  /**
+   * Actualiza parcialmente el usuario en sesión.
+   * @param patch - Objeto parcial o función que recibe el usuario actual y devuelve el siguiente estado.
+   */
   patchUserSession: (patch: Partial<User> | ((currentUser: User) => User)) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper to add computed properties to User
+/**
+ * Enriquece un objeto {@link User} añadiendo propiedades calculadas.
+ * @param user - Usuario base.
+ * @returns Usuario con propiedades computadas (p. ej., `isAdmin`).
+ */
 function enrichUser(user: User): User {
   return {
     ...user,
@@ -38,22 +46,26 @@ function enrichUser(user: User): User {
   };
 }
 
-function isAuthenticatedResponse(response: AuthResponse | { requires2FA?: true }): response is AuthResponse {
-  return 'accessToken' in response;
-}
-
 /**
- * AuthProvider - Traditional authentication only
- * Users login/register with username/email and password
- * Password is used to decrypt the user's RSA private key
- * Wallets are ONLY for signing blockchain transactions, NOT for authentication
+ * Proveedor de autenticación tradicional (usuario/contraseña).
+ *
+ * Gestiona el ciclo de vida de la sesión: inicio de sesión, registro,
+ * refresco de token y cierre de sesión.
+ * La contraseña del usuario se utiliza para descifrar su clave privada RSA.
+ * Las wallets se emplean únicamente para firmar transacciones en blockchain,
+ * nunca como método de autenticación.
+ *
+ * @param props - Propiedades del componente.
+ * @param props.children - Elementos React hijos.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [pendingTwoFactor, setPendingTwoFactor] = useState<PendingTwoFactorLogin | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  /**
+   * Elimina del almacenamiento local y de sesión los datos persistidos de la sesión.
+   */
   const clearPersistedSession = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -61,6 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem('activeWalletId');
   };
 
+  /**
+   * Persiste el usuario autenticado en el estado y en `localStorage`.
+   * @param nextUser - Usuario a persistir.
+   * @returns El usuario enriquecido.
+   */
   const persistAuthenticatedUser = (nextUser: User) => {
     const enrichedUser = enrichUser(nextUser);
     setUser(enrichedUser);
@@ -68,8 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return enrichedUser;
   };
 
+  /**
+   * Finaliza el proceso de autenticación guardando tokens y usuario.
+   * @param response - Respuesta de autenticación con tokens y usuario.
+   */
   const finalizeAuthenticatedSession = (response: AuthResponse) => {
-    setPendingTwoFactor(null);
     persistAuthenticatedUser(response.user);
     setAccessToken(response.accessToken);
     localStorage.setItem('accessToken', response.accessToken);
@@ -77,19 +97,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Load and validate user from localStorage on mount
+    /**
+     * Valida la sesión almacenada consultando el usuario actual en el backend.
+     */
     const validateSession = async () => {
       const storedAccessToken = localStorage.getItem('accessToken');
       const storedUser = localStorage.getItem('user');
 
       if (storedAccessToken && storedUser) {
         try {
-          // Validate token by fetching current user
           const response = await authApi.getMe();
           setAccessToken(storedAccessToken);
           persistAuthenticatedUser(response.user);
         } catch (error) {
-          // Token invalid or expired - clear storage
           console.warn('Sesión inválida o expirada, limpiando...');
           clearPersistedSession();
           SecureStorage.clearAll();
@@ -103,15 +123,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Listen for auth:logout events from axios interceptor
+    /**
+     * Maneja el evento global de cierre de sesión forzado.
+     */
     const handleLogout = () => {
       setUser(null);
       setAccessToken(null);
-      setPendingTwoFactor(null);
       SecureStorage.clearAll();
       clearPersistedSession();
     };
 
+    /**
+     * Maneja el evento global de refresco de token.
+     * @param event - Evento personalizado con el nuevo token.
+     */
     const handleTokenRefresh = (event: Event) => {
       const tokenRefreshEvent = event as CustomEvent<{ accessToken?: string }>;
       const refreshedAccessToken = tokenRefreshEvent.detail?.accessToken || localStorage.getItem('accessToken');
@@ -120,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener('auth:logout', handleLogout);
     window.addEventListener('auth:token-refreshed', handleTokenRefresh);
-    
+
     return () => {
       window.removeEventListener('auth:logout', handleLogout);
       window.removeEventListener('auth:token-refreshed', handleTokenRefresh);
@@ -128,15 +153,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Register a new user
-   * Backend generates RSA keypair and encrypts private key with password
-   * Returns recovery key for account recovery
+   * Registra un nuevo usuario en el sistema.
+   * El backend genera un par de claves RSA y cifra la clave privada con la contraseña.
+   *
+   * @param data - Datos de registro solicitados.
+   * @returns Objeto con la clave de recuperación, si el backend la proporciona.
    */
   const register = async (data: RegisterRequest) => {
     try {
       const response = await authApi.register(data);
-
-      // Return recovery key if present
       return { recoveryKey: response.recoveryKey };
     } catch (error) {
       throw new Error(getErrorMessage(error));
@@ -144,55 +169,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   /**
-   * Login with username and password
-   * User's RSA private key is stored encrypted in backend
-   * Password is used to decrypt the private key locally when needed
+   * Inicia sesión con nombre de usuario y contraseña.
+   * La contraseña se utiliza posteriormente para descifrar la clave privada RSA.
+   *
+   * @param credentials - Credenciales de inicio de sesión.
+   * @returns Resultado de inicio de sesión.
    */
   const login = async (credentials: LoginRequest) => {
     try {
       const response = await authApi.login(credentials);
-
-      if ('requires2FA' in response && response.requires2FA) {
-        const enrichedUser = enrichUser(response.user);
-        setPendingTwoFactor({
-          tempToken: response.tempToken,
-          user: enrichedUser,
-        });
-        setUser(null);
-        setAccessToken(null);
-        clearPersistedSession();
-        return { requires2FA: true };
-      }
-
-      if (!isAuthenticatedResponse(response)) {
-        throw new Error('La respuesta de autenticación no incluye tokens válidos.');
-      }
-
-      const authResponse = response as AuthResponse;
-      finalizeAuthenticatedSession(authResponse);
-      return { requires2FA: false };
-    } catch (error) {
-      throw new Error(getErrorMessage(error));
-    }
-  };
-
-  const verifyTwoFactor = async (token: string) => {
-    if (!pendingTwoFactor?.tempToken) {
-      throw new Error('No hay un desafío 2FA pendiente');
-    }
-
-    try {
-      const response = await authApi.verifyTwoFactor(pendingTwoFactor.tempToken, token.trim());
       finalizeAuthenticatedSession(response);
     } catch (error) {
       throw new Error(getErrorMessage(error));
     }
   };
 
-  const cancelTwoFactorLogin = () => {
-    setPendingTwoFactor(null);
-  };
-
+  /**
+   * Cierra la sesión actual, revoca el token de refresco en el backend
+   * y limpia todo el almacenamiento seguro y persistente.
+   */
   const logout = async () => {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -203,16 +198,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     } finally {
-      // Clear secure storage (private keys in memory)
       SecureStorage.clearAll();
-      
+
       setUser(null);
       setAccessToken(null);
-      setPendingTwoFactor(null);
       clearPersistedSession();
     }
   };
 
+  /**
+   * Solicita al backend los datos más recientes del usuario autenticado
+   * y actualiza el estado local.
+   */
   const refreshUser = async () => {
     try {
       const response = await authApi.getMe();
@@ -224,6 +221,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Actualiza parcialmente el objeto usuario en sesión.
+   *
+   * @param patch - Objeto parcial de {@link User} o función que recibe el usuario actual y devuelve el nuevo estado.
+   */
   const patchUserSession = (patch: Partial<User> | ((currentUser: User) => User)) => {
     setUser((currentUser) => {
       if (!currentUser) {
@@ -243,12 +245,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     accessToken,
-    pendingTwoFactor,
     isLoading,
     isAuthenticated: !!user && !!accessToken,
     login,
-    verifyTwoFactor,
-    cancelTwoFactorLogin,
     register,
     logout,
     refreshUser,
@@ -258,10 +257,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+/**
+ * Hook para consumir el {@link AuthContext}.
+ *
+ * @returns El valor completo del contexto de autenticación.
+ * @throws {Error} Si se invoca fuera de un {@link AuthProvider}.
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth debe utilizarse dentro de un AuthProvider');
   }
   return context;
 }

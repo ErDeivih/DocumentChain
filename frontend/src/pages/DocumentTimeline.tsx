@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { timelineApi, TimelineEvent } from '../api/timeline';
+import { formatRelativeTime } from '../lib/utils';
 import { Card, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -21,6 +22,9 @@ import {
   Hash,
 } from 'lucide-react';
 
+/**
+ * Mapeo de tipos de eventos a sus respectivos iconos visuales.
+ */
 const eventIcons: Record<string, React.ElementType> = {
   version_created: GitBranch,
   document_signed: FileSignature,
@@ -30,6 +34,9 @@ const eventIcons: Record<string, React.ElementType> = {
   operational_changed: RefreshCw,
 };
 
+/**
+ * Mapeo de tipos de eventos a variantes de color de Badge.
+ */
 const eventColors: Record<string, 'default' | 'success' | 'warning' | 'destructive'> = {
   version_created: 'default',
   document_signed: 'success',
@@ -39,6 +46,9 @@ const eventColors: Record<string, 'default' | 'success' | 'warning' | 'destructi
   operational_changed: 'default',
 };
 
+/**
+ * Etiquetas legibles en español para cada tipo de evento de línea temporal.
+ */
 const eventLabels: Record<string, string> = {
   version_created: 'Nueva Versión',
   document_signed: 'Documento Firmado',
@@ -48,18 +58,14 @@ const eventLabels: Record<string, string> = {
   operational_changed: 'Versión Operacional Cambiada',
 };
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).format(date);
-};
-
+/**
+ * Página de línea temporal de un documento.
+ *
+ * Muestra el historial cronológico de eventos asociados a un documento,
+ * incluyendo versiones, firmas, compartidos y transferencias de propiedad.
+ *
+ * @returns JSX.Element con la línea temporal del documento.
+ */
 export const DocumentTimeline: React.FC = () => {
   const { id } = useParams<{ id: string }>();
 
@@ -205,7 +211,7 @@ export const DocumentTimeline: React.FC = () => {
                       {label}
                     </Badge>
                     <span className="text-sm text-muted-foreground">
-                      {formatDate(event.timestamp)}
+                      {formatRelativeTime(event.timestamp)}
                     </span>
                   </div>
                 </div>

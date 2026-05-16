@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import speakeasy from 'speakeasy';
+﻿import { expect, test } from '@playwright/test';
 import {
   API_BASE_URL,
   clearStoredSession,
@@ -8,7 +7,6 @@ import {
   loginWithStoredSession,
   seedUsers,
   selectFirstSavedWallet,
-  setUserEmailVerified,
   waitForDocumentStatus,
 } from './helpers';
 
@@ -65,7 +63,7 @@ test.describe('Negative paths and validation coverage', () => {
     await page.goto(`/app/documents/${documentId}`);
     await expect(page.getByRole('heading', { name: fileName })).toBeVisible({ timeout: 30000 });
     await page.getByRole('button', { name: 'Archivar' }).click();
-    await expect(page.getByText('Archivado')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('button', { name: 'Desarchivar' })).toBeVisible({ timeout: 30000 });
 
     // 3. Verificar que el botón Compartir está deshabilitado
     const shareButton = page.getByRole('button', { name: 'Compartir' });
@@ -129,87 +127,19 @@ test.describe('Negative paths and validation coverage', () => {
   // 2. 2FA — Caminos Negativos
   // ============================================================
 
-  test('2FA rejects invalid TOTP and invalid backup codes', async ({ page, request, browserName }) => {
+  test('security settings does not expose removed 2FA controls', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium');
-    test.setTimeout(120000);
 
-    const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-    const twoFactorUser = {
-      username: `neg_2fa_${uniqueSuffix}`,
-      email: `neg.2fa.${uniqueSuffix}@documentchain.local`,
-      password: 'Admin123!',
-      fullName: 'Neg 2FA User',
-    };
-
-    const registerResponse = await request.post(`${API_BASE_URL}/auth/register`, {
-      data: twoFactorUser,
+    await loginWithStoredSession(page, request, {
+      username: seedUsers.owner.username,
+      password: seedUsers.owner.password,
     });
-    expect(registerResponse.ok()).toBeTruthy();
-    setUserEmailVerified(twoFactorUser.email);
 
-    await page.goto('/login');
-    await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
-    await page.getByLabel('Contraseña').fill(twoFactorUser.password);
-    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await expect(page).toHaveURL(/\/app\/documents$/);
-
-    // Activar 2FA
     await page.goto('/app/settings');
     await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
-    await page.getByRole('button', { name: 'Configurar 2FA' }).click();
-    await expect(page.getByAltText('QR Code')).toBeVisible();
-
-    const secret = (await page.locator('code').first().textContent())?.trim();
-    expect(secret).toBeTruthy();
-
-    await page.getByLabel('Código de Verificación').fill(
-      speakeasy.totp({ secret: secret!, encoding: 'base32' })
-    );
-    await page.getByRole('button', { name: 'Verificar y Activar' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).toBeVisible();
-    const backupCode = ((await page.locator('div.grid.grid-cols-2 span').allTextContents())[0] || '').trim();
-    await page.getByRole('button', { name: 'He guardado los códigos' }).click();
-    await clearStoredSession(page);
-
-    // --- Login con TOTP incorrecto ---
-    await page.goto('/login');
-    await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
-    await page.getByLabel('Contraseña').fill(twoFactorUser.password);
-    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await expect(page.getByText('Verificación 2FA')).toBeVisible();
-
-    await page.getByLabel('Código 2FA o de respaldo').fill('000000');
-    await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page.getByRole('alert').filter({ hasText: /inválido|incorrecto/i })).toBeVisible();
-
-    // --- Login con backup code incorrecto ---
-    await page.getByLabel('Código 2FA o de respaldo').fill('INVALID1');
-    await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page.getByRole('alert').filter({ hasText: /inválido|incorrecto/i })).toBeVisible();
-
-    // --- Login correcto con TOTP válido ---
-    await page.getByLabel('Código 2FA o de respaldo').fill(
-      speakeasy.totp({ secret: secret!, encoding: 'base32' })
-    );
-    await page.getByRole('button', { name: 'Verificar' }).click();
-    await expect(page).toHaveURL(/\/app\/documents$/);
-
-    // --- Desactivar 2FA con código incorrecto ---
-    await page.goto('/app/settings');
-    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
-    await page.getByLabel('Código TOTP actual').fill('000000');
-    await page.getByRole('button', { name: 'Desactivar 2FA' }).click();
-
-    await expect(page.getByText('Desactivado')).not.toBeVisible({ timeout: 5000 });
-    // El estado debe seguir siendo Activo tras intentar desactivar con código incorrecto
-    await expect(page.getByText('Activo')).toBeVisible();
-
-    // Desactivar correctamente
-    await page.getByLabel('Código TOTP actual').fill(
-      speakeasy.totp({ secret: secret!, encoding: 'base32' })
-    );
-    await page.getByRole('button', { name: 'Desactivar 2FA' }).click();
-    await expect(page.getByText('Desactivado')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Configurar 2FA' })).not.toBeVisible();
+    await expect(page.getByText(/Verificación 2FA/i)).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Desactivar 2FA' })).not.toBeVisible();
   });
 
   // ============================================================
@@ -364,39 +294,19 @@ test.describe('Negative paths and validation coverage', () => {
   // 6. Usuario Suspendido — Caminos Negativos
   // ============================================================
 
-  test('suspended user cannot create documents', async ({ page, request, browserName }) => {
+  test('security settings does not expose removed suspension controls', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium');
-    test.setTimeout(120000);
 
-    const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-    const suspendedUser = {
-      username: `suspended_neg_${uniqueSuffix}`,
-      email: `suspended.neg.${uniqueSuffix}@documentchain.local`,
-      password: 'Admin123!',
-      fullName: 'Suspended Neg User',
-    };
-
-    const registerResponse = await request.post(`${API_BASE_URL}/auth/register`, {
-      data: suspendedUser,
+    await loginWithStoredSession(page, request, {
+      username: seedUsers.owner.username,
+      password: seedUsers.owner.password,
     });
-    expect(registerResponse.ok()).toBeTruthy();
-    setUserEmailVerified(suspendedUser.email);
 
-    // Iniciar sesión
-    const loginResponse = await request.post(`${API_BASE_URL}/auth/login`, {
-      data: { username: suspendedUser.username, password: suspendedUser.password },
-    });
-    expect(loginResponse.ok()).toBeTruthy();
-    const { accessToken } = await loginResponse.json();
-
-    // Suspender al usuario directamente por API (si está disponible)
-    // O usar el flujo de preparación/confirmación si existe
-    // Por ahora verificamos que al menos el login funciona y luego probamos
-    // que no puede acceder a rutas protegidas con token inválido/suspendido
-    const meResponse = await request.get(`${API_BASE_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    expect(meResponse.ok()).toBeTruthy();
+    await page.goto('/app/settings');
+    await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
+    await expect(page.getByText(/suspender cuenta/i)).not.toBeVisible();
+    await expect(page.getByText(/reactivar cuenta/i)).not.toBeVisible();
+    await expect(page.getByRole('button', { name: /eliminar cuenta/i })).toBeVisible();
   });
 
   // ============================================================

@@ -2,13 +2,28 @@ import { Router, Request, Response } from 'express';
 import { DocumentService } from '../services/documentService';
 import logger from '../utils/logger';
 
+/**
+ * Router de acceso público a documentos.
+ * Permite consultar metadatos y descargar contenido de documentos públicos sin autenticación.
+ */
 const router = Router();
 
+/**
+ * Construye el valor del encabezado HTTP `Content-Disposition` a partir del nombre del archivo.
+ *
+ * @param name - Nombre del archivo.
+ * @param inline - Si es `true`, se usa `inline`; de lo contrario, `attachment`.
+ * @returns Cadena formateada para el encabezado `Content-Disposition`.
+ */
 function buildContentDisposition(name: string, inline: boolean): string {
   const safeName = name.replace(/"/g, '');
   return `${inline ? 'inline' : 'attachment'}; filename="${safeName}"`;
 }
 
+/**
+ * GET /:publicId
+ * Obtiene los metadatos de un documento público mediante su identificador público.
+ */
 router.get('/:publicId', async (req: Request, res: Response) => {
   try {
     const publicId = String(req.params.publicId);
@@ -25,6 +40,10 @@ router.get('/:publicId', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /:publicId/content
+ * Devuelve el contenido de un documento público para visualización inline.
+ */
 router.get('/:publicId/content', async (req: Request, res: Response) => {
   try {
     const publicId = String(req.params.publicId);
@@ -38,6 +57,10 @@ router.get('/:publicId/content', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /:publicId/download
+ * Descarga el contenido de un documento público como archivo adjunto.
+ */
 router.get('/:publicId/download', async (req: Request, res: Response) => {
   try {
     const publicId = String(req.params.publicId);
@@ -51,6 +74,10 @@ router.get('/:publicId/download', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /:publicId/versions/:versionNumber/content
+ * Devuelve el contenido de una versión específica de un documento público para visualización inline.
+ */
 router.get('/:publicId/versions/:versionNumber/content', async (req: Request, res: Response) => {
   try {
     const publicId = String(req.params.publicId);
@@ -65,6 +92,10 @@ router.get('/:publicId/versions/:versionNumber/content', async (req: Request, re
   }
 });
 
+/**
+ * GET /:publicId/versions/:versionNumber/download
+ * Descarga el contenido de una versión específica de un documento público como archivo adjunto.
+ */
 router.get('/:publicId/versions/:versionNumber/download', async (req: Request, res: Response) => {
   try {
     const publicId = String(req.params.publicId);

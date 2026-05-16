@@ -1,52 +1,57 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as owner
-boundary "Detalle / Compartir" as ui
-control "Endpoints de usuarios (/api/users)" as usersApi
-control "Endpoints de comparticion (/api/documents/:id/share y /api/shares)" as api
-control "Criptografia local" as crypto
+boundary "ShareModal.tsx" as ui
+control "UserController (/api/users)" as usersApi
+control "ShareController (/api/documents/:id/share)" as api
+control "KeyManager" as crypto
 control "ShareService" as srv
-database "PostgreSQL" as db
-participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+database "Base de datos" as db
+participant "Wallet (EIP-6963 / WalletConnect)" as wallet
+entity "DocumentRegistry" as sc
+control "EventListenerService" as listener
 control "EmailService" as email
 
-owner -> ui: Busca destinatario y elige permiso
-ui -> usersApi: Buscar usuario
-usersApi -> db: Localizar usuario y wallet destino
-db --> usersApi: Coincidencia valida
-usersApi --> ui: Destinatario disponible
+owner -> ui: Busca destinatario por username/email y elige permiso (VIEWER/EDITOR)
+ui -> usersApi: GET /api/users/search?q=username
+usersApi -> db: Buscar usuario por username/email
+db --> usersApi: Usuario con wallets asociadas
+usersApi --> ui: 200 OK {id, username, wallets}
 
-owner -> ui: Introduce su contrasena
-ui -> crypto: Descifrar clave del documento
-crypto --> ui: Clave lista para compartir
+owner -> ui: Introduce contrasena para descifrar clave privada
+ui -> crypto: decryptPrivateKey(encryptedPrivateKey, password)
+crypto --> ui: privateKey en memoria
+ui -> crypto: decryptWithPrivateKey(encryptedSymmetricKey, privateKey)
+crypto --> ui: symmetricKey descifrada
 
-ui -> api: Preparar comparticion
-api -> srv: Validar propietario, destinatario y rol
-srv -> srv: Re-cifrar clave para el destinatario
-srv -> db: Registrar SHARE_PREPARED
-db --> srv: shareId, blockchainId y wallet destino
-srv --> api: Datos para firmar
-api --> ui: Comparticion preparada
+ui -> api: POST /api/documents/:documentId/share/prepare {recipientUserId, role, encryptedSymmetricKey}
+api -> srv: prepareShare(documentId, recipientUserId, role, ownerId, walletId, encryptedSymmetricKey)
+srv -> db: Verificar que el destinatario tiene wallet vinculada
+db --> srv: Wallet destino con publicKey
+srv -> crypto: encryptWithPublicKey(symmetricKey, recipientPublicKey) [en backend via KeyManager]
+crypto --> srv: reEncryptedSymmetricKey
+srv -> db: Crear registro de comparticion en SHARE_PREPARED
+db --> srv: shareId, blockchainId, recipientWalletAddress
+srv --> api: {shareId, messageToSign}
+api --> ui: 200 OK comparticion preparada
 
-ui -> wallet: Solicitar firma de acceso
-wallet -> sc: Registrar comparticion on-chain
+ui -> wallet: eth_signTypedData_v4(messageToSign)
+wallet -> sc: shareDocument(docId, recipientAddress, role)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: Confirmar comparticion
-api -> srv: Registrar TX_SUBMITTED
-srv -> db: Persistir confirmacion inicial
+ui -> api: POST /api/documents/:documentId/share/confirm {shareId, txHash}
+api -> srv: confirmShare(shareId, txHash)
+srv -> db: Actualizar share a TX_SUBMITTED
 db --> srv: OK
-srv --> api: Pendiente de sincronizacion
-api --> ui: Confirmacion registrada
+srv --> api: {status: "TX_SUBMITTED"}
+api --> ui: 200 OK confirmacion registrada
 
-sc -> listener: Evento de comparticion confirmado
-listener -> db: Registrar SHARE_CONFIRMED y notificacion
-listener -> email: Avisar al destinatario
-listener -> ui: Refrescar accesos del documento
-ui --> owner: Destinatario anadido
+sc -> listener: Evento DocumentShared(docId, recipient, role, timestamp)
+listener -> db: Actualizar share a SHARE_CONFIRMED, crear notificacion
+listener -> email: Enviar email de documento compartido al destinatario
+listener -> ui: WebSocket / refrescar lista de accesos
+ui --> owner: Destinatario anadido con permiso asignado
 
 @enduml
 

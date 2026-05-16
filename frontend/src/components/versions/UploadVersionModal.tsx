@@ -20,15 +20,27 @@ import type { SavedWallet } from '../../contexts/WalletManagerContext';
 import { blockchainProvider } from '../../lib/blockchain/provider';
 import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
 
+/**
+ * Props del componente UploadVersionModal.
+ */
 interface UploadVersionModalProps {
+  /** Controla la visibilidad del modal. */
   isOpen: boolean;
+  /** Callback para cerrar el modal. */
   onClose: () => void;
+  /** Callback que se ejecuta tras crear una versión exitosamente. */
   onSuccess: (version: Version) => void;
+  /** Documento al que se le añadirá la nueva versión. */
   document: Document;
 }
 
+/** Pasos del flujo de subida de una nueva versión. */
 type UploadStep = 'form' | 'select_wallet' | 'preparing' | 'signing' | 'confirming' | 'success' | 'error';
 
+/**
+ * Modal para subir nuevas versiones de un documento existente.
+ * Gestiona la validación del archivo, la firma blockchain y la confirmación en el backend.
+ */
 export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
   isOpen,
   onClose,
@@ -137,7 +149,7 @@ export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
   };
 
   /**
-   * Handle wallet selection - prepare and sign transaction (Backend Encryption Architecture)
+   * Gestiona la selección de wallet para preparar y firmar la transacción.
    */
   const handleWalletSelected = async (wallet: SavedWallet | null, connectedAddress: string) => {
     setShowWalletModal(false);

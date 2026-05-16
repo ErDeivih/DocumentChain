@@ -1,6 +1,9 @@
 /**
- * FileCrypto - File Encryption/Decryption for Frontend
- * Uses AES-256-GCM for symmetric encryption and RSA-OAEP for key encryption
+ * @fileoverview FileCrypto - Cifrado y descifrado de archivos para el frontend.
+ *
+ * Utiliza AES-256-GCM para el cifrado simétrico y RSA-OAEP para el cifrado
+ * de la clave simétrica. Soporta datos adicionales autenticados (AAD) y
+ * verificación de integridad mediante hash SHA-256.
  */
 
 import {
@@ -11,29 +14,42 @@ import {
 } from './utils';
 import { KeyManager } from './KeyManager';
 
+/**
+ * Resultado de un archivo cifrado.
+ */
 export interface EncryptedFileResult {
+  /** Archivo cifrado como ArrayBuffer. */
   encryptedFile: ArrayBuffer;
+  /** Clave simétrica cifrada con la clave pública del propietario (Base64). */
   encryptedSymmetricKey: string;
+  /** Hash SHA-256 del contenido original del archivo. */
   contentHash: string;
+  /** Vector de inicialización (IV) utilizado en AES-GCM (Base64). */
   iv: string;
 }
 
+/**
+ * Resultado de un archivo descifrado.
+ */
 export interface DecryptedFileResult {
+  /** Datos del archivo descifrado. */
   data: ArrayBuffer;
+  /** Hash SHA-256 del contenido descifrado para verificación de integridad. */
   contentHash: string;
 }
 
 /**
- * FileCrypto class for file encryption operations
+ * Clase encargada de cifrar y descifrar archivos mediante AES-256-GCM
+ * combinado con RSA-OAEP para el intercambio seguro de claves.
  */
 export class FileCrypto {
   private static readonly AES_KEY_LENGTH = 256;
-  private static readonly IV_LENGTH = 12; // 96 bits for GCM
+  private static readonly IV_LENGTH = 12; // 96 bits para GCM
   private static readonly TAG_LENGTH = 128; // 128 bits
 
   /**
-   * Generate a random AES-256 key
-   * @returns CryptoKey for AES-GCM
+   * Genera una clave AES-256 aleatoria.
+   * @returns Clave criptográfica para AES-GCM.
    */
   private static async generateAESKey(): Promise<CryptoKey> {
     return await crypto.subtle.generateKey(
@@ -47,27 +63,32 @@ export class FileCrypto {
   }
 
   /**
-   * Encrypt a file with AES-256-GCM
-   * The symmetric key is encrypted with the owner's public key
-   * 
-   * @param fileData Raw file data
-   * @param ownerPublicKey Owner's public key (PEM or CryptoKey)
-   * @returns Encrypted file data, encrypted symmetric key, and content hash
+   * Cifra un archivo con AES-256-GCM.
+   *
+   * Flujo:
+   * 1. Calcula el hash SHA-256 del contenido original.
+   * 2. Genera una clave simétrica AES y un IV aleatorio.
+   * 3. Cifra el archivo con AES-GCM.
+   * 4. Exporta la clave simétrica y la cifra con la clave pública del propietario.
+   *
+   * @param fileData - Datos brutos del archivo.
+   * @param ownerPublicKey - Clave pública del propietario (PEM o CryptoKey).
+   * @returns Resultado con el archivo cifrado, la clave simétrica cifrada, el hash y el IV.
    */
   static async encryptFile(
     fileData: ArrayBuffer,
     ownerPublicKey: string | CryptoKey
   ): Promise<EncryptedFileResult> {
-    // Generate content hash before encryption
+    // Generar hash de contenido antes de cifrar
     const contentHash = await hashSHA256(fileData);
 
-    // Generate random AES key
+    // Generar clave simétrica aleatoria
     const symmetricKey = await this.generateAESKey();
 
-    // Generate IV
+    // Generar IV
     const iv = generateRandomBytes(this.IV_LENGTH);
 
-    // Encrypt file with AES-GCM
+    // Cifrar archivo con AES-GCM
     const encryptedFile = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
@@ -78,10 +99,10 @@ export class FileCrypto {
       fileData
     );
 
-    // Export symmetric key
+    // Exportar clave simétrica
     const rawSymmetricKey = await crypto.subtle.exportKey('raw', symmetricKey);
 
-    // Encrypt symmetric key with owner's public key
+    // Cifrar clave simétrica con la clave pública del propietario
     const encryptedSymmetricKey = await KeyManager.encryptWithPublicKey(
       rawSymmetricKey,
       ownerPublicKey
@@ -96,13 +117,19 @@ export class FileCrypto {
   }
 
   /**
-   * Decrypt a file with AES-256-GCM
-   * 
-   * @param encryptedFile Encrypted file data
-   * @param encryptedSymmetricKey Encrypted symmetric key (Base64)
-   * @param privateKey Owner's private key
-   * @param iv IV used for encryption (Base64)
-   * @returns Decrypted file data and content hash
+   * Descifra un archivo cifrado con AES-256-GCM.
+   *
+   * Flujo:
+   * 1. Descifra la clave simétrica con la clave privada del propietario.
+   * 2. Importa la clave simétrica.
+   * 3. Descifra el archivo y recalcula el hash para integridad.
+   *
+   * @param encryptedFile - Datos del archivo cifrado.
+   * @param encryptedSymmetricKey - Clave simétrica cifrada (Base64).
+   * @param privateKey - Clave privada del propietario.
+   * @param iv - Vector de inicialización (Base64).
+   * @param authTag - Etiqueta de autenticación opcional (Base64).
+   * @returns Datos descifrados y hash de contenido.
    */
   static async decryptFile(
     encryptedFile: ArrayBuffer,
@@ -111,13 +138,13 @@ export class FileCrypto {
     iv?: string,
     authTag?: string
   ): Promise<DecryptedFileResult> {
-    // Decrypt symmetric key
+    // Descifrar clave simétrica
     const rawSymmetricKey = await KeyManager.decryptWithPrivateKey(
       encryptedSymmetricKey,
       privateKey
     );
 
-    // Import symmetric key
+    // Importar clave simétrica
     const symmetricKey = await crypto.subtle.importKey(
       'raw',
       rawSymmetricKey,
@@ -137,7 +164,7 @@ export class FileCrypto {
         })()
       : encryptedFile;
 
-    // Decrypt file
+    // Descifrar archivo
     const decryptedData = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
@@ -148,7 +175,7 @@ export class FileCrypto {
       encryptedPayload
     );
 
-    // Calculate content hash
+    // Calcular hash de contenido
     const contentHash = await hashSHA256(decryptedData);
 
     return {
@@ -158,43 +185,48 @@ export class FileCrypto {
   }
 
   /**
-   * Re-encrypt symmetric key for sharing
-   * Decrypts with owner's private key and encrypts with recipient's public key
-   * 
-   * @param encryptedKey Encrypted symmetric key
-   * @param ownerPrivateKey Owner's private key
-   * @param recipientPublicKey Recipient's public key
-   * @returns Re-encrypted key for recipient
+   * Re-cifra una clave simétrica para compartir con otro usuario.
+   *
+   * Flujo:
+   * 1. Descifra la clave simétrica con la clave privada del propietario actual.
+   * 2. Cifra la clave simétrica con la clave pública del destinatario.
+   *
+   * @param encryptedKey - Clave simétrica cifrada actualmente.
+   * @param ownerPrivateKey - Clave privada del propietario actual.
+   * @param recipientPublicKey - Clave pública del destinatario.
+   * @returns Clave simétrica re-cifrada para el destinatario.
    */
   static async reEncryptSymmetricKey(
     encryptedKey: string,
     ownerPrivateKey: CryptoKey,
     recipientPublicKey: string | CryptoKey
   ): Promise<string> {
-    // Decrypt with owner's private key
+    // Descifrar con la clave privada del propietario
     const rawKey = await KeyManager.decryptWithPrivateKey(encryptedKey, ownerPrivateKey);
 
-    // Encrypt with recipient's public key
+    // Cifrar con la clave pública del destinatario
     return await KeyManager.encryptWithPublicKey(rawKey, recipientPublicKey);
   }
 
   /**
-   * Calculate hash of file data
-   * @param data File data
-   * @returns SHA-256 hash
+   * Calcula el hash SHA-256 de los datos de un archivo.
+   * @param data - Datos del archivo.
+   * @returns Hash SHA-256 en formato hexadecimal.
    */
   static async hashFile(data: ArrayBuffer): Promise<string> {
     return await hashSHA256(data);
   }
 
   /**
-   * Generate metadata hash for document
-   * Combines name, size, and content hash
-   * 
-   * @param name Document name
-   * @param size File size in bytes
-   * @param contentHash Content hash
-   * @returns Combined hash
+   * Genera un hash de metadatos para un documento.
+   *
+   * Combina el nombre, tamaño y hash de contenido en una sola cadena y
+   * aplica SHA-256 para obtener un identificador único de metadatos.
+   *
+   * @param name - Nombre del documento.
+   * @param size - Tamaño del archivo en bytes.
+   * @param contentHash - Hash de contenido del archivo.
+   * @returns Hash combinado de metadatos.
    */
   static async generateMetadataHash(
     name: string,
@@ -206,11 +238,11 @@ export class FileCrypto {
   }
 
   /**
-   * Encrypt a small piece of data (like a key or metadata)
-   * 
-   * @param data Data to encrypt
-   * @param publicKey Public key
-   * @returns Encrypted data as Base64
+   * Cifra un pequeño fragmento de datos (por ejemplo, una clave o metadatos)
+   * con la clave pública proporcionada.
+   * @param data - Datos a cifrar.
+   * @param publicKey - Clave pública (PEM o CryptoKey).
+   * @returns Datos cifrados en Base64.
    */
   static async encryptData(
     data: ArrayBuffer,
@@ -220,11 +252,10 @@ export class FileCrypto {
   }
 
   /**
-   * Decrypt a small piece of data
-   * 
-   * @param encryptedData Encrypted data (Base64)
-   * @param privateKey Private key
-   * @returns Decrypted data
+   * Descifra un pequeño fragmento de datos con la clave privada proporcionada.
+   * @param encryptedData - Datos cifrados (Base64).
+   * @param privateKey - Clave privada.
+   * @returns Datos descifrados como ArrayBuffer.
    */
   static async decryptData(
     encryptedData: string,
@@ -234,29 +265,31 @@ export class FileCrypto {
   }
 
   /**
-   * Encrypt file with additional authenticated data (AAD)
-   * Useful for including metadata in the authentication
-   * 
-   * @param fileData File data to encrypt
-   * @param ownerPublicKey Owner's public key
-   * @param additionalData Additional authenticated data
-   * @returns Encrypted file result
+   * Cifra un archivo con datos adicionales autenticados (AAD).
+   *
+   * Incluye metadatos en la autenticación del cifrado AES-GCM para
+   * garantizar que los metadatos no han sido alterados.
+   *
+   * @param fileData - Datos del archivo a cifrar.
+   * @param ownerPublicKey - Clave pública del propietario.
+   * @param additionalData - Datos adicionales autenticados.
+   * @returns Resultado del archivo cifrado con AAD.
    */
   static async encryptFileWithAAD(
     fileData: ArrayBuffer,
     ownerPublicKey: string | CryptoKey,
     additionalData: ArrayBuffer
   ): Promise<EncryptedFileResult> {
-    // Generate content hash before encryption
+    // Generar hash de contenido antes de cifrar
     const contentHash = await hashSHA256(fileData);
 
-    // Generate random AES key
+    // Generar clave simétrica aleatoria
     const symmetricKey = await this.generateAESKey();
 
-    // Generate IV
+    // Generar IV
     const iv = generateRandomBytes(this.IV_LENGTH);
 
-    // Encrypt file with AES-GCM and AAD
+    // Cifrar archivo con AES-GCM y AAD
     const encryptedFile = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
@@ -268,7 +301,7 @@ export class FileCrypto {
       fileData
     );
 
-    // Export and encrypt symmetric key
+    // Exportar y cifrar clave simétrica
     const rawSymmetricKey = await crypto.subtle.exportKey('raw', symmetricKey);
     const encryptedSymmetricKey = await KeyManager.encryptWithPublicKey(
       rawSymmetricKey,
@@ -284,14 +317,14 @@ export class FileCrypto {
   }
 
   /**
-   * Decrypt file with additional authenticated data (AAD)
-   * 
-   * @param encryptedFile Encrypted file
-   * @param encryptedSymmetricKey Encrypted symmetric key
-   * @param privateKey Private key
-   * @param iv IV used for encryption
-   * @param additionalData Additional authenticated data
-   * @returns Decrypted file result
+   * Descifra un archivo cifrado con datos adicionales autenticados (AAD).
+   *
+   * @param encryptedFile - Archivo cifrado.
+   * @param encryptedSymmetricKey - Clave simétrica cifrada.
+   * @param privateKey - Clave privada del propietario.
+   * @param iv - Vector de inicialización utilizado durante el cifrado.
+   * @param additionalData - Datos adicionales autenticados.
+   * @returns Datos descifrados y hash de contenido.
    */
   static async decryptFileWithAAD(
     encryptedFile: ArrayBuffer,
@@ -300,13 +333,13 @@ export class FileCrypto {
     iv: string,
     additionalData: ArrayBuffer
   ): Promise<DecryptedFileResult> {
-    // Decrypt symmetric key
+    // Descifrar clave simétrica
     const rawSymmetricKey = await KeyManager.decryptWithPrivateKey(
       encryptedSymmetricKey,
       privateKey
     );
 
-    // Import symmetric key
+    // Importar clave simétrica
     const symmetricKey = await crypto.subtle.importKey(
       'raw',
       rawSymmetricKey,
@@ -315,7 +348,7 @@ export class FileCrypto {
       ['decrypt']
     );
 
-    // Decrypt file with AAD
+    // Descifrar archivo con AAD
     const decryptedData = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
@@ -327,7 +360,7 @@ export class FileCrypto {
       encryptedFile
     );
 
-    // Calculate content hash
+    // Calcular hash de contenido
     const contentHash = await hashSHA256(decryptedData);
 
     return {
@@ -337,11 +370,10 @@ export class FileCrypto {
   }
 
   /**
-   * Verify file integrity
-   * 
-   * @param data File data
-   * @param expectedHash Expected hash
-   * @returns True if hash matches
+   * Verifica la integridad de un archivo comparando su hash con el esperado.
+   * @param data - Datos del archivo.
+   * @param expectedHash - Hash esperado.
+   * @returns `true` si el hash coincide; de lo contrario, `false`.
    */
   static async verifyIntegrity(
     data: ArrayBuffer,

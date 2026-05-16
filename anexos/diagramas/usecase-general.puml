@@ -1,6 +1,7 @@
 @startuml
 !include _structure-style.puml
 left to right direction
+title Mapa global de casos de uso
 
 actor "Usuario" as USER
 actor "Administrador" as ADMIN
@@ -10,31 +11,31 @@ actor "Sistema de email" as EMAIL
 
 rectangle "DocumentChain" {
   package "Acceso y cuenta" {
-    usecase "UC-0001 a UC-0015\nRegistro, acceso, wallet,\nperfil y seguridad" as UC_A
+    usecase "UC-0001 a UC-0012\nRegistro, acceso, wallet,\nperfil y seguridad" as UC_A
   }
 
-  package "Gestion documental" {
-    usecase "UC-0016 a UC-0024\nCarga, consulta, descarga,\narchivo y busqueda" as UC_B
+  package "Gestion de documentos" {
+    usecase "UC-0013 a UC-0021\nCarga, consulta, descarga,\narchivo y busqueda" as UC_B
   }
 
-  package "Versionado" {
-    usecase "UC-0025 a UC-0029\nVersiones y estado operativo" as UC_C
+  package "Gestion de versiones" {
+    usecase "UC-0022 a UC-0026\nVersiones y estado operativo" as UC_C
   }
 
   package "Firmas" {
-    usecase "UC-0030 a UC-0032\nFirma y verificacion de firmas" as UC_D
+    usecase "UC-0027 a UC-0029\nFirma y verificacion de firmas" as UC_D
   }
 
-  package "Comparticion" {
-    usecase "UC-0033 a UC-0035\nPermisos y acceso compartido" as UC_E
+  package "Gestion de comparticion" {
+    usecase "UC-0030 a UC-0032\nPermisos y acceso compartido" as UC_E
   }
 
   package "Auditoria, verificacion\ny estadisticas" {
-    usecase "UC-0036 a UC-0040\nTimeline, verificacion\ny supervision" as UC_F
+    usecase "UC-0033 a UC-0037\nTimeline, verificacion\ny supervision" as UC_F
   }
 
   package "Administracion" {
-    usecase "UC-0041 a UC-0042\nUsuarios y roles" as UC_G
+    usecase "UC-0038 a UC-0039\nUsuarios y roles" as UC_G
   }
 }
 
@@ -66,10 +67,7 @@ UC_F ..> SC : verificacion y auditoria
 
 note right of UC_F
   Subflujos integrados en el catalogo consolidado:
-  regenerar codigos 2FA, editar metadatos,
-  crear carpetas, etiquetar documentos,
-  notificaciones y preferencias.
+  notificaciones, preferencias de usuario,
+  verificacion de integridad y estadisticas.
 end note
 @enduml
-
-

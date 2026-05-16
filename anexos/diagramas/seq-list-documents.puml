@@ -1,19 +1,25 @@
-﻿@startuml
+@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Biblioteca" as ui
 control "Endpoints de documentos\n(/api/documents)" as docApi
 control "Servicio de documentos" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Accede a su biblioteca documental
 ui -> docApi: Solicitar documentos con filtros y paginacion
 docApi -> srv: Recuperar documentos visibles del usuario
-srv -> db: Consultar documentos y total disponible
+srv -> db: Consultar documentos propios (ownerId)
 db --> srv: Lista paginada
 srv --> docApi: Documentos preparados para la vista
 docApi --> ui: Biblioteca cargada
 ui --> user: Visualiza documentos, estados e iconos de tipo
+
+note right
+  Los documentos compartidos se consultan
+  por separado en /api/documents/shared,
+  validando acceso on-chain via DocumentRegistry.
+end note
 
 @enduml
 

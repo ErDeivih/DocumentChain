@@ -1,6 +1,13 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Definición de una columna de la tabla.
+ * @property key - Identificador único de la columna.
+ * @property header - Texto del encabezado de la columna.
+ * @property render - Función opcional para renderizar el contenido personalizado de una celda.
+ * @property className - Clases CSS adicionales para la columna.
+ */
 export interface Column<T> {
   key: string;
   header: string;
@@ -8,6 +15,16 @@ export interface Column<T> {
   className?: string;
 }
 
+/**
+ * Props del componente Table.
+ * @property data - Conjunto de datos a mostrar en la tabla.
+ * @property columns - Definición de las columnas.
+ * @property keyExtractor - Función para obtener una clave única de cada fila.
+ * @property emptyMessage - Mensaje que se muestra cuando no hay datos.
+ * @property isLoading - Indica si la tabla está cargando datos.
+ * @property onRowClick - Función que se ejecuta al hacer clic en una fila.
+ * @property className - Clases CSS adicionales.
+ */
 export interface TableProps<T> {
   data: T[];
   columns: Column<T>[];
@@ -18,6 +35,10 @@ export interface TableProps<T> {
   className?: string;
 }
 
+/**
+ * Componente de tabla genérico para renderizar listas de datos.
+ * @param props - Props del componente Table.
+ */
 export function Table<T>({
   data,
   columns,
@@ -86,7 +107,10 @@ export function Table<T>({
   );
 }
 
-// Componente auxiliar para celdas con múltiples líneas
+/**
+ * Componente auxiliar para celdas con contenido apilado en múltiples líneas.
+ * @param props - Props del componente TableCellStack.
+ */
 export const TableCellStack: React.FC<{
   primary: React.ReactNode;
   secondary?: React.ReactNode;

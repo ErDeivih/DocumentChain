@@ -4,12 +4,19 @@ import { Input } from '../ui/Input';
 import { FolderSelector } from '../folders/FolderSelector';
 import { DocumentFilters as Filters } from '../../types';
 
+/**
+ * Props del componente DocumentFilters.
+ */
 interface DocumentFiltersProps {
+  /** Filtros actuales aplicados a la búsqueda de documentos. */
   filters: Filters;
+  /** Callback que se ejecuta cuando cambian los filtros. */
   onFiltersChange: (filters: Filters) => void;
+  /** Callback para limpiar todos los filtros activos. */
   onClearFilters: () => void;
 }
 
+/** Extensiones de archivo disponibles para filtrar. */
 const FILE_EXTENSIONS = [
   { value: 'pdf', label: 'PDF' },
   { value: 'doc', label: 'Word (DOC)' },
@@ -27,6 +34,10 @@ const FILE_EXTENSIONS = [
   { value: 'rar', label: 'RAR' },
 ];
 
+/**
+ * Panel de filtros para la búsqueda de documentos.
+ * Permite filtrar por nombre, carpeta, extensión de archivo y etiquetas.
+ */
 export const DocumentFilters: React.FC<DocumentFiltersProps> = ({
   filters,
   onFiltersChange,

@@ -5,60 +5,103 @@ import { useAuth } from './AuthContext';
 import type { User, Wallet } from '../types';
 
 /**
- * Saved wallet from database
+ * Representa una wallet guardada en la base de datos asociada al usuario.
  */
 export interface SavedWallet {
+  /** Identificador único de la wallet en la base de datos. */
   id: string;
+  /** Dirección pública de la wallet. */
   walletAddress: string;
+  /** Etiqueta descriptiva opcional asignada por el usuario. */
   label: string | null;
+  /** Indica si es la wallet principal del usuario. */
   isPrimary: boolean;
+  /** Fecha de alta en formato ISO. */
   addedAt: string;
+  /** Fecha del último uso en formato ISO. */
   lastUsedAt: string;
 }
 
 /**
- * Connected wallet state
+ * Representa una wallet conectada activamente para firmar transacciones.
  */
 export interface ConnectedWallet {
+  /** Dirección pública de la wallet conectada. */
   address: string;
+  /** Identificador de la red blockchain activa. */
   chainId: number;
+  /** Tipo de proveedor de wallet (MetaMask, WalletConnect, etc.). */
   type: WalletType;
 }
 
+/**
+ * Contrato del contexto de gestión de wallets.
+ * Administra el ciclo de vida de las wallets: guardadas, conectadas y operaciones CRUD.
+ */
 interface WalletManagerContextType {
-  // Saved wallets (from database, max 5)
+  /** Listado de wallets guardadas en la base de datos (máximo 5). */
   savedWallets: SavedWallet[];
-  
-  // Currently connected wallet (for signing transactions)
+  /** Wallet actualmente conectada para firmar transacciones. */
   connectedWallet: ConnectedWallet | null;
-  
-  // Loading states
+  /** Indica si se están cargando las wallets guardadas. */
   isLoading: boolean;
+  /** Indica si se está estableciendo una conexión con una wallet. */
   isConnecting: boolean;
-  
-  // Error state
+  /** Mensaje de error de la última operación, o `null` si no hay error. */
   error: string | null;
-  
-  // Actions
+  /** Recarga las wallets guardadas desde el backend. */
   loadSavedWallets: () => Promise<void>;
+  /**
+   * Conecta una wallet externa para firmar transacciones.
+   * @param type - Tipo de proveedor de wallet.
+   * @param provider - Instancia de proveedor opcional (escenarios multi-wallet).
+   * @returns Datos de la wallet conectada.
+   */
   connectWallet: (type: WalletType, provider?: unknown) => Promise<ConnectedWallet>;
+  /** Desconecta la wallet activa. */
   disconnectWallet: () => void;
+  /**
+   * Guarda la wallet conectada en la base de datos del usuario.
+   * @param label - Etiqueta descriptiva opcional.
+   * @returns La wallet guardada.
+   */
   addWallet: (label?: string) => Promise<SavedWallet>;
+  /**
+   * Elimina una wallet guardada.
+   * @param walletId - Identificador de la wallet a eliminar.
+   */
   removeWallet: (walletId: string) => Promise<void>;
+  /**
+   * Establece una wallet como principal.
+   * @param walletId - Identificador de la wallet a promover.
+   */
   setPrimaryWallet: (walletId: string) => Promise<void>;
-  
-  // Helpers
+  /** `true` si el usuario aún puede añadir más wallets (límite no alcanzado). */
   canAddWallet: boolean;
+  /**
+   * Busca una wallet guardada por su dirección pública.
+   * @param address - Dirección a buscar.
+   * @returns La wallet encontrada, o `undefined`.
+   */
   getWalletByAddress: (address: string) => SavedWallet | undefined;
+  /**
+   * Determina si una dirección ya está guardada.
+   * @param address - Dirección a comprobar.
+   * @returns `true` si la dirección existe en las wallets guardadas.
+   */
   isWalletSaved: (address: string) => boolean;
 }
 
 const WalletManagerContext = createContext<WalletManagerContextType | undefined>(undefined);
 
+/** Número máximo de wallets permitidas por usuario. */
 const MAX_WALLETS_PER_USER = 5;
 
 /**
- * Convert Wallet type to SavedWallet
+ * Convierte un objeto {@link Wallet} del backend a {@link SavedWallet}.
+ *
+ * @param wallet - Wallet tal como viene del API.
+ * @returns Wallet adaptada al formato de dominio del frontend.
  */
 function walletToSavedWallet(wallet: Wallet): SavedWallet {
   return {
@@ -66,11 +109,17 @@ function walletToSavedWallet(wallet: Wallet): SavedWallet {
     walletAddress: wallet.address,
     label: wallet.label,
     isPrimary: wallet.isPrimary,
-    addedAt: new Date().toISOString(), // Default if not provided
-    lastUsedAt: new Date().toISOString() // Default if not provided
+    addedAt: new Date().toISOString(),
+    lastUsedAt: new Date().toISOString()
   };
 }
 
+/**
+ * Ordena un listado de wallets: primero la principal, luego alfabéticamente por etiqueta o dirección.
+ *
+ * @param wallets - Listado de wallets a ordenar.
+ * @returns Nuevo arreglo ordenado.
+ */
 function sortSavedWallets(wallets: SavedWallet[]): SavedWallet[] {
   return [...wallets].sort((left, right) => {
     if (left.isPrimary !== right.isPrimary) {
@@ -83,6 +132,12 @@ function sortSavedWallets(wallets: SavedWallet[]): SavedWallet[] {
   });
 }
 
+/**
+ * Transforma un listado de {@link SavedWallet} al formato mínimo esperado en la sesión de usuario.
+ *
+ * @param savedWallets - Wallets guardadas.
+ * @returns Wallets adaptadas al tipo anidado de {@link User}.
+ */
 function savedWalletsToSessionWallets(savedWallets: SavedWallet[]): NonNullable<User['wallets']> {
   return savedWallets.map((wallet) => ({
     id: wallet.id,
@@ -93,27 +148,37 @@ function savedWalletsToSessionWallets(savedWallets: SavedWallet[]): NonNullable<
 }
 
 /**
- * WalletManagerProvider
- * 
- * Manages user's wallets for signing blockchain transactions.
- * - Users can have up to 5 saved wallets
- * - Wallets are ONLY for transactions, NOT for authentication
- * - Connect wallet on-demand when signing is required
+ * Proveedor de gestión de wallets.
+ *
+ * Administra las wallets del usuario para firmar transacciones en blockchain.
+ * - Cada usuario puede tener hasta 5 wallets guardadas.
+ * - Las wallets son únicamente para transacciones, no para autenticación.
+ * - La conexión con una wallet se realiza bajo demanda cuando se requiere firmar.
+ *
+ * @param props - Propiedades del componente.
+ * @param props.children - Elementos React hijos.
  */
 export function WalletManagerProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated, patchUserSession } = useAuth();
-  
+
   const [savedWallets, setSavedWallets] = useState<SavedWallet[]>([]);
   const [connectedWallet, setConnectedWallet] = useState<ConnectedWallet | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Keep a ref to the latest user so loadSavedWallets can read it without
-  // being recreated on every user-object change (which would re-trigger effects).
+  /**
+   * Referencia mutable al usuario actual para evitar recrear callbacks
+   * cuando el objeto usuario cambia (p. ej., tras `patchUserSession`).
+   */
   const userRef = useRef(user);
   userRef.current = user;
 
+  /**
+   * Sincroniza el listado de wallets guardadas con la sesión del usuario.
+   *
+   * @param nextSavedWallets - Wallets que se reflejarán en el contexto de autenticación.
+   */
   const syncUserWallets = useCallback((nextSavedWallets: SavedWallet[]) => {
     const primaryWallet = nextSavedWallets.find((wallet) => wallet.isPrimary);
     patchUserSession({
@@ -122,10 +187,11 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     });
   }, [patchUserSession]);
 
-  // Load saved wallets when the authenticated identity changes.
-  // Depend only on user?.id (not the full user object) so that
-  // patchUserSession → wallet list update does NOT re-trigger this effect
-  // and cause an infinite request loop.
+  /**
+   * Efecto que carga las wallets guardadas cuando cambia la identidad autenticada.
+   * Depende únicamente de `user?.id` (no del objeto completo) para evitar bucles
+   * infinitos provocados por actualizaciones del listado de wallets.
+   */
   useEffect(() => {
     if (isAuthenticated && userRef.current) {
       const currentUser = userRef.current;
@@ -133,17 +199,17 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
         setSavedWallets(sortSavedWallets(currentUser.wallets.map(walletToSavedWallet)));
       }
 
-      if (!currentUser.isSuspended) {
-        loadSavedWallets();
-      }
+      loadSavedWallets();
     } else {
       setSavedWallets([]);
       setConnectedWallet(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.id]);
 
-  // Listen for wallet disconnection events
+  /**
+   * Escucha eventos de desconexión o cambio de cuentas desde el proveedor blockchain.
+   */
   useEffect(() => {
     const handleDisconnect = () => {
       setConnectedWallet(null);
@@ -165,23 +231,23 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Load saved wallets from database
+   * Carga las wallets guardadas desde el backend y actualiza el estado local.
+   * Si la petición falla, intenta fallback con los datos ya presentes en la sesión.
    */
   const loadSavedWallets = useCallback(async () => {
     if (!isAuthenticated) return;
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await walletsApi.list();
       const saved = sortSavedWallets(response.wallets.map(walletToSavedWallet));
       setSavedWallets(saved);
       syncUserWallets(saved);
     } catch (err: any) {
-      console.error('Error loading wallets:', err);
+      console.error('Error cargando wallets:', err);
 
-      // Use the ref so this callback is not recreated on every user change
       const currentUser = userRef.current;
       if (currentUser?.wallets && currentUser.wallets.length > 0) {
         setSavedWallets(currentUser.wallets.map(walletToSavedWallet));
@@ -194,28 +260,29 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, syncUserWallets]);
 
   /**
-   * Connect a wallet (MetaMask, WalletConnect, etc.)
-   * This is for signing transactions, NOT for authentication
-   * @param type Wallet type to connect
-   * @param provider Optional specific provider (for multi-wallet scenarios)
+   * Conecta una wallet externa (MetaMask, WalletConnect, etc.) para firmar transacciones.
+   *
+   * @param type - Tipo de proveedor de wallet.
+   * @param provider - Instancia de proveedor opcional.
+   * @returns Wallet conectada con dirección, chainId y tipo.
    */
   const connectWallet = useCallback(async (type: WalletType, provider?: unknown): Promise<ConnectedWallet> => {
     setIsConnecting(true);
     setError(null);
-    
+
     try {
       const connection = await blockchainProvider.connectWallet(type, provider);
-      
+
       const connected: ConnectedWallet = {
         address: connection.address,
         chainId: connection.chainId,
         type: connection.type
       };
-      
+
       setConnectedWallet(connected);
       return connected;
     } catch (err: any) {
-      console.error('Error connecting wallet:', err);
+      console.error('Error conectando wallet:', err);
       setError(err.message || 'Error al conectar wallet');
       throw err;
     } finally {
@@ -224,7 +291,7 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Disconnect current wallet
+   * Desconecta la wallet activa del proveedor blockchain y limpia el estado local.
    */
   const disconnectWallet = useCallback(() => {
     blockchainProvider.disconnect();
@@ -232,29 +299,33 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Add current connected wallet to saved wallets
+   * Guarda la wallet actualmente conectada en la base de datos del usuario.
+   * Requiere firmar un desafío para demostrar la propiedad de la dirección.
+   *
+   * @param label - Etiqueta descriptiva opcional.
+   * @returns La wallet guardada.
+   * @throws {Error} Si no hay wallet conectada, se alcanzó el límite o la dirección ya existe.
    */
   const addWallet = useCallback(async (label?: string): Promise<SavedWallet> => {
     if (!connectedWallet) {
       throw new Error('No hay wallet conectada');
     }
-    
+
     if (savedWallets.length >= MAX_WALLETS_PER_USER) {
       throw new Error(`Máximo ${MAX_WALLETS_PER_USER} wallets por usuario. Elimina una primero.`);
     }
-    
-    // Check if wallet already saved
+
     const existing = savedWallets.find(
       w => w.walletAddress.toLowerCase() === connectedWallet.address.toLowerCase()
     );
-    
+
     if (existing) {
       throw new Error('Esta wallet ya está guardada');
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const challengeResponse = await walletsApi.getChallenge(connectedWallet.address);
       const signature = await blockchainProvider.signMessage(challengeResponse.message);
@@ -265,14 +336,14 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
         signature,
         challengeResponse.message
       );
-      
+
       const newWallet = walletToSavedWallet(response.wallet);
       const nextSavedWallets = sortSavedWallets([...savedWallets, newWallet]);
       setSavedWallets(nextSavedWallets);
       syncUserWallets(nextSavedWallets);
       return newWallet;
     } catch (err: any) {
-      console.error('Error adding wallet:', err);
+      console.error('Error añadiendo wallet:', err);
       setError(err.message || 'Error al guardar wallet');
       throw err;
     } finally {
@@ -281,19 +352,21 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   }, [connectedWallet, savedWallets]);
 
   /**
-   * Remove a saved wallet
+   * Elimina una wallet guardada del usuario.
+   *
+   * @param walletId - Identificador de la wallet a eliminar.
    */
   const removeWallet = useCallback(async (walletId: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await walletsApi.remove(walletId);
       const nextSavedWallets = sortSavedWallets(savedWallets.filter(w => w.id !== walletId));
       setSavedWallets(nextSavedWallets);
       syncUserWallets(nextSavedWallets);
     } catch (err: any) {
-      console.error('Error removing wallet:', err);
+      console.error('Error eliminando wallet:', err);
       setError(err.message || 'Error al eliminar wallet');
       throw err;
     } finally {
@@ -302,22 +375,24 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   }, [savedWallets, syncUserWallets]);
 
   /**
-   * Set a wallet as primary
+   * Establece una wallet como principal del usuario.
+   *
+   * @param walletId - Identificador de la wallet a promover.
    */
   const setPrimaryWalletFn = useCallback(async (walletId: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await walletsApi.setPrimary(walletId);
       const nextSavedWallets = sortSavedWallets(savedWallets.map(w => ({
-          ...w,
-          isPrimary: w.id === walletId
-        })));
+        ...w,
+        isPrimary: w.id === walletId
+      })));
       setSavedWallets(nextSavedWallets);
       syncUserWallets(nextSavedWallets);
     } catch (err: any) {
-      console.error('Error setting primary wallet:', err);
+      console.error('Error estableciendo wallet principal:', err);
       setError(err.message || 'Error al establecer wallet principal');
       throw err;
     } finally {
@@ -325,15 +400,27 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     }
   }, [savedWallets, syncUserWallets]);
 
-  // Computed values
+  /** Indica si el usuario puede añadir más wallets sin superar el límite. */
   const canAddWallet = savedWallets.length < MAX_WALLETS_PER_USER;
 
+  /**
+   * Busca una wallet guardada comparando direcciones de forma insensible a mayúsculas.
+   *
+   * @param address - Dirección pública a buscar.
+   * @returns La wallet coincidente, o `undefined`.
+   */
   const getWalletByAddress = useCallback((address: string) => {
     return savedWallets.find(
       w => w.walletAddress.toLowerCase() === address.toLowerCase()
     );
   }, [savedWallets]);
 
+  /**
+   * Determina si una dirección ya pertenece a las wallets guardadas.
+   *
+   * @param address - Dirección pública a comprobar.
+   * @returns `true` si existe al menos una coincidencia.
+   */
   const isWalletSaved = useCallback((address: string) => {
     return savedWallets.some(
       w => w.walletAddress.toLowerCase() === address.toLowerCase()
@@ -364,10 +451,16 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook para consumir el {@link WalletManagerContext}.
+ *
+ * @returns El valor completo del contexto de gestión de wallets.
+ * @throws {Error} Si se invoca fuera de un {@link WalletManagerProvider}.
+ */
 export function useWalletManager() {
   const context = useContext(WalletManagerContext);
   if (context === undefined) {
-    throw new Error('useWalletManager must be used within a WalletManagerProvider');
+    throw new Error('useWalletManager debe utilizarse dentro de un WalletManagerProvider');
   }
   return context;
 }

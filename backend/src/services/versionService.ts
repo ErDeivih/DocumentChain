@@ -13,11 +13,26 @@ import { BlockchainStatus } from '@prisma/client';
 import logger from '../utils/logger';
 import * as Encryption from '../lib/encryption';
 import { DocumentPermissionService } from './documentPermissionService';
+import { provider, getContracts } from '../config/blockchain';
 
 // ============================================
 // Types
 // ============================================
 
+/**
+ * Información de una versión de documento.
+ * @property id - Identificador de la versión
+ * @property documentId - ID del documento padre
+ * @property userId - ID del usuario creador
+ * @property versionNumber - Número secuencial de versión
+ * @property ipfsCid - CID de IPFS del contenido cifrado
+ * @property comment - Comentario descriptivo
+ * @property isEncrypted - Indica si el contenido está cifrado
+ * @property blockchainStatus - Estado de sincronización en blockchain
+ * @property blockchainTxHash - Hash de la transacción
+ * @property isOperational - Indica si es la versión activa actualmente
+ * @property createdAt - Fecha de creación
+ */
 export interface VersionInfo {
   id: string;
   documentId: string;
@@ -32,6 +47,14 @@ export interface VersionInfo {
   createdAt: Date;
 }
 
+/**
+ * Datos de entrada para preparar una nueva versión.
+ * @property documentId - ID del documento
+ * @property fileBuffer - Archivo sin cifrar recibido del frontend
+ * @property comment - Comentario descriptivo (opcional)
+ * @property userId - ID del usuario creador
+ * @property walletId - Wallet utilizada para la operación
+ */
 export interface PrepareVersionInput {
   documentId: string;
   fileBuffer: Buffer;  // UNENCRYPTED file from frontend
@@ -40,6 +63,13 @@ export interface PrepareVersionInput {
   walletId: string;
 }
 
+/**
+ * Resultado de la preparación de una versión.
+ * @property versionId - ID de la versión creada en base de datos
+ * @property ipfsCid - CID del archivo subido a IPFS
+ * @property blockchainId - ID para la transacción en blockchain
+ * @property versionNumber - Número asignado a la versión
+ */
 export interface PrepareVersionResult {
   versionId: string;
   ipfsCid: string;
@@ -47,16 +77,61 @@ export interface PrepareVersionResult {
   versionNumber: number;
 }
 
+/**
+ * Datos de entrada para confirmar una versión.
+ * @property versionId - ID de la versión en base de datos
+ * @property txHash - Hash de la transacción blockchain
+ * @property blockchainVersionNumber - Número de versión en blockchain
+ */
 export interface ConfirmVersionInput {
   versionId: string;
   txHash: string;
   blockchainVersionNumber: number;
 }
 
-// ============================================
-// Version Service Class
-// ============================================
+/**
+ * Datos de entrada para preparar el cambio de versión operacional.
+ * @property documentId - ID del documento
+ * @property versionNumber - Versión a activar
+ * @property userId - ID del solicitante
+ */
+export interface PrepareSetOperationalInput {
+  documentId: string;
+  versionNumber: number;
+  userId: string;
+}
 
+/**
+ * Resultado de la preparación del cambio de versión operacional.
+ * @property blockchainId - ID del documento en blockchain
+ * @property versionNumber - Versión a activar
+ * @property documentName - Nombre del documento
+ */
+export interface PrepareSetOperationalResult {
+  blockchainId: string;
+  versionNumber: number;
+  documentName: string;
+}
+
+/**
+ * Datos de entrada para confirmar el cambio de versión operacional.
+ * @property documentId - ID del documento
+ * @property versionNumber - Versión activada
+ * @property txHash - Hash de la transacción
+ * @property userId - ID del usuario confirmante
+ */
+export interface ConfirmSetOperationalInput {
+  documentId: string;
+  versionNumber: number;
+  txHash: string;
+  userId: string;
+}
+
+/**
+ * Servicio de gestión de versiones de documentos.
+ * Implementa el patrón prepare/confirm para crear, restaurar y cambiar versiones operacionales,
+ * incluyendo cifrado backend y almacenamiento descentralizado en IPFS.
+ */
 export class VersionService {
   private static async userHasAccessToDocument(
     document: {
@@ -72,7 +147,15 @@ export class VersionService {
       return false;
     }
 
-    if (document.ownerId === userId) {
+    // Validate ownership ON-CHAIN if blockchainId exists
+    if (document.blockchainId) {
+      const wallet = await prisma.wallet.findFirst({ where: { userId } });
+      if (!wallet) return false;
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+      if (isOwnerOnChain) {
+        return true;
+      }
+    } else if (document.ownerId === userId) {
       return true;
     }
 
@@ -80,6 +163,7 @@ export class VersionService {
       return true;
     }
 
+    // Verify access exclusively against the smart contract (single source of truth).
     if (document.blockchainId) {
       const wallets = await prisma.wallet.findMany({
         where: { userId },
@@ -93,9 +177,7 @@ export class VersionService {
       }
     }
 
-    const { ShareService } = await import('./shareService');
-    const fallbackShares = await ShareService.getSharedWithUser(userId);
-    return fallbackShares.some((share) => share.documentId === document.id);
+    return false;
   }
 
   /**
@@ -148,19 +230,27 @@ export class VersionService {
         throw new Error('No se pueden crear versiones en documentos archivados');
       }
 
-      // Check if user has access (owner or write access)
-      const isOwner = document.ownerId === userId;
-      
-      // Check shared write permission from blockchain
+      // Verify write access ON-CHAIN (sole source of truth)
       let hasWriteAccess = false;
-      if (!isOwner && document.blockchainId) {
-        hasWriteAccess = await DocumentPermissionService.canEdit(
+      if (document.blockchainId) {
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(
           document.blockchainId,
           wallet.walletAddress
         );
+        if (isOwnerOnChain) {
+          hasWriteAccess = true;
+        } else {
+          hasWriteAccess = await DocumentPermissionService.canEdit(
+            document.blockchainId,
+            wallet.walletAddress
+          );
+        }
+      } else if (document.ownerId === userId) {
+        // Fallback for documents not yet on chain
+        hasWriteAccess = true;
       }
 
-      if (!isOwner && !hasWriteAccess) {
+      if (!hasWriteAccess) {
         throw new Error('No tienes permisos para crear versiones de este documento');
       }
 
@@ -277,7 +367,7 @@ export class VersionService {
     }
 
     // 3. Update version with transaction info
-    const updated = await prisma.version.update({
+    let updated = await prisma.version.update({
       where: { id: versionId },
       data: {
         blockchainStatus: BlockchainStatus.TX_SUBMITTED,
@@ -287,7 +377,35 @@ export class VersionService {
 
     logger.info(`[CONFIRM] Versión ${versionId} actualizada a TX_SUBMITTED`);
 
-    // 4. Log the confirmation
+    // 4. Try to get receipt immediately (Hardhat mines instantly)
+    try {
+      if (txHash && provider) {
+        const receipt = await provider.getTransactionReceipt(txHash);
+        if (receipt && receipt.status === 1) {
+          updated = await prisma.$transaction(async (tx) => {
+            // Demote all previous versions
+            await tx.version.updateMany({
+              where: { documentId: version.documentId },
+              data: { isOperational: false },
+            });
+            // Promote this version to SYNCED and operational
+            const synced = await tx.version.update({
+              where: { id: versionId },
+              data: {
+                blockchainStatus: BlockchainStatus.SYNCED,
+                isOperational: true,
+              },
+            });
+            return synced;
+          });
+          logger.info(`[CONFIRM] Versión ${versionId} sincronizada inmediatamente a SYNCED`);
+        }
+      }
+    } catch (syncErr: any) {
+      logger.warn(`[CONFIRM] No se pudo sincronizar versión ${versionId} inmediatamente: ${syncErr.message}`);
+    }
+
+    // 5. Log the confirmation
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -330,7 +448,22 @@ export class VersionService {
       orderBy: { versionNumber: 'desc' },
     });
 
-    return versions.map(v => this.toVersionInfo(v));
+    // Consultar on-chain cuál es la versión operacional actual (fuente de verdad)
+    let currentOnchainVersion = 0;
+    try {
+      if (document.blockchainId) {
+        const contracts = getContracts();
+        const docOnchain = await contracts.documentRegistry.getDocument(document.blockchainId);
+        currentOnchainVersion = Number(docOnchain.currentVersion);
+      }
+    } catch (chainErr: any) {
+      logger.warn(`[GET_VERSIONS] Error consultando versión operacional on-chain: ${chainErr.message}`);
+    }
+
+    return versions.map(v => this.toVersionInfo({
+      ...v,
+      isOperational: v.versionNumber === currentOnchainVersion,
+    }));
   }
 
   /**
@@ -365,6 +498,7 @@ export class VersionService {
       select: {
         id: true,
         ownerId: true,
+        blockchainId: true,
         isDeleted: true,
         isArchived: true,
       },
@@ -374,7 +508,15 @@ export class VersionService {
       throw new Error('Documento no encontrado');
     }
 
-    if (document.ownerId !== userId) {
+    // Validate ownership ON-CHAIN if blockchainId exists
+    if (document.blockchainId) {
+      const wallet = await prisma.wallet.findFirst({ where: { userId } });
+      if (!wallet) throw new Error('Wallet no encontrada');
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+      if (!isOwnerOnChain) {
+        throw new Error('Solo el propietario puede cambiar la versión operacional');
+      }
+    } else if (document.ownerId !== userId) {
       throw new Error('Solo el propietario puede cambiar la versión operacional');
     }
 
@@ -438,6 +580,141 @@ export class VersionService {
   }
 
   /**
+   * Prepare set operational version (on-chain prepare phase)
+   */
+  static async prepareSetOperational(input: PrepareSetOperationalInput): Promise<PrepareSetOperationalResult> {
+    const { documentId, versionNumber, userId } = input;
+
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: {
+        id: true,
+        ownerId: true,
+        blockchainId: true,
+        name: true,
+        isDeleted: true,
+        isArchived: true,
+      },
+    });
+
+    if (!document) {
+      throw new Error('Documento no encontrado');
+    }
+
+    // Validate ownership ON-CHAIN if blockchainId exists
+    if (document.blockchainId) {
+      const wallet = await prisma.wallet.findFirst({ where: { userId } });
+      if (!wallet) throw new Error('Wallet no encontrada');
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+      if (!isOwnerOnChain) {
+        throw new Error('Solo el propietario puede cambiar la versión operacional');
+      }
+    } else if (document.ownerId !== userId) {
+      throw new Error('Solo el propietario puede cambiar la versión operacional');
+    }
+
+    if (document.isDeleted) {
+      throw new Error('No se pueden cambiar versiones en documentos eliminados');
+    }
+
+    if (document.isArchived) {
+      throw new Error('No se pueden cambiar versiones en documentos archivados');
+    }
+
+    if (!document.blockchainId) {
+      throw new Error('El documento no está registrado en blockchain');
+    }
+
+    const targetVersion = await prisma.version.findFirst({
+      where: { documentId, versionNumber },
+    });
+
+    if (!targetVersion) {
+      throw new Error(`Versión ${versionNumber} no encontrada`);
+    }
+
+    if (
+      targetVersion.blockchainStatus !== BlockchainStatus.SYNCED &&
+      targetVersion.blockchainStatus !== BlockchainStatus.TX_SUBMITTED
+    ) {
+      throw new Error('Solo se puede activar una versión enviada a blockchain');
+    }
+
+    if (targetVersion.isOperational) {
+      throw new Error('Esta versión ya es la operacional');
+    }
+
+    return {
+      blockchainId: document.blockchainId,
+      versionNumber,
+      documentName: document.name,
+    };
+  }
+
+  /**
+   * Confirm set operational version (on-chain confirm phase)
+   */
+  static async confirmSetOperational(input: ConfirmSetOperationalInput): Promise<void> {
+    const { documentId, versionNumber, txHash, userId } = input;
+
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: {
+        id: true,
+        ownerId: true,
+        blockchainId: true,
+        name: true,
+        isDeleted: true,
+        isArchived: true,
+      },
+    });
+
+    if (!document) {
+      throw new Error('Documento no encontrado');
+    }
+
+    // Validate ownership ON-CHAIN if blockchainId exists
+    if (document.blockchainId) {
+      const wallet = await prisma.wallet.findFirst({ where: { userId } });
+      if (!wallet) throw new Error('Wallet no encontrada');
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+      if (!isOwnerOnChain) {
+        throw new Error('Solo el propietario puede cambiar la versión operacional');
+      }
+    } else if (document.ownerId !== userId) {
+      throw new Error('Solo el propietario puede cambiar la versión operacional');
+    }
+
+    if (document.isDeleted || document.isArchived) {
+      throw new Error('No se pueden cambiar versiones en documentos eliminados o archivados');
+    }
+
+    const targetVersion = await prisma.version.findFirst({
+      where: { documentId, versionNumber },
+    });
+
+    if (!targetVersion) {
+      throw new Error(`Versión ${versionNumber} no encontrada`);
+    }
+
+    await prisma.event.create({
+      data: {
+        id: uuidv4(),
+        eventType: 'OPERATIONAL_VERSION_TX_SUBMITTED',
+        userId,
+        documentId,
+        transactionHash: txHash,
+        metadata: {
+          versionId: targetVersion.id,
+          versionNumber,
+        },
+      },
+    });
+
+    logger.info(`[VERSION] Confirmación de cambio de versión operacional registrada para documento ${documentId} a v${versionNumber}, txHash=${txHash}`);
+  }
+
+  /**
    * Download version (returns encrypted file from IPFS)
    */
   static async downloadVersion(versionId: string, userId: string): Promise<{
@@ -446,6 +723,9 @@ export class VersionService {
     encryptedSymmetricKey: string;
     encryptionIV: string | null;
     encryptionAuthTag: string | null;
+    documentName: string;
+    versionNumber: number;
+    mimeType: string;
   }> {
     const version = await prisma.version.findUnique({
       where: { id: versionId },
@@ -458,6 +738,8 @@ export class VersionService {
             visibility: true,
             isDeleted: true,
             encryptedSymmetricKey: true,
+            name: true,
+            mimeType: true,
           },
         },
       },
@@ -487,6 +769,9 @@ export class VersionService {
       encryptedSymmetricKey: version.encryptedSymmetricKey || version.document.encryptedSymmetricKey || 'UNENCRYPTED',
       encryptionIV: version.encryptionIV || null,
       encryptionAuthTag: version.encryptionAuthTag || null,
+      documentName: version.document.name,
+      versionNumber: version.versionNumber,
+      mimeType: version.document.mimeType,
     };
   }
 
@@ -551,7 +836,7 @@ export class VersionService {
         where: { id: versionId },
         include: {
           document: {
-            select: { ownerId: true },
+            select: { ownerId: true, blockchainId: true },
           },
         },
       });
@@ -561,7 +846,15 @@ export class VersionService {
       }
 
       // Verify ownership
-      if (version.document.ownerId !== userId) {
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (version.document.blockchainId) {
+        const wallet = await prisma.wallet.findFirst({ where: { userId } });
+        if (!wallet) throw new Error('Wallet no encontrada');
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(version.document.blockchainId, wallet.walletAddress);
+        if (!isOwnerOnChain) {
+          throw new Error('No tienes permiso para eliminar esta versión');
+        }
+      } else if (version.document.ownerId !== userId) {
         throw new Error('No tienes permiso para eliminar esta versión');
       }
 
@@ -617,7 +910,7 @@ export class VersionService {
         where: { id: versionId },
         include: {
           document: {
-            select: { ownerId: true },
+            select: { ownerId: true, blockchainId: true },
           },
         },
       });
@@ -627,7 +920,15 @@ export class VersionService {
       }
 
       // Verify ownership
-      if (version.document.ownerId !== userId) {
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (version.document.blockchainId) {
+        const wallet = await prisma.wallet.findFirst({ where: { userId } });
+        if (!wallet) throw new Error('Wallet no encontrada');
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(version.document.blockchainId, wallet.walletAddress);
+        if (!isOwnerOnChain) {
+          throw new Error('No tienes permiso para eliminar esta versión');
+        }
+      } else if (version.document.ownerId !== userId) {
         throw new Error('No tienes permiso para eliminar esta versión');
       }
 
@@ -685,7 +986,15 @@ export class VersionService {
     if (!document) {
       throw new Error('Documento no encontrado');
     }
-    if (document.ownerId !== userId) {
+    // Validate ownership ON-CHAIN if blockchainId exists
+    if (document.blockchainId) {
+      const wallet = await prisma.wallet.findFirst({ where: { userId } });
+      if (!wallet) throw new Error('Wallet no encontrada');
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+      if (!isOwnerOnChain) {
+        throw new Error('Solo el propietario puede restaurar versiones');
+      }
+    } else if (document.ownerId !== userId) {
       throw new Error('Solo el propietario puede restaurar versiones');
     }
     if (document.isDeleted) {

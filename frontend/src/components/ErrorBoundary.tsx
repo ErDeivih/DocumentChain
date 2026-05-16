@@ -1,20 +1,32 @@
 import { Component, ReactNode, ErrorInfo } from 'react';
 
+/**
+ * Props del componente ErrorBoundary.
+ */
 interface Props {
+  /** Contenido hijo que será envuelto por el límite de errores. */
   children: ReactNode;
+  /** UI alternativa personalizada que se mostrará cuando ocurra un error. */
   fallback?: ReactNode;
+  /** Callback opcional que se ejecuta al capturar un error. */
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
+/**
+ * Estado interno del componente ErrorBoundary.
+ */
 interface State {
+  /** Indica si se ha producido un error. */
   hasError: boolean;
+  /** Error capturado. */
   error?: Error;
+  /** Información adicional sobre el error de React. */
   errorInfo?: ErrorInfo;
 }
 
 /**
- * Error Boundary Component
- * Captura errores de React y muestra UI de fallback
+ * Límite de errores de React.
+ * Captura errores en el árbol de componentes hijos y muestra una interfaz de fallback.
  */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -31,12 +43,12 @@ export class ErrorBoundary extends Component<Props, State> {
     
     this.setState({ errorInfo });
     
-    // Callback opcional para reportar a Sentry, etc.
+    // Callback opcional para reportar errores a servicios externos.
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-    
-    // TODO: Integrar con Sentry u otro servicio de monitoreo
+
+    // TODO: Integrar con Sentry u otro servicio de monitoreo.
     // Sentry.captureException(error, { contexts: { react: errorInfo } });
   }
 

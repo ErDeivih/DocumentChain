@@ -1,0 +1,28 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0023: Listar versiones de documento (Análisis BCE)
+
+actor "Usuario con acceso" as user
+boundary "Pestaña de versiones" as ui
+control "Gestor de versiones" as ctrl
+entity "Documento" as doc
+entity "Versión" as ver
+
+user -> ui: Seleccionar "Versiones"
+ui -> ctrl: Solicitar versiones (idDocumento)
+
+ctrl -> doc: Verificar permisos de acceso
+doc --> ctrl: Permisos verificados
+
+alt Sin acceso
+    ctrl --> ui: Acceso denegado
+    ui --> user: Mostrar error
+else Con acceso
+    ctrl -> ver: Obtener todas las versiones del documento
+    ver --> ctrl: Lista de versiones (número, fecha, comentario, estado)
+    ctrl --> ui: Lista de versiones
+    ui --> user: Mostrar historial de versiones con indicador de operacional
+end
+
+@enduml

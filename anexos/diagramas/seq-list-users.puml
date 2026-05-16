@@ -4,7 +4,7 @@ actor Admin as admin
 boundary "Panel de administracion" as ui
 control "Endpoints de administracion (/api/admin)" as api
 control "AdminService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 admin -> ui: Abre gestion de usuarios y aplica filtros
 ui -> api: Solicitar usuarios paginados
@@ -16,4 +16,5 @@ api --> ui: Tabla lista
 ui --> admin: Ve roles, suspension, email verificado y ultimo acceso
 
 @enduml
+
 

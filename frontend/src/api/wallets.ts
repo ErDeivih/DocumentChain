@@ -1,19 +1,39 @@
 import { api } from '../lib/api';
 import type { Wallet, Document, Share, Signature, Version } from '../types';
 
+/**
+ * Actividad asociada a una wallet.
+ */
 export interface WalletActivity {
+  /** Documentos creados con la wallet. */
   created: Document[];
+  /** Documentos compartidos con la wallet. */
   shared: Share[];
+  /** Documentos firmados con la wallet. */
   signed: Signature[];
+  /** Versiones creadas con la wallet. */
   versions: Version[];
 }
 
+/** API de wallets. */
 export const walletsApi = {
+  /**
+   * Lista las wallets del usuario actual.
+   * @returns Lista de wallets.
+   */
   list: async (): Promise<{ wallets: Wallet[] }> => {
     const response = await api.get<{ wallets: Wallet[] }>('/wallets');
     return response.data;
   },
 
+  /**
+   * Añade una nueva wallet.
+   * @param address - Dirección de la wallet.
+   * @param label - Etiqueta descriptiva (opcional).
+   * @param signature - Firma de verificación (opcional).
+   * @param message - Mensaje firmado (opcional).
+   * @returns Wallet creada.
+   */
   add: async (
     address: string,
     label?: string,
@@ -29,34 +49,61 @@ export const walletsApi = {
     return response.data;
   },
 
+  /**
+   * Elimina una wallet.
+   * @param walletId - Identificador de la wallet.
+   * @returns Promesa vacía.
+   */
   remove: async (walletId: string): Promise<void> => {
     await api.delete(`/wallets/${walletId}`);
   },
 
+  /**
+   * Establece una wallet como primaria.
+   * @param walletId - Identificador de la wallet.
+   * @returns Wallet actualizada.
+   */
   setPrimary: async (walletId: string): Promise<{ wallet: Wallet }> => {
     const response = await api.put<{ wallet: Wallet }>(`/wallets/${walletId}/primary`);
     return response.data;
   },
 
+  /**
+   * Actualiza la etiqueta de una wallet.
+   * @param walletId - Identificador de la wallet.
+   * @param label - Nueva etiqueta.
+   * @returns Wallet actualizada.
+   */
   updateLabel: async (walletId: string, label: string): Promise<{ wallet: Wallet }> => {
     const response = await api.put<{ wallet: Wallet }>(`/wallets/${walletId}/label`, { label });
     return response.data;
   },
 
+  /**
+   * Obtiene un mensaje de desafío para verificar una wallet.
+   * @param address - Dirección de la wallet.
+   * @returns Mensaje de desafío.
+   */
   getChallenge: async (address: string): Promise<{ message: string }> => {
     const response = await api.post<{ message: string }>('/wallets/challenge', { address });
     return response.data;
   },
 
+  /**
+   * Obtiene la wallet primaria del usuario.
+   * @returns Wallet primaria.
+   */
   getPrimary: async (): Promise<{ wallet: Wallet }> => {
     const response = await api.get<{ wallet: Wallet }>('/wallets/primary');
     return response.data;
   },
 
-  // ==================== NEW METHODS FOR WALLET-BASED DOCUMENTS ====================
+  // ==================== NUEVOS MÉTODOS PARA DOCUMENTOS BASADOS EN WALLET ====================
 
   /**
-   * Get documents created with a specific wallet
+   * Obtiene los documentos creados con una wallet específica.
+   * @param walletId - Identificador de la wallet.
+   * @returns Documentos creados.
    */
   getDocuments: async (walletId: string): Promise<{ documents: Document[] }> => {
     const response = await api.get<{ documents: Document[] }>(`/documents/wallet/${walletId}`);
@@ -64,7 +111,9 @@ export const walletsApi = {
   },
 
   /**
-   * Get documents shared to a wallet address
+   * Obtiene los documentos compartidos con una dirección de wallet.
+   * @param walletAddress - Dirección de la wallet.
+   * @returns Documentos compartidos.
    */
   getSharedToWallet: async (walletAddress: string): Promise<{ documents: Document[] }> => {
     const response = await api.get<{ documents: Document[] }>(`/wallets/${walletAddress}/shared`);
@@ -72,7 +121,9 @@ export const walletsApi = {
   },
 
   /**
-   * Get documents signed with a specific wallet
+   * Obtiene los documentos firmados con una wallet específica.
+   * @param walletId - Identificador de la wallet.
+   * @returns Documentos firmados.
    */
   getSignedDocuments: async (walletId: string): Promise<{ documents: Document[] }> => {
     const response = await api.get<{ documents: Document[] }>(`/wallets/${walletId}/signed`);
@@ -80,7 +131,9 @@ export const walletsApi = {
   },
 
   /**
-   * Get complete activity for a wallet
+   * Obtiene la actividad completa de una wallet.
+   * @param walletId - Identificador de la wallet.
+   * @returns Actividad de la wallet.
    */
   getActivity: async (walletId: string): Promise<WalletActivity> => {
     const response = await api.get<WalletActivity>(`/wallets/${walletId}/activity`);
@@ -88,11 +141,19 @@ export const walletsApi = {
   }
 };
 
-// Aliases for backward compatibility
+// Alias para compatibilidad hacia atrás
+
+/** Alias de {@link walletsApi.list}. */
 export const listWallets = walletsApi.list;
+/** Alias de {@link walletsApi.add}. */
 export const addWallet = walletsApi.add;
+/** Alias de {@link walletsApi.remove}. */
 export const removeWallet = walletsApi.remove;
+/** Alias de {@link walletsApi.setPrimary}. */
 export const setPrimaryWallet = walletsApi.setPrimary;
+/** Alias de {@link walletsApi.updateLabel}. */
 export const updateWalletLabel = walletsApi.updateLabel;
+/** Alias de {@link walletsApi.getChallenge}. */
 export const getWalletChallenge = walletsApi.getChallenge;
+/** Alias de {@link walletsApi.getPrimary}. */
 export const getPrimaryWallet = walletsApi.getPrimary;

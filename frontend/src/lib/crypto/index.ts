@@ -1,29 +1,29 @@
 /**
- * Crypto Module - Frontend Cryptographic Operations
- * 
- * This module provides all cryptographic functionality needed for:
- * - RSA key pair generation and management
- * - File encryption/decryption with AES-256-GCM
- * - Secure in-memory storage for private keys
- * - Utility functions for hashing and encoding
+ * @fileoverview Módulo de criptografía del frontend.
+ *
+ * Este módulo centraliza toda la funcionalidad criptográfica necesaria para:
+ * - Generación y gestión de pares de claves RSA.
+ * - Cifrado y descifrado de archivos con AES-256-GCM.
+ * - Almacenamiento seguro en memoria de claves privadas.
+ * - Funciones de utilidad para hash y codificación.
  */
 
-// Re-export all utilities
+// Re-exportar todas las utilidades
 export * from './utils';
 
-// Re-export KeyManager
+// Re-exportar KeyManager
 export { KeyManager } from './KeyManager';
 export type { KeyPairResult, DecryptedKeyPair } from './KeyManager';
 
-// Re-export FileCrypto
+// Re-exportar FileCrypto
 export { FileCrypto } from './FileCrypto';
 export type { EncryptedFileResult, DecryptedFileResult } from './FileCrypto';
 
-// Re-export SecureStorage
+// Re-exportar SecureStorage
 export { SecureStorage } from './SecureStorage';
 export type { KeyCacheEntry } from './SecureStorage';
 
-// Default export for convenience
+// Exportación por defecto para conveniencia
 export default {
   KeyManager: (await import('./KeyManager')).KeyManager,
   FileCrypto: (await import('./FileCrypto')).FileCrypto,

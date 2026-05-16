@@ -1,48 +1,44 @@
 /**
- * API de Usuarios
+ * @fileoverview API de usuarios para el frontend.
+ *
+ * Gestiona operaciones de perfil, avatar, búsqueda de usuarios
+ * y eliminación de cuenta.
  */
 
 import { api } from '../lib/api';
 import type { User } from '../types';
 
+/**
+ * Resultado de búsqueda de usuarios.
+ */
 export interface UserSearchResult {
+  /** Identificador del usuario. */
   id: string;
+  /** Nombre de usuario. */
   username: string;
+  /** Nombre completo. */
   fullName: string | null;
+  /** Correo electrónico. */
   email: string;
+  /** URL del avatar. */
   avatarUrl?: string | null;
-  // Helper for getting primary wallet address
+  /** Dirección de la wallet principal (helper). */
   walletAddress?: string;
 }
 
+/**
+ * Respuesta de actualización de avatar.
+ */
 export interface UpdateAvatarResponse {
+  /** URL del nuevo avatar. */
   avatarUrl: string;
 }
 
-export interface UserSuspensionPreparation {
-  action: 'suspend' | 'unsuspend';
-  method: 'suspendMyself' | 'unsuspendMyself';
-  contractAddress: string;
-  wallet: {
-    id: string;
-    address: string;
-    label: string | null;
-  };
-  currentDbSuspended: boolean;
-  currentOnChainSuspended: boolean;
-  reason: string | null;
-}
-
-export interface UserSuspensionConfirmation {
-  success: boolean;
-  message: string;
-  txHash: string;
-  user: User;
-}
-
+/** API de operaciones con usuarios. */
 export const usersApi = {
   /**
-   * Obtener perfil del usuario actual
+   * Obtiene el perfil del usuario actual.
+   * @returns Datos del usuario.
    */
   getProfile: async (): Promise<User> => {
     const response = await api.get('/users/profile');
@@ -50,7 +46,9 @@ export const usersApi = {
   },
 
   /**
-   * Actualizar perfil
+   * Actualiza el perfil del usuario.
+   * @param data - Campos a actualizar (nombre, correo).
+   * @returns Usuario actualizado.
    */
   updateProfile: async (data: { fullName?: string; email?: string }): Promise<User> => {
     const response = await api.put('/users/profile', data);
@@ -58,13 +56,15 @@ export const usersApi = {
   },
 
   /**
-   * Subir avatar
+   * Sube o actualiza el avatar del usuario.
+   * @param file - Archivo de imagen.
+   * @returns URL del avatar actualizado.
    */
   updateAvatar: async (file: File): Promise<UpdateAvatarResponse> => {
     const formData = new FormData();
     formData.append('avatar', file);
-    
-    const response = await api.put('/users/avatar', formData, {
+
+    const response = await api.put('/users/me/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -73,14 +73,17 @@ export const usersApi = {
   },
 
   /**
-   * Eliminar avatar
+   * Elimina el avatar del usuario.
+   * @returns Promesa vacía.
    */
   removeAvatar: async (): Promise<void> => {
-    await api.delete('/users/avatar');
+    await api.delete('/users/me/avatar');
   },
 
   /**
-   * Buscar usuarios
+   * Busca usuarios por nombre de usuario o correo.
+   * @param query - Texto de búsqueda.
+   * @returns Lista de usuarios coincidentes.
    */
   search: async (query: string): Promise<{ users: UserSearchResult[] }> => {
     const response = await api.get('/users/search', {
@@ -90,12 +93,14 @@ export const usersApi = {
   },
 
   /**
-   * Obtener usuario por ID con wallets
+   * Obtiene un usuario por su ID incluyendo sus wallets.
+   * @param userId - Identificador del usuario.
+   * @returns Usuario con wallets y dirección principal como helper.
    */
   getUserById: async (userId: string): Promise<User> => {
     const response = await api.get(`/users/${userId}`);
     const user: User = response.data;
-    // Extract primary wallet address as helper property
+    // Extraer dirección de wallet principal como propiedad helper
     if (user.wallets && user.wallets.length > 0) {
       const primaryWallet = user.wallets.find(w => w.isPrimary) || user.wallets[0];
       user.walletAddress = primaryWallet.address;
@@ -104,35 +109,21 @@ export const usersApi = {
   },
 
   /**
-   * DEPRECATED: Use getUserById instead
+   * @deprecated Utilice getUserById en su lugar.
+   * @param userId - Identificador del usuario.
+   * @returns Usuario encontrado.
    */
   getById: async (userId: string): Promise<User> => {
     console.warn('usersApi.getById is deprecated. Use getUserById instead.');
     return usersApi.getUserById(userId);
   },
 
-  prepareSuspendMe: async (reason?: string): Promise<UserSuspensionPreparation> => {
-    const response = await api.post('/users/me/suspend/prepare', { reason });
-    return response.data;
-  },
-
-  confirmSuspendMe: async (txHash: string, reason?: string): Promise<UserSuspensionConfirmation> => {
-    const response = await api.post('/users/me/suspend/confirm', { txHash, reason });
-    return response.data;
-  },
-
-  prepareUnsuspendMe: async (): Promise<UserSuspensionPreparation> => {
-    const response = await api.post('/users/me/unsuspend/prepare');
-    return response.data;
-  },
-
-  confirmUnsuspendMe: async (txHash: string): Promise<UserSuspensionConfirmation> => {
-    const response = await api.post('/users/me/unsuspend/confirm', { txHash });
-    return response.data;
-  },
-
-  deleteAccount: async (txHash: string): Promise<void> => {
-    await api.delete('/users/me', { data: { txHash } });
+  /**
+   * Elimina la cuenta del usuario.
+   * @returns Promesa vacía.
+   */
+  deleteAccount: async (): Promise<void> => {
+    await api.delete('/users/me');
   },
 };
 

@@ -1,0 +1,25 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+title Casos de uso - Acceso y cuenta: Perfil y gestion de cuenta
+
+actor "Usuario" as USER
+actor "Blockchain" as SC
+
+rectangle "Perfil y gestion de cuenta" {
+  usecase "UC-0008: Gestionar Perfil y Notificaciones" as UC8
+  usecase "UC-0009: Eliminar Cuenta" as UC9
+}
+
+UC8 -[hidden]down-> UC9
+
+USER --> UC8
+USER --> UC9
+
+SC --> UC9
+
+note right of UC8
+  Agrupa configuracion de perfil de usuario
+  y preferencias de notificacion.
+end note
+@enduml

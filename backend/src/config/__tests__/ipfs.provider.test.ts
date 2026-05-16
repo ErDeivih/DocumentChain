@@ -71,7 +71,7 @@ describe('IPFS provider selection', () => {
     });
 
     await expect(uploadToIPFS!(Buffer.from('fallback'))).rejects.toThrow(
-      'Unsupported IPFS_PROVIDER "pinata". Use "self-hosted".'
+      'IPFS_PROVIDER is "pinata" but PINATA_JWT is not set. Please configure PINATA_JWT (and optionally PINATA_GATEWAY_URL).'
     );
   });
 });

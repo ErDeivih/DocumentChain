@@ -1,0 +1,41 @@
+skinparam backgroundColor white
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam sequenceArrowThickness 1.2
+skinparam ParticipantPadding 12
+skinparam BoxPadding 8
+skinparam DefaultFontName Arial
+skinparam DefaultFontSize 12
+hide footbox
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam wrapWidth 200
+skinparam maxMessageSize 150
+autonumber 1
+
+skinparam actor {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+
+skinparam boundary {
+    BackgroundColor #FFF3E0
+    BorderColor #EF6C00
+}
+
+skinparam control {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+skinparam entity {
+    BackgroundColor #F3E5F5
+    BorderColor #6A1B9A
+}
+
+skinparam database {
+    BackgroundColor #E0F7FA
+    BorderColor #00838F
+}

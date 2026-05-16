@@ -7,6 +7,16 @@ import { DocumentPermissionService, DocumentRole } from './documentPermissionSer
 import { logBlockchainError } from '../utils/logger';
 import { normalizeEthereumAddress } from '../utils/ethereum';
 
+/**
+ * Resultado de una operación de verificación de documento.
+ * @property exists - Indica si el documento fue encontrado
+ * @property document - Información básica del documento
+ * @property versions - Lista de versiones
+ * @property matchedVersion - Versión que coincide con la búsqueda
+ * @property shares - Comparticiones activas
+ * @property signatures - Firmas registradas
+ * @property blockchain - Datos on-chain del documento
+ */
 export interface VerificationResult {
   exists: boolean;
   document?: {
@@ -18,12 +28,15 @@ export interface VerificationResult {
     fileSize: number;
     ipfsHash: string;
     isArchived: boolean;
+    currentVersion: number;
   };
   versions?: Array<{
+    versionNumber: number;
     createdAt: Date;
     createdBy?: string;
     comment?: string;
   }>;
+  matchedVersion?: number;
   shares?: Array<{
     sharedWith: string;
     sharedWithUsername?: string;
@@ -36,6 +49,7 @@ export interface VerificationResult {
     walletAddress: string;
     signedAt: Date;
     comment?: string;
+    versionNumber: number;
   }>;
   blockchain?: {
     documentId: string;
@@ -48,6 +62,10 @@ export interface VerificationResult {
   };
 }
 
+/**
+ * Servicio de verificación de autenticidad e integridad de documentos.
+ * Permite verificar la existencia y propiedades de un documento mediante hash, CID o blockchainId.
+ */
 export class VerificationService {
   /**
    * Verificar si un archivo existe en la blockchain mediante su hash
@@ -128,6 +146,9 @@ export class VerificationService {
       logBlockchainError('Fetch blockchain data', error as Error);
     }
 
+    const operationalVersion = document.versions.find(v => v.isOperational);
+    const matchedVersion = operationalVersion?.versionNumber || document.versions[0]?.versionNumber || 1;
+
     return {
       exists: true,
       document: {
@@ -139,12 +160,15 @@ export class VerificationService {
         fileSize: Number(document.size),
         ipfsHash: blockchainInfo?.ipfsHash || '',
         isArchived: blockchainDoc?.isArchived || false,
+        currentVersion: operationalVersion?.versionNumber || document.versions.length || 1,
       },
       versions: document.versions.map(v => ({
+        versionNumber: v.versionNumber,
         createdAt: new Date(),
         createdBy: v.user.username,
         comment: v.comment || undefined,
       })),
+      matchedVersion,
       // shares comentado: obtener desde blockchain
       shares: await VerificationService.getSharesForDocument(document.blockchainId),
       signatures: document.signatures.map((sig: any) => ({
@@ -152,7 +176,8 @@ export class VerificationService {
         signedByUsername: sig.user.username,
         walletAddress: sig.signerWallet?.walletAddress || '',
         signedAt: sig.signedAt || new Date(),
-        comment: undefined
+        comment: undefined,
+        versionNumber: sig.version?.versionNumber || 1,
       })),
       blockchain: blockchainInfo,
     };
@@ -176,7 +201,7 @@ export class VerificationService {
 
     if (version?.document?.blockchainId) {
       // Delegate to the working blockchain verification
-      return VerificationService.verifyByBlockchainId(version.document.blockchainId);
+      return VerificationService.verifyByBlockchainId(version.document.blockchainId, version.versionNumber);
     }
 
     // Not found in DB — return not exists
@@ -186,7 +211,7 @@ export class VerificationService {
   /**
    * Verificar documento por ID de blockchain
    */
-  static async verifyByBlockchainId(blockchainId: string): Promise<VerificationResult> {
+  static async verifyByBlockchainId(blockchainId: string, matchedVersionHint?: number): Promise<VerificationResult> {
     const document = await prisma.document.findFirst({
       where: { blockchainId },
       include: {
@@ -275,6 +300,9 @@ export class VerificationService {
       logBlockchainError('Fetch blockchain data', error as Error);
     }
 
+    const operationalVersion = document.versions.find(v => v.isOperational);
+    const matchedVersion = matchedVersionHint || operationalVersion?.versionNumber || document.versions[0]?.versionNumber || 1;
+
     return {
       exists: true,
       document: {
@@ -286,12 +314,15 @@ export class VerificationService {
         fileSize: Number(document.size),
         ipfsHash: blockchainInfo?.ipfsHash || '',
         isArchived: blockchainDoc?.isArchived || false,
+        currentVersion: operationalVersion?.versionNumber || document.versions.length || 1,
       },
       versions: document.versions.map(v => ({
+        versionNumber: v.versionNumber,
         createdAt: new Date(),
         createdBy: v.user.username,
         comment: v.comment || undefined,
       })),
+      matchedVersion,
       // shares comentado: obtener desde blockchain
       shares: await VerificationService.getSharesForDocument(blockchainId),
       signatures: document.signatures.map((sig: any) => ({
@@ -299,7 +330,8 @@ export class VerificationService {
         signedByUsername: sig.user.username,
         walletAddress: sig.signerWallet?.walletAddress || '',
         signedAt: sig.signedAt || new Date(),
-        comment: undefined
+        comment: undefined,
+        versionNumber: sig.version?.versionNumber || 1,
       })),
       blockchain: blockchainInfo,
     };

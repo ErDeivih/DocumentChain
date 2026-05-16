@@ -44,6 +44,10 @@ cache/
 typechain/
 typechain-types/
 smart-contracts/artifacts/build-info/
+smart-contracts/coverage/
+smart-contracts/coverage.json
+smart-contracts/coverage/lcov.info
+anexos/plantuml.jar
 
 # Prisma
 # Las migraciones deben versionarse para permitir despliegues reproducibles.
@@ -59,6 +63,8 @@ smart-contracts/artifacts/build-info/
 /test-results/
 frontend/playwright-report/
 frontend/test-results/
+backend/coverage/
+frontend/coverage/
 backend/build-output.txt
 backend/test-results.txt
 backend/logs/

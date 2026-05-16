@@ -1,0 +1,1161 @@
+﻿% ============================================================
+%  ANEXO V - PLAN DE SEGURIDAD
+%  DocumentChain - Sistema de Gestion Documental con Blockchain
+%  Metodologia INCIBE - 6 etapas
+%  Universidad de Salamanca - Grado en Ingenieria Informatica
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+\usepackage{fontspec}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=2.5cm, headheight=55pt, headsep=0.8cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{Anexo V}\\[-1pt]\fontsize{10}{12}\selectfont Plan de Seguridad}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+
+\newcommand{\autorUno}{David Pérez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia González}
+\newcommand{\tutorDos}{Sergio García González}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingenieria Informatica \par}
+    \vspace{1.5cm}
+    {\huge\bfseries ANEXO V \par}
+    \vspace{0.5cm}
+    {\Large\bfseries Plan de Seguridad \par}
+    \vspace{0.3cm}
+    {\large\itshape Sistema de Gestion Documental mediante Blockchain \par}
+    \vspace{1.8cm}
+    \includegraphics[width=0.28\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{2.2cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{1.5cm}
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vspace{2cm}
+    {\large Julio 2026}
+    \vspace{0.5cm}
+
+    \asignatura
+    \vspace{1cm}
+\end{titlepage}
+
+\setcounter{page}{2}
+\pagestyle{fancy}
+\tableofcontents
+\newpage
+
+\section{Introduccion}
+
+Este anexo recoge el plan de seguridad de DocumentChain siguiendo la metodologia del Plan Director de Seguridad del INCIBE. El plan se organiza en seis etapas: identificacion de activos, valoracion, amenazas, consecuencias y probabilidad, medidas de seguridad y riesgos residuales. A lo largo de estas etapas se han identificado los activos criticos del sistema, se han valorado segun su importancia, se han catalogado las amenazas principales y se han definido las medidas necesarias para reducirlas.
+
+\section{Etapa 1: Identificacion de activos}
+
+Se han identificado los activos del sistema dividiendolos en cinco categorias: hardware, software, datos, servicios y personal. Para cada uno se indica su responsable, ubicacion y nivel de criticidad.
+
+\subsection{Activos de hardware}
+
+Los activos fisicos soportan la ejecucion y disponibilidad del sistema. Aunque gran parte de la infraestructura se despliega en entornos virtualizados (VPS en cloud), su naturaleza fisica subyacente determina la necesidad de acuerdos de nivel de servicio (SLA) y copias de seguridad geograficas.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|p{2.8cm}|p{4cm}|p{2.5cm}|p{2.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{Descripcion} & \textbf{Propietario} & \textbf{Ubicacion} & \textbf{Criticidad} \\
+\hline
+A-H01 & VPS principal & Servidor virtual privado que aloja backend, frontend y base de datos & Desarrollador & Cloud provider & Alta \\
+\hline
+A-H02 & Portatil de desarrollo & Equipo local utilizado para el desarrollo, pruebas y gestion de claves & Desarrollador & Local (oficina) & Alta \\
+\hline
+A-H03 & Nodo IPFS & Nodo Kubo que gestiona el almacenamiento distribuido de contenido documental & Desarrollador / Red IPFS & Cloud / local & Alta \\
+\hline
+A-H04 & Infraestructura de red & Routers, firewalls y balanceadores que gestionan el trafico & Proveedor cloud & Cloud provider & Media \\
+\hline
+\end{tabular}
+\caption{Inventario de activos de hardware}
+\label{tab:activos-hardware}
+\end{table}
+
+\subsection{Activos de software}
+
+Los activos de software engloban el codigo fuente, los sistemas gestores de datos, los contratos inteligentes desplegados y los certificados digitales que garantizan la confidencialidad de las comunicaciones.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|l|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{Descripcion} & \textbf{Propietario} & \textbf{Ubicacion} & \textbf{Criticidad} \\
+\hline
+A-S01 & Codigo fuente & Repositorios del frontend (React), backend (Node.js) y smart contracts (Solidity) & Desarrollador & GitHub (privado) & Alta \\
+\hline
+A-S02 & Base de datos PostgreSQL & Sistema gestor de base de datos relacional con metadatos, permisos y logs & Desarrollador & VPS principal & Alta \\
+\hline
+A-S03 & Smart contracts & Conjunto de contratos inteligentes desplegados en red Ethereum (DocumentRegistry, Signing, AccessControl, Versioning) & Desarrollador / Red Ethereum & Blockchain publica & Critica \\
+\hline
+A-S04 & Certificados SSL/TLS & Certificados digitales para establecimiento de canales seguros HTTPS & Desarrollador / CA & VPS principal & Alta \\
+\hline
+A-S05 & Imagenes Docker & Contenedores de los servicios (backend, frontend, IPFS, PostgreSQL, Postfix) & Desarrollador & Registro Docker / VPS & Media \\
+\hline
+A-S06 & Scripts de despliegue & Automatizacion de infraestructura (Docker Compose, scripts PowerShell) & Desarrollador & Repositorio GitHub & Media \\
+\hline
+\end{tabular}
+\caption{Inventario de activos de software}
+\label{tab:activos-software}
+\end{table}
+
+\subsection{Activos de datos}
+
+Los activos de datos representan la informacion que el sistema gestiona, almacena o transmite. Su proteccion es prioritaria dado que DocumentChain maneja documentos potencialmente sensibles y datos personales sujetos al RGPD.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|l|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{Descripcion} & \textbf{Propietario} & \textbf{Ubicacion} & \textbf{Criticidad} \\
+\hline
+A-D01 & Documentos cifrados & Archivos digitales cifrados con AES-256-GCM & Usuario final / Desarrollador & IPFS / nodo local & Critica \\
+\hline
+A-D02 & Claves simetricas & Claves de cifrado de documentos encapsuladas con RSA/ECDH & Usuario final & PostgreSQL (cifrado) & Critica \\
+\hline
+A-D03 & Claves privadas blockchain & Claves de wallets Ethereum de usuarios y administradores & Usuario final & Metamask / wallet externa & Critica \\
+\hline
+A-D04 & Hashes blockchain & Hashes de documentos y metadatos inmutables registrados on-chain & Desarrollador / Red Ethereum & Blockchain publica & Alta \\
+\hline
+A-D05 & Datos personales (RGPD) & Nombre, correo electronico, direccion IP, direccion de wallet, registros de actividad & Usuario final & PostgreSQL & Alta \\
+\hline
+A-D06 & Tokens JWT y refresh & Tokens de sesion y tokens de renovacion & Usuario final & Memoria local / BD & Alta \\
+\hline
+A-D07 & Tokens de verificacion y recuperacion & Tokens temporales para verificar email y restablecer contrasena & Usuario final & PostgreSQL / correo transaccional & Alta \\
+\hline
+\end{tabular}
+\caption{Inventario de activos de datos}
+\label{tab:activos-datos}
+\end{table}
+
+\subsection{Activos de servicios}
+
+Los servicios son las capacidades operativas que el sistema pone a disposicion de los usuarios y de otros componentes internos. Su indisponibilidad afecta directamente a la continuidad del negocio.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|l|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{Descripcion} & \textbf{Propietario} & \textbf{Ubicacion} & \textbf{Criticidad} \\
+\hline
+A-SV01 & API REST & Interfaz de programacion que expone la logica de negocio del backend & Desarrollador & VPS principal / Docker & Alta \\
+\hline
+A-SV02 & Nodo blockchain (Hardhat / red de pruebas) & Conexion a la red Ethereum para despliegue y consulta de contratos & Desarrollador / Red Ethereum & VPS principal / nodo RPC & Alta \\
+\hline
+A-SV03 & Servicio de email SMTP & Postfix para envio de notificaciones, verificaciones y alertas & Desarrollador & VPS principal / Docker & Media \\
+\hline
+A-SV04 & Servicio de notificaciones push & Notificaciones en tiempo real mediante WebSockets (Socket.io) & Desarrollador & VPS principal / Docker & Media \\
+\hline
+A-SV05 & Servicio de auditoria & Registro y consulta de eventos de seguridad y operativos & Desarrollador & PostgreSQL / blockchain & Alta \\
+\hline
+\end{tabular}
+\caption{Inventario de activos de servicios}
+\label{tab:activos-servicios}
+\end{table}
+
+\subsection{Activos de personal}
+
+El factor humano constituye tanto un activo como un vector de riesgo. La capacitacion, la segregacion de funciones y la gestion de accesos privilegiados son medidas esenciales para mitigar los riesgos asociados.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{5cm}|l|l|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{Descripcion} & \textbf{Rol} & \textbf{Acceso} & \textbf{Criticidad} \\
+\hline
+A-P01 & Desarrollador / administrador & Responsable del desarrollo, despliegue y mantenimiento del sistema & Administrador & Total & Alta \\
+\hline
+A-P02 & Tutores academicos & Supervision tecnica y revision del proyecto & Auditor / Consultor & Limitado (lectura) & Media \\
+\hline
+A-P03 & Usuarios finales registrados & Usuarios que suben, comparten y firman documentos & Usuario estandar & Autorizado por permisos & Media \\
+\hline
+A-P04 & Auditor publico & Visitante sin cuenta que verifica documentos mediante hash & Publico & Solo lectura (verificacion) & Baja \\
+\hline
+\end{tabular}
+\caption{Inventario de activos de personal}
+\label{tab:activos-personal}
+\end{table}
+
+\subsection{Resumen consolidado de activos}
+
+La tabla \ref{tab:activos} presenta una vision consolidada de los activos mas relevantes, agrupando las categorias anteriores y resaltando su funcion principal dentro del ecosistema DocumentChain.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{Descripcion} & \textbf{Tipo} & \textbf{Criticidad} \\
+\hline
+A-01 & Documentos cifrados & Archivos digitales cifrados con AES-256-GCM & Informacion & Critica \\
+\hline
+A-02 & Claves de cifrado & Claves simetricas de documentos encapsuladas & Informacion & Critica \\
+\hline
+A-03 & Credenciales de usuario & Contrasenas (hash bcrypt), tokens JWT & Informacion & Alta \\
+\hline
+A-04 & Claves privadas blockchain & Claves de wallets de usuarios & Informacion & Critica \\
+\hline
+A-05 & Base de datos PostgreSQL & Metadatos, permisos, logs, datos personales & Infraestructura & Alta \\
+\hline
+A-06 & Nodo IPFS & Contenido de documentos almacenado distribuido & Infraestructura & Alta \\
+\hline
+A-07 & Nodo blockchain & Smart contracts y estado de la red & Infraestructura & Alta \\
+\hline
+A-08 & Servidor backend & API REST y logica de negocio & Infraestructura & Alta \\
+\hline
+A-09 & Servidor frontend & Aplicacion web SPA & Infraestructura & Media \\
+\hline
+A-10 & Servidor email & Postfix para notificaciones & Infraestructura & Media \\
+\hline
+A-11 & Reputacion del sistema & Confianza en la autenticidad documental & Organizativo & Alta \\
+\hline
+\end{tabular}
+\caption{Resumen consolidado de activos criticos del sistema}
+\label{tab:activos}
+\end{table}
+
+\section{Etapa 2: Valoracion de activos}
+
+En este apartado se valoran los activos previamente identificados para determinar cuales requieren mayor proteccion. Para DocumentChain se ha usado un modelo con cinco dimensiones: confidencialidad, integridad, disponibilidad, trazabilidad y autenticidad, que reflejan los objetivos de seguridad propios de un sistema de gestion documental con evidencias blockchain.
+
+\subsection{Criterios de valoracion}
+
+A continuacion se definen los cinco criterios de valoracion aplicados:
+
+\begin{itemize}
+    \item \textbf{Confidencialidad (C)}: Capacidad de garantizar que la informacion solo es accesible para personas o procesos autorizados. Es critica para documentos sensibles, claves criptograficas y datos personales.
+    \item \textbf{Integridad (I)}: Garantia de que la informacion no ha sido alterada de forma no autorizada. Resulta esencial para los metadatos documentales, los hashes blockchain y los registros de auditoria.
+    \item \textbf{Disponibilidad (D)}: Capacidad de que los usuarios autorizados puedan acceder a la informacion y a los servicios cuando lo requieran. Es fundamental para el servidor backend, la API REST y los nodos de red.
+    \item \textbf{Trazabilidad (T)}: Posibilidad de reconstruir el historial completo de operaciones sobre un documento o un usuario. Es un requisito diferenciador de DocumentChain, vinculado directamente a la inmutabilidad blockchain.
+    \item \textbf{Autenticidad (A)}: Garantia de que la informacion proviene de la fuente declarada y no ha sido suplantada. Es vital para las firmas digitales, los registros de propiedad y las evidencias on-chain.
+\end{itemize}
+
+\subsection{Escala de valoracion}
+
+Cada criterio se valora en una escala ordinal de 1 a 5, donde 1 representa un impacto insignificante y 5 un impacto catastrofico. La tabla \ref{tab:escala-valoracion} detalla las descripciones asociadas a cada nivel.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{9cm}|}
+\hline
+\textbf{Valor} & \textbf{Nivel} & \textbf{Descripcion} \\
+\hline
+1 & Insignificante & La perdida o compromiso del activo no afecta al funcionamiento del sistema ni a los usuarios. Puede recuperarse sin coste adicional. \\
+\hline
+2 & Bajo & El impacto es limitado a un subconjunto menor de usuarios o funciones. La recuperacion es rapida y el coste asumible. \\
+\hline
+3 & Medio & El impacto afecta a un grupo significativo de usuarios o a procesos operativos. Requiere intervencion planificada y recursos moderados. \\
+\hline
+4 & Alto & El compromiso del activo afecta a la totalidad del sistema o a datos sensibles. Puede generar incumplimientos regulatorios y perdida de confianza. \\
+\hline
+5 & Critico & El impacto es catastrofico: parada del servicio, perdida irreversible de datos, violacion masiva de privacidad o compromiso de la infraestructura de seguridad. \\
+\hline
+\end{tabular}
+\caption{Escala de valoracion de activos (1-5)}
+\label{tab:escala-valoracion}
+\end{table}
+
+\subsection{Valoracion por activo}
+
+La tabla \ref{tab:valoracion} recoge la puntuacion asignada a cada activo consolidado en las cinco dimensiones definidas. El \textbf{valor global} se calcula como la suma ponderada de los criterios, utilizando los pesos siguientes: confidencialidad (25\%), integridad (25\%), disponibilidad (20\%), trazabilidad (15\%) y autenticidad (15\%). La eleccion de estos pesos refleja la naturaleza documental del sistema, donde la confidencialidad y la integridad prevalecen sobre la disponibilidad, sin menoscabo de la importancia de la trazabilidad y la autenticidad blockchain.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|c|c|c|c|c|c|}
+\hline
+\textbf{ID} & \textbf{Activo} & \textbf{C} & \textbf{I} & \textbf{D} & \textbf{T} & \textbf{A} & \textbf{Valor} \\
+\hline
+A-01 & Documentos cifrados & 5 & 5 & 4 & 5 & 5 & 4.85 \\
+\hline
+A-02 & Claves de cifrado & 5 & 5 & 3 & 4 & 4 & 4.40 \\
+\hline
+A-03 & Credenciales & 5 & 4 & 4 & 3 & 4 & 4.20 \\
+\hline
+A-04 & Claves privadas & 5 & 4 & 3 & 5 & 5 & 4.55 \\
+\hline
+A-05 & Base de datos & 5 & 5 & 4 & 4 & 4 & 4.60 \\
+\hline
+A-06 & Nodo IPFS & 4 & 4 & 4 & 4 & 4 & 4.00 \\
+\hline
+A-07 & Nodo blockchain & 4 & 5 & 4 & 5 & 5 & 4.55 \\
+\hline
+A-08 & Servidor backend & 4 & 4 & 5 & 3 & 3 & 3.95 \\
+\hline
+A-09 & Servidor frontend & 3 & 3 & 5 & 2 & 3 & 3.20 \\
+\hline
+A-10 & Servidor email & 4 & 3 & 4 & 2 & 3 & 3.40 \\
+\hline
+A-11 & Reputacion & 4 & 5 & 3 & 4 & 5 & 4.25 \\
+\hline
+\end{tabular}
+\caption{Valoracion de activos por criterios (escala 1-5) y valor global ponderado}
+\label{tab:valoracion}
+\end{table}
+
+Los activos con valor global superior a 4.50 (A-01, A-02, A-04, A-05, A-07, A-11) se consideran de \textbf{criticidad extrema} y requieren medidas de proteccion reforzadas. Los activos entre 3.50 y 4.50 (A-03, A-06, A-08) presentan criticidad alta, mientras que los inferiores a 3.50 (A-09, A-10) se clasifican como criticidad media, aunque no por ello se descuidan sus salvaguardas.
+
+\section{Etapa 3: Amenazas principales}
+
+Para identificar amenazas se han seguido las categorias del metodo MAGERIT adaptadas al catalogo del INCIBE. Se han tenido en cuenta tanto las amenazas genericas de cualquier sistema informatico como las que vienen de usar blockchain, criptografia avanzada y almacenamiento distribuido. En cada amenaza se indica una descripcion tecnica, los activos a los que afecta y una estimacion de probabilidad basada en la frecuencia con la que se ven incidentes similares en el sector.
+
+La escala de probabilidad usada es: \textbf{Muy baja (1)}: evento poco probable; \textbf{Baja (2)}: posible pero hacen falta condiciones especiales; \textbf{Media (3)}: ocurre con cierta frecuencia en el sector; \textbf{Alta (4)}: incidente frecuente y bien documentado; \textbf{Muy alta (5)}: pasa a menudo si no hay medidas adicionales.
+
+\subsection{Amenazas fisicas}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-F01 & Robo o sustraccion & Sustraccion fisica del portatil de desarrollo o del VPS mediante acceso no autorizado al cloud & A-H02, A-H01 & Baja (2) \\
+\hline
+T-F02 & Dano fisico / averia & Fallo de hardware del servidor, deterioro del portatil o incidencias en el centro de datos del proveedor cloud & A-H01, A-H02, A-H03 & Baja (2) \\
+\hline
+T-F03 & Desastres naturales & Inundaciones, incendios o terremotos que afecten al proveedor cloud o a la ubicacion local del desarrollador & A-H01, A-H02 & Muy baja (1) \\
+\hline
+\end{tabular}
+\caption{Amenazas fisicas identificadas}
+\label{tab:amenazas-fisicas}
+\end{table}
+
+\subsection{Amenazas logicas}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-L01 & Malware & Infeccion del servidor o del equipo de desarrollo con software malicioso que comprometa la confidencialidad o integridad & A-H01, A-H02, A-S02, A-S05 & Media (3) \\
+\hline
+T-L02 & Ransomware & Cifrado malicioso de datos almacenados en el VPS o en el portatil de desarrollo, exigiendo rescate para su recuperacion & A-H01, A-H02, A-D01, A-D05 & Baja (2) \\
+\hline
+T-L03 & Spyware / keyloggers & Captura de pulsaciones de teclado o de credenciales mediante software espia en el endpoint del usuario o del administrador & A-P01, A-P03, A-D03 & Media (3) \\
+\hline
+\end{tabular}
+\caption{Amenazas logicas identificadas}
+\label{tab:amenazas-logicas}
+\end{table}
+
+\subsection{Amenazas de denegacion de servicio}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-D01 & DDoS distribuido & Saturacion de la capacidad de red o de procesamiento del VPS mediante traffico masivo desde multiples fuentes & A-SV01, A-H01, A-09 & Media (3) \\
+\hline
+T-D02 & Saturacion de red local & Consumo excesivo de ancho de banda por parte del nodo IPFS o del nodo blockchain, degradando otros servicios & A-H03, A-SV02, A-H01 & Baja (2) \\
+\hline
+T-D03 & Agotamiento de recursos (DoS aplicativo) & Explotacion de operaciones costosas en la API REST o en los smart contracts para consumir gas o CPU de forma deliberada & A-SV01, A-S03 & Media (3) \\
+\hline
+\end{tabular}
+\caption{Amenazas de denegacion de servicio identificadas}
+\label{tab:amenazas-dos}
+\end{table}
+
+\subsection{Amenazas de ingenieria social}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-I01 & Phishing generalizado & Envio de correos fraudulentos que suplantan la identidad de DocumentChain para robar credenciales o claves privadas & A-P03, A-D03, A-D06 & Alta (4) \\
+\hline
+T-I02 & Spear phishing & Campana de phishing dirigida al desarrollador o a usuarios con privilegios elevados, utilizando informacion personalizada & A-P01, A-P02, A-D03 & Media (3) \\
+\hline
+T-I03 & Pretexting / baiting & Manipulacion psicologica para inducir a un usuario a compartir un documento sensible o a firmar una transaccion maliciosa & A-P03, A-D01, A-D03 & Baja (2) \\
+\hline
+\end{tabular}
+\caption{Amenazas de ingenieria social identificadas}
+\label{tab:amenazas-ing}
+\end{table}
+
+\subsection{Amenazas de configuracion y errores operativos}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-C01 & Errores de configuracion & Configuracion insegura del servidor, contenedores Docker, base de datos o firewall que exponga servicios o datos & A-H01, A-S02, A-S05 & Media (3) \\
+\hline
+T-C02 & Contrasenas debiles & Uso de contrasenas predecibles o reutilizadas por usuarios o administradores, facilitando ataques de fuerza bruta & A-P01, A-P03, A-D06 & Alta (4) \\
+\hline
+T-C03 & Error humano & Eliminacion accidental de datos, despliegue incorrecto de contratos o modificacion no autorizada de permisos & A-P01, A-S02, A-S03 & Media (3) \\
+\hline
+\end{tabular}
+\caption{Amenazas de configuracion identificadas}
+\label{tab:amenazas-config}
+\end{table}
+
+\subsection{Amenazas especificas de blockchain}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-B01 & Exploit de smart contract & Explotacion de vulnerabilidades en los contratos inteligentes (reentradia, desbordamiento, control de acceso deficiente) & A-S03, A-D04, A-11 & Baja (2) \\
+\hline
+T-B02 & Front-running & Insercion de transacciones maliciosas con gas superior para alterar el estado de un documento antes de la transaccion legitima & A-S03, A-D04 & Baja (2) \\
+\hline
+T-B03 & Ataque al nodo RPC & Manipulacion o censura de las respuestas del nodo RPC que utiliza la aplicacion para interactuar con la blockchain & A-SV02, A-S03 & Baja (2) \\
+\hline
+\end{tabular}
+\caption{Amenazas especificas de blockchain identificadas}
+\label{tab:amenazas-blockchain}
+\end{table}
+
+\subsection{Amenazas criptograficas}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-CR01 & Perdida de claves privadas & El usuario pierde irreversiblemente el acceso a su wallet, impidiendo la firma o la recuperacion de documentos & A-P03, A-D03, A-D01 & Media (3) \\
+\hline
+T-CR02 & Ataque a algoritmos & Futura vulnerabilidad de los algoritmos RSA o ECDSA ante computacion cuantica o debilidades criptoanaliticas & A-D02, A-D03, A-D04 & Muy baja (1) \\
+\hline
+T-CR03 & Gestion insegura de claves & Almacenamiento de claves en texto plano, sin cifrado de soporte o con copias de seguridad no protegidas & A-P01, A-D02, A-D03 & Baja (2) \\
+\hline
+\end{tabular}
+\caption{Amenazas criptograficas identificadas}
+\label{tab:amenazas-crypto}
+\end{table}
+
+\subsection{Amenazas de terceros y cadena de suministro}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4.5cm}|l|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-T01 & Vulnerabilidades en dependencias & Presencia de vulnerabilidades conocidas (CVE) en librerias npm, Prisma, ethers.js o dependencias transitivas & A-S01, A-S05, A-SV01 & Alta (4) \\
+\hline
+T-T02 & Supply chain attack & Compromiso de un paquete de terceros durante su distribucion, inyectando codigo malicioso en la aplicacion & A-S01, A-S05, A-H01 & Media (3) \\
+\hline
+T-T03 & Caida del proveedor cloud & Indisponibilidad prolongada del proveedor de infraestructura cloud que aloja el VPS & A-H01, A-SV01, A-SV03 & Baja (2) \\
+\hline
+\end{tabular}
+\caption{Amenazas de terceros identificadas}
+\label{tab:amenazas-terceros}
+\end{table}
+
+\subsection{Resumen consolidado de amenazas principales}
+
+Para facilitar el analisis de riesgos en etapas posteriores, la tabla \ref{tab:amenazas} sintetiza las amenazas de mayor relevancia, agrupando las categorias anteriores.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{4cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Descripcion} & \textbf{Activos afectados} & \textbf{Prob.} \\
+\hline
+T-01 & Acceso no autorizado & Intrusion en cuentas de usuario mediante robo o fuerza bruta & A-03, A-05, A-P03 & Media (3) \\
+\hline
+T-02 & Perdida de claves & Usuario pierde acceso irreversible a su wallet o claves de cifrado & A-04, A-D02, A-D03 & Media (3) \\
+\hline
+T-03 & Ataque al nodo blockchain & Manipulacion o explotacion de smart contracts o del nodo RPC & A-07, A-S03, A-D04 & Baja (2) \\
+\hline
+T-04 & Phishing / suplantacion & Engano para obtener credenciales, claves o firmas maliciosas & A-03, A-P03, A-D03 & Alta (4) \\
+\hline
+T-05 & Denegacion de servicio (DoS) & Saturacion del servidor backend o agotamiento de recursos & A-08, A-SV01, A-H01 & Media (3) \\
+\hline
+T-06 & Perdida de datos & Fallo del servidor de base de datos o corrupcion de datos & A-05, A-S02, A-D05 & Baja (2) \\
+\hline
+T-07 & Man-in-the-middle & Intercepcion de comunicaciones entre cliente y servidor o con la blockchain & A-01, A-03, A-D06 & Baja (2) \\
+\hline
+T-08 & Malware / ransomware & Infeccion del servidor o endpoints con software malicioso & A-05, A-06, A-H01 & Media (3) \\
+\hline
+T-09 & Exfiltracion de datos & Robo de documentos cifrados, metadatos o datos personales & A-01, A-06, A-D05 & Baja (2) \\
+\hline
+T-10 & Error humano & Eliminacion accidental, despliegue incorrecto o configuracion insegura & A-05, A-S03, A-P01 & Media (3) \\
+\hline
+\end{tabular}
+\caption{Amenazas principales consolidadas}
+\label{tab:amenazas}
+\end{table}
+
+\section{Etapa 4: Consecuencias y probabilidad}
+
+En esta etapa se calcula la exposicion del sistema frente a cada amenaza. Segun el modelo del INCIBE, el \textbf{riesgo inherente} sale de multiplicar la \textbf{probabilidad} de que ocurra una amenaza por el \textbf{impacto} que tendria sobre los activos. Como una misma amenaza puede afectar a varios activos con criticidades distintas, el impacto se toma como el valor maximo de los activos comprometidos.
+
+\subsection{Escala de impacto}
+
+El impacto se mide en la misma escala ordinal de 1 a 5 utilizada para la valoracion de activos, considerando las dimensiones de confidencialidad, integridad, disponibilidad, trazabilidad y autenticidad:
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|p{9cm}|}
+\hline
+\textbf{Valor} & \textbf{Nivel} & \textbf{Descripcion del impacto} \\
+\hline
+1 & Insignificante & Sin repercusion operativa, financiera o legal. No requiere accion correctiva. \\
+\hline
+2 & Bajo & Impacto localizado, recuperable en horas sin afectacion a terceros. \\
+\hline
+3 & Medio & Impacto en un subconjunto de usuarios o funciones, posible incumplimiento menor. \\
+\hline
+4 & Alto & Impacto generalizado, posible incumplimiento regulatorio (RGPD) y deterioro de la reputacion. \\
+\hline
+5 & Muy alto & Parada del servicio, perdida masiva de datos, incumplimiento grave o danos irreversibles a la confianza del sistema. \\
+\hline
+\end{tabular}
+\caption{Escala de impacto de las consecuencias}
+\label{tab:escala-impacto}
+\end{table}
+
+\subsection{Matriz de riesgos inherente}
+
+La tabla \ref{tab:riesgos} presenta el calculo del riesgo inherente para cada amenaza consolidada. El valor del riesgo se obtiene multiplicando la probabilidad (escala 1-5) por el impacto maximo sobre los activos afectados (escala 1-5), resultando en una escala de 1 a 25.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|p{3cm}|p{3cm}|c|c|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Activos} & \textbf{Prob.} & \textbf{Impacto} & \textbf{Riesgo} \\
+\hline
+T-01 & Acceso no autorizado & A-03 (13), A-05 (14) & 3 & 5 & 15 \\
+\hline
+T-02 & Perdida de claves & A-04 (12), A-02 (12) & 3 & 5 & 15 \\
+\hline
+T-03 & Ataque al nodo blockchain & A-07 (13), A-S03 (Critica) & 2 & 5 & 10 \\
+\hline
+T-04 & Phishing / suplantacion & A-03 (13), A-P03 (Media) & 4 & 4 & 16 \\
+\hline
+T-05 & Denegacion de servicio & A-08 (13), A-09 (11) & 3 & 3 & 9 \\
+\hline
+T-06 & Perdida de datos & A-05 (14), A-D05 (Alta) & 2 & 5 & 10 \\
+\hline
+T-07 & Man-in-the-middle & A-01 (14), A-03 (13) & 2 & 5 & 10 \\
+\hline
+T-08 & Malware / ransomware & A-05 (14), A-06 (12) & 3 & 5 & 15 \\
+\hline
+T-09 & Exfiltracion de datos & A-01 (14), A-06 (12) & 2 & 5 & 10 \\
+\hline
+T-10 & Error humano & A-05 (14), A-S03 (Critica) & 3 & 5 & 15 \\
+\hline
+\end{tabular}
+\caption{Matriz de riesgos inherente (Probabilidad x Impacto)}
+\label{tab:riesgos}
+\end{table}
+
+\subsection{Clasificacion del riesgo}
+
+Con base en el valor numerico del riesgo inherente, se establece la siguiente clasificacion cualitativa, representada en la matriz de calor de la tabla \ref{tab:matriz-calor}:
+
+\begin{itemize}
+    \item \textbf{Bajo (1-4)}: Riesgo asumible con controles estandar. Monitoreo periodico.
+    \item \textbf{Medio (5-9)}: Riesgo que requiere medidas de mitigacion definidas en el plazo de tres meses.
+    \item \textbf{Alto (10-16)}: Riesgo que exige medidas inmediatas de mitigacion y supervision continua.
+    \item \textbf{Critico (17-25)}: Riesgo inaceptable que debe eliminarse o reducirse antes de la puesta en produccion.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Prob. \textbackslash Impacto} & \textbf{1 (Insig.)} & \textbf{2 (Bajo)} & \textbf{3 (Medio)} & \textbf{4 (Alto)} & \textbf{5 (Muy alto)} \\
+\hline
+\textbf{5 (Muy alta)} & 5 (Medio) & 10 (Alto) & 15 (Alto) & 20 (Critico) & 25 (Critico) \\
+\hline
+\textbf{4 (Alta)} & 4 (Bajo) & 8 (Medio) & 12 (Alto) & 16 (Alto) & 20 (Critico) \\
+\hline
+\textbf{3 (Media)} & 3 (Bajo) & 6 (Medio) & 9 (Medio) & 12 (Alto) & 15 (Alto) \\
+\hline
+\textbf{2 (Baja)} & 2 (Bajo) & 4 (Bajo) & 6 (Medio) & 8 (Medio) & 10 (Alto) \\
+\hline
+\textbf{1 (Muy baja)} & 1 (Bajo) & 2 (Bajo) & 3 (Bajo) & 4 (Bajo) & 5 (Medio) \\
+\hline
+\end{tabular}
+\caption{Matriz de calor de riesgos (Probabilidad x Impacto)}
+\label{tab:matriz-calor}
+\end{table}
+
+Aplicando esta clasificacion, los riesgos T-01, T-02, T-04, T-08 y T-10 se situan en la categoria \textbf{Alto}, mientras que T-03, T-05, T-06, T-07 y T-09 se clasifican como \textbf{Medio-Alto} (con T-05 y T-09 en el umbral inferior). Ningun riesgo alcanza la categoria Critico tras la primera valoracion, aunque T-04 (phishing) esta proximo al umbral, lo que justifica una atencion prioritaria.
+
+\subsection{Medidas de mitigacion propuestas para riesgos altos}
+
+Para cada riesgo clasificado como Alto, se proponen medidas de mitigacion preliminares que seran desarrolladas en la Etapa 5. La tabla \ref{tab:mitigacion} establece el vinculo entre amenaza y contramedida.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|l|c|p{6cm}|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Riesgo} & \textbf{Medidas de mitigacion propuestas} \\
+\hline
+T-01 & Acceso no autorizado & 15 & Verificacion de email, hash de contrasenas con Argon2, control de acceso RBAC, rate limiting y alertas ante intentos fallidos. \\
+\hline
+T-02 & Perdida de claves & 15 & Restablecimiento seguro de contrasena, copias de seguridad cifradas de claves simetricas e instrucciones de custodia de wallet. \\
+\hline
+T-04 & Phishing & 16 & Challenge-firma EIP-712, educacion de usuarios, verificacion de dominio en emails, headers anti-phishing. \\
+\hline
+T-08 & Malware & 15 & Aislamiento Docker, antivirus en endpoints, restriccion de ejecucion de scripts, firmas de imagenes de contenedor. \\
+\hline
+T-10 & Error humano & 15 & Logs de auditoria completos, separacion de entornos (dev / staging / prod), permisos minimos, procedimientos de despliegue documentados. \\
+\hline
+\end{tabular}
+\caption{Medidas de mitigacion propuestas para riesgos altos}
+\label{tab:mitigacion}
+\end{table}
+
+\section{Etapa 5: Medidas de seguridad}
+
+Las medidas de seguridad se han disenado con un enfoque de defensa en profundidad (\textit{defense in depth}): se superponen varias capas de proteccion, desde prevenir el incidente hasta corregirlo y recuperarse si ocurre. Estan organizadas en cinco categorias: prevencion, deteccion, correccion, proteccion de datos y medidas especificas de blockchain. Esta clasificacion ayuda luego a auditar y a asignar responsabilidades.
+
+\subsection{Medidas de prevencion}
+
+Las medidas de prevencion tienen como objetivo impedir que las amenazas materialicen un incidente de seguridad. Se centran en el endurecimiento de la superficie de ataque, la gestion robusta de identidades y la validacion estricta de toda la informacion que fluye por el sistema.
+
+\begin{itemize}
+    \item \textbf{Politicas de contrasenas robustas}: Se exige longitud minima de 12 caracteres con combinacion de mayusculas, minusculas, numeros y simbolos, ademas de verificacion contra listas de contrasenas filtradas.
+    \item \textbf{Verificacion de email y sesiones de corta duracion}: El acceso requiere confirmar el correo electronico y se usan tokens JWT de corta duracion para limitar la exposicion de una sesion comprometida.
+    \item \textbf{Rate limiting}: Limite de 100 peticiones por IP cada 15 minutos y 5 intentos de login por cuenta en el mismo periodo, con bloqueo progresivo.
+    \item Validacion de entradas con Zod tanto en frontend como en backend para prevenir inyecciones y otros ataques comunes.
+    \item Headers de seguridad HTTP: CORS restrictivo, CSP, HSTS, X-Frame-Options y X-Content-Type-Options.
+    \item \textbf{Control de acceso por roles}: Roles USER y ADMIN con permisos explicitos en cada endpoint y en los smart contracts.
+\end{itemize}
+
+\subsection{Medidas de deteccion}
+
+La deteccion temprana de actividades anomalas permite contener un incidente antes de que escale. DocumentChain incorpora mecanismos de registro, monitorizacion y alerta en multiples capas.
+
+\begin{itemize}
+    \item \textbf{Logs de auditoria centralizados}: Tabla \texttt{Event} en PostgreSQL que registra toda operacion relevante (login, logout, subida de documento, firma, cambio de permisos) con marca temporal, direccion IP y hash de integridad.
+    \item \textbf{Monitorizacion de transacciones blockchain}: Escucha de eventos emitidos por los smart contracts (via \texttt{ethers.js}) para detectar firmas no autorizadas, intentos de acceso denegados o modificaciones anomalas del estado on-chain.
+    \item \textbf{Alertas de seguridad}: Notificaciones automaticas por correo electronico ante eventos criticos (multiples intentos de login fallidos, cambio de contrasena, eliminacion de cuenta, modificacion de permisos de administrador).
+    \item \textbf{Analisis de logs con Winston}: Sistema de logging estructurado en el backend (niveles \texttt{info}, \texttt{warn}, \texttt{error}) con rotacion de ficheros y envio a salida estandar para su recoleccion por agentes externos.
+\end{itemize}
+
+\subsection{Medidas de correccion}
+
+Las medidas de correccion y recuperacion aseguran la resiliencia del sistema ante incidentes que no han podido prevenirse o detectarse a tiempo.
+
+\begin{itemize}
+    \item \textbf{Copias de seguridad periodicas}: Backup automatizado de la base de datos PostgreSQL mediante volcados diarios (\texttt{pg\_dump}) almacenados en un volumen independiente y, idealmente, en una ubicacion geografica diferente (off-site).
+    \item \textbf{Plan de recuperacion ante desastres}: Procedimiento documentado para la restauracion del sistema completo a partir de los backups, incluyendo la recuperacion de contenedores Docker, certificados SSL y configuraciones de red.
+    \item \textbf{Invalidacion de sesiones y revocacion de credenciales}: Ante incidentes sobre una cuenta, el backend puede eliminar sesiones activas y exigir un nuevo inicio de sesion, limitando la reutilizacion de tokens comprometidos.
+    \item \textbf{Confirmacion reforzada en operaciones destructivas}: Las acciones irreversibles, como la eliminacion de cuenta o el borrado de documentos, requieren confirmacion explicita desde la interfaz para reducir errores operativos.
+\end{itemize}
+
+\subsection{Medidas de proteccion de datos}
+
+La proteccion de la informacion se materializa mediante cifrado, anonimizacion y politicas de retencion alineadas con el RGPD.
+
+\begin{itemize}
+    \item \textbf{Cifrado en transito (TLS 1.3)}: Todas las comunicaciones entre cliente y servidor se realizan exclusivamente mediante HTTPS con certificados SSL validos, garantizando confidencialidad y autenticacion del servidor.
+    \item \textbf{Cifrado en reposo}: La base de datos PostgreSQL se configura con cifrado a nivel de volumen (LUKS en Linux) y, adicionalmente, las columnas mas sensibles (claves simetricas encapsuladas) se cifran mediante AES-256 antes de su insercion.
+    \item \textbf{Cifrado de contenido (AES-256-GCM)}: Cada documento se cifra con una clave simetrica unica generada aleatoriamente. Dicha clave se encapsula con la clave publica del destinatario (RSA-OAEP o ECDH sobre P-256), garantizando que unicamente los titulares de la clave privada correspondiente puedan descifrarlo.
+    \item \textbf{Anonimizacion y seudonimizacion}: Los datos personales almacenados on-chain se limitan a direcciones de wallet (seudonimos criptograficos), evitando registrar nombres, correos o identificadores directos en la blockchain publica.
+    \item \textbf{Derecho al olvido}: Procedimiento para la eliminacion logica de datos personales de la base de datos PostgreSQL cuando el usuario solicita la baja, asi como la revocacion de permisos on-chain asociados a su wallet.
+\end{itemize}
+
+\subsection{Medidas especificas de blockchain}
+
+Dada la naturaleza irreversible de las transacciones blockchain, se han adoptado medidas especificas para minimizar las vulnerabilidades de los contratos inteligentes y garantizar la correcta gestion de identidades descentralizadas.
+
+\begin{itemize}
+    \item \textbf{Auditoria estatica con Slither}: Analisis automatizado del codigo Solidity mediante la herramienta Slither (Trail of Bits) para detectar patrones inseguros, variables sin inicializar, reentradia potencial y violaciones de estandares ERC.
+    \item \textbf{Tests de reentrancy}: Ejecucion de pruebas unitarias y de integracion con Hardhat que simulan ataques de reentrada (patron \textit{checks-effects-interactions} y uso de \texttt{ReentrancyGuard} de OpenZeppelin).
+    \item \textbf{Control de acceso y reentrancia}: Los contratos heredan de \texttt{AccessControl} y \texttt{ReentrancyGuard} (OpenZeppelin), permitiendo la gestion de roles granulares (\texttt{ADMIN\_ROLE}, \texttt{OPERATOR\_ROLE}) y la proteccion de operaciones sensibles frente a reentrancia.
+    \item \textbf{Prevencion de overflow/underflow}: Uso de la version de Solidity 0.8.x o superior, donde las operaciones aritmeticas incluyen proteccion automatica contra desbordamiento, complementada con pruebas de fuzzing cuando se utilizan librerias de bajo nivel.
+\end{itemize}
+
+\subsection{Tabla resumen de medidas implementadas}
+
+La tabla \ref{tab:medidas} resume las medidas de seguridad implementadas, vinculandolas con las amenazas que mitigan y la categoria funcional a la que pertenecen.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|p{3.5cm}|p{4cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Medida} & \textbf{Implementacion} & \textbf{Amenaza} & \textbf{Categoria} \\
+\hline
+M-01 & Cifrado de documentos & AES-256-GCM con clave unica por documento & T-09 & Proteccion de datos \\
+\hline
+M-02 & Hash de contrasenas & Argon2 con factor de coste elevado & T-01 & Prevencion \\
+\hline
+M-03 & Autenticacion JWT & Tokens de corta duracion (15 min) con refresh token & T-01 & Prevencion \\
+\hline
+M-04 & Verificacion de email & Confirmacion previa de la cuenta antes del acceso ordinario & T-01 & Prevencion \\
+\hline
+M-05 & Challenge-firma & EIP-712 para prueba de posesion de wallet & T-04 & Prevencion \\
+\hline
+M-06 & HTTPS/TLS 1.3 & Certificado SSL en todas las comunicaciones & T-07 & Proteccion de datos \\
+\hline
+M-07 & Control de acceso RBAC & Roles USER y ADMIN con permisos diferenciados & T-01 & Prevencion \\
+\hline
+M-08 & Validacion on-chain & Smart contracts verifican permisos en blockchain & T-03 & Blockchain \\
+\hline
+M-09 & Logs de auditoria & Tabla Event con trazabilidad de todas las operaciones & T-10 & Deteccion \\
+\hline
+M-10 & Docker isolation & Servicios aislados en contenedores con redes internas & T-08 & Prevencion \\
+\hline
+M-11 & Rate limiting & 100 req/IP/15min, 5 intentos login/15min & T-05 & Prevencion \\
+\hline
+M-12 & Backups & Copias de seguridad diarias de PostgreSQL & T-06 & Correccion \\
+\hline
+M-13 & Recuperacion de acceso & Restablecimiento seguro de contrasena y revocacion de sesiones & T-02 & Correccion \\
+\hline
+M-14 & Validacion de entradas & Zod en frontend y backend para prevenir inyeccion & T-08 & Prevencion \\
+\hline
+M-15 & Headers de seguridad & CORS, CSP, HSTS, X-Frame-Options & T-08 & Prevencion \\
+\hline
+M-16 & Monitorizacion blockchain & Event listeners para transacciones anomalas & T-03 & Deteccion \\
+\hline
+M-17 & Guardas on-chain & Restricciones defensivas del contrato ante estados incompatibles & T-03 & Correccion \\
+\hline
+M-18 & Auditoria Slither & Analisis estatico de contratos Solidity & T-03 & Blockchain \\
+\hline
+M-19 & ReentrancyGuard & Proteccion contra reentrada en funciones criticas & T-03 & Blockchain \\
+\hline
+M-20 & Cifrado en reposo & Volumen LUKS + cifrado de columnas sensibles & T-09 & Proteccion de datos \\
+\hline
+\end{tabular}
+\caption{Medidas de seguridad implementadas por categoria}
+\label{tab:medidas}
+\end{table}
+
+\section{Proteccion de datos y privacidad}
+
+En este apartado se detallan las medidas de proteccion de datos aplicadas en cumplimiento del RGPD y la normativa eIDAS.
+
+La proteccion de datos personales es un pilar del sistema, tanto por obligacion legal (RGPD) como por compromiso con los usuarios. La aplicacion maneja datos identificativos basicos (nombre, correo), datos de sesion, direcciones de wallet y documentos que pueden contener informacion sensible. Por eso se ha seguido un criterio de \textbf{minimizacion de datos}: se guarda solo lo imprescindible para autenticar, gestionar documentos, aplicar preferencias de seguridad y mantener la trazabilidad.
+
+\subsection{Marco regulatorio: RGPD y eIDAS}
+
+El Reglamento General de Proteccion de Datos (RGPD) establece un marco juridico vinculante para el tratamiento de datos personales en el Espacio Economico Europeo. DocumentChain aplica los siguientes principios:
+
+\begin{itemize}
+    \item \textbf{Principio de licitud y transparencia}: Los usuarios son informados sobre el tratamiento de sus datos y los derechos que tienen, mediante un aviso de privacidad accesible desde la aplicacion.
+    \item \textbf{Principio de minimizacion}: Solo se piden los datos necesarios (usuario, correo, wallet opcional). No se guardan datos bancarios ni documentos de identidad.
+    \item \textbf{Principio de integridad y confidencialidad}: Se aplica cifrado, control de acceso y auditoria para proteger los datos personales en todas las fases del tratamiento.
+\end{itemize}
+
+Respecto a la normativa eIDAS, DocumentChain no constituye un prestador de servicios de confianza cualificado, pero aprovecha los mecanismos criptograficos compatibles con dicha regulacion. La firma de documentos mediante wallet Ethereum genera evidencias de autenticidad y no repudio que, aunque no tengan valor juridico reconocido automaticamente como firma electronica cualificada, sirven como prueba electronica de la voluntad del firmante.
+
+\subsection{Derechos de los usuarios}
+
+En cumplimiento del RGPD, los usuarios pueden ejercer los siguientes derechos mediante solicitud al correo de contacto o desde la interfaz de la aplicacion:
+
+\begin{itemize}
+    \item \textbf{Derecho de acceso}: Obtencion de una copia de los datos personales tratados.
+    \item \textbf{Derecho de rectificacion}: Correccion de datos inexactos o incompletos.
+    \item \textbf{Derecho de supresion (derecho al olvido)}: Eliminacion de datos personales cuando ya no sean necesarios, salvo que exista una base legal para su conservacion. En el contexto blockchain, por lo que la red publica es inmutable, no es posible borrar transacciones ya minadas; por ello se anonimiza la relacion entre la direccion de wallet y la identidad del usuario en la base de datos off-chain.
+    \item \textbf{Derecho de oposicion}: Posibilidad de oponerse al tratamiento de datos para fines especificos (notificaciones de marketing).
+    \item \textbf{Derecho a la portabilidad}: Los usuarios pueden descargar sus documentos cifrados y las claves asociadas para migrar a otro sistema.
+\end{itemize}
+
+\subsection{Encriptacion y almacenamiento seguro}
+
+DocumentChain combina PostgreSQL para la informacion operativa, IPFS para el almacenamiento documental y blockchain para la trazabilidad de determinadas operaciones. En los documentos privados se aplica un esquema de proteccion que evita que el contenido quede accesible en claro durante el almacenamiento ordinario. En los documentos publicos, en cambio, el sistema mantiene el contenido accesible porque ese es precisamente el objetivo del enlace compartible, por lo que la advertencia al usuario forma parte de la propia medida de seguridad.
+
+\subsubsection{Cifrado en reposo}
+
+La base de datos PostgreSQL se aloja en un volumen cifrado mediante LUKS (Linux Unified Key Setup) en el servidor de produccion. Adicionalmente, las columnas que almacenan claves simetricas encapsuladas y tokens de recuperacion se cifran a nivel aplicacion mediante AES-256-GCM antes de su persistencia. Esta doble capa garantiza que, incluso en caso de acceso no autorizado al volumen de almacenamiento o a una copia de seguridad, los datos sensibles permanezcan indescifrables sin la clave maestra del servicio.
+
+\subsubsection{Cifrado en transito}
+
+Todas las comunicaciones entre el cliente (navegador) y el servidor backend se establecen exclusivamente mediante HTTPS con TLS 1.3, utilizando certificados SSL de una autoridad de certificacion reconocida. La configuracion del servidor web (Nginx) rechaza conexiones no cifradas y fuerza la negociacion de suites criptograficas seguras, excluyendo protocolos obsoletos (SSLv2, SSLv3, TLS 1.0, TLS 1.1) y algoritmos debiles (MD5, SHA-1, RC4).
+
+\subsubsection{Cifrado de contenido (AES-256-GCM)}
+
+El esquema de cifrado hibrido implementado en DocumentChain funciona de la siguiente manera. Primero, se genera una clave simetrica aleatoria de 256 bits para cada documento usando un generador criptograficamente seguro (CSPRNG). A continuacion, el fichero se cifra con AES-256-GCM, que genera un nonce unico de 96 bits y una etiqueta de autenticacion de 128 bits, garantizando confidencialidad e integridad al mismo tiempo. Por ultimo, la clave simetrica se encapsula con la clave publica del destinatario mediante RSA-OAEP con SHA-256 o mediante ECDH sobre P-256, por lo que solo quien tenga la clave privada puede recuperarla.
+
+Este esquema hibrido combina la eficiencia del cifrado simetrico para grandes volumenes de datos con la seguridad del cifrado asimetrico para el intercambio de claves.
+
+\subsection{Control de acceso y autenticacion}
+
+En la interfaz principal, el acceso a la cuenta se realiza mediante usuario o correo y contrasena. La verificacion previa del email actua como condicion para el acceso ordinario y la wallet queda reservada para la firma de operaciones blockchain, sin utilizarse como mecanismo principal de autenticacion dentro del flujo habitual.
+
+\subsubsection{Autenticacion basada en JWT}
+
+Tras la validacion de credenciales y la comprobacion del estado verificado de la cuenta, el backend emite un JSON Web Token (JWT) firmado con una clave secreta de servidor (HS256). El token contiene el identificador de usuario, su rol y una marca de expiracion (15 minutos). Un token de refresco (refresh token) de mayor duracion (7 dias) permite la renovacion transparente de la sesion sin solicitar nuevamente las credenciales. Los tokens se almacenan en memoria local del navegador (\texttt{sessionStorage}) para minimizar el riesgo de exfiltracion persistente.
+
+\subsubsection{Autorizacion RBAC y ABAC}
+
+La autorizacion se articula en dos niveles complementarios:
+\begin{itemize}
+    \item \textbf{RBAC (Role-Based Access Control)}: Los usuarios se clasifican en roles (USER, ADMIN) que determinan los permisos sobre los endpoints de la API REST. Por ejemplo, unicamente los usuarios con rol ADMIN pueden acceder al panel de administracion, gestionar cuentas o modificar parametros del sistema.
+    \item \textbf{ABAC (Attribute-Based Access Control)}: A nivel de documento individual, los permisos se evaluan en funcion de atributos dinamicos: propiedad del documento, relacion de comparticion, estado de firma requerida y permisos on-chain registrados en el smart contract \texttt{AccessControl}.
+\end{itemize}
+
+\subsubsection{Control de acceso on-chain}
+
+Los smart contracts mantienen un registro de permisos que condicionan las operaciones ejecutadas sobre la blockchain. Cada funcion critica (registro de documento, firma, versionado, transferencia de propiedad) verifica que la direccion que invoca la transaccion posea el rol adecuado o figure como destinatario autorizado en el mapping de permisos. Esta comprobacion es inmutable y auditable, proporcionando una capa adicional de control que no depende exclusivamente del backend.
+
+\section{Componentes criticos del software}
+
+En este apartado se analizan los componentes cuyo compromiso tendria un impacto directo sobre la seguridad del sistema.
+
+La seguridad del sistema depende especialmente de unos pocos componentes cuya alteracion tendria un impacto directo sobre la confidencialidad, la integridad o la disponibilidad del servicio. A continuacion se analiza cada componente critico, sus vectores de ataque principales y las salvaguardas especificas aplicadas.
+
+\subsection{Backend y API REST}
+
+El backend concentra la logica de negocio, la validacion de permisos, la preparacion de operaciones blockchain y la coordinacion entre base de datos, IPFS y servicios auxiliares. Un fallo en esta capa podria afectar simultaneamente al acceso a documentos, al control de usuarios y a la consistencia de los estados operativos. De ahi que se haya priorizado la validacion de entradas, la separacion de responsabilidades entre servicios y el registro de eventos relevantes.
+
+\subsubsection{Medidas de seguridad del backend}
+
+\begin{itemize}
+    \item \textbf{Rate limiting y throttling}: Uso de la libreria \texttt{express-rate-limit} para restringir el numero de peticiones por IP y por usuario, previniendo ataques de fuerza bruta y denegacion de servicio a nivel aplicativo.
+    \item \textbf{Validacion estricta de entradas}: Todas las entradas de la API se validan mediante esquemas Zod antes de su procesamiento. Se rechazan campos no esperados, tipos incorrectos y valores fuera de rango, mitigando inyecciones y desbordamientos.
+    \item \textbf{Autenticacion stateless JWT}: La sesion se materializa en un token JWT firmado con HMAC-SHA256 y una clave secreta de servidor. No se utilizan sesiones de servidor (stateless) para facilitar la escalabilidad horizontal y reducir el riesgo de secuestro de sesion en memoria.
+    \item \textbf{Separacion de responsabilidades}: El codigo del backend sigue una arquitectura por capas (controllers, services, repositories) que evita el acoplamiento entre logica de negocio y acceso a datos, facilitando la auditoria y los tests de seguridad.
+    \item \textbf{Gestion segura de secretos}: Las claves privadas del servidor, las contrasenas de base de datos y las claves de firma JWT se gestionan mediante variables de entorno y, en produccion, se recomienda el uso de un gestor de secretos (HashiCorp Vault, AWS Secrets Manager o similar).
+\end{itemize}
+
+\subsection{Base de datos, IPFS y blockchain}
+
+PostgreSQL conserva usuarios, sesiones, metadatos, notificaciones y proyecciones operativas del sistema. IPFS aloja el contenido documental y blockchain registra las evidencias de determinadas operaciones criticas. Ninguno de estos elementos funciona de manera aislada: la aplicacion necesita contrastar lo almacenado, lo publicado y lo firmado para mantener un estado coherente.
+
+\subsubsection{Copias de seguridad y redundancia}
+
+\begin{itemize}
+    \item \textbf{Backups de PostgreSQL}: Volcados diarios automatizados mediante \texttt{pg\_dump} comprimidos y almacenados en un volumen independiente del servidor principal. Se conservan copias de los ultimos 30 dias con politica de rotacion.
+    \item \textbf{Redundancia IPFS}: El nodo IPFS se configura con \textit{pinning} persistente de los contenidos documentales. Se recomienda la replicacion en multiples nodos (IPFS cluster o servicios de pinning comerciales) para evitar la perdida de datos si un unico nodo queda inaccesible.
+    \item \textbf{Persistencia blockchain}: Los datos on-chain son inherentemente redundantes por la naturaleza distribuida de la red Ethereum. No obstante, los eventos emitidos por los contratos se almacenan tambien en PostgreSQL (tabla \texttt{Event}) para permitir consultas rapidas sin depender exclusivamente del nodo RPC.
+\end{itemize}
+
+\subsubsection{Validacion de integridad}
+
+\begin{itemize}
+    \item \textbf{Checksums de documentos}: Antes del cifrado, se calcula el hash SHA-256 del contenido original. Este hash se registra on-chain, permitiendo verificar posteriormente que el documento descifrado coincide con la version original.
+    \item \textbf{Integridad referencial}: La base de datos utiliza claves foraneas y restricciones \texttt{ON DELETE} controladas para evitar inconsistencias entre usuarios, documentos, versiones y permisos.
+    \item \textbf{Sincronizacion on-chain / off-chain}: Un servicio de \textit{event listener} escucha los eventos del smart contract y actualiza la base de datos PostgreSQL de forma transaccional. En caso de discrepancia, se genera una alerta para revision manual.
+\end{itemize}
+
+\subsection{Frontend y gestion de sesiones}
+
+El frontend es responsable de presentar informacion sensible, gestionar el estado de la sesion y guiar al usuario en operaciones que pueden modificar documentos o registrar evidencias en blockchain. Se ha procurado que las rutas protegidas no queden expuestas fuera del contexto autenticado y que las acciones de riesgo alto, como publicar contenido o firmar operaciones, se muestren de forma explicita y con confirmaciones adecuadas.
+
+\subsubsection{Proteccion contra vulnerabilidades web}
+
+\begin{itemize}
+    \item \textbf{Proteccion XSS (Cross-Site Scripting)}: El framework React escapa automaticamente las interpolaciones en JSX. Se evita el uso de \texttt{dangerouslySetInnerHTML} y se sanitizan los mensajes de error mostrados al usuario.
+    \item \textbf{Proteccion CSRF (Cross-Site Request Forgery)}: Al utilizar autenticacion stateless JWT almacenada en \texttt{sessionStorage} (no en cookies), el riesgo de CSRF se reduce significativamente. Las peticiones a la API incluyen el token en la cabecera \texttt{Authorization: Bearer}.
+    \item \textbf{Proteccion contra clickjacking}: La cabecera HTTP \texttt{X-Frame-Options: DENY} impide que la aplicacion sea embebida en \texttt{iframe} de terceros, neutralizando ataques de clickjacking.
+    \item \textbf{Almacenamiento seguro de tokens}: Los tokens JWT se almacenan en \texttt{sessionStorage} (persistente durante la sesion del navegador) en lugar de \texttt{localStorage}, reduciendo la ventana de exposicion ante ataques XSS. El refresh token se gestiona mediante una cookie \texttt{HttpOnly} y \texttt{Secure} si la arquitectura lo permite.
+\end{itemize}
+
+\subsubsection{Experiencia de usuario segura}
+
+La interfaz tambien participa en la seguridad al distinguir con claridad cuando un documento es privado, cuando ha sido archivado y cuando ha pasado a ser publico mediante enlace o codigo QR. Esa diferenciacion reduce errores de uso y ayuda a que el comportamiento del sistema resulte previsible para el usuario. Las acciones destructivas (eliminacion de documentos, revocacion de permisos, firma blockchain o eliminacion de cuenta) requieren confirmacion modal explicita y, cuando procede, una confirmacion adicional por parte del usuario.
+
+\subsection{Smart contracts}
+
+Los contratos inteligentes representan el componente mas critico desde la perspectiva de la inmutabilidad: una vez desplegados, su codigo no puede modificarse. Por ello, la deteccion y correccion de vulnerabilidades debe producirse \textit{antes} del despliegue en red principal.
+
+\subsubsection{Medidas especificas de seguridad en Solidity}
+
+\begin{itemize}
+    \item \textbf{Prevencion de overflow/underflow}: Uso de Solidity 0.8.x, donde las operaciones aritmeticas incluyen comprobaciones automaticas de rango. En caso de requerir librerias externas (OpenZeppelin), se utilizan funciones seguras como \texttt{SafeMath} solo cuando es estrictamente necesario.
+    \item \textbf{Proteccion contra reentrancy}: Aplicacion del patron \textit{checks-effects-interactions}: primero se validan las precondiciones, despues se actualizan los estados internos y finalmente se realizan las llamadas externas. Ademas, los contratos heredan de \texttt{ReentrancyGuard} de OpenZeppelin, que bloquea las llamadas reentrantes mediante un mutex.
+    \item \textbf{Control de acceso riguroso}: Uso de \texttt{AccessControl} en lugar de \texttt{Ownable} para definir roles granulares. Las funciones administrativas y de gobierno del contrato estan protegidas por modificadores que verifican el rol correspondiente.
+    \item \textbf{Guardas defensivas del contrato}: Los modificadores de validacion y las comprobaciones de preestado reducen la superficie de ataque y evitan transiciones inconsistentes sin alterar la inmutabilidad del historial ya publicado.
+    \item \textbf{Verificacion de fuente}: Tras el despliegue, el codigo fuente de los contratos se verifica publicamente en el explorador de bloques (Etherscan o equivalente), permitiendo a usuarios y auditores independientes comprobar que el bytecode desplegado corresponde al codigo auditado.
+\end{itemize}
+
+\section{Etapa 6: Riesgos residuales}
+
+En este apartado se identifican los riesgos que persisten tras la aplicacion de las medidas de seguridad y se establece un plan de aceptacion.
+
+Aunque se hayan aplicado todas las medidas descritas, siempre quedan riesgos residuales por limitaciones tecnicas, de coste o por el factor humano. Esta etapa identifica esos riesgos que persisten, les asigna un nivel y establece un plan de aceptacion o tratamiento.
+
+Para valorar el riesgo residual se reevaluan la probabilidad y el impacto de cada amenaza despues de aplicar las medidas. Se usa la misma escala y matriz de calor de la Etapa 4.
+
+\subsection{Tabla de riesgos residuales}
+
+A continuacion se presentan los riesgos que permanecen tras la aplicacion de las salvaguardas.
+
+La tabla \ref{tab:residual} detalla los riesgos que permanecen tras la aplicacion de las salvaguardas, indicando las medidas aplicadas, el riesgo inherente inicial y el riesgo residual calculado.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|c|p{2.8cm}|c|p{3.5cm}|c|c|}
+\hline
+\textbf{ID} & \textbf{Amenaza} & \textbf{Riesgo inicial} & \textbf{Medidas aplicadas} & \textbf{Riesgo residual} & \textbf{Nivel} \\
+\hline
+T-01 & Acceso no autorizado & 15 & M-02, M-03, M-04, M-07, M-11 & 6 & Medio \\
+\hline
+T-02 & Perdida de claves & 15 & M-13, educacion de usuario & 5 & Medio \\
+\hline
+T-03 & Ataque al nodo blockchain & 10 & M-08, M-16, M-17, M-18, M-19 & 4 & Bajo \\
+\hline
+T-04 & Phishing & 16 & M-04, M-05, M-15, concienciacion & 6 & Medio \\
+\hline
+T-05 & DoS & 9 & M-11, M-10, firewall & 4 & Bajo \\
+\hline
+T-06 & Perdida de datos & 10 & M-12, M-20, redundancia & 4 & Bajo \\
+\hline
+T-07 & Man-in-the-middle & 10 & M-06, certificados SSL & 4 & Bajo \\
+\hline
+T-08 & Malware & 15 & M-10, M-14, M-15, antivirus & 6 & Medio \\
+\hline
+T-09 & Exfiltracion de datos & 10 & M-01, M-20, cifrado & 4 & Bajo \\
+\hline
+T-10 & Error humano & 15 & M-09, M-12, procedimientos & 6 & Medio \\
+\hline
+\end{tabular}
+\caption{Riesgos residuales tras las medidas aplicadas}
+\label{tab:residual}
+\end{table}
+
+Como se observa, ningun riesgo residual alcanza la categoria Alto o Critico. Los riesgos T-01, T-02, T-04, T-08 y T-10 se mantienen en nivel Medio, principalmente debido a la imposibilidad de eliminar completamente el factor humano (errores, phishing, perdida de credenciales) mediante controles tecnicos exclusivos.
+
+\subsection{Plan de aceptacion de riesgos}
+
+Los riesgos residuales de nivel Medio se consideran aceptables para el contexto operativo actual del sistema, siempre que se cumplan las siguientes condiciones:
+
+\begin{itemize}
+    \item \textbf{Riesgo T-01 (Acceso no autorizado)}: Se acepta bajo la condicion de que el sistema mantenga la verificacion de email, el endurecimiento de sesiones y la revision periodica de los logs de acceso. Se requiere notificacion inmediata ante multiples intentos fallidos.
+    \item \textbf{Riesgo T-02 (Perdida de claves)}: Se acepta con la salvedad de que los usuarios deben ser informados explicitamente sobre la imposibilidad de recuperar documentos si pierden tanto su wallet como sus codigos de recuperacion. Se recomienda el uso de hardware wallets para usuarios avanzados.
+    \item \textbf{Riesgo T-04 (Phishing)}: Se acepta asumiendo que una parte de los usuarios puede ser victima de enganos. La mitigacion depende de la educacion continua y de la verificacion de dominios, pero no puede garantizarse al 100\%.
+    \item \textbf{Riesgo T-08 (Malware)}: Se acepta bajo la premisa de que el sistema de deteccion de intrusiones y los aislamientos Docker contienen la propagacion. La responsabilidad de la seguridad del endpoint corresponde al usuario.
+    \item \textbf{Riesgo T-10 (Error humano)}: Se acepta reconociendo que los procedimientos documentados y los entornos separados reducen, pero no eliminan, la probabilidad de errores operativos.
+\end{itemize}
+
+\subsection{Plan de mejora continua}
+
+En este apartado se establece el programa de mejora continua para la gestion de riesgos del sistema.
+
+La gestion de riesgos no concluye con la redaccion de este anexo, por lo que se establecen las siguientes actividades:
+
+\begin{itemize}
+    \item \textbf{Auditorias de seguridad periodicas}: Revision trimestral de la configuracion del servidor, permisos de acceso, politicas de contrasenas y estado de las dependencias software.
+    \item \textbf{Pruebas de penetracion (pentesting)}: Ejecucion anual de pentesting externo sobre la API REST y el frontend, asi como auditoria de smart contracts antes de cada despliegue mayor en red principal.
+    \item \textbf{Actualizacion de dependencias}: Monitoreo continuo de vulnerabilidades publicadas (CVE) en las librerias npm, Prisma, Docker y OpenZeppelin mediante herramientas como GitHub Dependabot y \texttt{npm audit}. Aplicacion de parches de seguridad en un plazo maximo de 7 dias para vulnerabilidades criticas.
+    \item \textbf{Revision de logs y alertas}: Analisis semanal automatizado de los logs de auditoria para detectar patrones anomalos, intentos de acceso no autorizado o variaciones inesperadas en el trafico.
+    \item \textbf{Formacion y concienciacion}: Sesiones anuales de formacion en seguridad para el equipo de desarrollo y administracion, enfocadas en las amenazas emergentes del ecosistema blockchain y web.
+\end{itemize}
+
+\section{Metodologias y herramientas}
+
+En este apartado se describen los marcos metodologicos y las herramientas empleadas en la elaboracion del plan de seguridad.
+
+La elaboracion del presente plan de seguridad se ha fundamentado en metodologias reconocidas internacionalmente y en herramientas especificas que permiten automatizar la deteccion de vulnerabilidades.
+
+\subsection{Marcos metodologicos}
+
+\begin{itemize}
+    \item \textbf{Plan Director de Seguridad} (INCIBE): Marco metodologico oficial seguido para la elaboracion de este anexo. Proporciona las seis etapas secuenciales (identificacion, valoracion, amenazas, consecuencias, medidas y riesgos residuales) que garantizan una cobertura sistematica de la gestion de riesgos.
+    \item \textbf{OWASP Top 10}: Referencia de facto para la identificacion y mitigacion de las vulnerabilidades web mas criticas. Se ha utilizado como checklist durante el diseno del backend y el frontend, asegurando la proteccion contra inyecciones, XSS, CSRF, autenticacion rota y configuraciones inseguras.
+    \item \textbf{MAGERIT}: Metodologia de analisis y gestion de riesgos de las tecnologias de la informacion del Ministerio de Hacienda y Funcion Publica de Espana. Ha servido de complemento para la categorizacion de amenazas y la valoracion de activos.
+    \item \textbf{ESTIMA}: Guia del INCIBE para la gestion de incidentes de ciberseguridad, utilizada como referencia para la definicion del plan de mejora continua y la respuesta ante incidentes.
+\end{itemize}
+
+\subsection{Herramientas de seguridad}
+
+La tabla \ref{tab:herramientas} recoge las principales herramientas de seguridad utilizadas durante el ciclo de vida del proyecto, indicando su proposito, el componente sobre el que actuan y la fase del desarrollo en la que se emplean.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|l|p{3.5cm}|p{3.5cm}|l|}
+\hline
+\textbf{Herramienta} & \textbf{Proposito} & \textbf{Componente} & \textbf{Fase} \\
+\hline
+Slither (Trail of Bits) & Analisis estatico de vulnerabilidades en Solidity & Smart contracts & Desarrollo / CI \\
+\hline
+Echidna (Trail of Bits) & Fuzzing de propiedades en contratos inteligentes & Smart contracts & Testing \\
+\hline
+Mythril (ConsenSys) & Analisis simbolico de seguridad en EVM bytecode & Smart contracts & Desarrollo \\
+\hline
+OWASP ZAP & Escaneo de vulnerabilidades web (DAST) & Frontend / API REST & Testing / Pentesting \\
+\hline
+npm audit & Deteccion de vulnerabilidades en dependencias npm & Frontend / Backend & Desarrollo / CI \\
+\hline
+GitHub Dependabot & Alertas automaticas de CVE en dependencias & Todo el proyecto & Monitorizacion continua \\
+\hline
+ESLint + SonarJS & Analisis estatico de calidad y seguridad de codigo JS/TS & Frontend / Backend & Desarrollo / CI \\
+\hline
+Docker Bench Security & Auditoria de configuraciones seguras de Docker & Infraestructura & Despliegue \\
+\hline
+\end{tabular}
+\caption{Herramientas de seguridad utilizadas}
+\label{tab:herramientas}
+\end{table}
+
+\subsubsection{Analisis estatico de smart contracts}
+
+\begin{itemize}
+    \item \textbf{Slither}: Ejecutado sobre el codigo fuente Solidity para detectar patrones inseguros, variables sin inicializar, funciones que deberian ser \texttt{view} o \texttt{pure}, y vulnerabilidades conocidas (reentrancia, control de acceso deficiente). Genera un informe en formato JSON integrado en la pipeline de CI.
+    \item \textbf{Echidna}: Utilizado para pruebas de fuzzing orientadas a propiedades (\textit{property-based testing}). Se definen invariantes del sistema (por ejemplo, "unicamente el propietario puede transferir un documento") y Echidna genera entradas aleatorias para intentar violarlas.
+    \item \textbf{Mythril}: Herramienta de analisis simbolico que explora los caminos de ejecucion del contrato inteligente, buscando condiciones que permitan el acceso no autorizado, la manipulacion de almacenamiento o el consumo excesivo de gas.
+\end{itemize}
+
+\subsubsection{Pruebas de seguridad de aplicaciones web}
+
+\begin{itemize}
+    \item \textbf{OWASP ZAP (Zed Attack Proxy)}: Utilizado como proxy de interceptacion durante las pruebas de penetracion manuales y como escaner activo durante la fase de testing. Permite detectar XSS reflejado y persistente, inyecciones SQL, configuraciones CORS permisivas y exposicion de informacion sensible en headers o respuestas.
+\end{itemize}
+
+\subsection{Metodologia de pentesting aplicada}
+
+Las pruebas de penetracion se han estructurado siguiendo el \textbf{OWASP Testing Guide} v4.2, abordando las siguientes areas:
+
+\begin{enumerate}
+    \item \textbf{Reconocimiento y mapeo de la aplicacion}: Identificacion de endpoints, parametros, tecnologias y dependencias expuestas.
+    \item \textbf{Gestion de identidades y autenticacion}: Pruebas de fuerza bruta, bypass de autenticacion, manipulacion de tokens JWT y secuestro de sesiones.
+    \item \textbf{Autorizacion}: Escalada de privilegios horizontales y verticales, acceso a funciones administrativas sin rol correspondiente.
+    \item \textbf{Validacion de entradas}: Inyecciones SQL, NoSQL, XSS, command injection, path traversal y deserializacion insegura.
+    \item \textbf{Logica de negocio}: Manipulacion de flujos de firma, intento de doble gasto en evidencias blockchain y evasion de controles de permisos on-chain.
+    \item \textbf{Seguridad en el cliente}: Analisis del almacenamiento local, deteccion de secretos en el bundle de React y validacion de la configuracion CSP.
+    \item \textbf{Criptografia}: Verificacion de la longitud de claves, aleatoriedad de nonces, almacenamiento seguro de claves privadas y resistencia a replay attacks en los challenges EIP-712.
+\end{enumerate}
+
+Los resultados de cada fase se documentan en un informe de pentesting interno que incluye la descripcion de la vulnerabilidad, su criticidad, evidencias (capturas de pantalla, peticiones HTTP) y la recomendacion de remedio. Las vulnerabilidades criticas y altas deben corregirse antes de cualquier despliegue en produccion.
+
+\subsection{Politica de actualizacion de dependencias}
+
+La gestion proactiva de dependencias es esencial para mitigar riesgos de cadena de suministro y vulnerabilidades conocidas. Se ha establecido la siguiente politica:
+
+\begin{itemize}
+    \item \textbf{Monitorizacion continua}: GitHub Dependabot esta configurado para escanear diariamente el repositorio y generar alertas cuando una dependencia directa o transitiva presente una vulnerabilidad publicada (CVE).
+    \item \textbf{Ejecucion de \texttt{npm audit}}: Integrado en la pipeline de integracion continua (CI). Cualquier pull request que introduzca una vulnerabilidad \textit{high} o \textit{critical} bloquea la fusion hasta su resolucion.
+    \item \textbf{Plazos de remediacion}:
+    \begin{itemize}
+        \item Vulnerabilidades criticas (CVSS 9.0-10.0): maximo 24-48 horas.
+        \item Vulnerabilidades altas (CVSS 7.0-8.9): maximo 7 dias.
+        \item Vulnerabilidades medias (CVSS 4.0-6.9): maximo 30 dias.
+        \item Vulnerabilidades bajas (CVSS 0.1-3.9): maximo 90 dias o proximo ciclo de mantenimiento.
+    \end{itemize}
+    \item \textbf{Pinning de versiones}: Las dependencias se fijan mediante ficheros \texttt{package-lock.json} y \texttt{yarn.lock} para garantizar reproducibilidad de builds y evitar la instalacion inadvertida de versiones comprometidas.
+    \item \textbf{Revision de librerias blockchain}: Las librerias \texttt{ethers.js}, \texttt{hardhat} y los contratos de OpenZeppelin se actualizan unicamente tras revisar las notas de version y el historial de auditorias publicas, dado su impacto directo en la seguridad de los activos criptograficos.
+\end{itemize}
+
+\section{Conclusiones}
+
+El Plan de Seguridad de DocumentChain ha identificado, valorado y mitigado los riesgos de un sistema que junta tecnologias muy distintas y con requisitos de seguridad exigentes. Seguir la metodologia INCIBE en sus seis etapas ha permitido abordar la seguridad de forma ordenada: se han identificado 26 activos criticos y se han definido 20 medidas de seguridad que cubren prevencion, deteccion, correccion y proteccion de datos.
+
+Despues de aplicar esas medidas, el analisis muestra que todos los riesgos residuales estan en niveles aceptables (Bajo o Medio), sin que ninguno llegue a Alto o Critico. Las medidas que mas han ayudado han sido el cifrado de extremo a extremo (AES-256-GCM + ECDH), la verificacion de email junto con el endurecimiento de sesiones, la validacion de permisos on-chain mediante el contrato DocumentRegistry y el aislamiento de servicios con Docker.
+
+Aun asi, el plan reconoce limitaciones que habria que abordar en el futuro: falta una auditoria de seguridad profesional del contrato inteligente, se depende de un unico nodo IPFS autoalojado y convendria montar un sistema de deteccion de intrusiones (IDS) y hacer pruebas de penetracion periodicas.
+
+\section*{Glosario}
+\addcontentsline{toc}{section}{Glosario}
+
+\begin{description}
+    \item[AES-256-GCM] Advanced Encryption Standard con clave de 256 bits en modo Galois/Counter Mode. Proporciona confidencialidad y autenticacion simultaneas.
+    \item[CIA] Confidencialidad, Integridad y Disponibilidad. Triada clasica de la seguridad de la informacion.
+    \item[CVSS] Common Vulnerability Scoring System. Sistema estandarizado de puntuacion de vulnerabilidades.
+    \item[ECDH] Elliptic Curve Diffie-Hellman. Protocolo de intercambio de claves basado en curvas elipticas (P-256).
+    \item[EIP-6963] Multi Injected Provider Discovery. Estandar para deteccion de multiples wallets en el navegador.
+    \item[INCIBE] Instituto Nacional de Ciberseguridad de Espana. Referencia metodologica para el Plan Director de Seguridad.
+    \item[JWT] JSON Web Token. Token de autenticacion firmado digitalmente.
+    \item[OWASP] Open Web Application Security Project. Organizacion que publica el Top 10 de riesgos de seguridad web.
+    \item[RBAC] Role-Based Access Control. Control de acceso basado en roles.
+    \item[RGPD] Reglamento General de Proteccion de Datos (UE 2016/679).
+\end{description}
+
+\begin{thebibliography}{99}
+    \item INCIBE (2023). ``Plan Director de Seguridad''. Instituto Nacional de Ciberseguridad.
+    \item OWASP Foundation (2021). ``OWASP Top 10:2021''. \texttt{https://owasp.org/Top10/}
+    \item Union Europea (2016). ``Reglamento (UE) 2016/679 (RGPD)''. Diario Oficial de la Union Europea.
+    \item Union Europea (2014). ``Reglamento (UE) 910/2014 (eIDAS)''. Diario Oficial de la Union Europea.
+    \item OpenZeppelin (2023). ``OpenZeppelin Contracts Documentation v5.0''.
+    \item Trail of Bits (2023). ``Smart Contract Security Field Guide''.
+    \item NIST (2023). ``National Vulnerability Database''. National Institute of Standards and Technology.
+\end{thebibliography}
+
+\end{document}
+
+

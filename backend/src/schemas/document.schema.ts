@@ -68,6 +68,15 @@ export const documentOperationalVersionSchema = z.object({
   versionNumber: z.number().int().positive('Número de versión inválido'),
 });
 
+export const prepareSetOperationalSchema = z.object({
+  versionNumber: z.number().int().positive('Número de versión inválido'),
+});
+
+export const confirmSetOperationalSchema = z.object({
+  versionNumber: z.number().int().positive('Número de versión inválido'),
+  txHash: z.string().min(66, 'Hash de transacción inválido'),
+});
+
 /**
  * Schema para download de documento
  */
@@ -76,12 +85,24 @@ export const downloadDocumentSchema = z.object({
 });
 
 /**
- * Schema para transferencia de documento
+ * Schema para actualización de metadatos de documento
  */
-export const transferDocumentSchema = z.object({
-  newOwnerId: z.string().uuid('ID de usuario inválido'),
-  currentPassword: z.string().min(1, 'Se requiere la contraseña actual'),
-  newOwnerPassword: z.string().min(8, 'La contraseña del nuevo propietario debe tener al menos 8 caracteres')
+export const updateDocumentSchema = z.object({
+  name: z.string()
+    .min(1, 'Se requiere nombre del documento')
+    .max(255, 'El nombre del documento es demasiado largo')
+    .trim()
+    .optional(),
+  description: z.string()
+    .max(2000, 'La descripción es demasiado larga')
+    .trim()
+    .optional(),
+  folderId: z.string()
+    .uuid('ID de carpeta inválido')
+    .optional(),
+  tags: z.array(z.string().max(50).trim())
+    .max(20, 'Máximo 20 etiquetas permitidas')
+    .optional(),
 });
 
 /**

@@ -1,0 +1,22 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0018: Desarchivar documento (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Vista de archivados" as ui
+control "Gestor de documentos" as ctrl
+entity "Documento" as doc
+
+user -> ui: Seleccionar "Desarchivar"
+ui -> ctrl: Solicitar desarchivado (idDocumento)
+
+ctrl -> doc: Verificar propiedad y estado archivado
+doc --> ctrl: Documento archivado, propietario verificado
+
+ctrl -> doc: Marcar como activo
+doc --> ctrl: Documento activado
+ctrl --> ui: Confirmación
+ui --> user: Documento restaurado a la biblioteca
+
+@enduml

@@ -4,7 +4,7 @@ actor Propietario as user
 boundary "Detalle de documento publico" as ui
 control "PublicLinkActions" as actions
 control "Endpoints publicos (/api/public/documents)" as api
-database "PostgreSQL" as db
+database "Base de datos" as db
 boundary "Pagina PublicDocument" as publicPage
 
 user -> ui: Abre un documento publico ya sincronizado
@@ -21,4 +21,5 @@ db --> api: Documento resoluble
 api --> publicPage: Datos publicos del documento
 publicPage --> user: Visualiza y descarga el documento
 @enduml
+
 

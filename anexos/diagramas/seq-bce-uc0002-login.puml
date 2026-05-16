@@ -1,0 +1,30 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0002: Iniciar Sesion (Analisis BCE)
+
+actor Actor
+boundary "Pagina Login" as BL
+control "GestorAutenticacion" as CL
+entity "Usuario" as EU
+entity "Sesion" as ES
+
+database "Base de datos" as DB
+
+Actor -> BL : 1. Introduce credenciales
+BL -> CL : 2. Envia credenciales
+CL -> EU : 3. Valida credenciales
+EU -> DB : consulta usuario
+DB --> EU : datos usuario
+EU --> CL : credenciales validas
+
+CL -> ES : 4. Crea Entity Sesion
+ES -> DB : INSERT sesion
+DB --> ES : confirmacion
+ES --> CL : sesion creada
+
+CL --> BL : 5. Retorna token de sesion
+BL --> Actor : 6. Redirige al panel principal
+
+@enduml
+

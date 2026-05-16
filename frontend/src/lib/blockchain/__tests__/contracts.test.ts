@@ -60,8 +60,6 @@
    canEdit: vi.fn(),
    isOwner: vi.fn(),
    totalDocuments: vi.fn(),
-   isPaused: vi.fn(),
-   isUserSuspended: vi.fn(),
  }));
  
  // ── Mock ethers.Contract ──────────────────────────────────────────────────────
@@ -140,8 +138,6 @@
    contractMock.canEdit.mockResolvedValue(true);
    contractMock.isOwner.mockResolvedValue(true);
    contractMock.totalDocuments.mockResolvedValue(5n);
-   contractMock.isPaused.mockResolvedValue(false);
-   contractMock.isUserSuspended.mockResolvedValue(false);
  
    registry = new DocumentRegistryContract(makeSigner());
  });
@@ -318,13 +314,6 @@
      expect(await registry.totalDocuments()).toBe(5n);
    });
  
-   it('isPaused returns boolean', async () => {
-     expect(await registry.isPaused()).toBe(false);
-   });
- 
-   it('isUserSuspended returns boolean', async () => {
-     expect(await registry.isUserSuspended(ADDR_A)).toBe(false);
-   });
  });
  
  describe('DocumentRegistryContract — bytes32 conversion', () => {

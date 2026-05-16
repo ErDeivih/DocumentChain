@@ -1,0 +1,39 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+title Casos de uso - Acceso y cuenta: Autenticacion
+
+actor "Usuario" as USER
+actor "Sistema de email" as EMAIL
+
+rectangle "Autenticacion y seguridad de cuenta" {
+  usecase "UC-0001: Registrar Usuario" as UC1
+  usecase "UC-0002: Iniciar Sesion" as UC2
+  usecase "UC-0003: Cerrar Sesion" as UC3
+  usecase "UC-0010: Cambiar Contrasena" as UC10
+  usecase "UC-0011: Verificar Email" as UC11
+  usecase "UC-0012: Reenviar Verificacion" as UC12
+}
+
+UC1 -[hidden]down-> UC2
+UC2 -[hidden]down-> UC3
+UC3 -[hidden]down-> UC10
+UC10 -[hidden]down-> UC11
+UC11 -[hidden]down-> UC12
+
+USER --> UC1
+USER --> UC2
+USER --> UC3
+USER --> UC10
+USER --> UC11
+USER --> UC12
+
+EMAIL --> UC1
+EMAIL --> UC11
+EMAIL --> UC12
+
+note right of UC1
+  El registro con wallet es la opcion primaria.
+  Soporta autenticacion wallet-based.
+end note
+@enduml

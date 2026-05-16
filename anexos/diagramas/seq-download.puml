@@ -1,39 +1,46 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Detalle / Descargar" as ui
-control "Endpoints de documentos (/api/documents)" as api
+boundary "DocumentDetails.tsx / Download" as ui
+control "DocumentController (/api/documents)" as api
 control "DocumentService" as srv
-control "PermissionService" as perm
-entity "PostgreSQL" as db
-entity "IPFS" as ipfs
-control "Criptografia local" as crypto
+control "DocumentPermissionService" as perm
+entity "DocumentRegistry" as sc
+database "Base de datos" as db
+control "IPFSService" as ipfs
+control "KeyManager" as crypto
 
-user -> ui: Solicita descargar el documento
-ui -> ui: Pide credencial local si el documento es privado
-ui -> api: Solicitar descarga
-api -> srv: Validar acceso y resolver la version operativa
-srv -> perm: Comprobar permisos del usuario
-perm -> db: Consultar acceso disponible
-db --> perm: Acceso permitido
-perm --> srv: OK
-srv -> db: Recuperar metadatos y claves protegidas
-db --> srv: Datos de descarga
-srv -> ipfs: Obtener contenido asociado
-ipfs --> srv: Flujo de datos
-srv --> api: Entregar fichero y metadatos de integridad
-api --> ui: Respuesta de descarga
-
+user -> ui: Solicita descargar documento (version operativa)
 alt Documento privado
-    ui -> crypto: Descifrar claves y contenido localmente
-    crypto --> ui: Archivo en claro
-    ui -> crypto: Verificar hash del contenido
-    crypto --> ui: Integridad validada
-else Documento publico
-    ui -> ui: Descarga directa del contenido
+    ui -> crypto: Descifrar clave privada RSA con contrasena de sesion
+    crypto --> ui: privateKey descifrada en memoria
 end
 
-ui --> user: Archivo descargado
+ui -> api: GET /api/documents/:documentId/download
+api -> srv: downloadDocument(documentId, userId)
+srv -> perm: getUserRole(blockchainId, walletAddress)
+perm -> sc: getUserPermission(docId, userAddress)
+sc --> perm: DocumentRole (OWNER/VIEWER/EDITOR/NONE)
+perm --> srv: Rol validado (VIEWER, EDITOR u OWNER)
+srv -> db: Recuperar documento, version operativa y clave simetrica cifrada
+db --> srv: {cid, encryptedSymmetricKey, iv, authTag, mimeType, filename}
+srv -> ipfs: downloadFile(cid)
+ipfs --> srv: Buffer cifrado (si es privado) o en claro (si es publico)
+alt Documento privado
+    srv --> api: 200 OK {encryptedBuffer, encryptedSymmetricKey, iv, authTag, mimeType}
+    api --> ui: Respuesta con datos cifrados y metadatos de integridad
+    ui -> crypto: decryptSymmetricKey(encryptedSymmetricKey, privateKey)
+    crypto --> ui: symmetricKey
+    ui -> crypto: decryptFile(encryptedBuffer, symmetricKey, iv, authTag)
+    crypto --> ui: Buffer descifrado
+    ui -> crypto: verifyIntegrity(buffer, metadataHash)
+    crypto --> ui: Integridad validada
+else Documento publico
+    srv --> api: 200 OK {buffer, mimeType, filename}
+    api --> ui: Respuesta con archivo en claro
+end
+
+ui --> user: Archivo descargado / guardado en disco
 
 @enduml
 

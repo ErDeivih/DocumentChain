@@ -1,0 +1,1333 @@
+﻿% ============================================================
+%  ANEXO VII - MANUAL DE MONTAJE / DESPLIEGUE
+%  DocumentChain - Sistema de Gestion Documental con Blockchain
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+\usepackage{fontspec}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=2.5cm, headheight=55pt, headsep=0.8cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{Anexo VII}\\[-1pt]\fontsize{10}{12}\selectfont Manual de Montaje}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+\definecolor{lightgray}{rgb}{0.96, 0.96, 0.96}
+\definecolor{codebg}{rgb}{0.97, 0.97, 0.97}
+\definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
+\lstset{
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true, frame=single,
+    backgroundcolor=\color{lightgray},
+    showstringspaces=false,
+    columns=flexible,
+}
+\lstdefinelanguage{TypeScript}{
+    keywords={break,case,catch,class,const,continue,debugger,default,delete,do,
+              else,enum,export,extends,false,finally,for,function,if,import,in,
+              instanceof,let,new,null,return,super,switch,this,throw,true,try,
+              typeof,var,void,while,with,yield,async,await,interface,type},
+    sensitive=true,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    morestring=[b]',
+    morestring=[b]",
+    morestring=[b]`,
+}
+\lstdefinelanguage{yaml}{
+    keywords={true,false,on,off,null},
+    sensitive=false,
+    comment=[l]{\#},
+    morestring=[b]',
+    morestring=[b]",
+    moredelim=[l][\color{darkgreen}]{\&},
+    moredelim=[l][\color{darkgreen}]{*},
+    moredelim=**[is][\color{darkgreen}]{:}{\ },
+}
+\newcommand{\autorUno}{David P\'{e}rez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia Gonz\'{a}lez}
+\newcommand{\tutorDos}{Sergio Garc\'{i}a Gonz\'{a}lez}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingenieria Informatica \par}
+    \vspace{1.5cm}
+    {\huge\bfseries ANEXO VII \par}
+    \vspace{0.5cm}
+    {\Large\bfseries Manual de Montaje \par}
+    \vspace{0.3cm}
+    {\large\itshape Sistema de Gestion Documental mediante Blockchain \par}
+    \vspace{1.8cm}
+    \includegraphics[width=0.28\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{2.2cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{1.5cm}
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vspace{2cm}
+    {\large Julio 2026}
+    \vspace{0.5cm}
+
+    \asignatura
+    \vspace{1cm}
+\end{titlepage}
+
+\setcounter{page}{2}
+\pagestyle{fancy}
+\tableofcontents
+\newpage
+
+% ============================================================
+
+\noindent Este anexo describe el procedimiento completo para poner en marcha DocumentChain, tanto en un entorno de producci\'on como en uno de desarrollo local. Se ha buscado que el despliegue sea reproducible en cualquier servidor que disponga de Docker, sin necesidad de configuraciones manuales complejas.
+
+A lo largo del documento se cubren los requisitos de hardware y software, la arquitectura de contenedores Docker y la configuraci\'on de los servicios externos: correo electr\'onico, blockchain e IPFS. Tambi\'en se detallan los pasos para levantar el sistema, la integraci\'on con Nginx como proxy inverso, el pipeline de despliegue continuo con GitHub Actions y la resoluci\'on de las incidencias m\'as habituales que el autor se ha encontrado durante las pruebas.
+
+\section{Requisitos hardware y software}
+% ============================================================
+
+\subsection{Requisitos de hardware}
+
+El despliegue de \textit{DocumentChain} requiere un servidor capaz de ejecutar simult\'{a}neamente multiples contenedores Docker, un nodo IPFS y, en entornos de desarrollo, una red blockchain local. A continuaci\'{o}n se detallan los requisitos m\'{i}nimos y recomendados.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}lp{3.2cm}p{3.2cm}p{4.5cm}@{}}
+\toprule
+\textbf{Componente} & \textbf{M\'{i}nimo} & \textbf{Recomendado} & \textbf{Observaciones} \\
+\midrule
+CPU & 4 n\'{u}cleos (x86\_64) & 8 n\'{u}cleos o superior & Arquitectura AMD64; conjunto de instrucciones AVX2 recomendado para ciertas operaciones criptogr\'{a}ficas \\
+RAM & 8 GB & 16--32 GB & El nodo IPFS y la compilaci\'{o}n de contratos inteligentes consumen memoria significativa en picos \\
+Almacenamiento & 50 GB SSD & 200 GB NVMe SSD & IPFS almacena bloques de forma persistente; se recomienda monitorizar el crecimiento del volumen \\
+Red & 100 Mbps sim\'{e}trico & 1 Gbps sim\'{e}trico & Conexi\'{o}n estable con latencia baja hacia Internet; ancho de banda de salida importante para env\'{i}o de correos electr\'{o}nicos \\
+\bottomrule
+\end{tabular}
+\caption{Requisitos hardware para el despliegue de DocumentChain}
+\label{tab:req-hardware}
+\end{table}
+
+\subsection{Software necesario}
+
+Todos los componentes de la aplicaci\'{o}n se ejecutan dentro de contenedores Docker. No obstante, el servidor anfitri\'{o}n debe disponer de las herramientas base para la gesti\'{o}n de im\'{a}genes, la clonaci\'{o}n del c\'{o}digo fuente y la ejecuci\'{o}n de scripts de utilidad.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}llllp{4cm}@{}}
+\toprule
+\textbf{Software} & \textbf{Versi\'{o}n m\'{i}n.} & \textbf{Versi\'{o}n rec.} & \textbf{Rol} & \textbf{Notas} \\
+\midrule
+Docker Engine & 24.0.0 & 26.x & Motor de contenedores & Requiere cgroup v2 en kernels modernos \\
+Docker Compose & 2.20.0 & 2.27+ & Orquestaci\'{o}n de servicios & Plugin integrado en Docker Desktop; paquete separado en Linux \\
+Node.js & 20.0.0 & 20 LTS / 22 LTS & Runtime de scripts & Necesario para compilar contratos, ejecutar Prisma CLI y scripts de despliegue \\
+npm & 10.0.0 & 10+ & Gestor de paquetes & Incluido con Node.js \\
+Git & 2.40 & 2.45+ & Control de versiones & Para clonar y actualizar el repositorio \\
+OpenSSL & 3.0 & 3.2+ & Generaci\'{o}n de claves & Utilizado para crear \texttt{JWT\_SECRET} y certificados autofirmados temporales \\
+jq & 1.6 & 1.7+ & Procesamiento JSON & Opcional pero recomendado para automatizaci\'{o}n de healthchecks \\
+certbot & 2.0 & 2.10+ & Certificados SSL & Requerido para Let's Encrypt en producci\'{o}n \\
+\bottomrule
+\end{tabular}
+\caption{Software base requerido en el servidor anfitri\'{o}n}
+\label{tab:req-software}
+\end{table}
+
+\subsection{Requisitos de red}
+
+La infraestructura expone una serie de puertos que deben configurarse en el cortafuegos del servidor y, en su caso, en el panel del proveedor de nube.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}llllp{4.8cm}@{}}
+\toprule
+\textbf{Puerto} & \textbf{Protocolo} & \textbf{Servicio} & \textbf{Alcance} & \textbf{Descripci\'{o}n} \\
+\midrule
+80 & TCP & nginx & 0.0.0.0/0 & Redirecci\'{o}n HTTP a HTTPS \\
+443 & TCP & nginx & 0.0.0.0/0 & HTTPS: frontend y API REST protegidos \\
+3000 & TCP & backend & Red interna / 127.0.0.1 & API REST; no debe exponerse p\'{u}blicamente sin proxy inverso \\
+5001 & TCP & ipfs & 127.0.0.1 & API administrativa de IPFS; restringir al anfitri\'{o}n \\
+8080 & TCP & ipfs & 0.0.0.0/0 (opc.) & Gateway IPFS p\'{u}blica; puede deshabilitarse si no se requiere \\
+8545 & TCP & hardhat & 127.0.0.1 & RPC JSON local de Hardhat; uso exclusivo en desarrollo \\
+5432 & TCP & postgres & Red interna & PostgreSQL; bloquear en el cortafuegos externo \\
+25, 587 & TCP & brevo-smtp & 0.0.0.0/0 (saliente) & SMTP para env\'{i}o de correos; el puerto 25 suele estar bloqueado en nubes p\'{u}blicas, preferir 587 \\
+\bottomrule
+\end{tabular}
+\caption{Puertos de red utilizados por la plataforma}
+\label{tab:req-ports}
+\end{table}
+
+\subsection{Sistema operativo}
+
+El entorno de producci\'{o}n recomendado es una distribuci\'{o}n Linux de tipo Debian o Red Hat, preferentemente con soporte a largo plazo (LTS).
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ubuntu Server 22.04 LTS / 24.04 LTS}: probado y documentado en el presente manual.
+    \item \textbf{Debian 12 (Bookworm)}: alternativa estable con ciclo de parches extendido.
+    \item \textbf{Windows 10/11}: v\'{a}lido \'{u}nicamente para desarrollo local mediante Windows Subsystem for Linux 2 (WSL2) con una distribuci\'{o}n Ubuntu.
+    \item \textbf{macOS}: v\'{a}lido para desarrollo local; Docker Desktop para Mac gestiona la virtualizaci\'{o}n subyacente.
+\end{itemize}
+
+En producci\'{o}n se recomienda desactivar el inicio de sesi\'{o}n por contrase\~{n}a para el usuario \texttt{root}, configurar autenticaci\'{o}n por clave SSH y mantener el sistema actualizado mediante gestor de paquetes.
+
+% ============================================================
+\section{Arquitectura de despliegue}
+% ============================================================
+
+\subsection{Visi\'{o}n general de contenedores}
+
+La aplicaci\'{o}n se materializa como un conjunto de servicios orquestados mediante Docker Compose. La figura \ref{fig:arquitectura-contenedores} ilustra la topolog\'{i}a l\'{o}gica de la infraestructura.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm and 1.5cm,
+    service/.style={draw, rounded corners, minimum width=2.8cm, minimum height=0.9cm, align=center, font=\small},
+    user/.style={draw, circle, minimum size=1cm, align=center, font=\small},
+    db/.style={draw, cylinder, shape border rotate=90, aspect=0.3, minimum width=2cm, minimum height=0.8cm, align=center, font=\small},
+    arrow/.style={-{Stealth[length=2mm]}, thick},
+    label/.style={font=\scriptsize\itshape}
+]
+    \node[user] (usr) {Usuario};
+    \node[service, right=of usr, fill=green!10] (ngx) {Nginx\\reverse proxy};
+    \node[service, above right=0.6cm and 1.2cm of ngx, fill=blue!10] (fe) {Frontend\\(Nginx est\'{a}tico)};
+    \node[service, below right=0.6cm and 1.2cm of ngx, fill=blue!10] (be) {Backend\\(Node.js + Express)};
+    \node[db, right=of fe, fill=orange!10] (ipfs) {IPFS\\(Kubo)};
+    \node[db, right=of be, fill=orange!10] (pg) {PostgreSQL\\(15+)};
+    \node[service, below=0.8cm of be, fill=gray!15] (hh) {Hardhat\\(localhost)};
+    \node[service, below=0.8cm of ngx, fill=purple!10] (pf) {Brevo SMTP\\(servicio SMTP externo)};
+
+    \draw[arrow] (usr) -- (ngx) node[midway,above,label] {HTTPS 443};
+    \draw[arrow] (ngx) -- (fe) node[midway,above,label] {/};
+    \draw[arrow] (ngx) -- (be) node[midway,below,label] {/api};
+    \draw[arrow, dashed] (be) -- (pg) node[midway,above,label] {Base de datos};
+    \draw[arrow, dashed] (be) -- (ipfs) node[midway,above,label] {5001};
+    \draw[arrow, dashed] (be) -- (hh) node[midway,right,label] {8545};
+    \draw[arrow, dashed] (be) -- (pf) node[midway,left,label] {SMTP};
+\end{tikzpicture}
+\caption{Diagrama de arquitectura de contenedores DocumentChain}
+\label{fig:arquitectura-contenedores}
+\end{figure}
+
+\subsection{Descripci\'{o}n de servicios}
+
+A continuaci\'{o}n se describe la funci\'{o}n de cada servicio definido en el archivo \texttt{docker-compose.yml}.
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{frontend}: construido a partir de una imagen base Nginx Alpine. Su responsabilidad consiste en servir los artefactos est\'{a}ticos generados por Vite (HTML, JS, CSS) y resolver el enrutamiento de la Single Page Application (SPA) mediante la directiva \texttt{try\_files}.
+    \item \textbf{backend}: imagen basada en Node.js 20-slim. Ejecuta el servidor Express que expone la API REST en el puerto 3000. Contiene la l\'{o}gica de negocio, la capa de cifrado de documentos y los adaptadores hacia base de datos, IPFS y blockchain.
+    \item \textbf{postgres}: instancia de PostgreSQL 15 (o superior). Almacena usuarios, documentos metadatos, versiones, firmas, notificaciones y logs de auditor\'{i}a. Persiste sus datos en un volumen Docker dedicado.
+    \item \textbf{ipfs}: nodo Kubo oficial. Gestiona el almacenamiento descentralizado de documentos cifrados. Expone la API en el puerto 5001 y opcionalmente un gateway de lectura en el 8080. Requiere configuraci\'{o}n de CORS para la comunicaci\'{o}n con el backend.
+    \item \textbf{nginx}: proxy inverso frontal. Recibe el tr\'{a}fico HTTPS en el puerto 443 y lo distribuye hacia el frontend o el backend seg\'{u}n la ruta. Gestiona la terminaci\'{o}n SSL, la compresi\'{o}n gzip y las cabeceras de seguridad HTTP.
+    \item \textbf{brevo-smtp} (opcional pero recomendado): servicio SMTP externo de Brevo utilizado para el env\'{i}o de correos electr\'{o}nicos de la plataforma.
+    \item \textbf{hardhat} (desarrollo local): nodo Ethereum local con cuentas prefabricadas y saldo de prueba. Se utiliza para validar integraciones sin coste de gas.
+\end{itemize}
+
+\subsection{Vol\'{u}menes persistentes}
+
+Los datos que deben sobrevivir a la reconstrucci\'{o}n de contenedores se almacenan en vol\'{u}menes Docker gestionados.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}lp{5cm}p{5.5cm}@{}}
+\toprule
+\textbf{Volumen} & \textbf{Contenido} & \textbf{Notas de backup} \\
+\midrule
+\texttt{postgres\_data} & Ficheros de base de datos (WAL, tablas, \'{i}ndices) & Prioritario; usar \texttt{pg\_dump} diariamente \\
+\texttt{ipfs\_data} & Repo del nodo Kubo (bloques, config, keystore) & Copiar volumen completo o exportar lista de pins \\
+\texttt{ipfs\_staging} & Buffer de importaci\'{o}n temporal de IPFS & Puede eliminarse con seguridad \\
+\texttt{certs} & Certificados SSL (Let's Encrypt) & Respaldar antes de renovaciones \\
+\texttt{letsencrypt} & Estado y configuraci\'{o}n de Certbot & Necesario para renovaciones autom\'{a}ticas \\
+\bottomrule
+\end{tabular}
+\caption{Vol\'{u}menes persistentes definidos en la infraestructura}
+\label{tab:volumenes}
+\end{table}
+
+\subsection{Red interna Docker}
+
+Todos los servicios se conectan a una red de tipo \texttt{bridge} denominada \texttt{documentchain\_network}. Esta segmentaci\'{o}n permite:
+
+\begin{itemize}[leftmargin=*]
+    \item Resoluci\'{o}n DNS por nombre de contenedor (p. ej., \texttt{backend} resuelve la IP interna del servicio hom\'{o}nimo).
+    \item Aislamiento del tr\'{a}fico interno respecto a la interfaz p\'{u}blica del anfitri\'{o}n.
+    \item Aplicaci\'{o}n de pol\'{i}ticas de cortafuegos por interfaz de red sin afectar al resto del sistema.
+\end{itemize}
+
+\subsection{Flujo de peticiones}
+
+El recorrido t\'{i}pico de una solicitud de usuario se describe a continuaci\'{o}n:
+
+\begin{enumerate}[leftmargin=*]
+    \item El usuario introduce \texttt{https://documentchain.ejemplo.com} en su navegador.
+    \item La petici\'{o}n DNS resuelve la direcci\'{o}n IP p\'{u}blica del VPS y llega al puerto 443.
+    \item Nginx recibe la conexi\'{o}n, valida el certificado SSL y aplica cabeceras de seguridad.
+    \item Si la URI comienza por \texttt{/api}, Nginx reenv\'{i}a la petici\'{o}n al contenedor \texttt{backend:3000}.
+    \item Si la URI corresponde a un recurso est\'{a}tico o a una ruta de la SPA, Nginx sirve los ficheros del contenedor \texttt{frontend}.
+    \item El backend procesa la l\'{o}gica de negocio y, en caso necesario, consulta:
+    \begin{itemize}
+        \item PostgreSQL para datos relacionales a trav\'{e}s de la capa de acceso a base de datos.
+        \item IPFS para almacenar o recuperar bloques de documentos cifrados.
+        \item El nodo blockchain (Hardhat local o Sepolia) para emitir o consultar transacciones.
+    \end{itemize}
+    \item Las respuestas viajan por el camino inverso hasta el navegador del usuario.
+\end{enumerate}
+
+% ============================================================
+\section{Instalacion paso a paso}
+% ============================================================
+
+\subsection{Paso 1: Clonar el repositorio}
+
+Se recomienda clonar el repositorio oficial en un directorio de trabajo permanente, por ejemplo \texttt{/opt/documentchain}.
+
+\begin{lstlisting}[language=bash, caption={Clonaci\'{o}n del c\'{o}digo fuente}]
+# Crear directorio de trabajo
+sudo mkdir -p /opt/documentchain
+sudo chown $USER:$USER /opt/documentchain
+cd /opt/documentchain
+
+# Clonar repositorio
+git clone https://github.com/usuario/documentchain.git .
+git checkout main
+\end{lstlisting}
+
+Tras la clonaci\'{o}n, la estructura de directorios principal debe contener al menos las carpetas \texttt{frontend/}, \texttt{backend/}, \texttt{smart-contracts/}, \texttt{nginx/} y el archivo \texttt{docker-compose.yml}.
+
+\subsection{Paso 2: Configurar variables de entorno}
+
+El archivo \texttt{.env} centraliza toda la parametrizaci\'{o}n sensible y de infraestructura. Se proporciona una plantilla de ejemplo que debe copiarse y editarse.
+
+\begin{lstlisting}[language=bash, caption={Preparaci\'{o}n del archivo de entorno}]
+cp .env.example .env
+chmod 600 .env
+nano .env
+\end{lstlisting}
+
+La tabla \ref{tab:env-vars} detalla las variables m\'{a}s cr\'{i}ticas del sistema.
+
+\begin{longtable}{@{}lp{4.5cm}p{3cm}c@{}}
+\caption{Variables de entorno principales de DocumentChain} \\
+\toprule
+\textbf{Variable} & \textbf{Descripci\'{o}n} & \textbf{Ejemplo} & \textbf{Obl.} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{c}{\tablename\ \thetable{} -- continuaci\'{o}n} \\
+\toprule
+\textbf{Variable} & \textbf{Descripci\'{o}n} & \textbf{Ejemplo} & \textbf{Obl.} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{Contin\'{u}a en la p\'{a}gina siguiente}
+\endfoot
+\bottomrule
+\endlastfoot
+\texttt{DATABASE\_URL} & Cadena de conexi\'{o}n a PostgreSQL con credenciales y nombre de base de datos & \texttt{postgresql://user:pass@postgres:5432/db?schema=public} & S\'{i} \\
+\texttt{JWT\_SECRET} & Clave sim\'{e}trica para firma de tokens de acceso (m\'{i}nimo 256 bits) & Generar con \texttt{openssl rand -hex 32} & S\'{i} \\
+\texttt{JWT\_EXPIRES\_IN} & Tiempo de validez del token de acceso (formato vercel/ms) & \texttt{15m} & S\'{i} \\
+\texttt{REFRESH\_SECRET} & Clave independiente para tokens de refresco & Generar con \texttt{openssl rand -hex 32} & S\'{i} \\
+\texttt{ENCRYPTION\_KEY} & Clave maestra para cifrado de documentos (AES-256-GCM) & Generar con \texttt{openssl rand -hex 32} & S\'{i} \\
+\texttt{IPFS\_API\_URL} & Endpoint interno de la API de IPFS & \texttt{http://ipfs:5001} & S\'{i} \\
+\texttt{IPFS\_GATEWAY\_URL} & URL p\'{u}blica o interna del gateway IPFS & \texttt{http://ipfs:8080} & No \\
+\texttt{BLOCKCHAIN\_RPC\_URL} & URL del proveedor JSON-RPC (Hardhat local o nodo remoto) & \texttt{http://hardhat:8545} & S\'{i} \\
+\texttt{CONTRACT\_ADDRESS} & Direcci\'{o}n desplegada del contrato maestro & \texttt{0x1234...abcd} & S\'{i} \\
+\texttt{ADMIN\_ROLE} & Identificador hash del rol administrador en el contrato & \texttt{0x...} & S\'{i} \\
+\texttt{SMTP\_HOST} & Servidor SMTP al que se conecta Nodemailer & \texttt{smtp-relay.brevo.com} & S\'{i} \\
+\texttt{SMTP\_PORT} & Puerto del servicio SMTP & \texttt{587} o \texttt{25} & S\'{i} \\
+\texttt{SMTP\_SECURE} & Indica si se utiliza TLS impl\'{i}cito (true para 465) & \texttt{false} & No \\
+\texttt{SMTP\_USER} & Usuario de autenticaci\'{o}n SMTP (proporcionado por Brevo) & \texttt{usuario@ejemplo.com} & S\'{i} \\
+\texttt{SMTP\_PASS} & Contrase\~{n}a de autenticaci\'{o}n SMTP & \texttt{supersecreto} & No \\
+\texttt{EMAIL\_FROM} & Direcci\'{o}n de remitente visible en los correos enviados & \texttt{noreply@ejemplo.com} & S\'{i} \\
+\texttt{EMAIL\_FROM\_NAME} & Nombre descriptivo del remitente & \texttt{DocumentChain} & No \\
+\texttt{FRONTEND\_URL} & URL base para enlaces de verificaci\'{o}n y restablecimiento & \texttt{https://ejemplo.com} & S\'{i} \\
+\texttt{SEPOLIA\_RPC\_URL} & Endpoint de nodo en testnet Sepolia (Alchemy/Infura) & \texttt{https://eth-sepolia.g.alchemy.com/v2/...} & No \\
+\texttt{PRIVATE\_KEY} & Clave privada de la cuenta desplegadora en testnet/mainnet & \texttt{0xabc...} & No \\
+\texttt{ETHERSCAN\_API\_KEY} & Clave de API para verificaci\'{o}n de c\'{o}digo fuente en Etherscan & \texttt{ABC123...} & No \\
+\end{longtable}
+\label{tab:env-vars}
+
+\subsection{Paso 3: Levantar servicios con Docker Compose}
+
+Una vez configurado el entorno, se procede a la construcci\'{o}n e inicio de los servicios. Se recomienda ejecutar los comandos en el orden indicado para facilitar la depuraci\'{o}n de posibles errores.
+
+\begin{lstlisting}[language=bash, caption={Construcci\'{o}n e inicio de la plataforma}]
+# Descargar im\'{a}genes base m\'{a}s recientes
+docker compose pull
+
+# Construir im\'{a}genes locales sin cach\'{e} de capas obsoletas
+docker compose build --no-cache
+
+# Iniciar todos los servicios en segundo plano
+docker compose up -d
+
+# Verificar estado de los contenedores
+docker compose ps
+
+# Inspeccionar logs del backend (Ctrl+C para salir)
+docker compose logs -f --tail=100 backend
+\end{lstlisting}
+
+Tras ejecutar \texttt{docker compose up -d}, conviene esperar entre 30 y 60 segundos para que PostgreSQL complete su inicializaci\'{o}n y el backend termine de compilar sus dependencias. El estado \texttt{healthy} o \texttt{Up} en la columna \texttt{STATUS} de \texttt{docker compose ps} indica que el servicio ha arrancado correctamente.
+
+\subsection{Paso 4: Configurar IPFS}
+
+El nodo IPFS requiere una inicializaci\'{o}n previa y la habilitaci\'{o}n de cabeceras CORS para permitir las peticiones desde el backend.
+
+\begin{lstlisting}[language=bash, caption={Configuraci\'{o}n del nodo IPFS}]
+# Inicializar el repositorio con perfil de servidor (sin anuncio en DHT local innecesario)
+docker compose exec ipfs ipfs init --profile=server
+
+# Habilitar CORS en la API
+docker compose exec ipfs ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+docker compose exec ipfs ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT","POST","GET"]'
+docker compose exec ipfs ipfs config --json API.HTTPHeaders.Access-Control-Allow-Headers '["Authorization","Content-Type"]'
+
+# Reiniciar el contenedor para aplicar cambios
+docker compose restart ipfs
+
+# Verificar identidad y conectividad
+docker compose exec ipfs ipfs id
+\end{lstlisting}
+
+\subsubsection{Alternativa: proveedor gestionado IPFS (Pinata)}
+
+Ademas del nodo Kubo autoalojado, el backend puede operar con un proveedor gestionado como \textbf{Pinata} cuando se requiera simplificar la operacion o disponer de una capa externa de persistencia. Esta modalidad mantiene el mismo flujo funcional del sistema (generacion de CID, registro en blockchain y trazabilidad), sustituyendo unicamente el backend de almacenamiento.
+
+\textbf{Configuracion de Pinata en backend:}
+\begin{lstlisting}[language=bash, caption={Configuracion de proveedor IPFS Pinata}]
+# backend/.env
+IPFS_PROVIDER=pinata
+PINATA_JWT=tu_jwt_token
+# opcionales
+PINATA_API_KEY=tu_api_key
+PINATA_API_SECRET=tu_api_secret
+PINATA_GATEWAY_URL=https://tu-gateway.mypinata.cloud
+\end{lstlisting}
+
+\textbf{Notas operativas:}
+\begin{itemize}
+  \item Si \texttt{IPFS\_PROVIDER=pinata}, no se requiere exponer \texttt{IPFS\_API\_URL} para subida y pinning en ese entorno.
+  \item Si \texttt{IPFS\_PROVIDER=self-hosted}, se utilizan \texttt{IPFS\_API\_URL} e \texttt{IPFS\_GATEWAY\_URL} del nodo Kubo.
+  \item Ambas modalidades pueden coexistir por entorno (por ejemplo, desarrollo con Kubo y despliegue concreto con Pinata).
+\end{itemize}
+
+\subsubsection{Configuraci\'on del nodo propio como nodo de red}
+
+Si se opta por mantener un nodo Kubo autoalojado y se desea que participe activamente en la red IPFS (compartiendo contenido con otros nodos y contribuyendo a la descentralizaci\'on), es necesario realizar una configuraci\'on adicional para abrir el nodo a la red p\'ublica:
+
+\begin{lstlisting}[language=bash, caption={Apertura del nodo IPFS a la red p\'ublica}]
+# Habilitar el perfil de servidor para comportamiento como nodo de red
+docker compose exec ipfs ipfs config profile apply server
+
+# Configurar el puerto del swarm para que sea accesible desde el exterior
+# (requiere abrir el puerto 4001 en el firewall/ router)
+docker compose exec ipfs ipfs config Addresses.Swarm --json \
+  '["/ip4/0.0.0.0/tcp/4001","/ip6/::/tcp/4001"]'
+
+# Habilitar el gateway p\'ublico si se desea servir contenido via HTTP
+docker compose exec ipfs ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
+
+# Configurar el anuncio de direcciones externas (reemplazar con IP/dominio real)
+docker compose exec ipfs ipfs config --json Addresses.AppendAnnounce \
+  '["/dns4/tu-dominio.com/tcp/4001","/dns4/tu-dominio.com/tcp/4001/wss"]'
+
+# Ajustar l\'imites de almacenamiento (GC) para producci\'on
+docker compose exec ipfs ipfs config Datastore.StorageMax 500GB
+docker compose exec ipfs ipfs config --json Datastore.StorageGCWatermark 90
+docker compose exec ipfs ipfs config --json Swarm.ConnMgr.HighWater 500
+docker compose exec ipfs ipfs config --json Swarm.ConnMgr.LowWater 250
+
+# Reiniciar para aplicar cambios
+docker compose restart ipfs
+\end{lstlisting}
+
+\textbf{Consideraciones de seguridad para el nodo abierto:}
+\begin{itemize}
+    \item Restringir la API administrativa (puerto 5001) a \texttt{127.0.0.1} para evitar accesos no autorizados.
+    \item Configurar el firewall para permitir solo los puertos necesarios: 4001 (swarm TCP), 8080 (gateway opcional).
+    \item Monitorizar el uso de ancho de banda, por lo que el nodo retransmitir\'a bloques solicitados por otros pares de la red.
+    \item Establecer l\'imites de almacenamiento (StorageMax) para evitar el agotamiento del disco.
+    \item Considerar el uso de una VPN o red privada si el contenido gestionado es sensible, limitando la comunicaci\'on del swarm a nodos autorizados.
+\end{itemize}
+
+En la configuraci\'on por defecto de DocumentChain, el proveedor IPFS depende de \texttt{IPFS\_PROVIDER}. Con \texttt{self-hosted}, el nodo Kubo puede operar en modo local (sin anunciarse a la red p\'ublica) por simplicidad de despliegue y persistencia en volumen Docker. Con \texttt{pinata}, la persistencia se delega en el servicio gestionado manteniendo el mismo contrato funcional de CIDs.
+
+\subsection{Paso 5: Desplegar smart contracts}
+
+El despliegue var\'{i}a seg\'{u}n el entorno objetivo: red local de desarrollo (Hardhat) o testnet p\'{u}blica (Sepolia).
+
+\subsubsection{Despliegue en red local}
+
+\begin{lstlisting}[language=bash, caption={Despliegue local con Hardhat}]
+cd smart-contracts
+npm ci
+
+# En una terminal aparte, si no se usa el contenedor hardhat:
+npx hardhat node
+
+# En la terminal principal:
+npx hardhat run scripts/deploy.ts --network localhost
+
+# Copiar la direcci\'{o}n impresa en consola al archivo .env del backend
+echo "CONTRACT_ADDRESS=0x..." >> ../backend/.env
+\end{lstlisting}
+
+\subsubsection{Despliegue en Sepolia testnet}
+
+\begin{lstlisting}[language=bash, caption={Despliegue en Sepolia}]
+export SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/TU_API_KEY
+export PRIVATE_KEY=0xTU_CLAVE_PRIVADA_SIN_PREFIJO_O_CON_EL
+
+npx hardhat run scripts/deploy.ts --network sepolia
+\end{lstlisting}
+
+Es imprescindible contar con saldo de ETH de prueba en la cuenta desplegadora. Los faucets p\'{u}blicos de Sepolia permiten solicitar fondos gratuitos introduciendo la direcci\'{o}n de la wallet. La direcci\'{o}n resultante del contrato debe registrarse en el archivo \texttt{.env} antes de reiniciar el backend.
+
+\subsection{Paso 6: Seed de base de datos}
+
+Una vez que PostgreSQL y el backend est\'{a}n operativos, se aplican las migraciones y se ejecuta el sembrado inicial.
+
+\begin{lstlisting}[language=bash, caption={Migraciones y seed de la base de datos}]
+# Aplicar migraciones pendientes
+docker compose exec backend npx prisma migrate deploy
+
+# Ejecutar script de seed (usuarios de prueba, configuraci\'{o}n base)
+docker compose exec backend npx prisma db seed
+
+# Verificar tablas creadas
+docker compose exec postgres psql -U postgres -d documentchain -c "\dt"
+\end{lstlisting}
+
+\subsection{Paso 7: Configurar Nginx}
+
+El proxy inverso centraliza el acceso p\'{u}blico y aplica pol\'{i}ticas de seguridad. A continuaci\'{o}n se presenta una configuraci\'{o}n de producci\'{o}n completa.
+
+\begin{lstlisting}[language=bash, caption={Archivo de configuraci\'{o}n de Nginx}]
+# /opt/documentchain/nginx/nginx.conf
+server {
+    listen 80;
+    listen [::]:80;
+    server_name documentchain.ejemplo.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name documentchain.ejemplo.com;
+
+    ssl_certificate /etc/letsencrypt/live/documentchain.ejemplo.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/documentchain.ejemplo.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256';
+    ssl_prefer_server_ciphers off;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript text/xml;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://backend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90s;
+    }
+
+    location /ipfs {
+        proxy_pass http://ipfs:8080;
+        proxy_set_header Host $host;
+        proxy_read_timeout 300s;
+    }
+}
+\end{lstlisting}
+
+Tras modificar la configuraci\'{o}n, debe reiniciarse el contenedor Nginx:
+
+\begin{lstlisting}[language=bash]
+docker compose restart nginx
+\end{lstlisting}
+
+\subsection{Verificaci\'{o}n post-instalaci\'{o}n}
+
+Una vez finalizados los pasos anteriores, debe completarse la siguiente lista de comprobaci\'{o}n:
+
+\begin{enumerate}[leftmargin=*]
+    \item Todos los contenedores aparecen en estado \texttt{Up} o \texttt{healthy} tras ejecutar \texttt{docker compose ps}.
+    \item PostgreSQL responde a consultas internas: \texttt{docker compose exec postgres pg\_isready -U postgres}.
+    \item El endpoint de salud del backend devuelve estado 200: \texttt{curl -f http://localhost:3000/health}.
+    \item El frontend carga sin errores 500: \texttt{curl -f http://localhost/}.
+    \item La conexi\'{o}n HTTPS es v\'{a}lida: \texttt{curl -I https://documentchain.ejemplo.com}.
+    \item La API de IPFS responde: \texttt{curl http://localhost:5001/api/v0/version}.
+    \item El contrato inteligente est\'{a} desplegado y su direcci\'{o}n figura en el archivo \texttt{.env}.
+    \item La base de datos contiene registros de semilla: consultar la tabla \texttt{User} desde PostgreSQL.
+    \item Se env\'{i}a correctamente un correo de prueba desde el formulario de registro o mediante los logs del backend.
+    \item La wallet de prueba conecta a la red configurada (Hardhat o Sepolia) y puede firmar transacciones.
+\end{enumerate}
+
+% ============================================================
+\section{Configuracion completa del correo electronico}
+% ============================================================
+
+El subsistema de correo utiliza Brevo como proveedor SMTP externo. El backend genera los mensajes mediante Nodemailer y los entrega directamente a los servidores SMTP de Brevo, que se encargan de la entrega final a los destinatarios. Esta arquitectura evita que la l\'{o}gica de negocio dependa de un proveedor concreto y permite sustituir el servicio de correo sin reescribir la capa de notificaciones del backend.
+
+La configuraci\'{o}n se centraliza en las variables de entorno \texttt{SMTP\_HOST}, \texttt{SMTP\_PORT}, \texttt{SMTP\_USER} y \texttt{SMTP\_PASS}, que contienen las credenciales proporcionadas por Brevo. No se requiere ning\'{u}n contenedor adicional de agente de transferencia ni configuraci\'{o}n de relay.
+
+\subsection{Diagrama de flujo de envio de correos}
+
+La figura \ref{fig:flujo-correo} representa el recorrido completo de un mensaje desde la acci\'{o}n del usuario hasta la bandeja del destinatario.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.8cm and 1.2cm,
+    stepnode/.style={draw, rounded corners, minimum width=2.6cm, minimum height=0.7cm, align=center, font=\small},
+    arrow/.style={-{Stealth[length=2mm]}, thick}
+]
+    \node[stepnode, fill=blue!10] (act) {Acci\'{o}n del usuario};
+    \node[stepnode, right=of act, fill=blue!10] (be) {Backend\\(emailService.ts)};
+    \node[stepnode, right=of be, fill=purple!10] (nm) {Nodemailer\\(transport)};
+    \node[stepnode, right=of nm, fill=purple!10] (pf) {Brevo SMTP\\(proveedor externo)};
+    \node[stepnode, right=of pf, fill=green!10] (dst) {Destinatario};
+
+    \draw[arrow] (act) -- (be) node[midway,above,font=\scriptsize] {HTTP};
+    \draw[arrow] (be) -- (nm) node[midway,above,font=\scriptsize] {SMTP};
+    \draw[arrow] (nm) -- (pf) node[midway,above,font=\scriptsize] {587 TLS};
+    \draw[arrow] (pf) -- (dst) node[midway,above,font=\scriptsize] {Internet};
+\end{tikzpicture}
+\caption{Flujo de env\'{i}o de correos electr\'{o}nicos en DocumentChain}
+\label{fig:flujo-correo}
+\end{figure}
+
+\subsection{Proceso interno de envio}
+
+El proceso de env\'{i}o comienza en el servicio \texttt{emailService.ts}. Este servicio compone el asunto, selecciona la plantilla HTML adecuada y resuelve las URLs visibles en el correo a partir de \texttt{FRONTEND\_URL}. Cuando se dispara una acci\'{o}n como registro, verificaci\'{o}n de correo, recuperaci\'{o}n de contrase\~{n}a o aviso de documento compartido, el backend renderiza la plantilla con \textit{Handlebars} y delega el transporte en Nodemailer.
+
+Nodemailer se conecta directamente al servicio SMTP de Brevo utilizando las credenciales configuradas en el archivo \texttt{.env}. Brevo negocia TLS, autentica el remitente y entrega el mensaje al destinatario final. El flujo puede describirse como \textit{backend $\rightarrow$ Brevo SMTP $\rightarrow$ destinatario}.
+
+\subsection{Configuraci\'{o}n SMTP en el backend}
+
+La comunicaci\'{o}n con Brevo se configura exclusivamente a trav\'{e}s de las variables de entorno del backend. No se requiere ning\'{u}n contenedor adicional de relay ni archivos de configuraci\'{o}n del sistema de correo.
+
+\begin{lstlisting}[language=bash, caption={Variables SMTP en el archivo .env}]
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=usuario@ejemplo.com
+SMTP_PASS=clave-api-brevo
+EMAIL_FROM=noreply@documentchain.ejemplo.com
+EMAIL_FROM_NAME=DocumentChain
+\end{lstlisting}
+
+Las credenciales \texttt{SMTP\_USER} y \texttt{SMTP\_PASS} se obtienen del panel de control de Brevo, en la secci\'{o}n \textit{SMTP \& API}. Es necesario que el dominio o la direcci\'{o}n de correo utilizada como remitente est\'{e} verificada en dicho panel para que los mensajes se entreguen correctamente.
+
+\subsection{Configuraci\'{o}n de Nodemailer}
+
+El backend inicializa el transporte SMTP mediante el siguiente fragmento de c\'{o}digo TypeScript.
+
+\begin{lstlisting}[language=TypeScript, caption={Configuraci\'{o}n del transporte Nodemailer}]
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER || undefined,
+    pass: process.env.SMTP_PASS || undefined,
+  },
+  tls: {
+    rejectUnauthorized: false, // En entornos Docker internos con certs autofirmados
+  },
+});
+
+export async function sendEmail(to: string, subject: string, html: string) {
+  await transporter.sendMail({
+    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+    to,
+    subject,
+    html,
+  });
+}
+\end{lstlisting}
+
+\subsection{Variables relevantes de correo}
+
+La tabla \ref{tab:vars-email} recoge todas las variables de entorno vinculadas al subsistema de correo.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{Variable} & \textbf{Funci\'{o}n} \\
+\midrule
+\texttt{SMTP\_HOST} & Servidor SMTP de Brevo al que se conecta el backend. \\
+\texttt{SMTP\_PORT} & Puerto del SMTP utilizado por el backend. \\
+\texttt{SMTP\_SECURE} & Indica si el transporte backend hacia SMTP emplea TLS impl\'{i}cito. \\
+\texttt{SMTP\_USER}, \texttt{SMTP\_PASS} & Credenciales de autenticaci\'{o}n si el backend entrega a un SMTP externo o autenticado. \\
+\texttt{EMAIL\_FROM}, \texttt{EMAIL\_FROM\_NAME} & Remitente l\'{o}gico mostrado al usuario. \\
+\texttt{FRONTEND\_URL} & URL base empleada para enlaces de verificaci\'{o}n, restablecimiento y navegaci\'{o}n desde correos. \\
+\bottomrule
+\end{tabular}
+\caption{Variables de entorno relacionadas con el subsistema de correo}
+\label{tab:vars-email}
+\end{table}
+
+\subsection{Tipos de correo y criterios de envio}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Tipo de correo} & \textbf{Evento disparador} & \textbf{Destinatario} & \textbf{Plantilla} \\
+\midrule
+Verificaci\'{o}n de cuenta & Finalizaci\'{o}n del registro & Usuario registrado & \texttt{verify-email.hbs} \\
+Restablecimiento de contrase\~{n}a & Solicitud desde login & Usuario solicitante & \texttt{reset-password.hbs} \\
+Confirmaci\'{o}n de cambio & Actualizaci\'{o}n exitosa & Usuario afectado & \texttt{password-changed.hbs} \\
+Bienvenida & Verificaci\'{o}n de email completada & Usuario verificado & \texttt{welcome.hbs} \\
+Documento compartido & Acci\'{o}n de compartir & Colaborador invitado & \texttt{shared-document.hbs} \\
+Notificaci\'{o}n operativa & Evento del sistema (fallo, alerta) & Administrador & \texttt{notification.hbs} \\
+\bottomrule
+\end{tabular}
+\caption{Tipos de correo activos en la plataforma}
+\label{tab:tipos-correo}
+\end{table}
+
+\subsection{Resoluci\'{o}n de problemas de entrega}
+
+Cuando los correos no llegan a su destino, conviene revisar los siguientes aspectos:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Credenciales SMTP}: verificar que las variables \texttt{SMTP\_USER} y \texttt{SMTP\_PASS} en el archivo \texttt{.env} coinciden con las credenciales proporcionadas por Brevo.
+    \item \textbf{Remitente verificado}: en Brevo es obligatorio verificar el dominio o la direcci\'{o}n de correo desde la que se env\'{i}a. Comprobar que \texttt{EMAIL\_FROM} corresponde a un remitente autorizado en el panel de Brevo.
+    \item \textbf{L\'{i}mites de env\'{i}o}: los planes de Brevo imponen l\'{i}mites diarios y por hora. Si se superan, los mensajes se encolan y pueden retrasarse.
+    \item \textbf{Puerto SMTP}: algunos proveedores de VPS bloquean el puerto 25 de salida. Asegurarse de usar el puerto 587 en \texttt{SMTP\_PORT}.
+\end{itemize}
+
+% ============================================================
+\section{Configuracion de blockchain}
+% ============================================================
+
+\subsection{Despliegue en red local (Hardhat network)}
+
+Para el desarrollo y las pruebas de integraci\'{o}n se utiliza la red local integrada en Hardhat. Esta red simula un entorno Ethereum completo con bloques instant\'{a}neos y cuentas prefinanciadas.
+
+\begin{lstlisting}[language=bash, caption={Inicio de la red local y despliegue}]
+cd smart-contracts
+npx hardhat node
+# La red escucha en http://127.0.0.1:8545 y expone 20 cuentas con 10000 ETH cada una
+
+# En otra terminal, dentro del mismo directorio:
+npx hardhat run scripts/deploy.ts --network localhost
+\end{lstlisting}
+
+La direcci\'{o}n impresa en consola debe asignarse a la variable \texttt{CONTRACT\_ADDRESS} del backend. En modo Docker, el contenedor \texttt{hardhat} ejecuta autom\'{a}ticamente el nodo si la imagen est\'{a} configurada para ello; de lo contrario, puede mapearse el puerto 8545 del anfitri\'{o}n al contenedor backend.
+
+\subsection{Despliegue en Sepolia testnet}
+
+Sepolia es la testnet p\'{u}blica recomendada para validar contratos antes de un despliegue en mainnet.
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Faucet}: obtener ETH de prueba desde un faucet p\'{u}blico (p. ej., \texttt{sepoliafaucet.com}, Alchemy faucet) enviando fondos a la direcci\'{o}n de la wallet desplegadora.
+    \item \textbf{Configuraci\'{o}n}: a\~{n}adir la red Sepolia al archivo \texttt{hardhat.config.ts}.
+    \item \textbf{Despliegue}: ejecutar el script de despliegue apuntando a la red configurada.
+    \item \textbf{Verificaci\'{o}n}: publicar el c\'{o}digo fuente en Etherscan para facilitar la auditor\'{i}a p\'{u}blica.
+\end{enumerate}
+
+\begin{lstlisting}[language=TypeScript, caption={Fragmento de configuraci\'{o}n de red Sepolia en Hardhat}]
+// hardhat.config.ts
+import { HardhatUserConfig } from 'hardhat/config';
+
+const config: HardhatUserConfig = {
+  networks: {
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL || '',
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY || '',
+  },
+};
+
+export default config;
+\end{lstlisting}
+
+\subsection{Configuraci\'{o}n de variables CONTRACT\_ADDRESS y ADMIN\_ROLE}
+
+Tras el despliegue, el script \texttt{deploy.ts} emite en consola dos valores esenciales:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{CONTRACT\_ADDRESS}: direcci\'{o}n del contrato desplegado en la red activa.
+    \item \texttt{ADMIN\_ROLE}: hash keccak256 del rol administrador (t\'{i}picamente \texttt{keccak256('ADMIN\_ROLE')}).
+\end{itemize}
+
+Ambos valores deben trasladarse al archivo \texttt{.env} del backend y del frontend (si el frontend lee la direcci\'{o}n del contrato de forma p\'{u}blica). Un reinicio de los contenedores es necesario para que las nuevas variables se carguen en memoria.
+
+\subsection{Verificaci\'{o}n del contrato en Etherscan}
+
+La verificaci\'{o}n permite a terceros inspeccionar el c\'{o}digo fuente asociado a una direcci\'{o}n on-chain.
+
+\begin{lstlisting}[language=bash, caption={Verificaci\'{o}n en Etherscan desde Hardhat}]
+npx hardhat verify --network sepolia CONTRACT_ADDRESS "Argumento1" "Argumento2"
+\end{lstlisting}
+
+El comando requiere que la variable \texttt{ETHERSCAN\_API\_KEY} est\'{e} exportada en el entorno. Tras la ejecuci\'{o}n exitosa, la p\'{a}gina del contrato en Etherscan mostrar\'{a} el c\'{o}digo fuente Solidity y la interfaz de lectura/escritura p\'{u}blica.
+
+\subsection{Configuraci\'{o}n del event listener}
+
+El backend sincroniza ciertos estados escuchando eventos emitidos por el contrato. Esta sincronizaci\'{o}n se realiza mediante \texttt{ethers.js} y un loop de polling o suscripci\'{o}n a WebSocket si el proveedor RPC lo soporta.
+
+\begin{lstlisting}[language=TypeScript, caption={Esqueleto del listener de eventos}]
+import { ethers } from 'ethers';
+import { contractABI } from './abi';
+
+const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
+const contract = new ethers.Contract(
+  process.env.CONTRACT_ADDRESS!,
+  contractABI,
+  provider
+);
+
+contract.on('DocumentRegistered', async (docId, owner, timestamp, event) => {
+  // L\'{o}gica de sincronizaci\'{o}n: actualizar estado en PostgreSQL
+  console.log(`Documento ${docId} registrado por ${owner} en ${timestamp}`);
+});
+\end{lstlisting}
+
+En producci\'{o}n se recomienda envolver el listener en un proceso independiente o en un servicio cron que recupere eventos hist\'{o}ricos mediante \texttt{contract.queryFilter}, garantizando as\'{i} la tolerancia a reinicios del backend.
+
+% ============================================================
+\section{Uso de Docker y Nginx}
+
+En este apartado se detalla la configuracion de Docker como mecanismo de reproducibilidad del entorno y de Nginx como proxy inverso del sistema.
+
+Docker se ha elegido como mecanismo principal de reproducibilidad del entorno. Al encapsular PostgreSQL, Hardhat, backend y frontend en contenedores, se elimina casi por completo la necesidad de que una tercera persona instale dependencias manualmente. Con un \texttt{docker compose up -d} basta para que todo arranque.
+
+En cuanto a Nginx, cumple una funci\'on concreta dentro del frontend dockerizado: sirve los archivos est\'{a}ticos generados por Vite, resuelve el enrutado de la SPA correctamente y redirige las peticiones a \texttt{/api} hacia el backend. Durante las pruebas de despliegue se observ\'o que, sin esta capa, era necesario improvisar soluciones para exponer el frontend o a\~nadir l\'ogica adicional en otros servicios.
+
+\subsection{Comandos Docker de uso frecuente}
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+\textbf{Comando} & \textbf{Prop\'{o}sito} \\
+\midrule
+\texttt{docker compose ps} & Listar contenedores activos y su estado de salud \\
+\texttt{docker compose logs -f --tail=200 servicio} & Seguir en tiempo real los \'{u}ltimos 200 logs de un servicio \\
+\texttt{docker compose restart servicio} & Reiniciar un servicio espec\'{i}fico sin afectar al resto \\
+\texttt{docker compose build --no-cache servicio} & Reconstruir la imagen descartando cach\'{e}s previos \\
+\texttt{docker compose exec servicio sh} & Abrir un shell interactivo dentro del contenedor \\
+\texttt{docker system prune -af --volumes} & Eliminar im\'{a}genes, contenedores detenidos y vol\'{u}menes no utilizados (uso con precauci\'{o}n) \\
+\texttt{docker volume ls} & Listar vol\'{u}menes persistentes \\
+\texttt{docker stats} & Mostrar consumo de CPU y memoria en tiempo real \\
+\bottomrule
+\end{tabular}
+\caption{Comandos Docker frecuentes en operativa diaria}
+\label{tab:docker-cmds}
+\end{table}
+
+\subsection{Escalado y healthchecks en Docker Compose}
+
+Aunque el dise\~{n}o actual no requiere m\'{u}ltiples r\'{e}plicas del backend, Docker Compose permite escalar horizontalmente un servicio de la siguiente manera:
+
+\begin{lstlisting}[language=bash]
+docker compose up -d --scale backend=2
+\end{lstlisting}
+
+Para que el escalado sea efectivo, el proxy inverso deber\'{i}a distribuir la carga entre las instancias mediante un balanceador upstream.
+
+Los \texttt{healthchecks} definen condiciones para considerar un contenedor saludable. El siguiente fragmento ilustra su inclusi\'{o}n en el servicio backend:
+
+\begin{lstlisting}[language=yaml, caption={Ejemplo de healthcheck en docker-compose.yml}]
+services:
+  backend:
+    build: ./backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+\end{lstlisting}
+
+\subsection{Configuraci\'{o}n avanzada de Nginx}
+
+Adem\'{a}s del proxy inverso, Nginx puede aplicar pol\'{i}ticas de seguridad y rendimiento.
+
+\begin{lstlisting}[language=bash, caption={Directivas adicionales de seguridad y rendimiento en Nginx}]
+# Rate limiting: mitigar abuso de endpoints de login
+limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
+
+server {
+    # ... configuracion base ...
+
+    location /api/auth/login {
+        limit_req zone=login burst=3 nodelay;
+        proxy_pass http://backend:3000;
+    }
+
+    # Compresion gzip
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+
+    # Cabeceras de seguridad
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none';" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+\end{lstlisting}
+
+\subsection{Certificados SSL auto-renovables}
+
+La combinaci\'{o}n de Certbot con un hook de recarga garantiza que los certificados se renueven autom\'{a}ticamente sin intervenci\'{o}n manual.
+
+\begin{lstlisting}[language=bash, caption={Renovaci\'{o}n autom\'{a}tica con recarga de Nginx}]
+# Script de renovacion desplegado en /etc/cron.d/certbot-documentchain
+0 3 * * * root certbot renew --quiet --deploy-hook \
+  "docker compose -f /opt/documentchain/docker-compose.yml exec nginx nginx -s reload"
+\end{lstlisting}
+
+% ============================================================
+\section{GitHub Actions y despliegue continuo}
+% ============================================================
+
+En este apartado se describe el pipeline de integracion y despliegue continuo configurado en el repositorio.
+
+El repositorio incorpora un \textit{workflow} de GitHub Actions orientado a \textit{runners} autoalojados en Linux. Cuando llega un \textit{push} a la rama configurada, ese \textit{runner} actualiza el c\'{o}digo, reconstruye las im\'{a}genes Docker necesarias, aplica migraciones Prisma con la imagen del backend y relanza el conjunto mediante Docker Compose.
+
+\subsection{Workflow completo de CI/CD}
+
+El archivo \texttt{.github/workflows/deploy.yml} define el pipeline completo.
+
+\begin{lstlisting}[language=yaml, caption={Pipeline de despliegue continuo (deploy.yml)}]
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Build frontend
+        run: npm run build:frontend
+
+      - name: Build backend
+        run: npm run build:backend
+
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /opt/documentchain
+            git pull origin main
+            echo "${{ secrets.ENV_FILE }}" > .env
+            docker compose -f docker-compose.yml pull
+            docker compose -f docker-compose.yml build --no-cache
+            docker compose -f docker-compose.yml up -d
+            docker compose exec backend npx prisma migrate deploy
+            docker compose ps
+\end{lstlisting}
+
+\subsection{Descripci\'{o}n del pipeline}
+
+El pipeline se divide en dos fases diferenciadas:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Construcci\'{o}n y pruebas}: se ejecuta en un entorno limpio de Ubuntu proporcionado por GitHub. Incluye la instalaci\'{o}n de dependencias, el an\'{a}lisis est\'{a}tico de c\'{o}digo (linting), la ejecuci\'{o}n de tests unitarios y la compilaci\'{o}n de los artefactos de frontend y backend. Si alguno de estos pasos falla, el despliegue se cancela autom\'{a}ticamente.
+    \item \textbf{Despliegue}: depende del \'{e}xito de la fase anterior y s\'{o}lo se activa para la rama \texttt{main}. Mediante una conexi\'{o}n SSH se accede al VPS, se actualiza el c\'{o}digo fuente, se reconstruyen las im\'{a}genes Docker y se aplican las migraciones de base de datos.
+\end{enumerate}
+
+\subsection{Configuraci\'{o}n de secrets en GitHub}
+
+Desde la interfaz de GitHub, en \textit{Settings > Secrets and variables > Actions}, deben configurarse las siguientes claves:
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{Secret} & \textbf{Contenido} \\
+\midrule
+\texttt{VPS\_HOST} & Direcci\'{o}n IP o nombre de dominio del servidor de producci\'{o}n \\
+\texttt{VPS\_USER} & Nombre de usuario con permisos de despliegue (p. ej., \texttt{deployer}) \\
+\texttt{SSH\_PRIVATE\_KEY} & Clave privada SSH en formato PEM; la p\'{u}blica debe estar en \texttt{\textasciitilde/.ssh/authorized\_keys} del VPS \\
+\texttt{ENV\_FILE} & Contenido completo del archivo \texttt{.env} de producci\'{o}n (l\'{i}neas separadas por \texttt{\textbackslash{}n}) \\
+\bottomrule
+\end{tabular}
+\caption{Secrets requeridos en GitHub Actions}
+\label{tab:gh-secrets}
+\end{table}
+
+\subsection{Estrategia de rollback}
+
+Si un despliegue introduce una regresi\'{o}n cr\'{i}tica, es posible revertir el sistema a un estado estable mediante alguna de las siguientes estrategias:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Rollback por Git}: ejecutar \texttt{git revert HEAD} o \texttt{git checkout <tag\_estable>} en el servidor y repetir el ciclo de construcci\'{o}n.
+    \item \textbf{Rollback por imagen Docker}: si se etiquetaron las im\'{a}genes anteriores con un tag de versi\'{o}n, basta con modificar el archivo \texttt{docker-compose.yml} para apuntar a la imagen previa y ejecutar \texttt{docker compose up -d}.
+    \item \textbf{Rollback de base de datos}: restaurar el \'{u}ltimo volcado SQL v\'{a}lido mediante \texttt{psql} antes de reintentar el despliegue.
+\end{itemize}
+
+Se recomienda realizar backups de la base de datos inmediatamente antes de cada despliegue automatizado para minimizar la ventana de p\'{e}rdida de datos.
+
+% ============================================================
+\section{Mantenimiento y actualizacion}
+% ============================================================
+
+\subsection{Backup de base de datos}
+
+La pol\'{i}tica de respaldo de PostgreSQL debe ejecutarse de forma autom\'{a}tica mediante una tarea programada (cron).
+
+\begin{lstlisting}[language=bash, caption={Script de backup de PostgreSQL}]
+#!/bin/bash
+# /opt/documentchain/scripts/backup-db.sh
+BACKUP_DIR="/opt/backups/documentchain"
+mkdir -p "$BACKUP_DIR"
+FILENAME="db_$(date +%Y%m%d_%H%M%S).sql"
+
+docker compose -f /opt/documentchain/docker-compose.yml exec -T postgres \
+  pg_dump -U postgres -d documentchain --clean --if-exists > "$BACKUP_DIR/$FILENAME"
+
+gzip "$BACKUP_DIR/$FILENAME"
+find "$BACKUP_DIR" -name "db_*.sql.gz" -mtime +7 -delete
+\end{lstlisting}
+
+La entrada cron correspondiente:
+
+\begin{lstlisting}[language=bash]
+0 2 * * * /opt/documentchain/scripts/backup-db.sh >> /var/log/db-backup.log 2>&1
+\end{lstlisting}
+
+\subsection{Backup de IPFS}
+
+El nodo IPFS almacena bloques de contenido que deben preservarse. Adem\'{a}s de copiar el volumen \texttt{ipfs\_data}, se recomienda exportar la lista de objetos fijados (pins).
+
+\begin{lstlisting}[language=bash]
+docker compose exec ipfs ipfs pin ls --type=recursive > /opt/backups/ipfs-pins-$(date +%Y%m%d).txt
+docker run --rm -v documentchain_ipfs_data:/data -v /opt/backups:/backup alpine tar czf /backup/ipfs_data_$(date +%Y%m%d).tar.gz -C /data .
+\end{lstlisting}
+
+\subsection{Actualizacion segura del sistema}
+
+El siguiente procedimiento minimiza el riesgo de p\'{e}rdida de datos durante una actualizaci\'{o}n:
+
+\begin{enumerate}[leftmargin=*]
+    \item Realizar backup completo de PostgreSQL e IPFS.
+    \item Copiar el archivo \texttt{.env} a una ruta externa al repositorio.
+    \item Ejecutar \texttt{git fetch origin} y revisar las notas de la release.
+    \item Aplicar la actualizaci\'{o}n: \texttt{git checkout vX.Y.Z} o \texttt{git pull origin main}.
+    \item Reconstruir im\'{a}genes: \texttt{docker compose build --no-cache}.
+    \item Levantar servicios: \texttt{docker compose up -d}.
+    \item Aplicar migraciones: \texttt{docker compose exec backend npx prisma migrate deploy}.
+    \item Verificar healthchecks y logs durante 10 minutos.
+\end{enumerate}
+
+\subsection{Actualizacion de dependencias}
+
+Conviene auditar las dependencias Node.js con cierta periodicidad. Durante el desarrollo del proyecto, el autor ha seguido esta rutina para detectar vulnerabilidades antes de que se acumularan:
+
+\begin{lstlisting}[language=bash]
+# Auditoria de seguridad
+npm audit
+
+# Actualizacion conservadora respetando rangos semver
+npm update
+
+# Listado de paquetes con versiones nuevas disponibles
+npm outdated
+\end{lstlisting}
+
+Las actualizaciones de dependencias cr\'{i}ticas (Prisma, Express, ethers.js) deben probarse primero en el entorno de desarrollo antes de desplegarse en producci\'{o}n.
+
+\subsection{Monitoreo de logs}
+
+La observabilidad del sistema se basa en los logs est\'{a}ndar de Docker, accesibles mediante los siguientes patrones:
+
+\begin{lstlisting}[language=bash]
+# Logs en tiempo real filtrando errores
+docker compose logs -f --tail=500 backend | grep -i "error\|exception\|fatal"
+
+# Logs del sistema Docker (requiere privilegios)
+journalctl -u docker.service -f -n 200
+\end{lstlisting}
+
+\subsection{Limpieza de recursos}
+
+Con el tiempo, el sistema acumula im\'{a}genes hu\'{e}rfanas, contenedores detenidos y cach\'{e}s de construcci\'{o}n que consumen espacio en disco.
+
+\begin{lstlisting}[language=bash]
+# Eliminar objetos no utilizados (imagenes, redes, volumenes hu\'{e}rfanos)
+docker system prune -af
+
+# ATENCION: el siguiente comando borra volumenes no referenciados.
+# Verificar previamente que no se pierdan postgres_data ni ipfs_data.
+docker volume prune -f
+\end{lstlisting}
+
+% ============================================================
+\section{Scripts de utilidad}
+% ============================================================
+
+Adem\'{a}s de los procedimientos manuales, el proyecto incluye scripts que automatizan tareas repetitivas.
+
+\subsection{Script de backup automatizado}
+
+\begin{lstlisting}[language=bash, caption={backup.sh - Respaldo integral automatizado}]
+#!/bin/bash
+set -euo pipefail
+
+PROJECT_DIR="/opt/documentchain"
+BACKUP_DIR="/opt/backups/documentchain"
+DATE=$(date +%Y%m%d_%H%M%S)
+mkdir -p "$BACKUP_DIR"
+
+# Backup de PostgreSQL
+docker compose -f "$PROJECT_DIR/docker-compose.yml" exec -T postgres \
+  pg_dump -U postgres -d documentchain --clean --if-exists \
+  | gzip > "$BACKUP_DIR/db_$DATE.sql.gz"
+
+# Backup de .env
+cp "$PROJECT_DIR/.env" "$BACKUP_DIR/env_$DATE.bak"
+
+# Backup de volumen IPFS
+docker run --rm \
+  -v documentchain_ipfs_data:/data \
+  -v "$BACKUP_DIR":/backup \
+  alpine tar czf /backup/ipfs_$DATE.tar.gz -C /data .
+
+echo "[$(date)] Backup completado: $DATE" >> "$BACKUP_DIR/backup.log"
+\end{lstlisting}
+
+\subsection{Script de verificaci\'{o}n de salud}
+
+\begin{lstlisting}[language=bash, caption={healthcheck.sh - Verificacion de estado del sistema}]
+#!/bin/bash
+FAILED=0
+
+check_http() {
+  local url=$1
+  local name=$2
+  if ! curl -sf "$url" > /dev/null; then
+    echo "FAIL: $name no responde en $url"
+    FAILED=1
+  else
+    echo "OK: $name"
+  fi
+}
+
+check_http "http://localhost:3000/health" "Backend API"
+check_http "http://localhost/" "Frontend"
+check_http "http://localhost:5001/api/v0/version" "IPFS API"
+
+if ! docker compose exec postgres pg_isready -U postgres > /dev/null 2>&1; then
+  echo "FAIL: PostgreSQL no responde"
+  FAILED=1
+else
+  echo "OK: PostgreSQL"
+fi
+
+exit $FAILED
+\end{lstlisting}
+
+\subsection{Script de migraci\'{o}n de datos}
+
+\begin{lstlisting}[language=bash, caption={migrate-and-seed.sh - Migracion y poblacion de datos}]
+#!/bin/bash
+set -e
+
+cd /opt/documentchain
+
+echo "Aplicando migraciones..."
+docker compose exec backend npx prisma migrate deploy
+
+echo "Ejecutando seed..."
+docker compose exec backend npx prisma db seed
+
+echo "Migracion completada."
+\end{lstlisting}
+
+\subsection{Script de generacion de seeds}
+
+\begin{lstlisting}[language=bash, caption={generate-seed-data.sh - Generacion de datos de prueba masivos}]
+#!/bin/bash
+# Requiere acceso al contenedor backend y a la CLI de Prisma
+cd /opt/documentchain
+docker compose exec backend npx ts-node prisma/seed-massive.ts
+\end{lstlisting}
+
+\subsection{Reseed de entorno de desarrollo}
+
+\begin{lstlisting}[language=bash, caption={reseed-dev.ps1 - Reseteo completo del entorno de desarrollo}]
+# Detener contenedores y eliminar vol\'{u}menes
+docker-compose down -v
+
+# Reconstruir e iniciar
+docker-compose up -d --build
+
+# Esperar a que PostgreSQL este disponible
+sleep 10
+
+# Aplicar migraciones y seed
+docker exec documentchain-backend npx prisma migrate deploy
+docker exec documentchain-backend npx prisma db seed
+\end{lstlisting}
+
+% ============================================================
+\section{Resolucion de incidencias comunes}
+% ============================================================
+
+A continuaci\'on se recogen los problemas que han aparecido con m\'as frecuencia durante las pruebas de despliegue del autor, junto con su diagn\'ostico y la soluci\'on aplicada en cada caso.
+
+\begin{longtable}{@{}p{3.5cm}p{3.5cm}p{4cm}p{3.5cm}@{}}
+\caption{Matriz de resoluci\'{o}n de incidencias} \\
+\toprule
+\textbf{Problema} & \textbf{Causa probable} & \textbf{Diagn\'{o}stico} & \textbf{Soluci\'{o}n} \\
+\midrule
+\endfirsthead
+\multicolumn{4}{c}{\tablename\ \thetable{} -- continuaci\'{o}n} \\
+\toprule
+\textbf{Problema} & \textbf{Causa probable} & \textbf{Diagn\'{o}stico} & \textbf{Soluci\'{o}n} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{Contin\'{u}a en la p\'{a}gina siguiente}
+\endfoot
+\bottomrule
+\endlastfoot
+No se puede conectar a PostgreSQL & Credenciales err\'{o}neas, contenedor ca\'{i}do o red mal configurada & \texttt{docker compose logs postgres}; verificar \texttt{pg\_isready} & Revisar \texttt{DATABASE\_URL}, reiniciar contenedor, comprobar red interna \\
+IPFS no responde en puerto 5001 & Nodo no inicializado, CORS bloqueado o contenedor reinici\'{a}ndose & \texttt{curl http://localhost:5001/api/v0/version} & Ejecutar \texttt{ipfs init}, configurar CORS, revisar logs \\
+Error CORS al subir archivo & Cabeceras CORS no aplicadas en IPFS o backend & Inspeccionar respuesta preflight en navegador & Configurar \texttt{API.HTTPHeaders} en Kubo y headers en Express \\
+Smart contract no desplegado & Cuenta sin saldo, red incorrecta o error de compilaci\'{o}n & Revisar saldo en Hardhat/Sepolia, verificar \texttt{hardhat.config.ts} & Recargar faucet, corregir red, recompilar con \texttt{npm ci} \\
+Transacciones blockchain fallan & \texttt{CONTRACT\_ADDRESS} incorrecto, red desconectada o gas insuficiente & Verificar direcci\'{o}n en \texttt{.env}, comprobar estado del nodo & Actualizar \texttt{.env}, reiniciar nodo, estimar gas adecuadamente \\
+Frontend no carga (404 en rutas) & Nginx no redirige rutas SPA al \texttt{index.html} & \texttt{curl -I http://localhost/ruta-interna} & A\~{n}adir \texttt{try\_files \$uri \$uri/ /index.html} en Nginx \\
+Emails no se env\'{i}an & Credenciales de Brevo incorrectas, dominio no verificado o puerto bloqueado & \texttt{docker compose logs backend}; revisar logs de Nodemailer & Verificar \texttt{SMTP\_USER} y \texttt{SMTP\_PASS} en \texttt{.env}, comprobar verificaci\'{o}n de dominio en Brevo, probar conectividad a \texttt{smtp-relay.brevo.com:587} \\
+Certificado SSL caducado & Renovaci\'{o}n fallida o cron job ausente & \texttt{openssl s\_client -connect dominio:443} & Ejecutar \texttt{certbot renew} manualmente, revisar cron \\
+Wallet no detecta red Hardhat & Cadena ID incorrecta o RPC no accesible desde el navegador & Inspeccionar consola de MetaMask, probar \texttt{curl} al 8545 & A\~{n}adir red manual en MetaMask, mapear puerto del host \\
+Error de memoria al compilar contratos & Node.js sin l\'{i}mite suficiente de heap & \texttt{FATAL ERROR: Reached heap limit} & Ejecutar con \texttt{NODE\_OPTIONS=--max-old-space-size=4096} \\
+Contenedores se reinician continuamente & Healthcheck fallido, puerto ocupado o dependencia no resuelta & \texttt{docker compose ps}; revisar c\'{o}digo de salida & Corregir configuraci\'{o}n, liberar puertos, revisar logs previos al reinicio \\
+P\'{e}rdida de datos de IPFS & Volumen no persistente o eliminaci\'{o}n accidental con prune & Verificar existencia del volumen \texttt{ipfs\_data} & Restaurar backup del volumen, re-pin contenido cr\'{i}tico \\
+Latencia alta en peticiones & Falta de compresi\'{o}n, queries lentos en PostgreSQL o saturaci\'{o}n de red & Monitorizar \texttt{docker stats}, analizar slow queries & Habilitar gzip, a\~{n}adir \'{i}ndices, escalar CPU/RAM \\
+Error de conexi\'{o}n WalletConnect & Project ID inv\'{a}lido o dominio no registrado en WalletConnect Cloud & Consola del navegador muestra 401/403 en WalletConnect & Crear proyecto v\'{a}lido en WalletConnect Cloud, a\~{n}adir dominio permitido \\
+Base de datos corrupta & Apagado brusco del servidor o disco lleno & PostgreSQL entra en modo recovery o no arranca & Restaurar \'{u}ltimo backup v\'{a}lido, ejecutar \texttt{pg\_resetwal} si es necesario \\
+\end{longtable}
+\label{tab:incidencias}
+
+\vspace{0.5cm}
+\noindent Adem\'as de los escenarios anteriores, el autor recomienda mantener un peque\~{n}o registro de incidencias en el propio servidor. Basta con anotar la fecha, el s\'intoma y la soluci\'on aplicada. Esta pr\'actica, aunque sencilla, ayuda a identificar patrones recurrentes y a planificar mejoras preventivas en la infraestructura.
+
+\section{Referencias y bibliograf\'{i}a}
+
+\begin{enumerate}
+    \item Docker Inc. \textit{Docker Documentation}. \url{https://docs.docker.com/}
+    \item Docker Inc. \textit{Docker Compose Documentation}. \url{https://docs.docker.com/compose/}
+    \item Nginx. \textit{Nginx Documentation}. \url{https://nginx.org/en/docs/}
+    \item GitHub. \textit{GitHub Actions Documentation}. \url{https://docs.github.com/en/actions}
+    \item Let's Encrypt. \textit{Certbot Documentation}. \url{https://certbot.eff.org/docs/}
+    \item Postfix. \textit{Postfix Documentation}. \url{https://www.postfix.org/documentation.html}
+    \item Prisma. \textit{Prisma CLI Reference}. \url{https://www.prisma.io/docs/reference/api-reference/command-reference}
+    \item Hardhat. \textit{Hardhat Documentation}. \url{https://hardhat.org/docs}
+    \item IPFS. \textit{Kubo (go-ipfs) Documentation}. \url{https://docs.ipfs.tech/install/command-line/}
+    \item Pinata. \textit{Pinata Documentation}. \url{https://docs.pinata.cloud/}
+\end{enumerate}
+
+\end{document}

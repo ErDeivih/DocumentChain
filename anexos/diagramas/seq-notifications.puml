@@ -1,28 +1,35 @@
 ﻿@startuml
 !include _sequence-style.puml
+autonumber 1
 actor Usuario as user
-boundary "Panel de Notificaciones" as ui
-control "Endpoints de notificaciones\n(/api/notifications)" as notifApi
-control "Servicio de notificaciones" as srv
-database "PostgreSQL" as db
+boundary "VistaNotificaciones.tsx" as ui
+control "NotificationController\n(/api/notifications)" as notifApi
+control "NotificationService" as srv
+entity "Notification" as notif
+database "Base de datos" as db
 
-user -> ui: Click en icono de notificaciones
-ui -> notifApi: Solicitar listado y contador pendiente
-notifApi -> srv: Recuperar notificaciones del usuario
-srv -> db: Consultar listado y resumen de lectura
-db --> srv: Notificaciones disponibles
-srv --> notifApi: Datos listos para la vista
-notifApi --> ui: Panel cargado
-ui --> user: Muestra listado de notificaciones
+user -> ui: Accede al centro de notificaciones
+ui -> notifApi: GET /api/notifications
+notifApi -> srv: listNotifications(userId)
+srv -> notif: Construye el criterio de lectura y filtros
+notif -> db: Consulta listado y contador de no leidas
+db --> notif: Registros y resumen de lectura
+notif --> srv: Resultado preparado
+srv --> notifApi: DTO con lista y badges
+notifApi --> ui: 200 OK
+ui --> user: Muestra pestanas y listado de notificaciones
 
-== Marcar como leida ==
-user -> ui: Click en notificacion especifica
-ui -> notifApi: Marcar notificacion como leida
-notifApi -> srv: Actualizar estado de lectura
-srv -> db: Persistir cambio y recalcular contador
-db --> srv: OK
-srv --> notifApi: Cambio confirmado
-notifApi --> ui: Actualizar listado y badge
+opt Marcar todas como leidas
+	user -> ui: Solicita marcar todas como leidas
+	ui -> notifApi: POST /api/notifications/read-all
+	notifApi -> srv: markAllAsRead(userId)
+	srv -> db: Actualizar estado de lectura y contador
+	db --> srv: OK
+	srv --> notifApi: Cambio confirmado
+	notifApi --> ui: Refrescar listado y badge
+	ui --> user: Lista sincronizada
+end
 
 @enduml
+
 

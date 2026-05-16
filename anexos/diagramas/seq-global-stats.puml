@@ -1,10 +1,10 @@
-@startuml
+﻿@startuml
 !include _sequence-style.puml
 actor Administrador as admin
 boundary "Panel de administracion / Resumen" as ui
 control "Endpoints de administracion (/api/admin)" as api
 control "AdminStatsService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 entity "Servicios del sistema" as infra
 
 admin -> ui: Abre el resumen global del sistema
@@ -18,3 +18,4 @@ srv --> api: Resumen listo para panel
 api --> ui: Tarjetas, distribuciones y estado general
 ui --> admin: Vista global actualizada
 @enduml
+

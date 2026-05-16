@@ -25,6 +25,14 @@ import { DocumentTimeline } from './pages/DocumentTimeline';
 import { BlockchainAuditor } from './pages/BlockchainAuditor';
 import { PublicDocument } from './pages/PublicDocument';
 
+/**
+ * Componente raíz de la aplicación.
+ *
+ * Define el enrutamiento principal mediante React Router, distinguendo entre rutas públicas,
+ * rutas protegidas que requieren autenticación y rutas restringidas a administradores.
+ *
+ * @returns Árbol de rutas de la aplicación.
+ */
 function App() {
   return (
     <Routes>

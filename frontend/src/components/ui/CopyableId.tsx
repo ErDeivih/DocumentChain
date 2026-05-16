@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente CopyableId.
+ * @property value - Valor del identificador a mostrar y copiar.
+ * @property label - Etiqueta opcional que precede al valor.
+ * @property truncate - Indica si se debe truncar el valor.
+ * @property truncateStart - Cantidad de caracteres iniciales a mostrar al truncar.
+ * @property truncateEnd - Cantidad de caracteres finales a mostrar al truncar.
+ * @property className - Clases CSS adicionales.
+ * @property tooltip - Texto del tooltip al pasar el cursor.
+ */
 interface CopyableIdProps {
   value: string;
   label?: string;
@@ -12,6 +22,10 @@ interface CopyableIdProps {
   tooltip?: string;
 }
 
+/**
+ * Componente que muestra un identificador copiable al portapapeles con opción de truncamiento.
+ * @param props - Props del componente CopyableId.
+ */
 export const CopyableId: React.FC<CopyableIdProps> = ({
   value,
   label,

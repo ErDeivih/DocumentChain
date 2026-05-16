@@ -6,7 +6,8 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 /**
- * DocumentRole enum (debe coincidir con el contrato)
+ * Enumeración de roles de documento.
+ * Debe coincidir con el enum definido en el smart contract DocumentRegistry.
  */
 export enum DocumentRole {
   NONE = 0,      // Sin acceso
@@ -15,6 +16,9 @@ export enum DocumentRole {
   OWNER = 3      // Control total
 }
 
+/**
+ * Información completa de permisos de un usuario sobre un documento.
+ */
 export interface DocumentPermission {
   docId: string;
   userAddress: string;
@@ -24,27 +28,29 @@ export interface DocumentPermission {
   isOwner: boolean;
 }
 
+/**
+ * Listado de usuarios con acceso a un documento.
+ */
 export interface DocumentUserList {
   docId: string;
   users: string[];  // Direcciones de usuarios con acceso
 }
 
 /**
- * DocumentPermissionService
- * 
- * Servicio para consultar permisos de documentos directamente desde blockchain.
- * Blockchain es la ÚNICA fuente de verdad para permisos de documentos.
- * 
- * NO hay tabla DocumentShare en la DB.
- * Todos los permisos se gestionan y consultan desde el smart contract.
+ * Servicio de permisos de documentos.
+ *
+ * Consulta y gestiona los permisos directamente desde la blockchain.
+ * La blockchain es la ÚNICA fuente de verdad para los permisos de documentos.
+ *
+ * No existe tabla `DocumentShare` en la base de datos;
+ * todos los permisos se consultan y gestionan a través del smart contract.
  */
 export class DocumentPermissionService {
   /**
-   * Obtener el rol de un usuario en un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns DocumentRole del usuario
+   * Obtiene el rol de un usuario en un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns Rol del usuario como valor del enum {@link DocumentRole}.
    */
   static async getUserRole(docId: string, userAddress: string): Promise<DocumentRole> {
     try {
@@ -65,11 +71,10 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Obtener permisos completos de un usuario en un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns Información completa de permisos
+   * Obtiene los permisos completos de un usuario en un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns Objeto con el rol y los permisos detallados.
    */
   static async getUserPermission(docId: string, userAddress: string): Promise<DocumentPermission> {
     try {
@@ -117,11 +122,10 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Verificar si un usuario puede ver un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns true si puede ver, false caso contrario
+   * Verifica si un usuario puede ver un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si puede ver, `false` en caso contrario.
    */
   static async canView(docId: string, userAddress: string): Promise<boolean> {
     try {
@@ -139,11 +143,10 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Verificar si un usuario puede editar un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns true si puede editar, false caso contrario
+   * Verifica si un usuario puede editar un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si puede editar, `false` en caso contrario.
    */
   static async canEdit(docId: string, userAddress: string): Promise<boolean> {
     try {
@@ -161,11 +164,10 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Verificar si un usuario es dueño de un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns true si es dueño, false caso contrario
+   * Verifica si un usuario es propietario de un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si es propietario, `false` en caso contrario.
    */
   static async isOwner(docId: string, userAddress: string): Promise<boolean> {
     try {
@@ -183,10 +185,9 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Obtener la lista de todos los usuarios con acceso a un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @returns Array de direcciones con acceso
+   * Obtiene la lista de usuarios con acceso a un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @returns Array de direcciones Ethereum con acceso al documento.
    */
   static async getDocumentUsers(docId: string): Promise<string[]> {
     try {
@@ -202,10 +203,9 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Obtener la lista de todos los usuarios con acceso y sus roles
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @returns Array de objetos con dirección y rol
+   * Obtiene la lista de usuarios con acceso y sus roles.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @returns Array de objetos con dirección y rol asignado.
    */
   static async getDocumentUsersWithRoles(docId: string): Promise<Array<{ address: string; role: DocumentRole }>> {
     try {
@@ -230,10 +230,9 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Obtener todos los documentos a los que un usuario tiene acceso
-   * 
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns Array de IDs de documentos (bytes32)
+   * Obtiene todos los documentos a los que un usuario tiene acceso.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns Array de identificadores de documento (bytes32).
    */
   static async getUserDocuments(userAddress: string): Promise<string[]> {
     try {
@@ -269,10 +268,9 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Obtener el número de documentos a los que un usuario tiene acceso
-   * 
-   * @param userAddress - Dirección Ethereum del usuario
-   * @returns Número de documentos
+   * Obtiene el número de documentos a los que un usuario tiene acceso.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns Número de documentos accesibles.
    */
   static async getUserDocumentCount(userAddress: string): Promise<number> {
     try {
@@ -286,12 +284,12 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Compartir un documento con otro usuario (otorgar permisos)
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección del usuario a quien compartir
-   * @param role - Rol a otorgar (VIEWER o EDITOR)
-   * @returns Hash de la transacción
+   * Comparte un documento con otro usuario otorgándole permisos.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección del usuario destinatario.
+   * @param role - Rol a otorgar (`VIEWER` o `EDITOR`).
+   * @returns Hash de la transacción.
+   * @throws Error si la dirección es inválida, el rol no es permitido o el documento está eliminado.
    */
   static async shareDocument(docId: string, userAddress: string, role: DocumentRole.VIEWER | DocumentRole.EDITOR): Promise<string> {
     try {
@@ -303,7 +301,7 @@ export class DocumentPermissionService {
         throw new Error('Rol inválido. Solo se permiten VIEWER o EDITOR');
       }
 
-      // Soft-delete check: verify document is not deleted
+      // Verificación de soft-delete: comprobar que el documento no esté eliminado
       const document = await prisma.document.findFirst({
         where: { blockchainId: docId },
       });
@@ -329,11 +327,11 @@ export class DocumentPermissionService {
   }
 
   /**
-   * Revocar permisos de un usuario en un documento
-   * 
-   * @param docId - ID del documento (bytes32)
-   * @param userAddress - Dirección del usuario a quien revocar permisos
-   * @returns Hash de la transacción
+   * Revoca los permisos de un usuario en un documento.
+   * @param docId - Identificador del documento en la blockchain (bytes32).
+   * @param userAddress - Dirección del usuario cuyos permisos se revocarán.
+   * @returns Hash de la transacción.
+   * @throws Error si la dirección es inválida.
    */
   static async revokePermission(docId: string, userAddress: string): Promise<string> {
     try {

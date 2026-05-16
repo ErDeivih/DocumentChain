@@ -1,17 +1,27 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { act } from 'react';
 import { OperationalVersionSelector } from '../components/documents/OperationalVersionSelector';
 
-const { putMock, listByVersionMock } = vi.hoisted(() => ({
-  putMock: vi.fn(),
+const {
+  prepareSetOperationalMock,
+  confirmSetOperationalMock,
+  listByVersionMock,
+  getSignerMock,
+  setOperationalVersionMock,
+} = vi.hoisted(() => ({
+  prepareSetOperationalMock: vi.fn(),
+  confirmSetOperationalMock: vi.fn(),
   listByVersionMock: vi.fn(),
+  getSignerMock: vi.fn(),
+  setOperationalVersionMock: vi.fn(),
 }));
 
-vi.mock('../lib/api', () => ({
-  api: {
-    put: putMock,
+vi.mock('../api/versions', () => ({
+  versionsApi: {
+    prepareSetOperational: prepareSetOperationalMock,
+    confirmSetOperational: confirmSetOperationalMock,
   },
-  getErrorMessage: (error: unknown) => (error instanceof Error ? error.message : 'Error'),
 }));
 
 vi.mock('../api/signatures', () => ({
@@ -20,14 +30,46 @@ vi.mock('../api/signatures', () => ({
   },
 }));
 
+vi.mock('../lib/api', () => ({
+  getErrorMessage: (error: unknown) => (error instanceof Error ? error.message : 'Error'),
+}));
+
+vi.mock('../components/wallets/WalletSelectorModal', () => ({
+  WalletSelectorModal: ({ isOpen, onSelect }: { isOpen: boolean; onSelect: (wallet: any, connectedAddress: string) => void }) => (
+    isOpen ? (
+      <button
+        type="button"
+        onClick={() => onSelect({ id: 'wallet-1', walletAddress: '0x1234567890abcdef1234567890abcdef12345678' }, '0x1234567890abcdef1234567890abcdef12345678')}
+      >
+        Seleccionar wallet de prueba
+      </button>
+    ) : null
+  ),
+}));
+
+vi.mock('../lib/blockchain/provider', () => ({
+  blockchainProvider: {
+    getSigner: getSignerMock,
+  },
+}));
+
+vi.mock('../lib/blockchain/contracts', () => ({
+  DocumentRegistryContract: class {
+    setOperationalVersion = setOperationalVersionMock;
+  },
+}));
+
 describe('OperationalVersionSelector', () => {
   beforeEach(() => {
-    putMock.mockReset();
+    prepareSetOperationalMock.mockReset();
+    confirmSetOperationalMock.mockReset();
     listByVersionMock.mockReset();
+    getSignerMock.mockReset();
+    setOperationalVersionMock.mockReset();
   });
 
   it('renders provided versions including fallback text for pending CIDs', () => {
-    render(
+    const view = render(
       <OperationalVersionSelector
         documentId="document-1"
         isOwner
@@ -58,18 +100,23 @@ describe('OperationalVersionSelector', () => {
       />
     );
 
-    expect(screen.getByText('Versión 2')).toBeInTheDocument();
-    expect(screen.getByText('Pendiente de CID visible')).toBeInTheDocument();
-    expect(screen.getByText('CID pendiente')).toBeInTheDocument();
-    expect(screen.getByText('Versión 1')).toBeInTheDocument();
-    expect(screen.getByText('Activa')).toBeInTheDocument();
+    expect(view.getByText('Versión 2')).toBeInTheDocument();
+    expect(view.getByText('Pendiente de CID visible')).toBeInTheDocument();
+    expect(view.getByText('CID pendiente')).toBeInTheDocument();
+    expect(view.getByText('Versión 1')).toBeInTheDocument();
+    expect(view.getByText('Activa')).toBeInTheDocument();
   });
 
   it('allows the owner to activate another version and updates local state', async () => {
-    putMock.mockResolvedValue({ data: {} });
+    prepareSetOperationalMock.mockResolvedValue({ blockchainId: 'blockchain-1' });
+    confirmSetOperationalMock.mockResolvedValue({});
+    getSignerMock.mockReturnValue({
+      getAddress: vi.fn().mockResolvedValue('0x1234567890abcdef1234567890abcdef12345678'),
+    });
+    setOperationalVersionMock.mockResolvedValue({ hash: '0xversiontx' });
     const onVersionChange = vi.fn();
 
-    render(
+    const view = render(
       <OperationalVersionSelector
         documentId="document-1"
         isOwner
@@ -101,21 +148,25 @@ describe('OperationalVersionSelector', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /activar/i }));
-
-    await waitFor(() => {
-      expect(putMock).toHaveBeenCalledWith('/documents/document-1/operational-version', {
-        versionNumber: 2,
-      });
+    await act(async () => {
+      view.getByRole('button', { name: /activar/i }).click();
     });
 
+    await act(async () => {
+      (await view.findByRole('button', { name: 'Seleccionar wallet de prueba' })).click();
+    });
+
+    await view.findByText('Transacción enviada. La versión 2 se sincronizará con la blockchain en breve.');
+
+    expect(prepareSetOperationalMock).toHaveBeenCalledWith('document-1', 2);
+    expect(confirmSetOperationalMock).toHaveBeenCalledWith('document-1', 2, '0xversiontx');
     expect(onVersionChange).toHaveBeenCalledWith(2);
-    expect(screen.getByText('Versión 2 establecida como operacional')).toBeInTheDocument();
-    expect(screen.getAllByText('Activa')).toHaveLength(1);
+    expect(view.getByText('Transacción enviada. La versión 2 se sincronizará con la blockchain en breve.')).toBeInTheDocument();
+    expect(view.getAllByText('Activa')).toHaveLength(1);
   });
 
   it('renders the empty state when there are no versions', () => {
-    render(
+    const view = render(
       <OperationalVersionSelector
         documentId="document-1"
         isOwner={false}
@@ -123,7 +174,7 @@ describe('OperationalVersionSelector', () => {
       />
     );
 
-    expect(screen.getByText('No hay versiones disponibles')).toBeInTheDocument();
+    expect(view.getByText('No hay versiones disponibles')).toBeInTheDocument();
   });
 
   it('shows signer profiles for a version inside the modal', async () => {
@@ -151,7 +202,7 @@ describe('OperationalVersionSelector', () => {
       ],
     });
 
-    render(
+    const view = render(
       <OperationalVersionSelector
         documentId="document-1"
         isOwner={false}
@@ -171,18 +222,20 @@ describe('OperationalVersionSelector', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /ver firmantes/i }));
-
-    await waitFor(() => {
-      expect(listByVersionMock).toHaveBeenCalledWith('document-1', 1);
+    await act(async () => {
+      view.getByRole('button', { name: /ver firmantes/i }).click();
     });
 
-    const signerProfilePanel = screen.getByTestId('signer-profile-panel');
+    await view.findByText('Firmantes de la versión 1');
 
-    expect(screen.getByText('Firmantes de la versión 1')).toBeInTheDocument();
-    expect(screen.getByText('Perfil del firmante')).toBeInTheDocument();
+    expect(listByVersionMock).toHaveBeenCalledWith('document-1', 1);
+
+    const signerProfilePanel = view.getByTestId('signer-profile-panel');
+
+    expect(view.getByText('Firmantes de la versión 1')).toBeInTheDocument();
+    expect(view.getByText('Perfil del firmante')).toBeInTheDocument();
     expect(signerProfilePanel).toHaveTextContent('Marina Prieto');
     expect(signerProfilePanel).toHaveTextContent('@mprieto');
-    expect(signerProfilePanel).toHaveTextContent('Cuenta actual');
+    expect(signerProfilePanel).toHaveTextContent('Wallet empleada en la firma');
   });
 });

@@ -1,0 +1,38 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0030: Compartir documento (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Modal de compartir" as ui
+control "Gestor de compartición" as ctrl
+entity "Documento" as doc
+entity "Usuario" as target
+entity "Compartido" as share
+
+user -> ui: Seleccionar "Compartir"
+ui -> ctrl: Solicitar compartición (idDocumento)
+ctrl -> doc: Verificar propiedad
+doc --> ctrl: Propiedad verificada
+
+ui --> user: Mostrar modal (buscar usuario, permisos, duración)
+
+user -> ui: Seleccionar destinatario y permisos
+ui -> ctrl: Solicitar compartir (idDocumento, idDestinatario, permisos)
+
+ctrl -> target: Verificar destinatario existe
+alt Destinatario no existe
+    target --> ctrl: No encontrado
+    ctrl --> ui: Error
+    ui --> user: Usuario no encontrado
+else Destinatario válido
+    target --> ctrl: Usuario encontrado
+    ctrl -> share: Crear registro de compartición
+    share --> ctrl: Compartición creada
+    ctrl -> target: Notificar compartición
+    target --> ctrl: Notificación enviada
+    ctrl --> ui: Documento compartido
+    ui --> user: Confirmación + detalle de permisos
+end
+
+@enduml

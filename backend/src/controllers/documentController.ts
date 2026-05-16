@@ -1,14 +1,13 @@
 /**
- * Document Controller - Refactored for Frontend Wallet Signatures
- * 
- * Implements the prepare/confirm pattern:
- * - prepareDocument: Uploads encrypted file to IPFS, creates DB record
- * - confirmDocument: Updates record after blockchain transaction
- * 
- * The backend encrypts private documents, stores public documents without encryption,
- * and leaves blockchain signing to the user's wallet in the frontend.
+ * Controlador de documentos refactorizado para firmas de wallet en el frontend.
+ *
+ * Implementa el patrón preparar/confirmar:
+ * - prepareDocument: Sube el archivo cifrado a IPFS y crea el registro en base de datos.
+ * - confirmDocument: Actualiza el registro tras la transacción en blockchain.
+ *
+ * El backend cifra los documentos privados, almacena los públicos sin cifrado
+ * y delega la firma blockchain a la wallet del usuario en el frontend.
  */
-
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
@@ -17,6 +16,11 @@ import { DocumentService } from '../services/documentService';
 import { TransferService } from '../services/transferService';
 import logger from '../utils/logger';
 
+/**
+ * Controlador de gestión de documentos.
+ * Gestiona el ciclo de vida completo de los documentos: creación, consulta,
+ * descarga, archivado, eliminación, transferencia y restauración.
+ */
 export class DocumentController {
   private static async softDeleteDocument(documentId: string, userId: string, txHash?: string | null) {
     const document = await prisma.document.findUnique({
@@ -34,12 +38,24 @@ export class DocumentController {
       throw new Error('Documento no encontrado');
     }
 
-    if (document.ownerId !== userId) {
-      throw new Error('No tienes permisos para eliminar este documento');
-    }
-
     if (document.isDeleted) {
       throw new Error('El documento ya ha sido eliminado');
+    }
+
+    // Validate ownership ON-CHAIN if blockchainId exists
+    if (document.blockchainId) {
+      const { DocumentPermissionService } = await import('../services/documentPermissionService');
+      const userWallet = await prisma.wallet.findFirst({ where: { userId } });
+      if (!userWallet) {
+        throw new Error('Wallet no encontrada');
+      }
+      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+      if (!isOwnerOnChain) {
+        throw new Error('No tienes permisos para eliminar este documento');
+      }
+    } else if (document.ownerId !== userId) {
+      // Fallback for documents not yet on chain
+      throw new Error('No tienes permisos para eliminar este documento');
     }
 
     const deletedAt = new Date();
@@ -86,11 +102,14 @@ export class DocumentController {
   }
 
   /**
-   * Prepare a document for creation
-   * POST /api/documents/prepare
-   * 
-  * Frontend sends the raw file.
-  * Backend decides whether to encrypt it based on document visibility.
+   * Prepara un documento para su creación.
+   * El frontend envía el archivo en bruto; el backend decide si cifrarlo
+   * en función de la visibilidad del documento.
+   * Endpoint: POST /api/documents/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con el archivo y metadatos.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el resultado de la preparación del documento.
    */
   static async prepareDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -154,10 +173,12 @@ export class DocumentController {
   }
 
   /**
-   * Confirm a document after blockchain transaction
-   * POST /api/documents/confirm
-   * 
-   * Frontend calls this after signing and submitting the blockchain transaction.
+   * Confirma la creación de un documento tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { documentId, txHash, blockchainId }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el documento confirmado.
    */
   static async confirmDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -206,8 +227,12 @@ export class DocumentController {
   }
 
   /**
-   * Get document by ID
-   * GET /api/documents/:documentId
+   * Obtiene un documento por su identificador.
+   * Endpoint: GET /api/documents/:documentId
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos del documento.
    */
   static async getDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -235,11 +260,13 @@ export class DocumentController {
   }
 
   /**
-   * Download document (returns encrypted file)
-   * GET /api/documents/:documentId/download
-   * 
-   * Returns the encrypted file from IPFS. Frontend handles decryption.
-   * If encryptedSymmetricKey is 'UNENCRYPTED', the file is public (not encrypted).
+   * Descarga un documento (devuelve el archivo cifrado).
+   * Si la clave simétrica cifrada es 'UNENCRYPTED', el archivo es público.
+   * Endpoint: GET /api/documents/:documentId/download
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP con el archivo adjunto.
+   * @returns Promesa que resuelve con el flujo de descarga del documento.
    */
   static async downloadDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -288,10 +315,13 @@ export class DocumentController {
   }
 
   /**
-   * List documents for user
-   * GET /api/documents?walletId=xxx&includeArchived=false&onlyArchived=false&search=xxx&fileType=pdf
-   * 
-   * Can filter by wallet, archived status, search term, and file type.
+   * Lista los documentos accesibles para el usuario autenticado.
+   * Permite filtrar por wallet, estado de archivado, término de búsqueda y tipo de archivo.
+   * Endpoint: GET /api/documents
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con filtros en la query string.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista paginada de documentos.
    */
   static async listDocuments(req: Request, res: Response): Promise<void> {
     try {
@@ -325,8 +355,12 @@ export class DocumentController {
   }
 
   /**
-   * Get documents by wallet
-   * GET /api/documents/wallet/:walletId
+   * Obtiene los documentos asociados a una wallet específica.
+   * Endpoint: GET /api/documents/wallet/:walletId
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la wallet.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los documentos de la wallet.
    */
   static async getDocumentsByWallet(req: Request, res: Response): Promise<void> {
     try {
@@ -349,8 +383,12 @@ export class DocumentController {
   }
 
   /**
-   * Archive document (prepare phase)
-   * POST /api/documents/:documentId/archive/prepare
+   * Prepara el archivado de un documento (fase de preparación).
+   * Endpoint: POST /api/documents/:documentId/archive/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos necesarios para la transacción en blockchain.
    */
   static async prepareArchiveDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -371,7 +409,20 @@ export class DocumentController {
         return;
       }
 
-      if (document.ownerId !== req.user.userId) {
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (document.blockchainId) {
+        const { DocumentPermissionService } = await import('../services/documentPermissionService');
+        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+        if (!userWallet) {
+          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
+          return;
+        }
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+        if (!isOwnerOnChain) {
+          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
+          return;
+        }
+      } else if (document.ownerId !== req.user.userId) {
         res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
         return;
       }
@@ -391,8 +442,12 @@ export class DocumentController {
   }
 
   /**
-   * Confirm archive document
-   * POST /api/documents/:documentId/archive/confirm
+   * Confirma el archivado de un documento tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/:documentId/archive/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { txHash } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el documento archivado.
    */
   static async confirmArchiveDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -414,7 +469,20 @@ export class DocumentController {
         return;
       }
 
-      if (document.ownerId !== req.user.userId) {
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (document.blockchainId) {
+        const { DocumentPermissionService } = await import('../services/documentPermissionService');
+        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+        if (!userWallet) {
+          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
+          return;
+        }
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+        if (!isOwnerOnChain) {
+          res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
+          return;
+        }
+      } else if (document.ownerId !== req.user.userId) {
         res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
         return;
       }
@@ -447,122 +515,12 @@ export class DocumentController {
   }
 
   /**
-   * Archive document (legacy - will be deprecated)
-   * PUT /api/documents/:documentId/archive
-   */
-  static async archiveDocument(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const documentId = req.params.documentId as string;
-
-      // Check ownership
-      const document = await prisma.document.findUnique({
-        where: { id: documentId },
-      });
-
-      if (!document) {
-        res.status(404).json({ error: 'Documento no encontrado' });
-        return;
-      }
-
-      if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para archivar este documento' });
-        return;
-      }
-
-      // Archive document
-      const updated = await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          isArchived: true,
-          archivedAt: new Date(),
-        },
-      });
-
-      // Log event
-      await prisma.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'DOCUMENT_ARCHIVED',
-          userId: req.user.userId,
-          documentId: document.id,
-        },
-      });
-
-      res.status(200).json({ 
-        message: 'Documento archivado correctamente',
-        document: updated,
-      });
-    } catch (error: any) {
-      logger.error('Error archiving document:', error);
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Unarchive document (legacy - will be deprecated)
-   * PUT /api/documents/:documentId/unarchive
-   */
-  static async unarchiveDocument(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const documentId = req.params.documentId as string;
-
-      // Check ownership
-      const document = await prisma.document.findUnique({
-        where: { id: documentId },
-      });
-
-      if (!document) {
-        res.status(404).json({ error: 'Documento no encontrado' });
-        return;
-      }
-
-      if (document.ownerId !== req.user.userId) {
-        res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
-        return;
-      }
-
-      // Unarchive document
-      const updated = await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          isArchived: false,
-          archivedAt: null,
-        },
-      });
-
-      // Log event
-      await prisma.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'DOCUMENT_UNARCHIVED',
-          userId: req.user.userId,
-          documentId: document.id,
-        },
-      });
-
-      res.status(200).json({ 
-        message: 'Documento desarchivado correctamente',
-        document: updated,
-      });
-    } catch (error: any) {
-      logger.error('Error unarchiving document:', error);
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Delete document (prepare phase)
-   * POST /api/documents/:documentId/delete/prepare
+   * Prepara la eliminación de un documento (fase de preparación).
+   * Endpoint: POST /api/documents/:documentId/delete/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos necesarios para la transacción en blockchain.
    */
   static async prepareDeleteDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -572,12 +530,6 @@ export class DocumentController {
       }
 
       const documentId = req.params.documentId as string;
-      const { walletId } = req.body;
-
-      if (!walletId) {
-        res.status(400).json({ error: 'El ID de la wallet es obligatorio' });
-        return;
-      }
 
       // Verify ownership
       const document = await prisma.document.findUnique({
@@ -589,7 +541,20 @@ export class DocumentController {
         return;
       }
 
-      if (document.ownerId !== req.user.userId) {
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (document.blockchainId) {
+        const { DocumentPermissionService } = await import('../services/documentPermissionService');
+        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+        if (!userWallet) {
+          res.status(403).json({ error: 'No tienes permisos para eliminar este documento' });
+          return;
+        }
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+        if (!isOwnerOnChain) {
+          res.status(403).json({ error: 'No tienes permisos para eliminar este documento' });
+          return;
+        }
+      } else if (document.ownerId !== req.user.userId) {
         res.status(403).json({ error: 'No tienes permisos para eliminar este documento' });
         return;
       }
@@ -614,8 +579,12 @@ export class DocumentController {
   }
 
   /**
-   * Confirm delete document
-   * POST /api/documents/:documentId/delete/confirm
+   * Confirma la eliminación de un documento tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/:documentId/delete/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { txHash } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de eliminación.
    */
   static async confirmDeleteDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -646,10 +615,14 @@ export class DocumentController {
   }
 
   /**
-   * Delete document (legacy - will be deprecated)
-   * DELETE /api/documents/:documentId
+   * Prepara la desarchivación de un documento (fase de preparación).
+   * Endpoint: POST /api/documents/:documentId/unarchive/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos necesarios para la transacción en blockchain.
    */
-  static async deleteDocument(req: Request, res: Response): Promise<void> {
+  static async prepareUnarchiveDocument(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         res.status(401).json({ error: 'No autenticado' });
@@ -658,27 +631,195 @@ export class DocumentController {
 
       const documentId = req.params.documentId as string;
 
-      await DocumentController.softDeleteDocument(documentId, req.user.userId);
+      const document = await prisma.document.findUnique({
+        where: { id: documentId },
+      });
 
-      res.status(200).json({ message: 'Documento eliminado correctamente' });
+      if (!document) {
+        res.status(404).json({ error: 'Documento no encontrado' });
+        return;
+      }
+
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (document.blockchainId) {
+        const { DocumentPermissionService } = await import('../services/documentPermissionService');
+        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+        if (!userWallet) {
+          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
+          return;
+        }
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+        if (!isOwnerOnChain) {
+          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
+          return;
+        }
+      } else if (document.ownerId !== req.user.userId) {
+        res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
+        return;
+      }
+
+      if (!document.isArchived) {
+        res.status(400).json({ error: 'El documento no está archivado' });
+        return;
+      }
+
+      if (!document.blockchainId) {
+        res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
+        return;
+      }
+
+      res.status(200).json({
+        documentId,
+        blockchainId: document.blockchainId,
+      });
     } catch (error: any) {
-      if (error.message === 'Documento no encontrado') {
-        res.status(404).json({ error: error.message });
-        return;
-      }
-
-      if (error.message === 'No tienes permisos para eliminar este documento') {
-        res.status(403).json({ error: error.message });
-        return;
-      }
-
       res.status(400).json({ error: error.message });
     }
   }
 
   /**
-   * Transfer document (prepare phase)
-   * POST /api/documents/:documentId/transfer/prepare
+   * Confirma la desarchivación de un documento tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/:documentId/unarchive/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { txHash } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el documento desarchivado.
+   */
+  static async confirmUnarchiveDocument(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const documentId = req.params.documentId as string;
+      const { txHash } = req.body;
+
+      const document = await prisma.document.findUnique({
+        where: { id: documentId },
+      });
+
+      if (!document) {
+        res.status(404).json({ error: 'Documento no encontrado' });
+        return;
+      }
+
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (document.blockchainId) {
+        const { DocumentPermissionService } = await import('../services/documentPermissionService');
+        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+        if (!userWallet) {
+          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
+          return;
+        }
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+        if (!isOwnerOnChain) {
+          res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
+          return;
+        }
+      } else if (document.ownerId !== req.user.userId) {
+        res.status(403).json({ error: 'No tienes permisos para desarchivar este documento' });
+        return;
+      }
+
+      const updated = await prisma.document.update({
+        where: { id: documentId },
+        data: {
+          isArchived: false,
+          archivedAt: null,
+        },
+      });
+
+      await prisma.event.create({
+        data: {
+          id: uuidv4(),
+          eventType: 'DOCUMENT_UNARCHIVED',
+          userId: req.user.userId,
+          documentId: document.id,
+          transactionHash: txHash || null,
+        },
+      });
+
+      res.status(200).json({
+        message: 'Documento desarchivado correctamente',
+        document: updated,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  /**
+   * Actualiza los metadatos de un documento sin operación en blockchain.
+   * Endpoint: PUT /api/documents/:documentId
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con los campos a actualizar en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el documento actualizado.
+   */
+  static async updateDocument(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const documentId = req.params.documentId as string;
+      const { name, description, folderId, tags } = req.body;
+
+      const document = await prisma.document.findUnique({
+        where: { id: documentId },
+      });
+
+      if (!document) {
+        res.status(404).json({ error: 'Documento no encontrado' });
+        return;
+      }
+
+      // Validate ownership ON-CHAIN if blockchainId exists
+      if (document.blockchainId) {
+        const { DocumentPermissionService } = await import('../services/documentPermissionService');
+        const userWallet = await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+        if (!userWallet) {
+          res.status(403).json({ error: 'No tienes permisos para editar este documento' });
+          return;
+        }
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, userWallet.walletAddress);
+        if (!isOwnerOnChain) {
+          res.status(403).json({ error: 'No tienes permisos para editar este documento' });
+          return;
+        }
+      } else if (document.ownerId !== req.user.userId) {
+        res.status(403).json({ error: 'No tienes permisos para editar este documento' });
+        return;
+      }
+
+      const updated = await prisma.document.update({
+        where: { id: documentId },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(description !== undefined && { description }),
+          ...(folderId !== undefined && { folderId }),
+          ...(tags !== undefined && { tags }),
+        },
+      });
+
+      res.status(200).json({
+        message: 'Documento actualizado correctamente',
+        document: updated,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  /**
+   * Prepara la transferencia de un documento a otro usuario (fase de preparación).
+   * Endpoint: POST /api/documents/:documentId/transfer/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con los datos del destinatario y la wallet.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el resultado de la preparación de la transferencia.
    */
   static async prepareTransferDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -726,8 +867,12 @@ export class DocumentController {
   }
 
   /**
-   * Confirm transfer document
-   * POST /api/documents/:documentId/transfer/confirm
+   * Confirma la transferencia de un documento tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/:documentId/transfer/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { txHash, transferId, signature? }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de transferencia.
    */
   static async confirmTransferDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -754,6 +899,7 @@ export class DocumentController {
         transferId,
         txHash,
         signature: signature || '',
+        documentId,
       });
 
       res.status(200).json({ message: 'Transferencia confirmada correctamente' });
@@ -767,32 +913,13 @@ export class DocumentController {
   }
 
   /**
-   * Transfer document (legacy - will be deprecated)
-   * POST /api/documents/:documentId/transfer
-   */
-  static async transferDocument(req: Request, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const documentId = req.params.documentId as string;
-      const { newOwnerId, currentPassword, newOwnerPassword } = req.body;
-
-      // TODO: This should use prepare/confirm pattern
-      res.status(200).json({ message: 'Documento transferido correctamente' });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Create document (legacy - will be deprecated)
-   * POST /api/documents
-   * 
-   * This endpoint is kept for backward compatibility.
-   * New implementations should use /prepare + /confirm.
+   * Crea un documento mediante el endpoint legado.
+   * @deprecated Utilizar /prepare + /confirm en su lugar.
+   * Endpoint: POST /api/documents
+   *
+   * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con un error indicando la deprecación.
    */
   static async createDocument(req: Request, res: Response): Promise<void> {
     try {
@@ -825,11 +952,13 @@ export class DocumentController {
   }
 
   /**
-   * Rollback document creation
-   * POST /api/documents/:documentId/rollback
-   * 
-   * Deletes document, versions, and unpins from IPFS.
-   * Used when blockchain transaction fails after prepare.
+   * Revierte la creación de un documento eliminando registros y desanclando de IPFS.
+   * Se utiliza cuando la transacción blockchain falla tras la fase de preparación.
+   * Endpoint: POST /api/documents/:documentId/rollback
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de reversión.
    */
   static async rollbackDocument(req: Request, res: Response): Promise<void> {
     try {

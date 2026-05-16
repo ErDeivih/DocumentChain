@@ -1,8 +1,16 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente Avatar.
+ * @property className - Clases CSS adicionales.
+ */
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+/**
+ * Contenedor de imagen de avatar con forma circular.
+ * @param props - Props del componente Avatar.
+ */
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   ({ className, ...props }, ref) => (
     <div
@@ -17,8 +25,16 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
 );
 Avatar.displayName = 'Avatar';
 
+/**
+ * Props del componente AvatarImage.
+ * @property className - Clases CSS adicionales.
+ */
 interface AvatarImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
 
+/**
+ * Imagen dentro del componente Avatar.
+ * @param props - Props del componente AvatarImage.
+ */
 const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
   ({ className, ...props }, ref) => (
     <img
@@ -30,8 +46,16 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
 );
 AvatarImage.displayName = 'AvatarImage';
 
+/**
+ * Props del componente AvatarFallback.
+ * @property className - Clases CSS adicionales.
+ */
 interface AvatarFallbackProps extends React.HTMLAttributes<HTMLDivElement> {}
 
+/**
+ * Contenido alternativo que se muestra cuando la imagen del avatar no está disponible.
+ * @param props - Props del componente AvatarFallback.
+ */
 const AvatarFallback = React.forwardRef<HTMLDivElement, AvatarFallbackProps>(
   ({ className, ...props }, ref) => (
     <div

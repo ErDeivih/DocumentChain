@@ -1,15 +1,13 @@
 /**
- * Share Controller - Refactored for Frontend Wallet Signatures
- * 
- * Implements the prepare/confirm pattern:
- * - prepareShare: Creates DB record with PREPARING status
- * - confirmShare: Updates record after blockchain transaction
- * 
- * The backend NO LONGER:
- * - Handles passwords
- * - Signs blockchain transactions (user's wallet does this)
+ * Controlador de compartidos refactorizado para firmas de wallet en el frontend.
+ *
+ * Implementa el patrón preparar/confirmar:
+ * - prepareShare: Crea el registro en base de datos con estado PREPARING.
+ * - confirmShare: Actualiza el registro tras la transacción en blockchain.
+ *
+ * El backend ya NO maneja contraseñas ni firma transacciones blockchain;
+ * estas operaciones las realiza la wallet del usuario.
  */
-
 import { Request, Response } from 'express';
 import { ShareService } from '../services/shareService';
 import { DocumentRole, DocumentPermissionService } from '../services/documentPermissionService';
@@ -17,6 +15,12 @@ import logger from '../utils/logger';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 
+/**
+ * Normaliza un filtro de extensión de archivo asegurando el punto inicial.
+ *
+ * @param fileType - Extensión de archivo opcional.
+ * @returns Extensión normalizada o undefined.
+ */
 function normalizeFileExtensionFilter(fileType?: string): string | undefined {
   if (!fileType) {
     return undefined;
@@ -32,17 +36,25 @@ function normalizeFileExtensionFilter(fileType?: string): string | undefined {
 
 const VALID_SHARE_ROLES = ['SHARED_READ', 'SHARED_WRITE'] as const;
 
+/**
+ * Controlador de compartidos.
+ * Gestiona la preparación, confirmación, revocación y consulta de permisos
+ * de acceso compartido sobre documentos entre usuarios.
+ */
 export class ShareController {
   // ============================================
-  // NEW: Prepare/Confirm Pattern Endpoints
+  // Endpoints del patrón Preparar/Confirmar
   // ============================================
 
   /**
-   * Prepare a share for creation
-   * POST /api/documents/:documentId/share/prepare
-   * 
-    * Frontend sends the decrypted symmetric key over HTTPS.
-    * Backend re-encrypts it for the recipient and creates the PREPARING record.
+   * Prepara un compartido para su creación.
+   * El frontend envía la clave simétrica descifrada por HTTPS;
+   * el backend la recifra para el destinatario y crea el registro PREPARING.
+   * Endpoint: POST /api/documents/:documentId/share/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con los datos del destinatario y la clave.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el resultado de la preparación del compartido.
    */
   static async prepareShare(req: Request, res: Response): Promise<void> {
     try {
@@ -114,10 +126,12 @@ export class ShareController {
   }
 
   /**
-   * Confirm a share after blockchain transaction
-   * POST /api/documents/:documentId/share/confirm
-   * 
-   * Frontend calls this after signing and submitting the blockchain transaction.
+   * Confirma un compartido tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/:documentId/share/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { shareId, txHash }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el compartido confirmado.
    */
   static async confirmShare(req: Request, res: Response): Promise<void> {
     try {
@@ -142,6 +156,9 @@ export class ShareController {
       const share = await ShareService.confirmShare({
         shareId,
         txHash,
+        documentId,
+        recipientId: req.body.recipientId,
+        role: req.body.role,
       });
 
       logger.info('[CONFIRM] Share confirmado', {
@@ -161,8 +178,12 @@ export class ShareController {
   }
 
   /**
-   * Prepare share revocation
-   * POST /api/documents/:documentId/share/:userId/revoke/prepare
+   * Prepara la revocación de un compartido (fase de preparación).
+   * Endpoint: POST /api/documents/:documentId/share/:userId/revoke/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { sharerWalletId }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos necesarios para la transacción en blockchain.
    */
   static async prepareRevokeShare(req: Request, res: Response): Promise<void> {
     try {
@@ -204,8 +225,12 @@ export class ShareController {
   }
 
   /**
-   * Confirm share revocation
-   * POST /api/documents/:documentId/share/:userId/revoke/confirm
+   * Confirma la revocación de un compartido tras la transacción en blockchain.
+   * Endpoint: POST /api/documents/:documentId/share/:userId/revoke/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { txHash, shareId }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de revocación.
    */
   static async confirmRevokeShare(req: Request, res: Response): Promise<void> {
     try {
@@ -242,8 +267,12 @@ export class ShareController {
   }
 
   /**
-   * Get document shares
-   * GET /api/documents/:documentId/shares
+   * Obtiene la lista de compartidos de un documento específico.
+   * Endpoint: GET /api/documents/:documentId/shares
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de compartidos.
    */
   static async getDocumentShares(req: Request, res: Response): Promise<void> {
     try {
@@ -261,13 +290,25 @@ export class ShareController {
 
       res.status(200).json({ shares });
     } catch (error: any) {
+      if (error.message?.includes('no encontrado')) {
+        res.status(404).json({ error: error.message });
+        return;
+      }
+      if (error.message?.includes('acceso denegado')) {
+        res.status(403).json({ error: error.message });
+        return;
+      }
       res.status(400).json({ error: error.message });
     }
   }
 
   /**
-   * Get documents shared with current user
-   * GET /api/shares/with-me?page=1&limit=50&search=...&fileType=...
+   * Obtiene los documentos que han sido compartidos con el usuario autenticado.
+   * Endpoint: GET /api/shares/with-me
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con filtros de paginación y búsqueda.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los documentos compartidos paginados.
    */
   static async getSharedWithMe(req: Request, res: Response): Promise<void> {
     try {
@@ -281,43 +322,44 @@ export class ShareController {
       const limit = parseInt(req.query.limit as string) || 10;
       const search = req.query.search as string | undefined;
       const fileType = normalizeFileExtensionFilter(req.query.fileType as string | undefined);
-      const walletId = req.query.walletId as string | undefined;
+      const sharedBy = req.query.sharedBy as string | undefined;
 
-      const confirmedShares = await ShareService.getSharedWithUser(req.user.userId);
-      const confirmedDocumentIds = new Set(
-        confirmedShares
-          .map((share) => share.documentId)
-          .filter((documentId): documentId is string => Boolean(documentId))
-      );
+      // 1. Get all user wallets
+      const wallets = await prisma.wallet.findMany({
+        where: { userId: req.user.userId },
+      });
 
-      // Get user's wallet (specific or primary)
-      const wallet = walletId
-        ? await prisma.wallet.findUnique({
-            where: {
-              id: walletId,
-              userId: req.user.userId, // Ensure wallet belongs to user
-            },
-          })
-        : await prisma.wallet.findFirst({
-            where: {
-              userId: req.user.userId,
-              isPrimary: true,
-            },
-          });
-
-      if (!wallet && confirmedDocumentIds.size === 0) {
-        res.status(404).json({ error: 'Wallet no encontrada' });
+      if (wallets.length === 0) {
+        res.status(200).json({
+          documents: [],
+          total: 0,
+          page,
+          totalPages: 0,
+        });
         return;
       }
 
+      // 2. For each wallet, get all accessible blockchainIds on-chain
+      const blockchainIdSets = await Promise.all(
+        wallets.map((wallet) => DocumentPermissionService.getUserDocuments(wallet.walletAddress))
+      );
+      const allBlockchainIds = Array.from(new Set(blockchainIdSets.flat()));
+
+      if (allBlockchainIds.length === 0) {
+        res.status(200).json({
+          documents: [],
+          total: 0,
+          page,
+          totalPages: 0,
+        });
+        return;
+      }
+
+      // 3. Find documents in PostgreSQL by blockchainIds
       const whereClause: any = {
-        ownerId: { not: req.user.userId }, // Only shared documents, not owned
-        blockchainId: {
-          not: null,
-        },
+        blockchainId: { in: allBlockchainIds },
       };
 
-      // Apply filters
       if (search) {
         whereClause.name = {
           contains: search,
@@ -327,6 +369,12 @@ export class ShareController {
 
       if (fileType) {
         whereClause.fileExtension = fileType;
+      }
+
+      if (sharedBy) {
+        whereClause.owner = {
+          username: sharedBy,
+        };
       }
 
       const candidateDocuments = await prisma.document.findMany({
@@ -346,27 +394,30 @@ export class ShareController {
         },
       });
 
+      // 4. Exclude documents owned by the user (verify on-chain with isOwner)
       const sharedDocuments: typeof candidateDocuments = [];
 
       for (const document of candidateDocuments) {
-        if (confirmedDocumentIds.has(document.id)) {
-          sharedDocuments.push(document);
+        if (!document.blockchainId) {
           continue;
         }
 
-        if (!wallet || !document.blockchainId) {
-          continue;
+        let isOwned = false;
+        for (const wallet of wallets) {
+          if (await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress)) {
+            isOwned = true;
+            break;
+          }
         }
 
-        const canView = await DocumentPermissionService.canView(document.blockchainId, wallet.walletAddress);
-        if (canView) {
+        if (!isOwned) {
           sharedDocuments.push(document);
         }
       }
 
+      // 5. Apply pagination
       const total = sharedDocuments.length;
       const documents = sharedDocuments.slice((page - 1) * limit, page * limit);
-
       const totalPages = Math.ceil(total / limit);
 
       res.status(200).json({
@@ -381,8 +432,12 @@ export class ShareController {
   }
 
   /**
-   * Get user's role for a document
-   * GET /api/documents/:documentId/my-role
+   * Obtiene el rol del usuario autenticado sobre un documento específico.
+   * Endpoint: GET /api/documents/:documentId/my-role
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el rol del usuario (OWNER, SHARED_WRITE, SHARED_READ o null).
    */
   static async getMyRole(req: Request, res: Response): Promise<void> {
     try {
@@ -406,29 +461,36 @@ export class ShareController {
         return;
       }
 
-      if (document.ownerId === req.user.userId) {
-        res.status(200).json({ role: 'OWNER' });
-        return;
-      }
-
       const wallet = await prisma.wallet.findFirst({
         where: { userId: req.user.userId, isPrimary: true },
       }) ?? await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
 
-      if (!wallet || !document.blockchainId) {
+      if (document.blockchainId && wallet) {
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+        if (isOwnerOnChain) {
+          res.status(200).json({ role: 'OWNER' });
+          return;
+        }
+
+        const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
+
+        if (role === DocumentRole.EDITOR) {
+          res.status(200).json({ role: 'SHARED_WRITE' });
+          return;
+        }
+
+        if (role === DocumentRole.VIEWER) {
+          res.status(200).json({ role: 'SHARED_READ' });
+          return;
+        }
+
         res.status(200).json({ role: null });
         return;
       }
 
-      const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
-
-      if (role === DocumentRole.EDITOR) {
-        res.status(200).json({ role: 'SHARED_WRITE' });
-        return;
-      }
-
-      if (role === DocumentRole.VIEWER) {
-        res.status(200).json({ role: 'SHARED_READ' });
+      // Fallback for documents without blockchainId
+      if (document.ownerId === req.user.userId) {
+        res.status(200).json({ role: 'OWNER' });
         return;
       }
 
@@ -439,8 +501,12 @@ export class ShareController {
   }
 
   /**
-   * Check permissions
-   * GET /api/documents/:documentId/permissions/check?role=OWNER
+   * Verifica si el usuario tiene un permiso específico sobre un documento.
+   * Endpoint: GET /api/documents/:documentId/permissions/check
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con el rol a verificar en la query string.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con un indicador booleano de permiso.
    */
   static async checkPermission(req: Request, res: Response): Promise<void> {
     try {
@@ -483,24 +549,31 @@ export class ShareController {
         return;
       }
 
+      const wallet = await prisma.wallet.findFirst({
+        where: { userId: req.user.userId, isPrimary: true },
+      }) ?? await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
+
+      if (document.blockchainId && wallet) {
+        const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+        if (isOwnerOnChain) {
+          res.status(200).json({ hasPermission: true });
+          return;
+        }
+
+        const userRole = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
+        const hasPermission = userRole >= requestedRole && userRole !== DocumentRole.NONE;
+
+        res.status(200).json({ hasPermission });
+        return;
+      }
+
+      // Fallback for documents without blockchainId
       if (document.ownerId === req.user.userId) {
         res.status(200).json({ hasPermission: true });
         return;
       }
 
-      const wallet = await prisma.wallet.findFirst({
-        where: { userId: req.user.userId, isPrimary: true },
-      }) ?? await prisma.wallet.findFirst({ where: { userId: req.user.userId } });
-
-      if (!wallet || !document.blockchainId) {
-        res.status(200).json({ hasPermission: false });
-        return;
-      }
-
-      const userRole = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
-      const hasPermission = userRole >= requestedRole && userRole !== DocumentRole.NONE;
-
-      res.status(200).json({ hasPermission });
+      res.status(200).json({ hasPermission: false });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

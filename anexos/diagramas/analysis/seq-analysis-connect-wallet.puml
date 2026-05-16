@@ -1,0 +1,33 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0004: Conectar wallet (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Selector de wallets" as ui
+control "Gestor de wallets" as ctrl
+entity "Wallet externa" as extWallet
+entity "Cuenta de usuario" as account
+
+user -> ui: Seleccionar "Conectar wallet"
+ui -> ctrl: Solicitar conexión
+
+ctrl -> ui: Solicitar proveedor (MetaMask, WalletConnect, etc.)
+ui --> user: Mostrar selector de wallets
+
+user -> ui: Seleccionar proveedor de wallet
+ui -> ctrl: Proveedor seleccionado
+
+ctrl -> extWallet: Solicitar conexión (EIP-6963 o WalletConnect)
+extWallet --> ctrl: Dirección de wallet + firma de desafío
+
+ctrl -> extWallet: Verificar firma de desafío (prueba de posesión)
+extWallet --> ctrl: Firma verificada
+
+ctrl -> account: Asociar wallet al usuario
+account --> ctrl: Wallet asociada
+
+ctrl --> ui: Wallet conectada
+ui --> user: Mostrar wallet conectada en la interfaz
+
+@enduml

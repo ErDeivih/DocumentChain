@@ -1,0 +1,39 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0012: Reenviar Verificacion de Email (Analisis BCE)
+
+actor Actor
+boundary "VistaAcceso" as BF
+control "GestorAutenticacion" as CG
+entity "Usuario" as EU
+
+database "Base de datos" as DB
+boundary "SistemaEmail" as EM
+
+Actor -> BF : 1. Solicita reenviar verificacion
+BF -> CG : 2. Peticion de reenvio
+CG -> EU : 3. Busca usuario por email
+EU -> DB : consulta usuario
+DB --> EU : datos usuario y estado de verificacion
+EU --> CG : usuario encontrado
+
+alt Email ya verificado
+  CG --> BF : 4. Notifica email ya verificado
+  BF --> Actor : 5. Muestra mensaje informativo
+else Email pendiente de verificacion
+  CG -> CG : 4. Invalida token anterior y genera nuevo token
+  note right : Control invalida cualquier token de verificacion previo para evitar conflictos
+
+  CG -> EU : 5. Almacena nuevo token de verificacion
+  EU -> DB : UPDATE verification_token
+  DB --> EU : confirmacion
+
+  CG -> EM : 6. Envia email con nuevo enlace de verificacion
+  EM --> CG : email enviado
+
+  CG --> BF : 7. Confirmacion de reenvio
+  BF --> Actor : 8. Muestra instrucciones para verificar email
+end
+
+@enduml

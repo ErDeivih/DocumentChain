@@ -1,0 +1,584 @@
+ANEXO III
+Análisis de requisitos.
+Diseño y desarrollo de una plataforma robótica para la
+agilización de procesos en la hostelería
+Trabajo de Fin de Grado
+Grado en Ingeniería Informática
+
+Julio 2022
+
+Autor
+David Cruz García
+
+Tutores
+André Filipe Sales Mendes
+Gabriel Villarrubia González
+Juan Francisco de Paz Santana
+
+1
+
+Anexo III: Análisis de requisitos.
+
+Tabla de contenido
+1 INTRODUCCIÓN ........................................................................................ 4
+2 MODELO DE DOMINIO .............................................................................. 5
+3 VISTA DE INTERACCIÓN .......................................................................... 7
+3.1 REALIZACIÓN DE CASOS DE USO .................................................... 7
+3.1.1 PAQUETE GESTIÓN DE USUARIOS ............................................ 7
+3.1.2 PAQUETE GESTIÓN DE BEBIDAS ............................................. 15
+3.1.3 PAQUETE GESTIÓN DE RECETAS............................................ 19
+3.1.4 PAQUETE GESTIÓN DE ROBOT ................................................ 27
+3.2 CLASES DE ANÁLISIS ....................................................................... 30
+4 VISTA ARQUITECTÓNICA ....................................................................... 33
+5 REFERENCIAS......................................................................................... 34
+
+2
+
+Anexo III: Análisis de requisitos.
+
+Índice de ilustraciones
+Ilustración 1. Modelo de dominio. Diagrama de clases. ............................................ 5
+Ilustración 2. Diagrama de secuencia UC-001.......................................................... 7
+Ilustración 3. Diagrama de secuencia UC-002.......................................................... 8
+Ilustración 4. Diagrama de secuencia UC-003.......................................................... 8
+Ilustración 5. Diagrama de secuencia UC-004.......................................................... 9
+Ilustración 6. Diagrama de secuencia UC-005.......................................................... 9
+Ilustración 7. Diagrama de secuencia UC-006........................................................ 10
+Ilustración 8. Diagrama de secuencia UC-007........................................................ 11
+Ilustración 9. Diagrama de secuencia UC-008........................................................ 11
+Ilustración 10. Diagrama de secuencia UC-009...................................................... 12
+Ilustración 11. Diagrama de secuencia UC-010...................................................... 12
+Ilustración 12. Diagrama de secuencia UC-011...................................................... 13
+Ilustración 13. Diagrama de secuencia UC-012...................................................... 13
+Ilustración 14. Diagrama de secuencia UC-013...................................................... 14
+Ilustración 15. Diagrama de secuencia UC-014...................................................... 14
+Ilustración 16. Diagrama de secuencia UC-015...................................................... 15
+Ilustración 17. Diagrama de secuencia UC-016...................................................... 15
+Ilustración 18. Diagrama de secuencia UC-017...................................................... 16
+Ilustración 19. Diagrama de secuencia UC-018...................................................... 16
+Ilustración 20. Diagrama de secuencia UC-019...................................................... 17
+Ilustración 21. Diagrama de secuencia UC-020...................................................... 17
+Ilustración 22. Diagrama de secuencia UC-021...................................................... 18
+Ilustración 23. Diagrama de secuencia UC-022...................................................... 18
+Ilustración 24. Diagrama de secuencia UC-023...................................................... 19
+Ilustración 25. Diagrama de secuencia UC-024...................................................... 20
+Ilustración 26. Diagrama de secuencia UC-025...................................................... 21
+Ilustración 27. Diagrama de secuencia UC-026...................................................... 22
+Ilustración 28. Diagrama de secuencia UC-027..................................................... 22
+Ilustración 29. Diagrama de secuencia UC-028...................................................... 23
+Ilustración 30. Diagrama de secuencia UC-029..................................................... 23
+Ilustración 31. Diagrama de secuencia UC-030..................................................... 24
+Ilustración 32. Diagrama de secuencia UC-031..................................................... 24
+Ilustración 33. Diagrama de secuencia UC-032..................................................... 25
+Ilustración 34. Diagrama de secuencia UC-033..................................................... 25
+Ilustración 35. Diagrama de secuencia UC-034..................................................... 26
+Ilustración 36. Diagrama de secuencia UC-035..................................................... 27
+Ilustración 37. Diagrama de secuencia UC-036..................................................... 27
+Ilustración 38. Diagrama de secuencia UC-037..................................................... 28
+Ilustración 39. Diagrama de secuencia UC-038..................................................... 28
+Ilustración 40. Diagrama de secuencia UC-039..................................................... 29
+Ilustración 41. Diagrama de secuencia UC-040..................................................... 29
+Ilustración 42. Diagrama de secuencia UC-041..................................................... 30
+Ilustración 43. Diagrama comunicación Gestión de Usuarios ................................. 31
+Ilustración 44. Diagrama comunicación Gestión de bebidas. .................................. 31
+Ilustración 45. Diagrama de comunicación Gestión de Recetas ............................. 32
+Ilustración 46. Diagrama de comunicación Gestión del Robot ................................ 32
+Ilustración 47. Vista arquitectónica del sistema. ..................................................... 33
+
+3
+
+Anexo III: Análisis de requisitos.
+
+1 INTRODUCCIÓN
+En este documento se pretende analizar los requisitos que debe de tener el sistema
+(recogidos en el documento “Anexo II: Especificación de requisitos”). Durante esta etapa
+de análisis de requisitos se seguirá la siguiente estructura como modelo de análisis para
+realizar correctamente este estudio:
+• Modelo de dominio: se determinan que objetos de negocio intervienen en el
+sistema y como este último los gestiona y almacena. Para ello, se diseñará
+un diagrama de clases específico del sistema, explicando las clases
+componentes de este diagrama.
+• Vista de interacción: se analizarán las interacciones del sistema mediante:
+o Realización de casos de uso: se analizarán todos los casos de uso
+mediante diagramas de secuencia que muestran el intercambio de
+mensajes en las diferentes interacciones con el sistema.
+o Clases de análisis: se dividirán las clases de análisis generadas
+durante la realización de los casos de uso y se dividirán en los
+paquetes correspondientes.
+• Vista arquitectónica: recoge la arquitectura completa obtenida tras toda la
+fase de análisis.
+
+4
+
+Anexo III: Análisis de requisitos.
+
+2 MODELO DE DOMINIO
+El modelo de dominio del sistema es un modelo que recoge una serie de clases que
+representan el mundo real, recogiendo así las necesidades de almacenamiento que
+tiene el sistema y cómo el sistema trabaja y gestiona esta información.
+Para ello se emplea un diagrama de clases. En este diagrama se recogen las clases
+(entidades del modelo de negocio), sus atributos y las relaciones entre ellas,
+representando así la información con la que trabajará el sistema.
+En el caso de este sistema, el diagrama de clases desarrollado es el siguiente:
+
+Ilustración 1. Modelo de dominio. Diagrama de clases.
+
+Las diferentes clases que componen el diagrama de clases son:
+• Usuario: Representa a los usuarios del sistema
+• Rol: Representa a los distintos roles que puede tener un usuario en el
+sistema.
+• Receta: Representa a las distintas recetas que podrán pedir los usuarios del
+sistema.
+• Bebida: Representa a las distintas bebidas que componen las recetas y que
+deben estar colocadas en una posición del robot
+• Estadística: Representa una asociación entre el usuario y la receta que
+representa las estadísticas sobre el número de veces que ha sido pedida esa
+receta por ese usuario. Dispone de un atributo “vecesServida” que guarda el
+número de veces que ha sido servida esa receta para ese usuario.
+• Porcentaje: Representa una asociación entre una receta y sus bebidas
+indicando el porcentaje de cada bebida que compone la receta. Dispone de
+5
+
+Anexo III: Análisis de requisitos.
+
+•
+
+un atributo “porcentaje” que guarda el porcentaje de una bebida en una
+receta.
+Posición robot: Representa una posición (dispensador) del robot.
+
+Finalmente, en cuanto a las relaciones, podemos decir que:
+•
+•
+•
+•
+
+Un usuario puede disponer de varios roles y cada rol puede pertenecer a
+varios usuarios (o a ninguno).
+Un usuario puede pedir varias recetas y cada receta puede ser pedida por
+varios usuarios.
+Una receta contiene una o varias bebidas y una bebida puede pertenecer a
+varias recetas (o ninguna).
+Cada posición del robot dispone de 1 única bebida (o ninguna) y cada bebida
+puede estar en 1 o varias posiciones.
+
+6
+
+Anexo III: Análisis de requisitos.
+
+3 VISTA DE INTERACCIÓN
+Este apartado está centrado únicamente a las interacciones que ocurren en el
+sistema. Una interacción entre dos elementos que pueden conectarse no es más que
+un intercambio de información mediante el uso de mensajes.
+
+3.1 REALIZACIÓN DE CASOS DE USO
+Para mostrar dichas interacciones entre los distintos elementos del sistema se hará
+a través de los diagramas de secuencia asociados a cada caso de uso especificado
+en el anterior documento (“Anexo II: Especificación de requisitos software “).
+Para ello, se dividirán los diagramas de secuencia en paquetes al igual que los casos
+de uso.
+
+3.1.1 PAQUETE GESTIÓN DE USUARIOS
+UC-001
+
+Registro
+
+Ilustración 2. Diagrama de secuencia UC-001
+
+7
+
+Anexo III: Análisis de requisitos.
+
+UC-002
+
+Confirmar registro
+
+Ilustración 3. Diagrama de secuencia UC-002
+
+UC-003
+
+Login
+
+Ilustración 4. Diagrama de secuencia UC-003
+
+8
+
+Anexo III: Análisis de requisitos.
+
+UC-004
+
+Restablecer contraseña
+
+Ilustración 5. Diagrama de secuencia UC-004
+
+UC-005
+
+Enviar código de confirmación
+
+Ilustración 6. Diagrama de secuencia UC-005
+
+9
+
+Anexo III: Análisis de requisitos.
+
+UC-006
+
+Enviar nueva contraseña
+
+Ilustración 7. Diagrama de secuencia UC-006.
+
+10
+
+Anexo III: Análisis de requisitos.
+
+UC-007
+
+Modificar información perfil
+
+Ilustración 8. Diagrama de secuencia UC-007
+
+UC-008
+
+Logout
+
+Ilustración 9. Diagrama de secuencia UC-008
+
+11
+
+Anexo III: Análisis de requisitos.
+
+UC-009
+
+Consultar información perfil
+
+Ilustración 10. Diagrama de secuencia UC-009
+
+UC-010
+
+Consultar estadísticas personales
+
+Ilustración 11. Diagrama de secuencia UC-010
+
+12
+
+Anexo III: Análisis de requisitos.
+
+UC-011
+
+Eliminar cuenta
+
+Ilustración 12. Diagrama de secuencia UC-011
+
+UC-012
+
+Cambiar configuración panel de control
+
+Ilustración 13. Diagrama de secuencia UC-012
+
+13
+
+Anexo III: Análisis de requisitos.
+
+UC-013
+
+Consultar estadísticas generales
+
+Ilustración 14. Diagrama de secuencia UC-013
+
+UC-014
+
+Calcular estadísticas generales
+
+Ilustración 15. Diagrama de secuencia UC-014
+
+14
+
+Anexo III: Análisis de requisitos.
+
+3.1.2 PAQUETE GESTIÓN DE BEBIDAS
+UC-015
+
+Añadir bebida
+
+Ilustración 16. Diagrama de secuencia UC-015
+
+UC-016
+
+Modificar bebida
+
+Ilustración 17. Diagrama de secuencia UC-016
+
+15
+
+Anexo III: Análisis de requisitos.
+
+UC-017
+
+Eliminar bebida
+
+Ilustración 18. Diagrama de secuencia UC-017
+
+UC-018
+
+Activar bebida
+
+Ilustración 19. Diagrama de secuencia UC-018.
+
+16
+
+Anexo III: Análisis de requisitos.
+
+UC-019
+
+Activar bebida a posición del robot
+
+Ilustración 20. Diagrama de secuencia UC-019
+
+UC-020
+
+Consultar bebidas
+
+Ilustración 21. Diagrama de secuencia UC-020
+
+17
+
+Anexo III: Análisis de requisitos.
+
+UC-021
+
+Buscar bebidas
+
+Ilustración 22. Diagrama de secuencia UC-021
+
+UC-022
+
+Consultar bebidas posiciones robot
+
+Ilustración 23. Diagrama de secuencia UC-022
+
+18
+
+Anexo III: Análisis de requisitos.
+
+3.1.3 PAQUETE GESTIÓN DE RECETAS
+
+UC-023
+
+Añadir receta
+
+Ilustración 24. Diagrama de secuencia UC-023
+
+19
+
+Anexo III: Análisis de requisitos.
+
+UC-024
+
+Asignar bebidas a receta
+
+Ilustración 25. Diagrama de secuencia UC-024.
+
+20
+
+Anexo III: Análisis de requisitos.
+
+UC-025
+
+Asignar porcentajes a receta
+
+Ilustración 26. Diagrama de secuencia UC-025
+
+21
+
+Anexo III: Análisis de requisitos.
+
+UC-026
+
+Modificar receta
+
+Ilustración 27. Diagrama de secuencia UC-026
+
+UC-027
+
+Eliminar receta
+
+Ilustración 28. Diagrama de secuencia UC-027
+
+22
+
+Anexo III: Análisis de requisitos.
+
+UC-028
+
+Eliminar receta
+
+Ilustración 29. Diagrama de secuencia UC-028
+
+UC-029
+
+Comprobar bebidas activas
+
+Ilustración 30. Diagrama de secuencia UC-029
+
+23
+
+Anexo III: Análisis de requisitos.
+
+UC-030
+
+Consultar recetas
+
+Ilustración 31. Diagrama de secuencia UC-030
+
+UC-031
+
+Buscar recetas
+
+Ilustración 32. Diagrama de secuencia UC-031
+
+24
+
+Anexo III: Análisis de requisitos.
+
+UC-032
+
+Consultar bebidas en receta
+
+Ilustración 33. Diagrama de secuencia UC-032
+
+UC-033
+
+Consultar porcentajes en receta
+
+Ilustración 34. Diagrama de secuencia UC-033
+
+25
+
+Anexo III: Análisis de requisitos.
+
+UC-034
+
+Preparar receta
+
+Ilustración 35. Diagrama de secuencia UC-034
+
+26
+
+Anexo III: Análisis de requisitos.
+
+3.1.4 PAQUETE GESTIÓN DE ROBOT
+UC-035
+
+Activar robot
+
+Ilustración 36. Diagrama de secuencia UC-035
+
+UC-036
+
+Parar robot
+
+Ilustración 37. Diagrama de secuencia UC-036
+
+27
+
+Anexo III: Análisis de requisitos.
+
+UC-037
+
+Gestionar estado robot
+
+Ilustración 38. Diagrama de secuencia UC-037
+
+UC-038
+
+Gestionar movimiento robot
+
+Ilustración 39. Diagrama de secuencia UC-038
+
+28
+
+Anexo III: Análisis de requisitos.
+
+UC-039
+
+Cálculo posiciones de las bebidas/dispensadores
+
+Ilustración 40. Diagrama de secuencia UC-039
+
+UC-040
+
+Gestión luces de aviso
+
+Ilustración 41. Diagrama de secuencia UC-040
+
+29
+
+Anexo III: Análisis de requisitos.
+
+UC-041
+
+Control manual del robot
+
+Ilustración 42. Diagrama de secuencia UC-041
+
+3.2 CLASES DE ANÁLISIS
+Una vez se han diseñado los diagramas de secuencia mostrando el paso de
+mensajes entre distintos los distintos elementos del sistema para llevar a cabo los
+requisitos planteados, se pasa a explicar los diagramas de comunicación, también
+divididos por paquetes, donde se puede observar la comunicación entre los distintos
+componentes (interfaces, controladores y datos) del sistema planteados en los
+diagramas de secuencia.
+En el caso de que una clase de análisis ya sea interfaz, controlador o datos, aparezca
+en varios paquetes significa que dichos paquetes están relacionados. Por ejemplo, se
+puede comprobar que la clase “Controlador de bebidas” aparece en los paquetes
+“Gestión de bebidas” y “Gestión de recetas”, relacionando ambos paquetes.
+Estos diagramas de comunicación se presentan en las siguientes ilustraciones:
+
+30
+
+Anexo III: Análisis de requisitos.
+
+Ilustración 43. Diagrama comunicación Gestión de Usuarios
+
+Ilustración 44. Diagrama comunicación Gestión de bebidas.
+
+31
+
+Anexo III: Análisis de requisitos.
+
+Ilustración 45. Diagrama de comunicación Gestión de Recetas
+
+Ilustración 46. Diagrama de comunicación Gestión del Robot
+
+32
+
+Anexo III: Análisis de requisitos.
+
+4 VISTA ARQUITECTÓNICA
+La vista arquitectónica del sistema permite situar cada clase de análisis distribuida
+en el apartado anterior dentro del patrón arquitectónico “MVC: Modelo-VistaControlador”.
+
+Ilustración 47. Vista arquitectónica del sistema.
+
+33
+
+Anexo III: Análisis de requisitos.
+
+5 REFERENCIAS
+•
+•
+•
+•
+
+Rumbaugh, J., Jacobson, I., Booch, G. “El Lenguaje Unificado de Modelado.
+Manual de Referencia”. 2ª ed., Addison-Wesley. 2007
+Pressman, R. S. “Ingeniería del Software: Un Enfoque Práctico”. 7ª Edición.
+McGraw-Hill. 2010.
+Tuya, J., Ramos, I. y Dolado, J. (eds.) Técnicas Cuantitativas para la Gestión
+de Proyectos, Netbiblo, 2007.
+Documentación DrawIO (visitado el 20-05-2022)
+o https://drawio-app.com/tutorials/
+
+34
+
+

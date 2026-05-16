@@ -7,10 +7,10 @@ Project starts 2025-12-29
 
 [Diseno tecnico avanzado] lasts 9 days
 [Diseno tecnico avanzado] starts at [Iteracion 2 - Fase Elaboracion]'s start
-[T16: Diseno del smart contract Solidity] lasts 3 days
-[T16: Diseno del smart contract Solidity] starts at [Diseno tecnico avanzado]'s start
+[T16: Diseno del DocumentRegistry Solidity] lasts 3 days
+[T16: Diseno del DocumentRegistry Solidity] starts at [Diseno tecnico avanzado]'s start
 [T17: Diseno del cifrado hibrido de documentos] lasts 3 days
-[T17: Diseno del cifrado hibrido de documentos] starts at [T16: Diseno del smart contract Solidity]'s end
+[T17: Diseno del cifrado hibrido de documentos] starts at [T16: Diseno del DocumentRegistry Solidity]'s end
 [T18: Elaboracion de diagramas UML] lasts 3 days
 [T18: Elaboracion de diagramas UML] starts at [T17: Diseno del cifrado hibrido de documentos]'s end
 

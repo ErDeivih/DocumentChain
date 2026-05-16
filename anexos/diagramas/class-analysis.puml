@@ -1,5 +1,6 @@
 ﻿@startuml
 !include _structure-style.puml
+title Analisis de clases de dominio
 skinparam classAttributeIconSize 0
 
 class User {

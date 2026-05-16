@@ -1,15 +1,29 @@
+/**
+ * @fileoverview API de autenticación para el frontend.
+ *
+ * Gestiona el registro, inicio de sesión, cierre de sesión,
+ * refresco de tokens y recuperación de contraseñas.
+ */
+
 import { api } from '../lib/api';
 import type { AuthResponse, LoginRequest, LoginResponse, RegisterRequest, User } from '../types';
 
 /**
- * Auth API - Traditional authentication only
- * Users login/register with username/email and password
- * Wallets are ONLY for signing blockchain transactions, NOT for authentication
+ * API de autenticación — Solo autenticación tradicional.
+ *
+ * Los usuarios inician sesión con nombre de usuario/correo y contraseña.
+ * Las wallets se utilizan ÚNICAMENTE para firmar transacciones blockchain,
+ * NUNCA para autenticación.
  */
 export const authApi = {
   /**
-   * Register a new user
-   * Backend generates RSA keypair and encrypts private key with password
+   * Registra un nuevo usuario.
+   *
+   * El backend genera un par de claves RSA y cifra la clave privada
+   * con la contraseña proporcionada.
+   *
+   * @param data - Datos de registro.
+   * @returns Respuesta de autenticación con tokens.
    */
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/register', data);
@@ -17,7 +31,9 @@ export const authApi = {
   },
 
   /**
-   * Login with username and password
+   * Inicia sesión con nombre de usuario y contraseña.
+   * @param data - Credenciales de inicio de sesión.
+   * @returns Respuesta de autenticación.
    */
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     const response = await api.post<LoginResponse>('/auth/login', data);
@@ -25,22 +41,18 @@ export const authApi = {
   },
 
   /**
-   * Complete login after 2FA challenge
-   */
-  verifyTwoFactor: async (tempToken: string, token: string): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/2fa/verify', { tempToken, token });
-    return response.data;
-  },
-
-  /**
-   * Logout user
+   * Cierra la sesión del usuario.
+   * @param refreshToken - Token de refresco a invalidar.
+   * @returns Promesa vacía.
    */
   logout: async (refreshToken: string): Promise<void> => {
     await api.post('/auth/logout', { refreshToken });
   },
 
   /**
-   * Refresh access token
+   * Refresca el token de acceso.
+   * @param refreshToken - Token de refresco válido.
+   * @returns Nuevo token de acceso y tiempo de expiración.
    */
   refresh: async (refreshToken: string): Promise<{ accessToken: string; expiresIn: number }> => {
     const response = await api.post<{ accessToken: string; expiresIn: number }>('/auth/refresh', { refreshToken });
@@ -48,7 +60,8 @@ export const authApi = {
   },
 
   /**
-   * Get current user info
+   * Obtiene la información del usuario autenticado.
+   * @returns Datos del usuario actual.
    */
   getMe: async (): Promise<{ user: User }> => {
     const response = await api.get<{ user: User }>('/auth/me');
@@ -56,7 +69,10 @@ export const authApi = {
   },
 
   /**
-   * Change password
+   * Cambia la contraseña del usuario.
+   * @param currentPassword - Contraseña actual.
+   * @param newPassword - Nueva contraseña.
+   * @returns Promesa vacía.
    */
   changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
     await api.post('/auth/change-password', {
@@ -66,7 +82,9 @@ export const authApi = {
   },
 
   /**
-   * Request a password reset email
+   * Solicita un correo de recuperación de contraseña.
+   * @param email - Correo electrónico del usuario.
+   * @returns Mensaje de confirmación.
    */
   forgotPassword: async (email: string): Promise<{ message: string }> => {
     const response = await api.post<{ message: string }>('/auth/forgot-password', { email });
@@ -74,7 +92,9 @@ export const authApi = {
   },
 
   /**
-   * Reset password with recovery key
+   * Restablece la contraseña mediante token de recuperación.
+   * @param data - Token, clave de recuperación y nueva contraseña.
+   * @returns Mensaje de confirmación.
    */
   resetPassword: async (data: { token: string; recoveryKey: string; newPassword: string }): Promise<{ message: string }> => {
     const response = await api.post<{ message: string }>('/auth/reset-password', data);
@@ -82,12 +102,19 @@ export const authApi = {
   }
 };
 
-// Aliases for backward compatibility
+// Alias para compatibilidad hacia atrás
+
+/** Alias de {@link authApi.register}. */
 export const register = authApi.register;
+/** Alias de {@link authApi.login}. */
 export const login = authApi.login;
-export const verifyTwoFactor = authApi.verifyTwoFactor;
+/** Alias de {@link authApi.logout}. */
 export const logout = authApi.logout;
+/** Alias de {@link authApi.getMe}. */
 export const getMe = authApi.getMe;
+/** Alias de {@link authApi.changePassword}. */
 export const changePassword = authApi.changePassword;
+/** Alias de {@link authApi.forgotPassword}. */
 export const forgotPassword = authApi.forgotPassword;
+/** Alias de {@link authApi.resetPassword}. */
 export const resetPassword = authApi.resetPassword;

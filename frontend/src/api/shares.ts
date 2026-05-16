@@ -6,53 +6,96 @@ const retryOn429Config: RetryableRequestConfig = {
   retryOn429MaxAttempts: 2,
 };
 
-// Types for prepare/confirm pattern (Backend Encryption Architecture)
+// Tipos para el patrón prepare/confirm (Arquitectura de Cifrado Backend)
+
+/**
+ * Datos de entrada para preparar un compartido.
+ */
 export interface PrepareShareInput {
+  /** Identificador del documento. */
   documentId: string;
+  /** Identificador del usuario con quien se comparte. */
   sharedWithUserId: string;
+  /** Rol asignado al destinatario. */
   role: DocumentRole;
+  /** Identificador de la wallet del compartidor. */
   sharerWalletId: string;
-  decryptedSymmetricKey: string;  // Symmetric key decrypted by frontend (sent over HTTPS, backend re-encrypts)
+  /** Clave simétrica descifrada por el frontend (se envía por HTTPS, el backend re-cifra). */
+  decryptedSymmetricKey: string;
 }
 
+/**
+ * Respuesta de la preparación de un compartido.
+ */
 export interface PrepareShareResponse {
-  blockchainId: string;     // bytes32 for blockchain
-  sharedWithAddress: string;  // Recipient's wallet address
-  shareId: string;          // UUID of share in DB
+  /** Identificador bytes32 para blockchain. */
+  blockchainId: string;
+  /** Dirección de la wallet del destinatario. */
+  sharedWithAddress: string;
+  /** UUID del compartido en base de datos. */
+  shareId: string;
 }
 
+/**
+ * Datos de entrada para confirmar un compartido.
+ */
 export interface ConfirmShareInput {
+  /** UUID del compartido. */
   shareId: string;
+  /** Hash de la transacción blockchain. */
   txHash: string;
 }
 
+/**
+ * Datos de entrada para preparar la revocación de un compartido.
+ */
 export interface PrepareRevokeShareInput {
+  /** Identificador del documento. */
   documentId: string;
+  /** Identificador del usuario destinatario. */
   userId: string;
+  /** Identificador de la wallet del compartidor. */
   sharerWalletId: string;
 }
 
+/**
+ * Respuesta de la preparación de revocación de un compartido.
+ */
 export interface PrepareRevokeShareResponse {
+  /** UUID del compartido. */
   shareId: string;
+  /** Identificador bytes32 para blockchain. */
   blockchainId: string;
+  /** Dirección de la wallet del destinatario. */
   sharedWithAddress: string;
 }
 
+/**
+ * Datos de entrada para confirmar la revocación de un compartido.
+ */
 export interface ConfirmRevokeShareInput {
+  /** UUID del compartido. */
   shareId: string;
+  /** Hash de la transacción blockchain. */
   txHash: string;
 }
 
+/** API de compartidos de documentos. */
 export const sharesApi = {
-  // ==================== NEW PREPARE/CONFIRM PATTERN ====================
+  // ==================== NUEVO PATRÓN PREPARE/CONFIRM ====================
 
   /**
-   * Prepare a share for creation.
-   * 1. Frontend decrypts symmetric key with user's private key locally
-   * 2. Frontend sends decrypted key to backend (over HTTPS)
-   * 3. Backend re-encrypts symmetric key with recipient's public key
-   * 4. Backend creates DB record with PREPARING status
-   * 5. Returns data needed for blockchain transaction
+   * Prepara la creación de un compartido.
+   *
+   * Flujo:
+   * 1. El frontend descifra la clave simétrica con la clave privada del usuario localmente.
+   * 2. El frontend envía la clave descifrada al backend (sobre HTTPS).
+   * 3. El backend re-cifra la clave simétrica con la clave pública del destinatario.
+   * 4. El backend crea el registro en BD con estado PREPARING.
+   * 5. Devuelve los datos necesarios para la transacción blockchain.
+   *
+   * @param input - Datos de entrada para la preparación.
+   * @returns Datos preparados para la transacción blockchain.
    */
   prepareShare: async (input: PrepareShareInput): Promise<PrepareShareResponse> => {
     const response = await api.post<PrepareShareResponse>(
@@ -69,7 +112,9 @@ export const sharesApi = {
   },
 
   /**
-   * Confirm share creation after blockchain transaction.
+   * Confirma la creación de un compartido tras la transacción blockchain.
+   * @param input - Datos de confirmación.
+   * @returns Compartido creado.
    */
   confirmShare: async (input: ConfirmShareInput): Promise<{ share: Share }> => {
     const response = await api.post<{ share: Share }>(
@@ -81,7 +126,9 @@ export const sharesApi = {
   },
 
   /**
-   * Prepare a share for revocation.
+   * Prepara la revocación de un compartido.
+   * @param input - Datos de entrada para la preparación.
+   * @returns Datos preparados para la transacción blockchain.
    */
   prepareRevoke: async (input: PrepareRevokeShareInput): Promise<PrepareRevokeShareResponse> => {
     const response = await api.post<PrepareRevokeShareResponse>(
@@ -94,31 +141,57 @@ export const sharesApi = {
   },
 
   /**
-   * Confirm share revocation after blockchain transaction.
+   * Confirma la revocación de un compartido tras la transacción blockchain.
+   * @param input - Datos de confirmación.
+   * @returns Promesa vacía.
    */
   confirmRevoke: async (input: ConfirmRevokeShareInput): Promise<void> => {
     await api.post(`/shares/revoke/confirm`, input);
   },
 
+  /**
+   * Lista los compartidos de un documento.
+   * @param documentId - Identificador del documento.
+   * @returns Lista de compartidos.
+   */
   list: async (documentId: string): Promise<{ shares: Share[] }> => {
     const response = await api.get<{ shares: Share[] }>(`/documents/${documentId}/shares`);
     return response.data;
   },
 
+  /**
+   * Obtiene los documentos compartidos con el usuario actual.
+   * @param params - Parámetros de filtrado y paginación.
+   * @returns Documentos compartidos y metadatos de paginación.
+   */
   getSharedWithMe: async (params?: {
     page?: number;
-    limit?: number;    search?: string;
+    limit?: number;
+    search?: string;
     fileType?: string;
-    walletId?: string;  }): Promise<{ documents: any[]; total: number; page: number; totalPages: number }> => {
+    sharedBy?: string;
+    walletId?: string;
+  }): Promise<{ documents: any[]; total: number; page: number; totalPages: number }> => {
     const response = await api.get('/shares/with-me', { params });
     return response.data;
   },
 
+  /**
+   * Obtiene el rol del usuario actual sobre un documento.
+   * @param documentId - Identificador del documento.
+   * @returns Rol del usuario.
+   */
   getMyRole: async (documentId: string): Promise<{ role: DocumentRole }> => {
     const response = await api.get<{ role: DocumentRole }>(`/documents/${documentId}/my-role`);
     return response.data;
   },
 
+  /**
+   * Verifica si el usuario tiene un permiso específico sobre un documento.
+   * @param documentId - Identificador del documento.
+   * @param role - Rol a verificar.
+   * @returns Indica si el usuario tiene el permiso.
+   */
   checkPermission: async (documentId: string, role: DocumentRole): Promise<{ hasPermission: boolean }> => {
     const response = await api.get<{ hasPermission: boolean }>(
       `/documents/${documentId}/check-permission`,
@@ -126,10 +199,13 @@ export const sharesApi = {
     );
     return response.data;
   },
-
 };
 
-// Aliases for backward compatibility
+// Alias para compatibilidad hacia atrás
+
+/** Alias de {@link sharesApi.list}. */
 export const listShares = sharesApi.list;
+/** Alias de {@link sharesApi.getSharedWithMe}. */
 export const getSharedWithMe = sharesApi.getSharedWithMe;
+/** Alias de {@link sharesApi.getMyRole}. */
 export const getMyRole = sharesApi.getMyRole;

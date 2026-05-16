@@ -5,7 +5,7 @@ boundary "Detalle / Verificar firma" as ui
 control "Endpoints de firmas (/api/documents/:id/signatures/:sigId/verify)" as api
 control "SignatureService" as srv
 control "BlockchainService" as bc
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Solicita verificar una firma
 ui -> api: Pedir verificacion
@@ -24,4 +24,5 @@ end
 ui --> user: Resultado de verificacion disponible
 
 @enduml
+
 

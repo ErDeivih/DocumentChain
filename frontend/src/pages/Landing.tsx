@@ -3,6 +3,14 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Shield, FileText, Share2, Database, Lock } from 'lucide-react';
 
+/**
+ * Página de inicio pública (landing page) de la aplicación.
+ *
+ * Presenta la propuesta de valor del sistema, capacidades principales
+ * y enlaces de acceso a inicio de sesión, registro y verificación de documentos.
+ *
+ * @returns JSX.Element con la landing page.
+ */
 export const Landing: React.FC = () => {
     return (
         <div className="min-h-screen bg-transparent">
@@ -13,7 +21,7 @@ export const Landing: React.FC = () => {
                         <div className="rounded-lg bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] p-2 shadow-[0_0_24px_rgba(14,165,233,0.2)]">
                             <Lock className="w-5 h-5 text-white" />
                         </div>
-                        <span className="text-xl font-bold text-white">DocumentChain</span>
+                        <span className="text-xl font-bold text-black">DocumentChain</span>
                     </div>
                     <div className="flex items-center space-x-3">
                         <Link to="/login">
@@ -31,7 +39,7 @@ export const Landing: React.FC = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-center">
                             <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left lg:mx-0">
-                                <h1 data-testid="landing-hero-heading" className="text-4xl tracking-tight font-extrabold text-slate-900 sm:text-5xl md:text-6xl">
+                                <h1 data-testid="landing-hero-heading" className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
                                     <span className="block">Custodia verificable</span>
                                     <span className="block text-primary">de documentos distribuidos</span>
                                 </h1>
@@ -54,7 +62,8 @@ export const Landing: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
+                            {/* Ilustración visual del hero */}
+            <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
                                 <div className="relative mx-auto w-full rounded-[24px] border border-white/10 bg-card/85 shadow-strong backdrop-blur-xl lg:max-w-md">
                                     <div className="relative block w-full overflow-hidden rounded-[24px]">
                                         <div className="flex h-64 items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(45,212,191,0.14),_transparent_32%),linear-gradient(135deg,#0f172a_0%,#122131_50%,#0b1324_100%)]">

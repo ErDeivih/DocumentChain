@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
 
-// Contract ABI (consolidated DocumentRegistry)
+// ABI del contrato consolidado DocumentRegistry
 import DocumentRegistryABI from '../../../smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json';
 import { resolveDocumentRegistryAddress } from './contractAddress';
 
-// Environment variables for contract addresses
+// Variables de entorno para direcciones de contratos
 const {
   BLOCKCHAIN_RPC_URL,
   BLOCKCHAIN_PRIVATE_KEY,
@@ -13,10 +13,31 @@ const {
 
 const resolvedDocumentRegistryAddress = resolveDocumentRegistryAddress();
 
+function normalizePrivateKey(rawKey?: string): string | null {
+  if (!rawKey) {
+    return null;
+  }
+
+  const unquoted = rawKey.trim().replace(/^['"]|['"]$/g, '');
+  if (!unquoted) {
+    return null;
+  }
+
+  const withoutPrefix = unquoted.replace(/^0x/i, '');
+  return `0x${withoutPrefix}`;
+}
+
+const normalizedPrivateKey = normalizePrivateKey(BLOCKCHAIN_PRIVATE_KEY);
+
 const providerInstance = BLOCKCHAIN_RPC_URL
   ? new ethers.JsonRpcProvider(BLOCKCHAIN_RPC_URL)
   : null;
 
+/**
+ * Obtiene la instancia del proveedor JSON-RPC de Ethereum.
+ * @returns Proveedor activo.
+ * @throws Error si `BLOCKCHAIN_RPC_URL` no está configurado.
+ */
 function getProviderInstance(): ethers.JsonRpcProvider {
   if (!providerInstance) {
     throw new Error('BLOCKCHAIN_RPC_URL no está configurado en las variables de entorno');
@@ -25,8 +46,11 @@ function getProviderInstance(): ethers.JsonRpcProvider {
   return providerInstance;
 }
 
-// Create provider lazily so the API can still boot and expose health information
-// even when blockchain settings are temporarily missing.
+/**
+ * Proveedor de Ethereum con inicialización diferida (lazy).
+ * Permite que la API arranque y exponga información de salud incluso cuando
+ * la configuración de blockchain está temporalmente ausente.
+ */
 export const provider = new Proxy({} as ethers.JsonRpcProvider, {
   get(_target, prop, receiver) {
     const activeProvider = getProviderInstance();
@@ -35,20 +59,27 @@ export const provider = new Proxy({} as ethers.JsonRpcProvider, {
   },
 }) as ethers.JsonRpcProvider;
 
+/** Dirección resuelta del contrato DocumentRegistry. */
 export const DOCUMENT_REGISTRY_ADDRESS = resolvedDocumentRegistryAddress;
+
+/** Interfaz de ethers para el contrato DocumentRegistry. */
 export const documentRegistryInterface = new ethers.Interface(DocumentRegistryABI.abi);
 
-// Create signer (backend wallet for gas payments and admin operations)
-export const signer = BLOCKCHAIN_PRIVATE_KEY 
-  ? new ethers.Wallet(BLOCKCHAIN_PRIVATE_KEY, getProviderInstance())
+/**
+ * Firmante del backend (wallet para pagos de gas y operaciones administrativas).
+ * Es `null` si no se ha configurado `BLOCKCHAIN_PRIVATE_KEY`.
+ */
+export const signer = normalizedPrivateKey
+  ? new ethers.Wallet(normalizedPrivateKey, getProviderInstance())
   : null;
 
-// ADMIN_ROLE constant (should match the one from smart contract)
+/** Hash del rol ADMIN_ROLE (debe coincidir con el definido en el smart contract). */
 export const ADMIN_ROLE_HASH = ADMIN_ROLE || ethers.keccak256(ethers.toUtf8Bytes("ADMIN_ROLE"));
 
 /**
- * Get DocumentRegistry contract instance
- * This is the consolidated contract that handles all document operations
+ * Obtiene una instancia del contrato DocumentRegistry con el firmante del backend.
+ * @returns Instancia del contrato DocumentRegistry.
+ * @throws Error si no está configurada la dirección del contrato o la clave privada.
  */
 export function getDocumentRegistryContract() {
   if (!resolvedDocumentRegistryAddress) {
@@ -66,6 +97,11 @@ export function getDocumentRegistryContract() {
   );
 }
 
+/**
+ * Obtiene una instancia de solo lectura del contrato DocumentRegistry.
+ * @returns Instancia del contrato vinculada únicamente al proveedor.
+ * @throws Error si no está configurada la dirección del contrato.
+ */
 export function getDocumentRegistryReadContract() {
   if (!resolvedDocumentRegistryAddress) {
     throw new Error('CONTRACT_DOCUMENT_REGISTRY no configurada en variables de entorno');
@@ -79,8 +115,11 @@ export function getDocumentRegistryReadContract() {
 }
 
 /**
- * Get DocumentRegistry contract with a specific signer (user's wallet)
- * Used when we need to execute transactions on behalf of a user
+ * Obtiene el contrato DocumentRegistry con un firmante específico (wallet de usuario).
+ * Utilizado cuando se necesita ejecutar transacciones en nombre de un usuario.
+ * @param userSigner - Wallet de ethers del usuario.
+ * @returns Instancia del contrato vinculada al firmante proporcionado.
+ * @throws Error si no está configurada la dirección del contrato.
  */
 export function getDocumentRegistryContractWithSigner(userSigner: ethers.Wallet) {
   if (!resolvedDocumentRegistryAddress) {
@@ -95,8 +134,10 @@ export function getDocumentRegistryContractWithSigner(userSigner: ethers.Wallet)
 }
 
 /**
- * Get all contracts — now all functionality lives in DocumentRegistry
- * Returns the registry instance for every key to avoid breaking callers
+ * Obtiene todas las instancias de contratos.
+ * Dado que toda la funcionalidad reside ahora en DocumentRegistry,
+ * devuelve la misma instancia del registro para cada clave a fin de no romper consumidores anteriores.
+ * @returns Objeto con instancias del registro bajo distintas claves de compatibilidad.
  */
 export function getContracts() {
   const registry = getDocumentRegistryContract();
@@ -108,6 +149,11 @@ export function getContracts() {
   };
 }
 
+/**
+ * Obtiene las instancias de contratos utilizando un firmante específico de usuario.
+ * @param userSigner - Wallet de ethers del usuario.
+ * @returns Objeto con instancias del registro vinculadas al firmante proporcionado.
+ */
 export function getContractsWithSigner(userSigner: ethers.Wallet) {
   const registry = getDocumentRegistryContractWithSigner(userSigner);
   return {

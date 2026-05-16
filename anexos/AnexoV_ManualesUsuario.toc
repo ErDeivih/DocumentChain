@@ -1,69 +1,71 @@
 \babel@toc {spanish}{}\relax 
-\contentsline {section}{\numberline {1}Introducción}{6}{section.1}%
-\contentsline {section}{\numberline {2}Esquema de acceso al sistema}{6}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Recursos accesibles como Usuario}{6}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Recursos exclusivos de Administrador}{7}{subsection.2.2}%
-\contentsline {section}{\numberline {3}Manual de Usuario}{7}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Página pública de inicio}{7}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Primeros pasos}{8}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Crear una cuenta}{8}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Confirmar el correo electrónico}{11}{subsubsection.3.2.2}%
-\contentsline {subsubsection}{\numberline {3.2.3}Iniciar sesión}{13}{subsubsection.3.2.3}%
-\contentsline {subsubsection}{\numberline {3.2.4}Cerrar sesión}{14}{subsubsection.3.2.4}%
-\contentsline {subsubsection}{\numberline {3.2.5}Recuperar contraseña}{14}{subsubsection.3.2.5}%
-\contentsline {subsection}{\numberline {3.3}Vista principal de documentos}{16}{subsection.3.3}%
-\contentsline {subsubsection}{\numberline {3.3.1}Elementos principales}{16}{subsubsection.3.3.1}%
-\contentsline {subsection}{\numberline {3.4}Gestión de documentos}{17}{subsection.3.4}%
-\contentsline {subsubsection}{\numberline {3.4.1}Subir un documento}{17}{subsubsection.3.4.1}%
-\contentsline {subsubsection}{\numberline {3.4.2}Buscar documentos}{19}{subsubsection.3.4.2}%
-\contentsline {subsubsection}{\numberline {3.4.3}Ver detalles de un documento}{19}{subsubsection.3.4.3}%
-\contentsline {subsubsection}{\numberline {3.4.4}Descargar un documento}{20}{subsubsection.3.4.4}%
-\contentsline {subsubsection}{\numberline {3.4.5}Archivar un documento}{21}{subsubsection.3.4.5}%
-\contentsline {subsubsection}{\numberline {3.4.6}Eliminar un documento}{22}{subsubsection.3.4.6}%
-\contentsline {subsection}{\numberline {3.5}Gestión de versiones}{22}{subsection.3.5}%
-\contentsline {subsubsection}{\numberline {3.5.1}Crear una nueva versión}{22}{subsubsection.3.5.1}%
-\contentsline {subsubsection}{\numberline {3.5.2}Consultar el historial de versiones}{24}{subsubsection.3.5.2}%
-\contentsline {subsubsection}{\numberline {3.5.3}Restaurar una versión anterior}{24}{subsubsection.3.5.3}%
-\contentsline {subsection}{\numberline {3.6}Firmas digitales}{24}{subsection.3.6}%
-\contentsline {subsubsection}{\numberline {3.6.1}Firmar un documento}{24}{subsubsection.3.6.1}%
-\contentsline {subsubsection}{\numberline {3.6.2}Consultar los firmantes de una versión}{25}{subsubsection.3.6.2}%
-\contentsline {subsection}{\numberline {3.7}Compartir documentos}{26}{subsection.3.7}%
-\contentsline {subsubsection}{\numberline {3.7.1}Compartir con otro usuario}{26}{subsubsection.3.7.1}%
-\contentsline {subsubsection}{\numberline {3.7.2}Acceder a documentos compartidos contigo}{27}{subsubsection.3.7.2}%
-\contentsline {subsubsection}{\numberline {3.7.3}Revocar acceso}{28}{subsubsection.3.7.3}%
-\contentsline {subsubsection}{\numberline {3.7.4}Transferir propiedad}{29}{subsubsection.3.7.4}%
-\contentsline {subsection}{\numberline {3.8}Organización: Carpetas y clasificación}{30}{subsection.3.8}%
-\contentsline {subsubsection}{\numberline {3.8.1}Crear una carpeta}{30}{subsubsection.3.8.1}%
-\contentsline {subsubsection}{\numberline {3.8.2}Clasificar con categorías y etiquetas}{30}{subsubsection.3.8.2}%
-\contentsline {subsection}{\numberline {3.9}Timeline y auditoría}{31}{subsection.3.9}%
-\contentsline {subsubsection}{\numberline {3.9.1}Ver timeline de un documento}{31}{subsubsection.3.9.1}%
-\contentsline {subsection}{\numberline {3.10}Verificación documental y auditoría pública}{31}{subsection.3.10}%
-\contentsline {subsubsection}{\numberline {3.10.1}Verificar un documento desde la aplicación}{31}{subsubsection.3.10.1}%
-\contentsline {subsubsection}{\numberline {3.10.2}Consultar la auditoría pública}{32}{subsubsection.3.10.2}%
-\contentsline {subsubsection}{\numberline {3.10.3}Consultar un documento público mediante enlace}{33}{subsubsection.3.10.3}%
-\contentsline {subsection}{\numberline {3.11}Notificaciones}{34}{subsection.3.11}%
-\contentsline {subsubsection}{\numberline {3.11.1}Ver notificaciones}{34}{subsubsection.3.11.1}%
-\contentsline {subsubsection}{\numberline {3.11.2}Gestionar notificaciones}{34}{subsubsection.3.11.2}%
-\contentsline {subsubsection}{\numberline {3.11.3}Configurar preferencias de notificaciones}{36}{subsubsection.3.11.3}%
-\contentsline {subsection}{\numberline {3.12}Configuración de cuenta}{37}{subsection.3.12}%
-\contentsline {subsubsection}{\numberline {3.12.1}Editar información personal}{37}{subsubsection.3.12.1}%
-\contentsline {subsubsection}{\numberline {3.12.2}Usar la vista de perfil y la conexión guiada de wallet}{38}{subsubsection.3.12.2}%
-\contentsline {subsubsection}{\numberline {3.12.3}Gestionar wallets}{38}{subsubsection.3.12.3}%
-\contentsline {subsubsection}{\numberline {3.12.4}Cambiar contraseña}{39}{subsubsection.3.12.4}%
-\contentsline {subsubsection}{\numberline {3.12.5}Activar autenticación de dos factores (2FA)}{40}{subsubsection.3.12.5}%
-\contentsline {subsubsection}{\numberline {3.12.6}Regenerar códigos de respaldo o desactivar 2FA}{41}{subsubsection.3.12.6}%
-\contentsline {subsubsection}{\numberline {3.12.7}Privacidad, exportación y suspensión temporal}{41}{subsubsection.3.12.7}%
-\contentsline {subsubsection}{\numberline {3.12.8}Reactivar una cuenta suspendida}{42}{subsubsection.3.12.8}%
-\contentsline {section}{\numberline {4}Manual de Administrador}{42}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Acceso al panel de administración}{42}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Gestión de usuarios}{43}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Ver lista de usuarios}{43}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}Crear un nuevo administrador}{44}{subsubsection.4.2.2}%
-\contentsline {subsubsection}{\numberline {4.2.3}Inspeccionar el detalle de un usuario}{44}{subsubsection.4.2.3}%
-\contentsline {subsubsection}{\numberline {4.2.4}Cambiar rol de un usuario}{44}{subsubsection.4.2.4}%
-\contentsline {subsubsection}{\numberline {4.2.5}Eliminar una cuenta}{45}{subsubsection.4.2.5}%
-\contentsline {subsection}{\numberline {4.3}Estadísticas del sistema}{45}{subsection.4.3}%
-\contentsline {subsubsection}{\numberline {4.3.1}Revisar la actividad reciente}{46}{subsubsection.4.3.1}%
-\contentsline {subsection}{\numberline {4.4}Auditoría blockchain}{46}{subsection.4.4}%
-\contentsline {subsubsection}{\numberline {4.4.1}Ver logs del sistema}{47}{subsubsection.4.4.1}%
-\contentsline {section}{Bibliografía}{48}{section*.4}%
+\contentsline {section}{\numberline {1}Introducción}{7}{section.1}%
+\contentsline {section}{\numberline {2}Esquema de acceso al sistema}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Recursos accesibles como Usuario}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Recursos exclusivos de Administrador}{8}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Manual de Usuario}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Página pública de inicio}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Adaptación a dispositivos móviles}{11}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Primeros pasos}{11}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Crear una cuenta}{11}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Confirmar el correo electrónico}{16}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Iniciar sesión}{18}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Cerrar sesión}{19}{subsubsection.3.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.5}Recuperar contraseña}{19}{subsubsection.3.3.5}%
+\contentsline {subsection}{\numberline {3.4}Vista principal de documentos}{21}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Elementos principales}{22}{subsubsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.5}Gestión de documentos}{23}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Subir un documento}{23}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Buscar documentos}{27}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}Ver detalles de un documento}{27}{subsubsection.3.5.3}%
+\contentsline {subsubsection}{\numberline {3.5.4}Descargar un documento}{29}{subsubsection.3.5.4}%
+\contentsline {subsubsection}{\numberline {3.5.5}Archivar un documento}{30}{subsubsection.3.5.5}%
+\contentsline {subsubsection}{\numberline {3.5.6}Eliminar un documento}{30}{subsubsection.3.5.6}%
+\contentsline {subsection}{\numberline {3.6}Gestión de versiones}{31}{subsection.3.6}%
+\contentsline {subsubsection}{\numberline {3.6.1}Crear una nueva versión}{31}{subsubsection.3.6.1}%
+\contentsline {subsubsection}{\numberline {3.6.2}Consultar el historial de versiones}{32}{subsubsection.3.6.2}%
+\contentsline {subsubsection}{\numberline {3.6.3}Restaurar una versión anterior}{32}{subsubsection.3.6.3}%
+\contentsline {subsection}{\numberline {3.7}Firmas digitales}{32}{subsection.3.7}%
+\contentsline {subsubsection}{\numberline {3.7.1}Firmar un documento}{32}{subsubsection.3.7.1}%
+\contentsline {subsubsection}{\numberline {3.7.2}Consultar los firmantes de una versión}{33}{subsubsection.3.7.2}%
+\contentsline {subsection}{\numberline {3.8}Compartir documentos}{34}{subsection.3.8}%
+\contentsline {subsubsection}{\numberline {3.8.1}Compartir con otro usuario}{34}{subsubsection.3.8.1}%
+\contentsline {subsubsection}{\numberline {3.8.2}Acceder a documentos compartidos contigo}{36}{subsubsection.3.8.2}%
+\contentsline {subsubsection}{\numberline {3.8.3}Revocar acceso}{37}{subsubsection.3.8.3}%
+\contentsline {subsubsection}{\numberline {3.8.4}Transferir propiedad}{38}{subsubsection.3.8.4}%
+\contentsline {subsection}{\numberline {3.9}Organización: Carpetas y clasificación}{39}{subsection.3.9}%
+\contentsline {subsubsection}{\numberline {3.9.1}Crear una carpeta}{39}{subsubsection.3.9.1}%
+\contentsline {subsubsection}{\numberline {3.9.2}Clasificar con etiquetas}{39}{subsubsection.3.9.2}%
+\contentsline {subsection}{\numberline {3.10}Timeline y auditoría}{40}{subsection.3.10}%
+\contentsline {subsubsection}{\numberline {3.10.1}Ver timeline de un documento}{40}{subsubsection.3.10.1}%
+\contentsline {subsection}{\numberline {3.11}Verificación documental y auditoría pública}{40}{subsection.3.11}%
+\contentsline {subsubsection}{\numberline {3.11.1}Verificar un documento desde la aplicación}{40}{subsubsection.3.11.1}%
+\contentsline {subsubsection}{\numberline {3.11.2}Consultar la auditoría pública}{42}{subsubsection.3.11.2}%
+\contentsline {subsubsection}{\numberline {3.11.3}Consultar un documento público mediante enlace}{43}{subsubsection.3.11.3}%
+\contentsline {subsection}{\numberline {3.12}Notificaciones}{44}{subsection.3.12}%
+\contentsline {subsubsection}{\numberline {3.12.1}Ver notificaciones}{44}{subsubsection.3.12.1}%
+\contentsline {subsubsection}{\numberline {3.12.2}Gestionar notificaciones}{45}{subsubsection.3.12.2}%
+\contentsline {subsubsection}{\numberline {3.12.3}Configurar preferencias de notificaciones}{46}{subsubsection.3.12.3}%
+\contentsline {subsection}{\numberline {3.13}Configuración de cuenta}{47}{subsection.3.13}%
+\contentsline {subsubsection}{\numberline {3.13.1}Editar información personal y avatar}{48}{subsubsection.3.13.1}%
+\contentsline {subsubsection}{\numberline {3.13.2}Usar la vista de perfil y la conexión guiada de wallet}{49}{subsubsection.3.13.2}%
+\contentsline {subsubsection}{\numberline {3.13.3}Gestionar wallets}{49}{subsubsection.3.13.3}%
+\contentsline {subsubsection}{\numberline {3.13.4}Cambiar contraseña}{50}{subsubsection.3.13.4}%
+\contentsline {subsubsection}{\numberline {3.13.5}Activar autenticación de dos factores (2FA)}{51}{subsubsection.3.13.5}%
+\contentsline {subsubsection}{\numberline {3.13.6}Regenerar códigos de respaldo o desactivar 2FA}{53}{subsubsection.3.13.6}%
+\contentsline {subsubsection}{\numberline {3.13.7}Seguridad, notificaciones y zona de peligro}{54}{subsubsection.3.13.7}%
+\contentsline {subsubsection}{\numberline {3.13.8}Reactivar una cuenta suspendida}{54}{subsubsection.3.13.8}%
+\contentsline {section}{\numberline {4}Manual de Administrador}{54}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Acceso al panel de administración}{54}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Gestión de usuarios}{56}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Ver lista de usuarios}{56}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Crear un nuevo administrador}{57}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Inspeccionar el detalle de un usuario}{57}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}Cambiar rol de un usuario}{57}{subsubsection.4.2.4}%
+\contentsline {subsubsection}{\numberline {4.2.5}Eliminar una cuenta}{58}{subsubsection.4.2.5}%
+\contentsline {subsection}{\numberline {4.3}Estadísticas del sistema}{58}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Revisar la actividad reciente}{59}{subsubsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.4}Auditoría blockchain}{59}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Ver logs del sistema}{61}{subsubsection.4.4.1}%
+\contentsline {section}{\numberline {5}Glosario}{62}{section.5}%
+\contentsline {section}{Bibliografía}{63}{section*.4}%

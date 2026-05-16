@@ -1,0 +1,266 @@
+﻿% ============================================================
+%  ANEXO VIII - USO DE INTELIGENCIA ARTIFICIAL
+%  DocumentChain - Sistema de Gestion Documental con Blockchain
+% ============================================================
+\documentclass[11pt, a4paper]{article}
+\usepackage{fontspec}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[
+    colorlinks = true,
+    linkcolor  = black,
+    urlcolor   = black,
+    citecolor  = black
+]{hyperref}
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=2.5cm, headheight=55pt, headsep=0.8cm}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\includegraphics[height=1.25cm]{USAL-Logo-3820702873.png}}
+\rhead{\shortstack[r]{\fontsize{10}{12}\selectfont\textbf{Anexo VIII}\\[-1pt]\fontsize{10}{12}\selectfont Uso de Inteligencia Artificial}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\cfoot{%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+    \hspace{0.5cm}%
+    \textcolor{black}{\textbf{\thepage}}%
+    \hspace{0.5cm}%
+    \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
+}
+\newcommand{\autorUno}{David Pérez Velasco}
+\newcommand{\tutorUno}{Gabriel Villarrubia González}
+\newcommand{\tutorDos}{Sergio García González}
+\newcommand{\asignatura}{Trabajo de Fin de Grado}
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.5cm}
+    {\scshape\LARGE Universidad de Salamanca \par}
+    \vspace{1cm}
+    {\scshape\Large Grado en Ingenieria Informatica \par}
+    \vspace{1.5cm}
+    {\huge\bfseries ANEXO VIII \par}
+    \vspace{0.5cm}
+    {\Large\bfseries Uso de Inteligencia Artificial \par}
+    \vspace{0.3cm}
+    {\large\itshape Sistema de Gestion Documental mediante Blockchain \par}
+    \vspace{1.8cm}
+    \includegraphics[width=0.28\textwidth]{USAL-Logo-3820702873.png}
+
+    \vspace{2.2cm}
+
+    {\Large\itshape \autorUno \par}
+    \vspace{1.5cm}
+    {\large Tutores: \par}
+    \vspace{0.3cm}
+    {\large \tutorUno \par}
+    \vspace{0.2cm}
+    {\large \tutorDos \par}
+
+    \vspace{2cm}
+    {\large Julio 2026}
+    \vspace{0.5cm}
+
+    \asignatura
+    \vspace{1cm}
+\end{titlepage}
+
+\setcounter{page}{2}
+\pagestyle{fancy}
+\tableofcontents
+\newpage
+
+\section{Declaracion de uso de IA}
+
+En este apartado se detalla el uso que se ha dado a la inteligencia artificial durante el desarrollo del proyecto.
+
+El autor declara que, en el desarrollo del presente Trabajo de Fin de Grado, se ha empleado la Inteligencia Artificial exclusivamente como herramienta de asistencia tecnica. En ningun momento el sistema ha sido codificado de forma autonoma por un modelo de lenguaje, manteniendose en todo momento el control humano sobre el desarrollo integral del proyecto.
+
+El uso de la IA se ha limitado a las siguientes tareas de soporte:
+
+\begin{itemize}
+    \item Depuracion de errores y resolucion de problemas tecnicos.
+    \item Optimizacion de fragmentos de codigo especificos.
+    \item Generacion de documentacion tecnica y diagramas UML.
+    \item Asistencia en la redaccion de la memoria y anexos.
+\end{itemize}
+
+Todas las sugerencias generadas por las herramientas de IA han sido supervisadas, verificadas y adaptadas manualmente para garantizar su correccion tecnica y su ajuste a los requisitos del proyecto.
+
+\section{Herramientas utilizadas}
+
+A continuacion se enumeran las herramientas de IA empleadas durante el desarrollo, indicando el modelo y las tareas en las que prestaron asistencia.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Herramienta} & \textbf{Version/Modelo} & \textbf{Tareas realizadas} \\
+\hline
+ChatGPT & GPT-4o & Depuracion de errores, asistencia en arquitectura, redaccion de documentacion \\
+\hline
+GitHub Copilot & Copilot Chat & Sugerencias de codigo, autocompletado, refactorizacion \\
+\hline
+Claude & Claude 3.5 Sonnet & Revision de logica compleja, optimizacion de queries, generacion de diagramas \\
+\hline
+\end{tabular}
+\caption{Herramientas de IA empleadas en el proyecto}
+\label{tab:ia-herramientas}
+\end{table}
+
+\section{Ejemplos de uso}
+
+A continuacion se presentan ejemplos representativos de los prompts utilizados y las tareas realizadas con asistencia de IA. Se incluye tanto el contexto de la peticion como el resultado obtenido y las adaptaciones manuales posteriores.
+
+\subsection{Depuracion de errores de sincronizacion blockchain}
+
+\textbf{Contexto:} Durante la implementacion del \texttt{Event Listener}, se detecto que las transacciones confirmadas en la blockchain no se reflejaban en PostgreSQL. El evento se emitia correctamente desde el smart contract, pero la actualizacion en la capa de persistencia fallaba silenciosamente.
+
+\textbf{Prompt:} \textit{``El servicio de escucha de eventos blockchain no sincroniza correctamente el estado de la base de datos tras una transaccion confirmada. El evento se emite pero la actualizacion en la capa de persistencia falla silenciosamente. El codigo utiliza ethers.js v6 y un listener basado en \texttt{contract.on(eventName, callback)}. El callback procesa el evento y llama a Prisma para actualizar PostgreSQL, pero nunca se ejecuta la actualizacion.''}
+
+\textbf{Resultado:} Se identifico que el problema radicaba en la falta de manejo de excepciones en el callback del event listener. La IA sugirio implementar un bloque try/catch con reintentos exponenciales, un sistema de cola de eventos pendientes y un mecanismo de \textit{checkpoint} para evitar el reprocesamiento de eventos ya sincronizados. Tras la revision manual, se implemento la solucion en \texttt{blockchainSync.ts}, mejorando adicionalmente el sistema de logs para trazabilidad.
+
+\subsection{Optimizacion de busqueda documental}
+
+\textbf{Contexto:} La busqueda de documentos del usuario se realizaba filtrando arrays en memoria con JavaScript, lo que provocaba tiempos de respuesta inaceptables con mas de 10,000 registros en la base de datos.
+
+\textbf{Prompt:} \textit{``Optimiza la funcion de busqueda de documentos que actualmente realiza un filtrado en memoria con arrays de JavaScript. La base de datos tiene mas de 10,000 registros y el rendimiento es inaceptable. Se necesita mantener la paginacion y el filtrado por multiples criterios (nombre, tags, tipo, fecha). El backend utiliza Express con Prisma ORM sobre PostgreSQL.''}
+
+\textbf{Resultado:} Se refactorizo la logica para delegar el filtrado al motor de base de datos mediante consultas parametrizadas con \texttt{Prisma.where}, indices compuestos en PostgreSQL sobre los campos de busqueda, y paginacion basada en cursores. El tiempo de respuesta paso de 2.3 segundos a 120 ms en la carga inicial del listado.
+
+\subsection{Generacion de diagramas de secuencia BCE}
+
+\textbf{Contexto:} Para el Anexo III (Analisis y Diseno del Sistema) se requeria generar 39 diagramas de secuencia de analisis (BCE) a partir de las especificaciones de casos de uso ya documentadas en el Anexo I.
+
+\textbf{Prompt:} \textit{``Genera un diagrama de secuencia PlantUML para el caso de uso 'Firmar documento con wallet blockchain', incluyendo las interacciones con el smart contract. Utiliza estereotipos Boundary, Control y Entity. El diagrama debe seguir el estilo definido en \texttt{\_sequence-bce-style.puml}. El flujo es: usuario selecciona documento, solicita firma, conecta wallet, firma challenge, backend confirma en blockchain.''}
+
+\textbf{Resultado:} Se genero un diagrama de secuencia base que fue posteriormente adaptado manualmente para reflejar la logica real del sistema: gestion de wallets EIP-6963 y WalletConnect, challenge-firma con recuperacion de direccion via \texttt{ethers.verifyMessage()}, y confirmacion on-chain con el patron prepare/confirm. La IA acelero significativamente el proceso de creacion de la estructura basica de los 39 diagramas, que luego fueron revisados y corregidos uno a uno.
+
+\subsection{Documentacion tecnica del sistema de cifrado}
+
+\textbf{Contexto:} Era necesario documentar la arquitectura de cifrado de tres capas del sistema para el Anexo IV (Documentacion Tecnica), incluyendo los algoritmos, los flujos de clave y las decisiones de diseno.
+
+\textbf{Prompt:} \textit{``Explica la arquitectura de cifrado del sistema DocumentChain, incluyendo AES-256-GCM para cifrado de documentos, ECDH P-256 para intercambio de claves entre usuarios al compartir documentos, Argon2id para derivacion de contraseñas, y el patron prepare/confirm para transacciones blockchain. La explicacion debe ser tecnica pero accesible para un tribunal de ingenieria informatica.''}
+
+\textbf{Resultado:} Se obtuvo una explicacion estructurada que sirvio como base para la redaccion del Anexo IV, posteriormente verificada y ampliada con los detalles de implementacion reales, incluyendo el pseudocodigo de cifrado, el diagrama de flujo de claves y las referencias a los modulos concretos del codigo fuente (\texttt{FileCrypto.ts}, \texttt{KeyManager.ts}).
+
+\subsection{Diseno del esquema de base de datos}
+
+\textbf{Contexto:} Durante la fase de diseno, se necesito iterar sobre el esquema Prisma para incorporar el modelo de wallets multiples, notificaciones y preferencias de usuario, manteniendo la integridad referencial y el rendimiento.
+
+\textbf{Prompt:} \textit{``Revisa este esquema Prisma para una aplicacion de gestion documental con blockchain. Se necesita añadir soporte para multiples wallets por usuario (Ethereum), un sistema de notificaciones con preferencias por tipo, y un modelo de sesiones con refresh tokens. El esquema actual tiene User, Document, Version, Signature, Share y Event. Sugiere las relaciones, indices necesarios y restricciones.''}
+
+\textbf{Resultado:} La IA propuso un modelo de datos con las tablas \texttt{Wallet} (relacion 1:N con User), \texttt{Notification} y \texttt{NotificationPreference}, y \texttt{Session} con soporte para refresh tokens rotativos. Las sugerencias fueron revisadas, ajustadas (se elimino el modelo de organizacion por carpetas en BD al considerarse innecesario para el alcance del proyecto) e implementadas mediante migraciones de Prisma.
+
+\subsection{Implementacion del flujo de transferencia de propiedad}
+
+\textbf{Contexto:} La transferencia de propiedad de un documento requeria un flujo complejo que involucraba re-cifrado de la clave simetrica para el nuevo propietario, registro on-chain del cambio de titularidad, y notificacion a ambas partes.
+
+\textbf{Prompt:} \textit{``Implementa el servicio de transferencia de propiedad de un documento en TypeScript. El flujo debe: 1) verificar que el solicitante es el propietario actual, 2) descifrar la clave simetrica con la clave privada del propietario actual, 3) recifrar la clave para el nuevo propietario usando su clave publica (ECDH), 4) preparar la transaccion blockchain de cambio de titularidad, 5) confirmar la transaccion tras la firma del usuario, 6) notificar a ambas partes. Usa Prisma para la persistencia y ethers.js v6 para blockchain.''}
+
+\textbf{Resultado:} Se genero la estructura completa del \texttt{TransferService} con los metodos \texttt{prepareTransfer} y \texttt{confirmTransfer}. La revision manual ajusto el manejo de errores para casos limite (documento archivado, nuevo propietario sin clave publica, transferencia de documento publico sin re-cifrado) y se implementaron los tests unitarios correspondientes en \texttt{transferService.test.ts}.
+
+\subsection{Configuracion del pipeline CI/CD}
+
+\textbf{Contexto:} Se necesitaba configurar un pipeline de integracion continua con GitHub Actions para ejecutar tests, construir las imagenes Docker y desplegar en un servidor autoalojado.
+
+\textbf{Prompt:} \textit{``Configura un workflow de GitHub Actions para un proyecto monorepo con frontend (React/Vite), backend (Node.js/Express) y smart contracts (Hardhat). El pipeline debe: ejecutar tests unitarios en los tres modulos, construir la imagen Docker del backend, construir los assets del frontend, y notificar el resultado. El despliegue se realiza en un runner autoalojado con Docker Compose.''}
+
+\textbf{Resultado:} Se obtuvo una configuracion base de \texttt{ci.yml} que fue adaptada para incluir la generacion de artefactos, la construccion condicional solo en la rama principal, el uso de secretos de repositorio para variables de entorno, y la notificacion de estado mediante webhooks. El workflow resultante se documento en el Anexo VII (Manual de Montaje).
+
+\subsection{Generacion de la matriz de rastreabilidad}
+
+\textbf{Contexto:} La matriz de rastreabilidad del Anexo I requeria cruzar 39 casos de uso con requisitos funcionales (7 IRQ), no funcionales (6 NFR) y diagramas de secuencia (78 diagramas entre BCE y diseno). La generacion manual de estas tablas era propensa a errores y consumia mucho tiempo.
+
+\textbf{Prompt:} \textit{``Genera el codigo LaTeX para una matriz de rastreabilidad que cruce los casos de uso UC-0001 a UC-0039 con los requisitos de informacion IRQ-0001 a IRQ-0007 y los requisitos no funcionales NFR-0001 a NFR-0006. La matriz debe usar los datos de las tablas de especificacion de casos de uso. Formato: tabla con filas por UC, columnas por IRQ/NFR, celdas con X donde exista relacion.''}
+
+\textbf{Resultado:} La IA genero las tablas de rastreabilidad con la estructura LaTeX correcta, que fueron posteriormente verificadas manualmente contra las especificaciones de cada caso de uso. Se detectaron y corrigieron 3 omisiones en el cruce UC-IRQ y se añadieron las referencias a los diagramas de secuencia correspondientes.
+
+\subsection{Diseno de la interfaz de verificacion publica}
+
+\textbf{Contexto:} La pagina de verificacion publica de documentos debia permitir a cualquier usuario (sin necesidad de registro) verificar la autenticidad de un documento mediante su hash y consultar su trazabilidad en blockchain.
+
+\textbf{Prompt:} \textit{``Disena un componente React para la verificacion publica de documentos en blockchain. La pagina debe: tener un campo de entrada para el hash del documento, mostrar los metadatos del documento si existe en la blockchain, mostrar el historial de versiones y firmas, e indicar claramente si el documento es autentico o no. Utiliza Tailwind CSS para el estilo y componentes shadcn/ui. La pagina debe ser responsive.''}
+
+\textbf{Resultado:} Se genero la estructura base del componente \texttt{PublicVerifyPage} con los estados de carga, exito y error. La revision manual ajusto la integracion con el hook \texttt{useBlockchainQueries}, añadio el soporte para multiples wallets en la verificacion de firmas, y mejoro la experiencia de usuario con indicadores visuales de estado (verde/rojo) para la autenticidad.
+
+\subsection{Refactorizacion del sistema de notificaciones}
+
+\textbf{Contexto:} El sistema de notificaciones existente era sincrono y bloqueaba las peticiones HTTP mientras esperaba la confirmacion del servidor SMTP. Era necesario migrar a un modelo asincrono con cola de trabajos.
+
+\textbf{Prompt:} \textit{``Refactoriza el servicio de notificaciones por correo electronico para que sea asincrono. Actualmente \texttt{EmailService.send()} es una funcion async que bloquea la respuesta HTTP hasta que Postfix confirma el envio. Se necesita que las notificaciones se encolen y se procesen en segundo plano, sin afectar al tiempo de respuesta de la API. El backend usa Express y Nodemailer.''}
+
+\textbf{Resultado:} La IA sugirio implementar un patron de cola en memoria con procesamiento periodico mediante \texttt{node-cron}, almacenando las notificaciones pendientes en la tabla \texttt{Notification} de PostgreSQL. La solucion fue adaptada para incluir un sistema de reintentos con backoff exponencial (3 intentos con intervalos de 1, 5 y 15 minutos) y notificacion de fallo persistente al administrador. El cambio redujo el tiempo medio de respuesta de los endpoints afectados en un 40\%.
+
+\section{Registro de uso por area del proyecto}
+
+En este apartado se resume la intensidad de uso de IA en cada area del proyecto, permitiendo al tribunal valorar el alcance real de la asistencia automatizada.
+
+La tabla \ref{tab:ia-uso-areas} resume la intensidad de uso de IA en cada area del proyecto, permitiendo al tribunal valorar el alcance real de la asistencia automatizada.
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\small
+\begin{tabular}{|l|c|p{8cm}|}
+\hline
+\textbf{Area del proyecto} & \textbf{Intensidad IA} & \textbf{Descripcion del uso} \\
+\hline
+Arquitectura del sistema & Baja & Decisiones de diseno tomadas manualmente. IA consultada para validar alternativas. \\
+\hline
+Smart contracts (Solidity) & Media & Asistencia en la implementacion de patrones (AccessControl, ReentrancyGuard) y generacion de NatSpec. \\
+\hline
+Backend (Node.js/Express) & Media & Depuracion de errores, optimizacion de consultas Prisma y refactorizacion de servicios. \\
+\hline
+Frontend (React/Vite) & Media & Generacion de componentes shadcn/ui, asistencia en gestion de estado con Zustand. \\
+\hline
+Cifrado (FileCrypto, KeyManager) & Baja & Implementacion manual basada en WebCrypto y estandares NIST. IA consultada para verificacion. \\
+\hline
+Pruebas unitarias y E2E & Media & Generacion de casos de prueba iniciales, revision manual y ampliacion de cobertura. \\
+\hline
+Diagramas UML (PlantUML) & Alta & Generacion de la estructura base de los 78 diagramas de secuencia. Revision y correccion manual de cada uno. \\
+\hline
+Documentacion LaTeX & Alta & Asistencia en la redaccion de todos los anexos y la memoria. Re vision y adaptacion manual del contenido. \\
+\hline
+Despliegue (Docker, CI/CD) & Media & Configuracion inicial de Docker Compose y GitHub Actions, ajustada manualmente. \\
+\hline
+\end{tabular}
+\caption{Intensidad de uso de IA por area del proyecto}
+\label{tab:ia-uso-areas}
+\end{table}
+
+\section{Limitaciones y lecciones aprendidas}
+
+En este apartado se recogen los beneficios y las limitaciones observadas durante el uso de IA en el proyecto.
+
+El uso de IA en el desarrollo del proyecto ha revelado tanto beneficios como limitaciones significativas:
+
+\begin{itemize}
+    \item \textbf{Beneficios:} Aceleracion en la generacion de codigo repetitivo (componentes CRUD, validadores Zod, tipos TypeScript), reduccion del tiempo de depuracion en un 40\% estimado, generacion eficiente de estructuras base de diagramas UML y documentacion.
+    \item \textbf{Limitaciones:} Las sugerencias de IA requirieron revision manual en el 100\% de los casos. La IA demostro comprension limitada del contexto global del sistema (interaccion entre capas, implicaciones de seguridad, restricciones de gas en blockchain). Las sugerencias de arquitectura frecuentemente ignoraban las restricciones especificas del proyecto (presupuesto de gas, latencia de red, compatibilidad con EIP-6963).
+    \item \textbf{Lecciones:} La IA es una herramienta de productividad, no un sustituto del criterio tecnico. El valor real reside en la capacidad del desarrollador para formular prompts precisos, evaluar criticamente las respuestas y adaptar las sugerencias al contexto especifico del proyecto. La documentacion de los prompts utilizados (como la que se presenta en este anexo) constituye una buena practica para garantizar la transparencia del proceso de desarrollo.
+\end{itemize}
+
+\section{Garantia de originalidad}
+
+Se declara expresamente que:
+
+\begin{enumerate}
+    \item El diseno arquitectonico, la logica de negocio y la implementacion del sistema son originales y han sido desarrollados por el autor.
+    \item La IA ha sido utilizada unicamente como asistente, no como autor del codigo.
+    \item Todo el codigo generado por IA ha sido revisado, probado y adaptado manualmente.
+    \item Las decisiones de diseno criticas (arquitectura de cifrado, flujo prepare/confirm, integracion blockchain) han sido tomadas por el autor.
+\end{enumerate}
+
+\end{document}
+
+
+

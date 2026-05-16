@@ -1,10 +1,28 @@
+/**
+ * @fileoverview Servicio de compartición blockchain.
+ *
+ * Gestiona la revocación de permisos de compartición mediante
+ * transacciones en el contrato DocumentRegistry.
+ */
+
 import { blockchainProvider } from '../../lib/blockchain/provider';
 import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
 import { sharesApi } from '../../api/shares';
 
+/**
+ * Servicio para revocar comparticiones de documentos en blockchain.
+ */
 export class SharingService {
   /**
-   * Revoke document share
+   * Revoca el permiso de compartición de un documento.
+   *
+   * Flujo:
+   * 1. Verifica que el firmante coincida con la dirección conectada.
+   * 2. Prepara la revocación con el backend.
+   * 3. Envía la transacción al contrato DocumentRegistry.
+   * 4. Confirma la revocación en el backend.
+   *
+   * @param input - Datos de la revocación.
    */
   async revokeShare(input: {
     documentId: string;
@@ -40,13 +58,11 @@ export class SharingService {
         shareId: prepareResult.shareId,
         txHash: tx.hash,
       });
-
-      console.log('[SharingService] Share revoked successfully');
     } catch (error: any) {
       throw new Error(error.message || 'Failed to revoke share');
     }
   }
 }
 
-// Singleton instance
+// Instancia singleton
 export const sharingService = new SharingService();

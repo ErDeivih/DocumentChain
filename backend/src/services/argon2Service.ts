@@ -23,6 +23,14 @@ import logger from '../utils/logger';
  * - Hash Length: 32 bytes (256 bits)
  */
 
+/**
+ * Configuración del algoritmo Argon2.
+ * @property type - Constante del tipo Argon2 (ej. argon2.argon2id)
+ * @property memoryCost - Coste de memoria en KB
+ * @property timeCost - Número de iteraciones
+ * @property parallelism - Número de hilos paralelos
+ * @property hashLength - Longitud del hash en bytes
+ */
 export interface Argon2Config {
   type: number;        // argon2.argon2id constant
   memoryCost: number;  // KB
@@ -31,8 +39,15 @@ export interface Argon2Config {
   hashLength: number;  // bytes
 }
 
+/**
+ * Tipos de hash soportados para detección y migración.
+ */
 export type HashType = 'argon2id' | 'argon2i' | 'argon2d' | 'bcrypt' | 'pbkdf2' | 'unknown';
 
+/**
+ * Servicio de hashing de contraseñas con Argon2id.
+ * Implementa el algoritmo recomendado por OWASP y NIST para el almacenamiento seguro de credenciales.
+ */
 export class Argon2Service {
   /**
    * Configuración recomendada por OWASP 2024

@@ -2,10 +2,19 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 import { ChevronDown } from 'lucide-react';
 
+/**
+ * Props del componente Select.
+ * @property children - Opciones del selector.
+ * @property className - Clases CSS adicionales.
+ */
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   children: React.ReactNode;
 }
 
+/**
+ * Componente de selector desplegable con estilos personalizados.
+ * @param props - Props del componente Select.
+ */
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, children, ...props }, ref) => {
     return (
@@ -28,6 +37,10 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
 Select.displayName = 'Select';
 
+/**
+ * Opción individual dentro del componente Select.
+ * @param props - Props del componente SelectItem.
+ */
 const SelectItem = React.forwardRef<
   HTMLOptionElement,
   React.OptionHTMLAttributes<HTMLOptionElement>

@@ -1,0 +1,82 @@
+@startuml
+!include _structure-style.puml
+title Analisis BCE de interfaz y control
+
+package "Boundary (Interfaz de Usuario)" <<Boundary>> {
+  class "LoginPage" <<boundary>>
+  class "RegisterPage" <<boundary>>
+  class "DashboardPage" <<boundary>>
+  class "DocumentListPage" <<boundary>>
+  class "DocumentDetailPage" <<boundary>>
+  class "UploadModal" <<boundary>>
+  class "ShareModal" <<boundary>>
+  class "SignModal" <<boundary>>
+  class "WalletSelectorModal" <<boundary>>
+  class "TransferModal" <<boundary>>
+  class "VerifyPage" <<boundary>>
+  class "BlockchainAuditorPage" <<boundary>>
+  class "AdminDashboardPage" <<boundary>>
+  class "ProfilePage" <<boundary>>
+  class "NotificationsPage" <<boundary>>
+}
+
+package "Control (Gestores de Operaciones)" <<Control>> {
+  class "AuthManager" <<control>>
+  class "DocumentManager" <<control>>
+  class "VersionManager" <<control>>
+  class "ShareManager" <<control>>
+  class "SignatureManager" <<control>>
+  class "WalletManager" <<control>>
+  class "TransferManager" <<control>>
+  class "AuditManager" <<control>>
+  class "AdminManager" <<control>>
+  class "NotificationManager" <<control>>
+}
+
+package "Entity (Entidades de Dominio)" <<Entity>> {
+  class "User" <<entity>>
+  class "Wallet" <<entity>>
+  class "Document" <<entity>>
+  class "Version" <<entity>>
+  class "Signature" <<entity>>
+  class "Share" <<entity>>
+  class "Event" <<entity>>
+  class "Notification" <<entity>>
+  class "Folder" <<entity>>
+  class "Category" <<entity>>
+}
+
+' Relaciones Boundary -> Control
+LoginPage --> AuthManager
+RegisterPage --> AuthManager
+DashboardPage --> DocumentManager
+DocumentListPage --> DocumentManager
+DocumentDetailPage --> DocumentManager
+UploadModal --> DocumentManager
+ShareModal --> ShareManager
+SignModal --> SignatureManager
+WalletSelectorModal --> WalletManager
+TransferModal --> TransferManager
+VerifyPage --> AuditManager
+BlockchainAuditorPage --> AuditManager
+AdminDashboardPage --> AdminManager
+ProfilePage --> AuthManager
+NotificationsPage --> NotificationManager
+
+' Relaciones Control -> Entity
+AuthManager --> User
+AuthManager --> Wallet
+DocumentManager --> Document
+DocumentManager --> Version
+DocumentManager --> Folder
+DocumentManager --> Category
+VersionManager --> Version
+ShareManager --> Share
+SignatureManager --> Signature
+WalletManager --> Wallet
+TransferManager --> Document
+AuditManager --> Event
+NotificationManager --> Notification
+AdminManager --> User
+
+@enduml

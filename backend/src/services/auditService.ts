@@ -17,6 +17,17 @@ import { ethers } from 'ethers';
  * para maximizar la transparencia y permitir auditorías externas.
  */
 
+/**
+ * Evento de auditoría extraído de blockchain o base de datos.
+ * @property id - Identificador único del evento
+ * @property eventType - Tipo de evento (ej. DocumentCreated)
+ * @property blockchainId - ID del documento en blockchain
+ * @property actor - Dirección o identificador del actor que generó el evento
+ * @property timestamp - Fecha y hora del evento
+ * @property blockNumber - Número de bloque en blockchain
+ * @property transactionHash - Hash de la transacción
+ * @property details - Metadatos adicionales del evento
+ */
 export interface AuditEvent {
   id: string;
   eventType: string;
@@ -28,6 +39,13 @@ export interface AuditEvent {
   details: Record<string, any>;
 }
 
+/**
+ * Resultado de la verificación de integridad de un documento.
+ * @property valid - Indica si el documento es íntegro
+ * @property blockchainData - Estado del documento en blockchain
+ * @property databaseData - Estado del documento en base de datos
+ * @property match - Coincidencias entre blockchain y base de datos
+ */
 export interface IntegrityCheck {
   valid: boolean;
   blockchainData: {
@@ -47,6 +65,13 @@ export interface IntegrityCheck {
   };
 }
 
+/**
+ * Prueba criptográfica de propiedad de un documento.
+ * @property isOwner - Indica si la wallet es propietaria
+ * @property blockchainId - ID del documento en blockchain
+ * @property walletAddress - Dirección de la wallet verificada
+ * @property documentInfo - Información pública del documento
+ */
 export interface OwnershipProof {
   isOwner: boolean;
   blockchainId: string;
@@ -58,6 +83,22 @@ export interface OwnershipProof {
   };
 }
 
+/**
+ * Metadatos públicos de un documento consultados desde blockchain.
+ * @property blockchainId - ID del documento en blockchain
+ * @property documentId - ID interno en base de datos
+ * @property publicId - Identificador público opcional
+ * @property visibility - Visibilidad del documento
+ * @property fileHash - Hash del contenido del archivo
+ * @property owner - Dirección del propietario
+ * @property uploadTimestamp - Fecha de subida
+ * @property contentCid - CID de IPFS del contenido
+ * @property fileSize - Tamaño del archivo en bytes
+ * @property currentVersion - Versión operacional actual
+ * @property isArchived - Indica si está archivado
+ * @property isDeleted - Indica si está eliminado
+ * @property lastUpdated - Fecha de última actualización
+ */
 export interface PublicDocumentMetadata {
   blockchainId: string;
   documentId?: string;
@@ -74,6 +115,10 @@ export interface PublicDocumentMetadata {
   lastUpdated: Date;
 }
 
+/**
+ * Servicio de auditoría pública para verificación de integridad, propiedad y transparencia de documentos.
+ * No requiere autenticación para maximizar la transparencia y permitir auditorías externas.
+ */
 export class AuditService {
   private static async getDocumentDatabaseContextByBlockchainId(blockchainId: string) {
     return prisma.document.findUnique({
@@ -724,11 +769,8 @@ export class AuditService {
         prisma.document.count(),
         prisma.version.count(),
         prisma.documentSignature.count(),
-        prisma.event.count({
-          where: {
-            eventType: 'SHARE_CONFIRMED',
-          },
-        }),
+        // totalShares is calculated from the smart contract, not DB events
+        Promise.resolve(0),
         prisma.user.count(),
         prisma.systemStats.findFirst({
           orderBy: {

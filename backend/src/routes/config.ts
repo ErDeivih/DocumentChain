@@ -1,12 +1,25 @@
+﻿import logger from '../utils/logger';
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
 import { resolveDocumentRegistryAddress } from '../config/contractAddress';
 
+/**
+ * Router de configuración de contratos y blockchain.
+ * Devuelve direcciones de contratos desplegados, ABIs y parámetros de conexión a la red.
+ */
 const router = Router();
 
 const DocumentRegistry = require('../../../smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json');
+
+/**
+ * ABI del contrato DocumentRegistry importado de los artefactos de compilación.
+ */
 const REGISTRY_ABI = DocumentRegistry.abi;
 
+/**
+ * GET /contracts
+ * Devuelve las direcciones de los contratos desplegados y la configuración de conexión a la red blockchain.
+ */
 router.get('/contracts', authenticate, async (req: Request, res: Response) => {
   try {
     const registryAddress = resolveDocumentRegistryAddress() || null;
@@ -25,11 +38,15 @@ router.get('/contracts', authenticate, async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting contract config:', error);
+    logger.error('Error getting contract config:', error);
     res.status(500).json({ error: 'Failed to get contract configuration' });
   }
 });
 
+/**
+ * GET /abis
+ * Devuelve los ABIs de los contratos inteligentes utilizados por la aplicación.
+ */
 router.get('/abis', authenticate, async (req: Request, res: Response) => {
   try {
     res.json({
@@ -39,11 +56,15 @@ router.get('/abis', authenticate, async (req: Request, res: Response) => {
       documentAccessControl: REGISTRY_ABI
     });
   } catch (error) {
-    console.error('Error getting contract ABIs:', error);
+    logger.error('Error getting contract ABIs:', error);
     res.status(500).json({ error: 'Failed to get contract ABIs' });
   }
 });
 
+/**
+ * GET /blockchain
+ * Devuelve la configuración completa de blockchain, incluyendo ABIs y direcciones de contratos.
+ */
 router.get('/blockchain', authenticate, async (req: Request, res: Response) => {
   try {
     const registryAddress = resolveDocumentRegistryAddress() || null;
@@ -59,7 +80,7 @@ router.get('/blockchain', authenticate, async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting blockchain config:', error);
+    logger.error('Error getting blockchain config:', error);
     res.status(500).json({ error: 'Failed to get blockchain configuration' });
   }
 });

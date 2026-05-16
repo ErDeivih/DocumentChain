@@ -20,4 +20,5 @@
 \contentsline {subsection}{\numberline {6.1}Actualización de dependencias y parches}{9}{subsection.6.1}%
 \contentsline {subsection}{\numberline {6.2}Seguimiento operativo}{9}{subsection.6.2}%
 \contentsline {section}{\numberline {7}Conclusiones}{9}{section.7}%
-\contentsline {section}{Bibliografía}{9}{section*.4}%
+\contentsline {section}{\numberline {8}Glosario}{9}{section.8}%
+\contentsline {section}{Bibliografía}{10}{section*.4}%

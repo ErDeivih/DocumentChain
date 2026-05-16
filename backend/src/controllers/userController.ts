@@ -4,18 +4,21 @@ import path from 'path';
 import prisma from '../config/database';
 import { UserService } from '../services/userService';
 import { logger } from '../utils/logger';
-import { SuspensionFlowError, UserSuspensionService } from '../services/userSuspensionService';
 import { ipfsService } from '../services/ipfsService';
-import {
-  DOCUMENT_REGISTRY_ADDRESS,
-  documentRegistryInterface,
-  provider,
-} from '../config/blockchain';
 
+/**
+ * Controlador de usuarios.
+ * Gestiona el perfil, búsqueda, eliminación y avatar,
+ * eliminación de cuenta de los usuarios del sistema.
+ */
 export class UserController {
   /**
-   * Obtener perfil del usuario actual
-   * GET /api/users/profile
+   * Obtiene el perfil completo del usuario autenticado.
+   * Endpoint: GET /api/users/profile
+   *
+   * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos del perfil.
    */
   static async getProfile(req: Request, res: Response): Promise<void> {
     try {
@@ -38,8 +41,12 @@ export class UserController {
   }
 
   /**
-   * Actualizar perfil del usuario actual
-   * PUT /api/users/profile
+   * Actualiza el perfil del usuario autenticado.
+   * Endpoint: PUT /api/users/profile
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { email?, fullName? } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el perfil actualizado.
    */
   static async updateProfile(req: Request, res: Response): Promise<void> {
     try {
@@ -62,8 +69,12 @@ export class UserController {
   }
 
   /**
-   * Obtener usuario por nombre de usuario (para buscar al compartir)
-   * GET /api/users/username/:username
+   * Obtiene un usuario por su nombre de usuario (información limitada por privacidad).
+   * Endpoint: GET /api/users/username/:username
+   *
+   * @param req - Objeto de solicitud HTTP. Los parámetros deben incluir el nombre de usuario.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos públicos del usuario.
    */
   static async getUserByUsername(req: Request, res: Response): Promise<void> {
     try {
@@ -90,8 +101,12 @@ export class UserController {
   }
 
   /**
-   * Obtener usuario por ID
-   * GET /api/users/:userId
+   * Obtiene un usuario por su identificador único.
+   * Endpoint: GET /api/users/:userId
+   *
+   * @param req - Objeto de solicitud HTTP. Los parámetros deben incluir el ID del usuario.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con los datos del usuario.
    */
   static async getUserById(req: Request, res: Response): Promise<void> {
     try {
@@ -111,8 +126,12 @@ export class UserController {
   }
 
   /**
-   * Buscar usuarios por nombre de usuario
-   * GET /api/users/search?q=username
+   * Busca usuarios por nombre de usuario o término de búsqueda.
+   * Endpoint: GET /api/users/search
+   *
+   * @param req - Objeto de solicitud HTTP con { q | query, limit? } en la query string.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de usuarios coincidentes.
    */
   static async searchUsers(req: Request, res: Response): Promise<void> {
     try {
@@ -135,8 +154,12 @@ export class UserController {
   }
 
   /**
-   * Obtener todos los usuarios (solo admin)
-   * GET /api/users?page=1&limit=50
+   * Obtiene la lista paginada de todos los usuarios registrados (solo administradores).
+   * Endpoint: GET /api/users
+   *
+   * @param req - Objeto de solicitud HTTP con { page?, limit? } en la query string.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista paginada de usuarios.
    */
   static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
@@ -154,8 +177,12 @@ export class UserController {
   }
 
   /**
-   * Eliminar usuario (solo admin)
-   * DELETE /api/users/:userId
+   * Elimina un usuario del sistema (solo administradores).
+   * Endpoint: DELETE /api/users/:userId
+   *
+   * @param req - Objeto de solicitud HTTP. Los parámetros deben incluir el ID del usuario.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de eliminación.
    */
   static async deleteUser(req: Request, res: Response): Promise<void> {
     try {
@@ -169,95 +196,13 @@ export class UserController {
     }
   }
 
-  static async prepareSuspendMe(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const { reason } = req.body;
-
-      const preparation = await UserSuspensionService.prepareSuspend(userId, reason);
-
-      res.status(200).json(preparation);
-    } catch (error: any) {
-      UserController.handleSuspensionError(res, error, 'Error al preparar la suspensión');
-    }
-  }
-
-  static async confirmSuspendMe(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const accessToken = req.headers.authorization?.startsWith('Bearer ')
-        ? req.headers.authorization.substring(7)
-        : undefined;
-
-      const result = await UserSuspensionService.confirmSuspend(userId, {
-        txHash: req.body?.txHash,
-        reason: req.body?.reason,
-        currentAccessToken: accessToken,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: 'Tu cuenta ha quedado suspendida a nivel de blockchain y aplicación.',
-        txHash: result.txHash,
-        user: result.user,
-      });
-    } catch (error: any) {
-      UserController.handleSuspensionError(res, error, 'Error al confirmar la suspensión');
-    }
-  }
-
-  static async prepareUnsuspendMe(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const preparation = await UserSuspensionService.prepareUnsuspend(userId);
-
-      res.status(200).json(preparation);
-    } catch (error: any) {
-      UserController.handleSuspensionError(res, error, 'Error al preparar la reactivación');
-    }
-  }
-
-  static async confirmUnsuspendMe(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        res.status(401).json({ error: 'No autenticado' });
-        return;
-      }
-
-      const result = await UserSuspensionService.confirmUnsuspend(userId, {
-        txHash: req.body?.txHash,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: 'Tu cuenta ha sido reactivada.',
-        txHash: result.txHash,
-        user: result.user,
-      });
-    } catch (error: any) {
-      UserController.handleSuspensionError(res, error, 'Error al confirmar la reactivación');
-    }
-  }
-
   /**
-   * Update user avatar
-   * PUT /api/users/me/avatar
+   * Actualiza el avatar del usuario autenticado.
+   * Endpoint: PUT /api/users/me/avatar
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con el archivo de imagen.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el usuario actualizado.
    */
   static async updateAvatar(req: Request, res: Response): Promise<void> {
     try {
@@ -306,8 +251,12 @@ export class UserController {
   }
 
   /**
-   * Remove user avatar
-   * DELETE /api/users/me/avatar
+   * Elimina el avatar del usuario autenticado.
+   * Endpoint: DELETE /api/users/me/avatar
+   *
+   * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el usuario actualizado.
    */
   static async removeAvatar(req: Request, res: Response): Promise<void> {
     try {
@@ -335,9 +284,12 @@ export class UserController {
   }
 
   /**
-   * Delete own account (self-service)
-   * DELETE /api/users/me
-   * Body: { txHash: string }
+   * Elimina la cuenta del usuario autenticado de forma permanente (self-service).
+   * Endpoint: DELETE /api/users/me
+   *
+  * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de eliminación de cuenta.
    */
   static async deleteMyAccount(req: Request, res: Response): Promise<void> {
     try {
@@ -346,60 +298,10 @@ export class UserController {
         return;
       }
 
-      const { txHash } = req.body;
-      if (!txHash) {
-        res.status(400).json({ error: 'Se requiere txHash de la transacción suspendMyself' });
-        return;
-      }
-
       const userId = req.user.userId;
       const user = await UserService.getUserById(userId);
       if (!user) {
         res.status(404).json({ error: 'Usuario no encontrado' });
-        return;
-      }
-
-      // Get primary wallet
-      const wallet = await prisma.wallet.findFirst({
-        where: { userId, isPrimary: true },
-        select: { walletAddress: true },
-      });
-
-      if (!wallet) {
-        res.status(409).json({ error: 'Debes configurar una wallet principal antes de eliminar la cuenta' });
-        return;
-      }
-
-      // Validate suspension transaction on-chain
-      try {
-        const receipt = await provider.getTransactionReceipt(txHash);
-        if (!receipt) {
-          res.status(400).json({ error: 'La transacción todavía no está confirmada' });
-          return;
-        }
-        if (Number(receipt.status) !== 1) {
-          res.status(400).json({ error: 'La transacción ha fallado en blockchain' });
-          return;
-        }
-
-        const tx = await provider.getTransaction(txHash);
-        if (!tx || !tx.to || tx.to.toLowerCase() !== (DOCUMENT_REGISTRY_ADDRESS || '').toLowerCase()) {
-          res.status(400).json({ error: 'La transacción no apunta al contrato DocumentRegistry' });
-          return;
-        }
-        if (tx.from.toLowerCase() !== wallet.walletAddress.toLowerCase()) {
-          res.status(403).json({ error: 'La transacción debe estar firmada por la wallet principal' });
-          return;
-        }
-
-        const parsed = documentRegistryInterface.parseTransaction({ data: tx.data, value: tx.value });
-        if (!parsed || parsed.name !== 'suspendMyself') {
-          res.status(400).json({ error: 'La transacción no ejecuta suspendMyself' });
-          return;
-        }
-      } catch (txError: any) {
-        logger.error('Error validando transacción de eliminación:', txError);
-        res.status(400).json({ error: 'No se ha podido validar la transacción en blockchain' });
         return;
       }
 
@@ -447,15 +349,5 @@ export class UserController {
       logger.error('Error eliminando cuenta:', error);
       res.status(500).json({ error: error.message || 'Error al eliminar la cuenta' });
     }
-  }
-
-  private static handleSuspensionError(res: Response, error: any, fallbackMessage: string): void {
-    if (error instanceof SuspensionFlowError) {
-      res.status(error.status).json({ error: error.message });
-      return;
-    }
-
-    logger.error(fallbackMessage, error);
-    res.status(500).json({ error: fallbackMessage });
   }
 }

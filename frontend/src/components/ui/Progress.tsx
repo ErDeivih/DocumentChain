@@ -1,11 +1,21 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente Progress.
+ * @property value - Valor actual del progreso.
+ * @property max - Valor máximo del progreso.
+ * @property className - Clases CSS adicionales.
+ */
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number;
   max?: number;
 }
 
+/**
+ * Componente que muestra una barra de progreso con valor animado.
+ * @param props - Props del componente Progress.
+ */
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
   ({ className, value = 0, max = 100, ...props }, ref) => {
     const percentage = Math.min(Math.max((value / max) * 100, 0), 100);

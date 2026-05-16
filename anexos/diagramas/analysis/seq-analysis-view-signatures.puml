@@ -1,0 +1,35 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0028: Ver firmas de documento (Análisis BCE)
+
+actor "Usuario con acceso" as user
+boundary "Pestaña de firmas" as ui
+control "Gestor de firmas" as ctrl
+entity "Documento" as doc
+entity "Firma" as sig
+entity "Wallet" as wallet
+
+user -> ui: Seleccionar "Firmas"
+ui -> ctrl: Solicitar firmas (idDocumento)
+
+ctrl -> doc: Verificar permisos
+doc --> ctrl: Permisos verificados
+
+alt Sin acceso
+    ctrl --> ui: Acceso denegado
+    ui --> user: Mostrar error
+else Con acceso
+    ctrl -> sig: Obtener firmas del documento
+    sig --> ctrl: Lista de firmas
+
+    loop Para cada firma
+        ctrl -> wallet: Obtener datos de wallet firmante
+        wallet --> ctrl: Dirección / etiqueta de wallet
+    end
+
+    ctrl --> ui: Lista de firmas (firmante, fecha, wallet)
+    ui --> user: Mostrar panel de firmas con detalles
+end
+
+@enduml

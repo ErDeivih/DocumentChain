@@ -1,5 +1,6 @@
 /**
- * Rutas de Línea Temporal de Documentos
+ * Router de línea temporal de documentos.
+ * Expone endpoints para consultar el historial cronológico de eventos de un documento.
  */
 
 import { Router } from 'express';
@@ -12,6 +13,11 @@ const router = Router();
 router.use(authenticate);
 
 // Obtener línea temporal de un documento
+
+/**
+ * GET /timeline/documents/:id
+ * Devuelve el historial cronológico de eventos asociados a un documento específico.
+ */
 router.get('/documents/:id', TimelineController.getDocumentTimeline);
 
 export default router;

@@ -8,7 +8,7 @@ import AlertMessage from '../components/ui/AlertMessage';
 import { Badge } from '../components/ui/Badge';
 import { verifyByFile, verifyByIPFS, verifyByBlockchain } from '../api/verification';
 import { VerificationResult } from '../types';
-import { formatBytes, formatDate } from '../lib/utils';
+import { formatBytes, formatRelativeTime } from '../lib/utils';
 import {
   Upload,
   Search,
@@ -24,8 +24,19 @@ import {
   XCircle,
 } from 'lucide-react';
 
+/**
+ * Métodos de verificación de documento disponibles en la página pública.
+ */
 type VerificationMethod = 'file' | 'ipfs' | 'blockchain';
 
+/**
+ * Página pública de verificación de autenticidad de documentos.
+ *
+ * Permite verificar la existencia e integridad de un documento mediante
+ * tres métodos: subida de archivo, hash IPFS o identificador blockchain.
+ *
+ * @returns JSX.Element con la interfaz de verificación.
+ */
 export const Verify: React.FC = () => {
   const location = useLocation();
   const [method, setMethod] = useState<VerificationMethod>('file');
@@ -283,26 +294,22 @@ export const Verify: React.FC = () => {
                       <p className="text-sm text-muted-foreground">Subido</p>
                       <p className="font-semibold flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        {formatDate(result.document.uploadedAt)}
+                        {formatRelativeTime(result.document.uploadedAt)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Versión Actual</p>
-                      <p className="font-semibold">v{result.document.currentVersion}</p>
+                      <p className="font-semibold">Versión {result.document.currentVersion}</p>
                     </div>
+                  </div>
+                  {result.document.ipfsHash && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Estado</p>
-                      <Badge variant={result.document.isArchived ? 'warning' : 'success'}>
-                        {result.document.isArchived ? 'Archivado' : 'Activo'}
-                      </Badge>
+                      <p className="mb-1 text-sm text-muted-foreground">Hash IPFS</p>
+                      <p className="break-all rounded-lg border border-border bg-secondary/35 p-2 font-mono text-sm text-foreground">
+                        {result.document.ipfsHash}
+                      </p>
                     </div>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-sm text-muted-foreground">Hash IPFS</p>
-                    <p className="break-all rounded-lg border border-border bg-secondary/35 p-2 font-mono text-sm text-foreground">
-                      {result.document.ipfsHash}
-                    </p>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -322,15 +329,22 @@ export const Verify: React.FC = () => {
                       {result.versions.map((version) => (
                         <div
                           key={version.versionNumber}
-                          className="flex items-center justify-between rounded-lg border border-border bg-secondary/35 p-3"
+                          className={`flex items-center justify-between rounded-lg border p-3 ${
+                            result.matchedVersion === version.versionNumber
+                              ? 'border-green-400 bg-green-50'
+                              : 'border-border bg-secondary/35'
+                          }`}
                         >
                           <div>
                             <p className="font-semibold">
                               Versión {version.versionNumber}
+                              {result.matchedVersion === version.versionNumber && (
+                                <Badge variant="success" className="ml-2 text-xs">Verificada</Badge>
+                              )}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {version.createdBy && `Creado por ${version.createdBy} • `}
-                              {formatDate(version.createdAt)}
+                              {formatRelativeTime(version.createdAt)}
                             </p>
                             {version.comment && (
                               <p className="mt-1 text-sm italic text-muted-foreground">
@@ -364,7 +378,7 @@ export const Verify: React.FC = () => {
                           <div>
                             <p className="font-semibold">{share.sharedWithUsername}</p>
                             <p className="text-sm text-muted-foreground">
-                              Compartido {formatDate(share.sharedAt)}
+                              Compartido {formatRelativeTime(share.sharedAt)}
                             </p>
                           </div>
                           <Badge variant="default">{share.role}</Badge>
@@ -390,10 +404,10 @@ export const Verify: React.FC = () => {
                         <div key={idx} className="rounded-lg border border-border bg-secondary/35 p-3">
                           <div className="flex items-center justify-between mb-2">
                             <p className="font-semibold">{sig.signedByUsername}</p>
-                            <Badge variant="success">v{sig.versionNumber}</Badge>
+                            <Badge variant="success">Versión {sig.versionNumber}</Badge>
                           </div>
                           <p className="mb-1 text-sm text-muted-foreground">
-                            Firmado {formatDate(sig.signedAt)}
+                            Firmado {formatRelativeTime(sig.signedAt)}
                           </p>
                           <p className="break-all font-mono text-xs text-muted-foreground">
                             {sig.walletAddress}

@@ -1,8 +1,9 @@
-﻿@startuml
+@startuml
 !include _structure-style.puml
 !define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
 !define PK(x) <b>x</b>
 !define FK(x) <i>x</i>
+title Modelo entidad-relacion simplificado
 
 TABLE(users, "users") {
   PK(id) : String CUID
@@ -62,6 +63,22 @@ TABLE(events, "events") {
   createdAt : DateTime
 }
 
+TABLE(notifications, "notifications") {
+  PK(id) : String CUID
+  FK(userId) : String
+  type : String
+  isRead : Boolean
+  createdAt : DateTime
+}
+
+TABLE(document_stats, "document_stats") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  views : Int
+  downloads : Int
+  signatures : Int
+}
+
 TABLE(sessions, "sessions") {
   PK(id) : String CUID
   FK(userId) : String
@@ -77,10 +94,19 @@ documents "1" -- "0..*" document_signatures : has
 documents "0..*" -- "0..1" folders : in
 users "1" -- "0..*" events : generates
 users "1" -- "0..*" notifications : receives
-users "1" -- "0..1" user_stats : has
 documents "1" -- "0..1" document_stats : has
+documents "1" -- "0..*" document_share_keys : shares
+users "1" -- "0..*" document_share_keys : receives
 
-TABLE(blockchain, "Smart Contract\n(Ethereum)") {
+TABLE(document_share_keys, "document_share_keys") {
+  PK(id) : String CUID
+  FK(documentId) : String
+  FK(userId) : String
+  encryptedSymmetricKey : String
+  createdAt : DateTime
+}
+
+TABLE(blockchain, "DocumentRegistry\n(Ethereum)") {
   documentId : bytes32 (hash)
   ipfsCid : string
   contentHash : bytes32

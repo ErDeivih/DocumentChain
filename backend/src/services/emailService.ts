@@ -5,9 +5,9 @@ import path from 'path';
 import { logger } from '../utils/logger';
 
 /**
- * Servicio de correo electrónico
- * Maneja el envío de emails usando SMTP (MailHog/Postfix)
- * Arquitectura MVC: Service Layer
+ * Servicio de correo electrónico.
+ * Gestiona el envío de emails transaccionales y notificaciones mediante SMTP.
+ * Utiliza plantillas Handlebars para la generación de contenido HTML.
  */
 export class EmailService {
   private transporter: Transporter;
@@ -321,7 +321,7 @@ export class EmailService {
   async sendSecurityAlert(
     email: string,
     username: string,
-    alertType: 'new_device' | 'new_ip' | 'password_attempt' | '2fa_disabled',
+    alertType: 'new_device' | 'new_ip' | 'password_attempt',
     details: {
       ipAddress?: string;
       userAgent?: string;

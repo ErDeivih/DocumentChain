@@ -120,7 +120,7 @@ test.describe('Verification and document lifecycle coverage', () => {
     await expect(page.getByRole('heading', { name: fileName })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: 'Archivar' }).click();
-    await expect(page.getByText('Archivado')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('button', { name: 'Desarchivar' })).toBeVisible({ timeout: 30000 });
     await expect(page.getByRole('button', { name: 'Desarchivar' })).toBeVisible({ timeout: 30000 });
 
     await page.getByRole('button', { name: 'Volver' }).click();

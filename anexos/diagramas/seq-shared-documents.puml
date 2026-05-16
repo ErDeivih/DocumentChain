@@ -3,14 +3,27 @@
 actor Usuario as user
 boundary "Seccion Compartidos" as ui
 control "Endpoints de compartidos (/api/documents/shared)" as api
-control "DocumentService" as srv
-database "PostgreSQL" as db
+control "ShareService" as srv
+entity "DocumentShare" as share
+entity "Document" as doc
+database "Base de datos" as db
+entity "DocumentRegistry" as sc
 
 user -> ui: Accede a sus documentos compartidos
 ui -> api: Solicitar pagina de compartidos
 api -> srv: Resolver accesos activos del usuario
-srv -> db: Recuperar documentos compartidos y permisos
-db --> srv: Listado paginado
+srv -> db: Recuperar wallets del usuario autenticado
+db --> srv: Wallets asociadas
+srv -> sc: Consultar documentos accesibles por wallet (getUserDocuments)
+sc --> srv: Lista de blockchainIds con permiso vigente
+srv -> share: Construir criterio de accesos vigentes
+share -> db: Consultar comparticiones activas por blockchainId
+db --> share: Registros share + roles
+share --> srv: Accesos consolidados
+srv -> doc: Enriquecer metadatos de documento y propietario
+doc -> db: Cargar nombre, tipo, propietario, fecha de comparticion
+db --> doc: Datos listos para DTO
+doc --> srv: Proyeccion de documentos compartidos
 srv --> api: Compartidos disponibles
 api --> ui: Listado listo para mostrar
 ui --> user: Ve propietario, permiso y fecha de acceso

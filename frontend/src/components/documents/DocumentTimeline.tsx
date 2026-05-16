@@ -1,42 +1,55 @@
 /**
- * Componente de Línea Temporal de Documentos
- * Muestra el historial completo de eventos de un documento
+ * Componente de línea temporal de documentos.
+ * Muestra el historial completo de eventos asociados a un documento.
  */
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
-import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
 import { api, getErrorMessage } from '../../lib/api';
+import { formatRelativeTime } from '../../lib/utils';
 import {
   FileText,
   FileSignature,
   Share2,
-  Lock,
   ArrowRightLeft,
   CheckCircle,
   XCircle,
   Clock
 } from 'lucide-react';
 
+/**
+ * Representa un evento en la línea temporal de un documento.
+ */
 interface TimelineEvent {
+  /** Identificador único del evento. */
   id: string;
+  /** Tipo de evento registrado. */
   type: 'version_created' | 'document_signed' | 'document_shared' | 'permission_revoked' | 'ownership_transferred' | 'operational_changed';
+  /** Fecha y hora en que ocurrió el evento. */
   timestamp: string;
+  /** Usuario que realizó la acción. */
   actor: {
     id: string;
     username: string;
     fullName: string | null;
     walletAddress?: string;
   };
+  /** Detalles adicionales del evento. */
   details: Record<string, any>;
+  /** Hash de la transacción blockchain asociada, si existe. */
   blockchainTx?: string;
 }
 
+/**
+ * Props del componente DocumentTimeline.
+ */
 interface DocumentTimelineProps {
+  /** Identificador del documento cuyo historial se mostrará. */
   documentId: string;
 }
 
+/** Configuración visual para cada tipo de evento. */
 const eventTypeConfig = {
   version_created: {
     label: 'Nueva versión',
@@ -70,6 +83,10 @@ const eventTypeConfig = {
   }
 };
 
+/**
+ * Línea temporal de eventos de un documento.
+ * Obtiene y visualiza el historial completo de acciones realizadas sobre un documento.
+ */
 export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }) => {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,17 +108,6 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const getEventDetails = (event: TimelineEvent): string => {
@@ -196,17 +202,11 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
                   <div className="flex-1 rounded-lg border border-border bg-white p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.color}`}>
-                            {config.label}
-                          </span>
-                          {event.blockchainTx && (
-                            <Badge variant="outline" className="text-xs">
-                              <Lock className="h-3 w-3 mr-1" />
-                              Blockchain
-                            </Badge>
-                          )}
-                        </div>
+                         <div className="flex items-center gap-2 mb-1">
+                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.color}`}>
+                             {config.label}
+                           </span>
+                         </div>
                         
                         <p className="text-sm text-foreground">
                           {getEventDetails(event)}
@@ -221,14 +221,14 @@ export const DocumentTimeline: React.FC<DocumentTimelineProps> = ({ documentId }
                       
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground">
-                          {formatDate(event.timestamp)}
+                          {formatRelativeTime(event.timestamp)}
                         </p>
                         
-                        {event.blockchainTx && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            TX: {event.blockchainTx.substring(0, 10)}...
-                          </p>
-                        )}
+                         {event.blockchainTx && (
+                           <p className="mt-1 text-xs font-mono text-muted-foreground break-all">
+                             TX: {event.blockchainTx}
+                           </p>
+                         )}
                       </div>
                     </div>
                   </div>

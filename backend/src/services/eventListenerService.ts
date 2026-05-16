@@ -1,6 +1,7 @@
 import { getContracts, provider } from '../config/blockchain';
 import { FlowLogger, FlowContext, logger } from '../utils/logger';
 import notificationService, { NotificationType } from './notificationService';
+import WebSocketService from './webSocketService';
 import { normalizeEthereumAddress } from '../utils/ethereum';
 import { ethers } from 'ethers';
 import { PrismaClient } from '@prisma/client';
@@ -41,6 +42,11 @@ const prisma = new PrismaClient();
  * - NO duplicar datos: filename, size, email NUNCA en blockchain
  * - Blockchain solo para INTEGRIDAD + AUTENTICIDAD + ACCESO
  * - BD como fuente de verdad para metadatos privados
+ */
+/**
+ * Servicio de escucha y sincronización de eventos desde blockchain hacia la base de datos.
+ * Mantiene la coherencia entre el estado on-chain y el estado off-chain mediante el procesamiento
+ * de logs de eventos del contrato DocumentRegistry.
  */
 class EventListenerService {
   private isListening = false;
@@ -271,35 +277,7 @@ class EventListenerService {
         });
       });
       
-      // 11. SystemPaused - Sistema pausado
-      contracts.documentRegistry.on('SystemPaused', async (
-        by: string,
-        timestamp: bigint,
-        event: any
-      ) => {
-        await this.handleSystemPaused({
-          by,
-          timestamp: Number(timestamp),
-          blockNumber: event.log.blockNumber,
-          transactionHash: event.log.transactionHash,
-        });
-      });
-      
-      // 12. SystemUnpaused - Sistema reanudado
-      contracts.documentRegistry.on('SystemUnpaused', async (
-        by: string,
-        timestamp: bigint,
-        event: any
-      ) => {
-        await this.handleSystemUnpaused({
-          by,
-          timestamp: Number(timestamp),
-          blockNumber: event.log.blockNumber,
-          transactionHash: event.log.transactionHash,
-        });
-      });
-      
-      // 13. AdminRoleGranted - Rol de administrador otorgado
+      // 11. AdminRoleGranted - Rol de administrador otorgado
       contracts.documentRegistry.on('AdminRoleGranted', async (
         admin: string,
         by: string,
@@ -315,7 +293,7 @@ class EventListenerService {
         });
       });
       
-      // 14. AdminRoleRevoked - Rol de administrador revocado
+      // 12. AdminRoleRevoked - Rol de administrador revocado
       contracts.documentRegistry.on('AdminRoleRevoked', async (
         admin: string,
         by: string,
@@ -330,7 +308,7 @@ class EventListenerService {
           transactionHash: event.log.transactionHash,
         });
       });
-      
+
       this.isListening = true;
       
       this.flowLogger.success({
@@ -345,8 +323,6 @@ class EventListenerService {
           'DocumentArchived',
           'OwnershipTransferred',
           'OperationalVersionChanged',
-          'SystemPaused',
-          'SystemUnpaused',
           'AdminRoleGranted',
           'AdminRoleRevoked',
         ],
@@ -624,40 +600,6 @@ class EventListenerService {
         });
       }
       
-      // SystemPaused
-      const pausedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.SystemPaused(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of pausedEvents) {
-        const args = (event as any).args;
-        await this.handleSystemPaused({
-          by: args.by,
-          timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
-      // SystemUnpaused
-      const unpausedEvents = await contracts.documentRegistry.queryFilter(
-        contracts.documentRegistry.filters.SystemUnpaused(),
-        filter.fromBlock,
-        filter.toBlock
-      );
-      
-      for (const event of unpausedEvents) {
-        const args = (event as any).args;
-        await this.handleSystemUnpaused({
-          by: args.by,
-          timestamp: Number(args.timestamp),
-          blockNumber: event.blockNumber,
-          transactionHash: event.transactionHash,
-        });
-      }
-      
       // AdminRoleGranted
       const adminGrantedEvents = await contracts.documentRegistry.queryFilter(
         contracts.documentRegistry.filters.AdminRoleGranted(),
@@ -717,8 +659,7 @@ class EventListenerService {
         totalEvents: createdEvents.length + sharedEvents.length + deletedEvents.length + 
                      versionEvents.length + restoredEvents.length + signedEvents.length + 
                      archivedEvents.length + transferredEvents.length + revokedEvents.length + 
-                     operationalEvents.length + pausedEvents.length + unpausedEvents.length + 
-                     adminGrantedEvents.length + adminRevokedEvents.length,
+                     operationalEvents.length + adminGrantedEvents.length + adminRevokedEvents.length,
         breakdown: {
           documentsCreated: createdEvents.length,
           versionsCreated: versionEvents.length,
@@ -730,8 +671,6 @@ class EventListenerService {
           documentsArchived: archivedEvents.length,
           ownershipsTransferred: transferredEvents.length,
           operationalVersionsChanged: operationalEvents.length,
-          systemPaused: pausedEvents.length,
-          systemUnpaused: unpausedEvents.length,
           adminRolesGranted: adminGrantedEvents.length,
           adminRolesRevoked: adminRevokedEvents.length,
         },
@@ -770,6 +709,12 @@ class EventListenerService {
         include: { owner: true },
       });
       
+      // Notificar en tiempo real al propietario
+      WebSocketService.sendToUser(document.ownerId, 'document:updated', {
+        type: 'CREATED',
+        documentId: document.id,
+      });
+
       // Enviar notificación al usuario
       await notificationService.createNotification({
         userId: document.ownerId,
@@ -851,34 +796,61 @@ class EventListenerService {
         },
       });
       
-      if (existingVersion) {
-        // Update existing version to SYNCED
-        await prisma.version.update({
-          where: { id: existingVersion.id },
-          data: {
-            blockchainStatus: 'SYNCED',
-            ipfsCid: data.ipfsCid,
-          },
+      // The contract's createVersion ALWAYS sets currentVersion = newVersionNum,
+      // so the new version is operational. We must reflect this in the DB
+      // and demote previous versions, regardless of whether the version
+      // record was pre-created by prepareVersion.
+      await prisma.$transaction(async (tx) => {
+        // Demote all previous versions of this document
+        await tx.version.updateMany({
+          where: { documentId: document.id },
+          data: { isOperational: false },
         });
-      } else {
-        // Create new version (first version should be operational)
-        await prisma.version.create({
-          data: {
-            id: uuidv4(),
-            documentId: document.id,
-            userId: creatorWallet?.userId || document.ownerId,
-            versionNumber: data.versionNumber,
-            ipfsCid: data.ipfsCid,
-            encryptedSymmetricKey: document.encryptedSymmetricKey,
-            isOperational: data.versionNumber === 1, // First version is operational
-            blockchainStatus: 'SYNCED',
-            blockchainTxHash: data.transactionHash,
-          },
-        });
-      }
+
+        if (existingVersion) {
+          // Update existing version to SYNCED and operational
+          await tx.version.update({
+            where: { id: existingVersion.id },
+            data: {
+              blockchainStatus: 'SYNCED',
+              ipfsCid: data.ipfsCid,
+              isOperational: true,
+            },
+          });
+        } else {
+          // Create new version as operational
+          await tx.version.create({
+            data: {
+              id: uuidv4(),
+              documentId: document.id,
+              userId: creatorWallet?.userId || document.ownerId,
+              versionNumber: data.versionNumber,
+              ipfsCid: data.ipfsCid,
+              encryptedSymmetricKey: document.encryptedSymmetricKey,
+              isOperational: true,
+              blockchainStatus: 'SYNCED',
+              blockchainTxHash: data.transactionHash,
+            },
+          });
+        }
+      });
       
       const actorName = creatorWallet?.user?.fullName?.trim() || creatorWallet?.user?.username || 'otro usuario con permisos de edición';
       const editedBySharedUser = creatorWallet?.userId && creatorWallet.userId !== document.ownerId;
+
+      // Notificar en tiempo real al propietario y creador
+      WebSocketService.sendToUser(document.ownerId, 'document:updated', {
+        type: 'VERSION_CREATED',
+        documentId: document.id,
+        versionNumber: data.versionNumber,
+      });
+      if (creatorWallet?.userId && creatorWallet.userId !== document.ownerId) {
+        WebSocketService.sendToUser(creatorWallet.userId, 'document:updated', {
+          type: 'VERSION_CREATED',
+          documentId: document.id,
+          versionNumber: data.versionNumber,
+        });
+      }
 
       // Enviar notificación
       await notificationService.createNotification({
@@ -1003,6 +975,20 @@ class EventListenerService {
       }) : null;
       
       // Los shares ahora están solo en blockchain - no se actualiza DB
+
+      // Notificar en tiempo real a las partes afectadas
+      if (recipientUser?.id) {
+        WebSocketService.sendToUser(recipientUser.id, 'document:updated', {
+          type: 'SHARED',
+          documentId: document.id,
+        });
+      }
+      if (document.ownerId) {
+        WebSocketService.sendToUser(document.ownerId, 'document:updated', {
+          type: 'SHARE_CREATED',
+          documentId: document.id,
+        });
+      }
       
       this.flowLogger.success({
         documentId: document.id,
@@ -1057,6 +1043,20 @@ class EventListenerService {
           }
         },
       }) : null;
+
+      // Notificar en tiempo real al usuario afectado
+      if (affectedUser?.id) {
+        WebSocketService.sendToUser(affectedUser.id, 'document:updated', {
+          type: 'PERMISSION_REVOKED',
+          documentId: document.id,
+        });
+      }
+      if (document.ownerId) {
+        WebSocketService.sendToUser(document.ownerId, 'document:updated', {
+          type: 'SHARE_REVOKED',
+          documentId: document.id,
+        });
+      }
 
       if (!existingEvent) {
         await prisma.event.create({
@@ -1171,6 +1171,22 @@ class EventListenerService {
           },
         },
       });
+
+      // Notificar en tiempo real al propietario y firmante
+      if (document.ownerId) {
+        WebSocketService.sendToUser(document.ownerId, 'document:updated', {
+          type: 'SIGNED',
+          documentId: document.id,
+          versionNumber: data.versionNumber,
+        });
+      }
+      if (signerUser?.id && signerUser.id !== document.ownerId) {
+        WebSocketService.sendToUser(signerUser.id, 'document:updated', {
+          type: 'SIGNED',
+          documentId: document.id,
+          versionNumber: data.versionNumber,
+        });
+      }
 
       if (!existingNotification) {
         await notificationService.createNotification({
@@ -1469,34 +1485,54 @@ class EventListenerService {
       oldVersion: data.oldVersion,
       newVersion: data.newVersion,
     });
-    
+
     try {
       const document = await prisma.document.findUnique({
         where: { blockchainId: data.docId },
         include: { owner: true },
       });
-      
+
       if (!document) {
+        this.flowLogger.warn('Documento no encontrado en BD para sincronizar versión operacional', {
+          blockchainId: data.docId,
+        });
         return;
       }
-      
-      // Registrar evento
-      await prisma.event.create({
-        data: {
-          eventType: 'OperationalVersionChanged',
-          userId: document.ownerId,
-          documentId: document.id,
-          metadata: {
-            oldVersion: data.oldVersion,
-            newVersion: data.newVersion,
-            changedBy: data.by,
+
+      // Actualizar isOperational atómicamente según la fuente de verdad blockchain
+      await prisma.$transaction(async (tx) => {
+        // Desactivar versión anterior (si existe y es > 0)
+        if (data.oldVersion > 0) {
+          await tx.version.updateMany({
+            where: { documentId: document.id, versionNumber: data.oldVersion },
+            data: { isOperational: false },
+          });
+        }
+
+        // Activar nueva versión
+        await tx.version.updateMany({
+          where: { documentId: document.id, versionNumber: data.newVersion },
+          data: { isOperational: true },
+        });
+
+        // Registrar evento de auditoría
+        await tx.event.create({
+          data: {
+            eventType: 'OperationalVersionChanged',
+            userId: document.ownerId,
+            documentId: document.id,
+            metadata: {
+              oldVersion: data.oldVersion,
+              newVersion: data.newVersion,
+              changedBy: data.by,
+            },
+            transactionHash: data.transactionHash,
+            blockNumber: data.blockNumber,
+            blockTimestamp: new Date(data.timestamp * 1000),
           },
-          transactionHash: data.transactionHash,
-          blockNumber: data.blockNumber,
-          blockTimestamp: new Date(data.timestamp * 1000),
-        },
+        });
       });
-      
+
       // Notificar al propietario
       await notificationService.createNotification({
         userId: document.ownerId,
@@ -1511,115 +1547,11 @@ class EventListenerService {
           blockNumber: data.blockNumber,
         },
       });
-      
+
       this.flowLogger.success({
         documentId: document.id,
       });
-      
-    } catch (error) {
-      this.flowLogger.error(error instanceof Error ? error : new Error(String(error)));
-    }
-  }
 
-  /**
-   * Handler: SystemPaused
-   */
-  private async handleSystemPaused(data: {
-    by: string;
-    timestamp: number;
-    blockNumber: number;
-    transactionHash: string;
-  }): Promise<void> {
-    const flowId = this.flowLogger.start('HANDLE_SYSTEM_PAUSED', {
-      by: data.by,
-    });
-    
-    try {
-      // Buscar usuario que pausó el sistema
-      const pausedByAddress = normalizeEthereumAddress(data.by);
-      const pausedByUser = pausedByAddress ? await prisma.user.findFirst({
-        where: { 
-          wallets: {
-            some: {
-              walletAddress: pausedByAddress
-            }
-          }
-        },
-      }) : null;
-      
-      // Registrar evento global (sin documentId ni userId específico)
-      await prisma.event.create({
-        data: {
-          eventType: 'SystemPaused',
-          userId: pausedByUser?.id || null,
-          metadata: {
-            pausedBy: data.by,
-            pausedByUserId: pausedByUser?.id,
-          },
-          transactionHash: data.transactionHash,
-          blockNumber: data.blockNumber,
-          blockTimestamp: new Date(data.timestamp * 1000),
-        },
-      });
-      
-      logger.warn(`Sistema pausado por ${data.by} en bloque ${data.blockNumber}`);
-      
-      this.flowLogger.success({
-        pausedBy: data.by,
-      });
-      
-    } catch (error) {
-      this.flowLogger.error(error instanceof Error ? error : new Error(String(error)));
-    }
-  }
-
-  /**
-   * Handler: SystemUnpaused
-   */
-  private async handleSystemUnpaused(data: {
-    by: string;
-    timestamp: number;
-    blockNumber: number;
-    transactionHash: string;
-  }): Promise<void> {
-    const flowId = this.flowLogger.start('HANDLE_SYSTEM_UNPAUSED', {
-      by: data.by,
-    });
-    
-    try {
-      // Buscar usuario que reanudó el sistema
-      const unpausedByAddress = normalizeEthereumAddress(data.by);
-      const unpausedByUser = unpausedByAddress ? await prisma.user.findFirst({
-        where: { 
-          wallets: {
-            some: {
-              walletAddress: unpausedByAddress
-            }
-          }
-        },
-      }) : null;
-      
-      // Registrar evento global
-      await prisma.event.create({
-        data: {
-          eventType: 'SystemUnpaused',
-          userId: unpausedByUser?.id || null,
-          metadata: {
-            unpausedBy: data.by,
-            unpausedByUserId: unpausedByUser?.id,
-          },
-          transactionHash: data.transactionHash,
-          blockNumber: data.blockNumber,
-          blockTimestamp: new Date(data.timestamp * 1000),
-        },
-      });
-      
-      logger.info(`Sistema reanudado por ${data.by} en bloque ${data.blockNumber}`);
-      
-      this.flowLogger.success({
-        unpausedBy: data.by,
-      });
-      
     } catch (error) {
       this.flowLogger.error(error instanceof Error ? error : new Error(String(error)));
     }
@@ -1802,6 +1734,7 @@ class EventListenerService {
       this.flowLogger.error(error instanceof Error ? error : new Error(String(error)));
     }
   }
+
 }
 
 export default new EventListenerService();

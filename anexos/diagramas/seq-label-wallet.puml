@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Ajustes / Wallets" as ui
 control "Endpoints de wallets (/api/users/wallets)" as api
 control "WalletService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Edita la etiqueta de una wallet
 ui -> api: Guardar nueva etiqueta
@@ -15,4 +15,5 @@ srv --> api: Cambio completado
 api --> ui: Etiqueta visible en pantalla
 ui --> user: Wallet renombrada
 @enduml
+
 

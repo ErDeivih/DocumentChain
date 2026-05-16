@@ -11,10 +11,14 @@ import { RecoveryKeyDisplay } from '../components/auth/RecoveryKeyDisplay';
 import { UserPlus, AlertCircle, CheckCircle2, Shield } from 'lucide-react';
 
 /**
- * Register Page - Traditional authentication
- * Users register with username, email, and password
- * Password is used to encrypt the user's RSA private key (generated in frontend)
- * Wallets are ONLY for signing blockchain transactions, NOT for registration/login
+ * Página de registro de nuevos usuarios mediante autenticación tradicional.
+ *
+ * Solicita nombre de usuario, correo electrónico y contraseña para crear
+ * una cuenta. La contraseña se emplea para cifrar la clave privada RSA
+ * generada en el cliente. Las wallets solo se vinculan posteriormente
+ * para firmar transacciones blockchain, nunca para el registro o login.
+ *
+ * @returns JSX.Element con el formulario de creación de cuenta.
  */
 export const Register: React.FC = () => {
   const { register } = useAuth();
@@ -32,7 +36,12 @@ export const Register: React.FC = () => {
   const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
 
-  // Password strength calculator
+  /**
+   * Calcula la fortaleza de una contraseña en escala de 0 a 100.
+   *
+   * @param password - Contraseña a evaluar.
+   * @returns Puntuación numérica donde valores más altos indican mayor robustez.
+   */
   const calculatePasswordStrength = (password: string): number => {
     let strength = 0;
     if (password.length >= 6) strength += 25;
@@ -45,6 +54,11 @@ export const Register: React.FC = () => {
 
   const passwordStrength = calculatePasswordStrength(formData.password);
 
+  /**
+   * Actualiza el estado del formulario cuando cambia un campo de entrada.
+   *
+   * @param e - Evento de cambio del input.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -52,6 +66,12 @@ export const Register: React.FC = () => {
     });
   };
 
+  /**
+   * Valida que todos los campos obligatorios del formulario cumplan
+   * los requisitos mínimos de formato y longitud.
+   *
+   * @returns `true` si el formulario es válido, `false` en caso contrario.
+   */
   const validateForm = (): boolean => {
     if (!formData.username.trim() || !formData.email.trim() || !formData.password.trim()) {
       setError('Todos los campos son obligatorios');
@@ -82,6 +102,14 @@ export const Register: React.FC = () => {
     return true;
   };
 
+  /**
+   * Gestiona el envío del formulario de registro.
+   *
+   * Ejecuta la validación, invoca la API de registro y, si el servidor
+   * devuelve una clave de recuperación, muestra el modal correspondiente.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -115,6 +143,9 @@ export const Register: React.FC = () => {
     }
   };
 
+  /**
+   * Cierra el modal de clave de recuperación y marca el registro como exitoso.
+   */
   const handleRecoveryModalClose = () => {
     setShowRecoveryModal(false);
     setSuccess(true);

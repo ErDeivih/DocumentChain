@@ -43,14 +43,9 @@ test.describe('Delete account flow', () => {
     // Verify confirmation modal appears
     await expect(page.getByText(/Eliminar cuenta permanentemente/i)).toBeVisible();
     await expect(page.getByText(/no se puede deshacer/i)).toBeVisible();
-    await expect(page.getByText(/suspendMyself/i)).toBeVisible();
 
-    // Click confirm - should open wallet selector modal
-    await page.getByRole('button', { name: 'Confirmar eliminación' }).click();
-    await expect(page.getByTestId('wallet-selector-modal')).toBeVisible({ timeout: 10000 });
-
-    // Cancel the flow
-    await page.getByRole('button', { name: /Cancelar/i }).first().click();
-    await expect(page.getByTestId('wallet-selector-modal')).not.toBeVisible();
+    // Cancel the flow via the Cancelar button
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByText(/Eliminar cuenta permanentemente/i)).not.toBeVisible();
   });
 });

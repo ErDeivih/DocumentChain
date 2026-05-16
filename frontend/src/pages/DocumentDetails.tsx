@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDocument, downloadDocument, archiveDocument, deleteDocument } from '../api/documents';
 import { documentsApi } from '../api/documents';
-import { listVersions } from '../api/versions';
+import { listVersions, versionsApi } from '../api/versions';
 import { getMyRole, listShares } from '../api/shares';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
@@ -26,7 +26,7 @@ import { PublicLinkActions } from '../components/public/PublicLinkActions';
 import { DocumentTypeIcon, getDocumentTypeVisual } from '../components/documents/DocumentTypeIcon';
 import { FileCrypto } from '../lib/crypto/FileCrypto';
 import { KeyManager } from '../lib/crypto/KeyManager';
-import { downloadFile, formatBytes, formatDate } from '../lib/utils';
+import { downloadFile, formatBytes, formatDate, formatRelativeTime } from '../lib/utils';
 import { DocumentRole, type Version } from '../types';
 import {
   FileText,
@@ -42,14 +42,27 @@ import {
   FileSignature,
 } from 'lucide-react';
 
+/**
+ * Pestañas disponibles en la vista de detalle de un documento.
+ */
 type TabType = 'details' | 'timeline' | 'versions' | 'transfer';
 
+/**
+ * Página de detalle de un documento específico.
+ *
+ * Permite visualizar metadatos, gestionar versiones, compartir, firmar,
+ * archivar, transferir propiedad y descargar el contenido del documento.
+ *
+ * @returns JSX.Element con la interfaz de detalle del documento.
+ */
 export const DocumentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const storedUser = localStorage.getItem('user');
-  const currentUserId = user?.id || (storedUser ? JSON.parse(storedUser).id : null);
+  const storedUserRaw = localStorage.getItem('user');
+  const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+  const currentUserId = user?.id || storedUser?.id || storedUser?.userId || null;
+  const currentUsername = user?.username || storedUser?.username || null;
   const [downloadPassword, setDownloadPassword] = useState('');
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -57,6 +70,7 @@ export const DocumentDetails: React.FC = () => {
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const [error, setError] = useState<string | null>(null);
+  const [downloadingVersionId, setDownloadingVersionId] = useState<string | null>(null);
 
   const { data: documentData, isLoading, refetch } = useQuery({
     queryKey: ['document', currentUserId, id],
@@ -65,7 +79,11 @@ export const DocumentDetails: React.FC = () => {
   });
 
   const document = documentData?.document;
-  const isOwner = document?.role === 'OWNER' || document?.ownerId === currentUserId;
+  const isOwner = Boolean(
+    document?.role === 'OWNER'
+    || (currentUserId && (document?.ownerId === currentUserId || document?.owner?.id === currentUserId))
+    || (currentUsername && document?.owner?.username === currentUsername)
+  );
   const isPublicDocument = document?.visibility === 'PUBLIC';
 
   const { data: roleData } = useQuery({
@@ -80,7 +98,7 @@ export const DocumentDetails: React.FC = () => {
   const { data: versions, isLoading: isLoadingVersions } = useQuery({
     queryKey: ['versions', id],
     queryFn: () => listVersions(id!),
-    enabled: !!id,
+    enabled: !!id && !!document,
   });
 
   // Get operational version number
@@ -92,7 +110,7 @@ export const DocumentDetails: React.FC = () => {
   const { data: shares } = useQuery({
     queryKey: ['shares', id],
     queryFn: () => listShares(id!),
-    enabled: !!id,
+    enabled: !!id && !!document,
   });
 
   const downloadMutation = useMutation({
@@ -141,9 +159,63 @@ export const DocumentDetails: React.FC = () => {
       downloadFile(blob, filename);
       setIsDownloadModalOpen(false);
       setDownloadPassword('');
+      setDownloadingVersionId(null);
     },
     onError: (err: any) => {
       setError(err.message || 'Error al descargar el documento');
+    },
+  });
+
+  const downloadVersionMutation = useMutation({
+    mutationFn: async (versionId: string) => {
+      const download = await versionsApi.download(versionId);
+
+      if (!download.isEncrypted) {
+        return {
+          blob: download.blob,
+          filename: download.filename,
+        };
+      }
+
+      if (!downloadPassword) {
+        throw new Error('Se requiere la contraseña para descifrar el documento');
+      }
+
+      if (!user?.encryptedPrivateKey) {
+        throw new Error('El usuario autenticado no tiene clave privada cifrada disponible');
+      }
+
+      if (!download.encryptedSymmetricKey || !download.encryptionIV || !download.encryptionAuthTag) {
+        throw new Error('Faltan metadatos de cifrado para descargar este documento');
+      }
+
+      const privateKey = await KeyManager.decryptPrivateKey(
+        user.encryptedPrivateKey,
+        downloadPassword,
+        user.keySalt
+      );
+
+      const decrypted = await FileCrypto.decryptFile(
+        await download.blob.arrayBuffer(),
+        download.encryptedSymmetricKey,
+        privateKey,
+        download.encryptionIV,
+        download.encryptionAuthTag
+      );
+
+      return {
+        blob: new Blob([decrypted.data], { type: download.mimeType }),
+        filename: download.filename.replace(/\.encrypted$/i, ''),
+      };
+    },
+    onSuccess: ({ blob, filename }) => {
+      downloadFile(blob, filename);
+      setIsDownloadModalOpen(false);
+      setDownloadPassword('');
+      setDownloadingVersionId(null);
+    },
+    onError: (err: any) => {
+      setError(err.message || 'Error al descargar la versión');
     },
   });
 
@@ -185,7 +257,23 @@ export const DocumentDetails: React.FC = () => {
   }
 
   if (!document) {
-    return <AlertMessage type="error" message="Documento no encontrado" />;
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/documents')}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver a Mis Documentos
+        </Button>
+        <Card>
+          <CardContent className="text-center py-12">
+            <FileText className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold text-foreground">Documento no encontrado</h3>
+            <p className="text-muted-foreground">
+              El documento que buscas no existe o no tienes acceso a él.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const typeVisual = getDocumentTypeVisual(document.fileExtension, document.mimeType);
@@ -196,7 +284,11 @@ export const DocumentDetails: React.FC = () => {
       setError('Se requiere contraseña para desencriptar el documento');
       return;
     }
-    downloadMutation.mutate();
+    if (downloadingVersionId) {
+      downloadVersionMutation.mutate(downloadingVersionId);
+    } else {
+      downloadMutation.mutate();
+    }
   };
 
   const publicDocumentUrl = document?.publicId
@@ -252,8 +344,8 @@ export const DocumentDetails: React.FC = () => {
                     <span className="text-sm text-muted-foreground">
                       {document.owner.fullName || document.owner.username}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      • {new Date(document.createdAt).toLocaleDateString('es-ES')}
+                    <span className="text-xs text-muted-foreground" title={formatDate(document.createdAt)}>
+                      • {formatRelativeTime(document.createdAt)}
                     </span>
                   </div>
                 )}
@@ -423,13 +515,9 @@ export const DocumentDetails: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground" title="Identificador interno de la aplicacion">ID del documento</p>
-                  <CopyableId value={document.id} truncateStart={10} truncateEnd={6} />
-                </div>
-                <div>
+                <div className="col-span-2">
                   <p className="text-muted-foreground" title="Identificador del documento en el contrato inteligente de Ethereum">Blockchain ID</p>
-                  <CopyableId value={document.blockchainId || ''} truncateStart={8} truncateEnd={6} />
+                  <CopyableId value={document.blockchainId || ''} />
                 </div>
                 <div>
                   <p className="text-muted-foreground">Estado</p>
@@ -441,6 +529,12 @@ export const DocumentDetails: React.FC = () => {
                   <p className="text-muted-foreground">Visibilidad</p>
                   <p>{document.visibility === 'PUBLIC' ? 'Público' : 'Privado'}</p>
                 </div>
+                {operationalVersion?.ipfsCid && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground" title="Identificador de la versión operativa en IPFS">IPFS CID</p>
+                    <CopyableId value={operationalVersion.ipfsCid} />
+                  </div>
+                )}
                 {document.publicId && (
                   <div className="col-span-2">
                     <p className="text-muted-foreground">Enlace Público</p>
@@ -449,11 +543,11 @@ export const DocumentDetails: React.FC = () => {
                 )}
                 <div>
                   <p className="text-muted-foreground">Creado</p>
-                  <p>{formatDate(document.createdAt)}</p>
+                  <p title={formatDate(document.createdAt)}>{formatRelativeTime(document.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Actualizado</p>
-                  <p>{formatDate(document.updatedAt)}</p>
+                  <p title={formatDate(document.updatedAt || (versionsArray.length > 0 ? versionsArray[versionsArray.length - 1].createdAt : document.createdAt))}>{formatRelativeTime(document.updatedAt || (versionsArray.length > 0 ? versionsArray[versionsArray.length - 1].createdAt : document.createdAt))}</p>
                 </div>
               </div>
             </CardContent>
@@ -488,6 +582,15 @@ export const DocumentDetails: React.FC = () => {
             publicId={document.publicId}
             isLoading={isLoadingVersions}
             onVersionChange={() => refetch()}
+            onDownloadVersion={(versionId) => {
+              setDownloadingVersionId(versionId);
+              setError(null);
+              if (document?.isEncrypted) {
+                setIsDownloadModalOpen(true);
+              } else {
+                downloadVersionMutation.mutate(versionId);
+              }
+            }}
           />
         </div>
       )}
@@ -508,17 +611,23 @@ export const DocumentDetails: React.FC = () => {
       {/* Download Password Modal */}
       <Modal
         isOpen={isDownloadModalOpen}
-        onClose={() => setIsDownloadModalOpen(false)}
-        title="Descargar Documento"
+        onClose={() => {
+          setIsDownloadModalOpen(false);
+          setDownloadingVersionId(null);
+        }}
+        title={downloadingVersionId ? 'Descargar Versión' : 'Descargar Documento'}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setIsDownloadModalOpen(false)}>
+            <Button variant="ghost" onClick={() => {
+              setIsDownloadModalOpen(false);
+              setDownloadingVersionId(null);
+            }}>
               Cancelar
             </Button>
             <Button
               variant="primary"
               onClick={handleDownload}
-              isLoading={downloadMutation.isPending}
+              isLoading={downloadMutation.isPending || downloadVersionMutation.isPending}
             >
               Descargar
             </Button>

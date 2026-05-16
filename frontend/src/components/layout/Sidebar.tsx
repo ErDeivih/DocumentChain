@@ -3,10 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { Separator } from '../ui/Separator';
 import { useAuth } from '../../contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { getUserStats } from '../../api/stats';
-import { Progress } from '../ui/Progress';
-import { formatBytes } from '../../lib/utils';
 import { FolderTree } from '../folders/FolderTree';
 import { WalletSidebar } from '../wallets/WalletSidebar';
 import {
@@ -18,12 +14,22 @@ import {
   Search,
 } from 'lucide-react';
 
+/**
+ * Props para un elemento de navegación individual.
+ */
 interface NavItemProps {
+  /** Ruta a la que redirige el enlace de navegación. */
   to: string;
+  /** Icono que se muestra junto a la etiqueta. */
   icon: React.ReactNode;
+  /** Texto descriptivo del enlace. */
   label: string;
 }
 
+/**
+ * Elemento de navegación individual de la barra lateral.
+ * Renderiza un enlace con estilos activos e icono asociado.
+ */
 const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => {
   return (
     <NavLink
@@ -43,27 +49,26 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => {
   );
 };
 
+/**
+ * Props del componente Sidebar.
+ */
 interface SidebarProps {
+  /** Indica si la barra lateral está visible en dispositivos móviles. */
   isOpen?: boolean;
+  /** Callback para cerrar la barra lateral. */
   onClose?: () => void;
 }
 
+/**
+ * Barra lateral de navegación principal.
+ * Incluye el menú principal de la aplicación, el árbol de carpetas
+ * y el selector de wallets.
+ */
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const showFolders = location.pathname === '/app/documents';
-
-  const { data: stats } = useQuery({
-    queryKey: ['userStats'],
-    queryFn: getUserStats,
-    enabled: !isLoading && isAuthenticated && !user?.isAdmin,
-    retry: false,
-  });
-
-  const storageQuota = 5 * 1024 * 1024 * 1024; // 5GB
-  const storageUsed = stats?.stats?.storageUsed || 0;
-  const storagePercentage = (storageUsed / storageQuota) * 100;
+  const showFolders = location.pathname === '/app/documents' || location.pathname.startsWith('/app/documents/');
 
   const handleFolderSelect = (folderId: string | null) => {
     setSelectedFolder(folderId);
@@ -123,25 +128,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               selectedFolderId={selectedFolder}
               onFolderSelect={handleFolderSelect}
             />
-          </div>
-        </div>
-      )}
-
-      {!user?.isAdmin && (
-        <div className="mt-8 border-t border-border/80 pt-8">
-          <h3 className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Almacenamiento
-          </h3>
-          <div className="rounded-xl border border-border bg-white px-4 py-3 shadow-[0_10px_24px_-22px_rgba(15,23,42,0.12)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-foreground">
-                {formatBytes(storageUsed)} / 5 GB
-              </span>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {storagePercentage.toFixed(1)}%
-              </span>
-            </div>
-            <Progress value={storagePercentage} className="h-2" />
           </div>
         </div>
       )}

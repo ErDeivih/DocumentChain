@@ -5,7 +5,6 @@ import {
   loginWithStoredSession,
   seedUsers,
   selectFirstSavedWallet,
-  setUserEmailVerified,
   waitForDocumentStatus,
 } from './helpers';
 
@@ -201,36 +200,19 @@ test.describe('Mobile viewport screenshots', () => {
     await page.screenshot({ path: 'test-results/mobile-wallet-selector.png', fullPage: false });
   });
 
-  test('capture mobile 2FA setup', async ({ page, request, browserName }) => {
+  test('capture mobile security settings', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium');
-    test.setTimeout(120000);
-
-    const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-    const twoFactorUser = {
-      username: `mob_2fa_${uniqueSuffix}`,
-      email: `mob.2fa.${uniqueSuffix}@documentchain.local`,
-      password: 'Admin123!',
-      fullName: 'Mob 2FA User',
-    };
-
-    const registerResponse = await request.post(`${API_BASE_URL}/auth/register`, {
-      data: twoFactorUser,
+    await loginWithStoredSession(page, request, {
+      username: seedUsers.owner.username,
+      password: seedUsers.owner.password,
     });
-    expect(registerResponse.ok()).toBeTruthy();
-    setUserEmailVerified(twoFactorUser.email);
-
-    await page.goto('/login');
-    await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
-    await page.getByLabel('Contraseña').fill(twoFactorUser.password);
-    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await expect(page).toHaveURL(/\/app\/documents$/);
 
     await page.goto('/app/settings');
     await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
-    await page.getByRole('button', { name: 'Configurar 2FA' }).click();
-    await expect(page.getByAltText('QR Code')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Actualizar Contraseña' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Eliminar mi cuenta' })).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
-    await page.screenshot({ path: 'test-results/mobile-2fa-setup.png', fullPage: false });
+    await page.screenshot({ path: 'test-results/mobile-security-settings.png', fullPage: false });
   });
 
   test('capture mobile blockchain auditor', async ({ page, request, browserName }) => {

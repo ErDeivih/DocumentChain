@@ -1,0 +1,36 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0033: Ver timeline de documento (Análisis BCE)
+
+actor "Usuario con acceso" as user
+boundary "Página de timeline" as ui
+control "Gestor de documentos" as ctrl
+entity "Documento" as doc
+entity "Versión" as ver
+entity "Evento" as evt
+entity "Firma" as sig
+entity "Compartido" as share
+
+user -> ui: Solicitar timeline (idDocumento)
+ui -> ctrl: Solicitar historial completo
+
+ctrl -> doc: Verificar permisos
+doc --> ctrl: Permisos verificados
+
+ctrl -> ver: Obtener historial de versiones
+ver --> ctrl: Versiones (creación, cambios operacional)
+
+ctrl -> evt: Obtener eventos del documento
+evt --> ctrl: Eventos (subida, firma, transferencia, compartición)
+
+ctrl -> sig: Obtener firmas
+sig --> ctrl: Firmas registradas
+
+ctrl -> share: Obtener comparticiones
+share --> ctrl: Comparticiones
+
+ctrl --> ui: Timeline consolidado
+ui --> user: Mostrar línea temporal cronológica con todos los eventos
+
+@enduml

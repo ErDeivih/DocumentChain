@@ -21,13 +21,7 @@ model User {
   updatedAt                   DateTime                @updatedAt
   encryptedPrivateKeyRecovery String?
   recoveryKeyHash             String?
-  twoFactorBackupCodes        String?
-  twoFactorEnabled            Boolean                 @default(false)
-  twoFactorSecret             String?
   avatarUrl                   String?
-  isSuspended                 Boolean                 @default(false)
-  suspendReason               String?
-  suspendedAt                 DateTime?
   emailVerified               Boolean                 @default(false)
   documents                   Document[]              @relation("UserDocuments")
   signatures                  DocumentSignature[]
@@ -38,9 +32,9 @@ model User {
   notificationPreference      NotificationPreference?
   passwordResets              PasswordReset[]
   sessions                    Session[]
-  stats                       UserStats?
   versions                    Version[]
   wallets                     Wallet[]
+  shareKeys                   DocumentShareKey[]
 
   @@index([username])
   @@index([email])
@@ -111,11 +105,10 @@ model Document {
   contentHash           String
   metadataHash          String
   fileExtension         String?
-  folderId            String?
+  folderId              String?
   tags                  String[]            @default([])
   ownerId               String
   encryptedSymmetricKey String
-  blockchainRetries     Int                 @default(0)
   blockchainError       String?
   blockchainTxHash      String?
   creatorWalletId       String?
@@ -136,8 +129,10 @@ model Document {
   stats                 DocumentStats?
   events                Event[]
   versions              Version[]
+  shareKeys             DocumentShareKey[]
 
   @@index([ownerId])
+  @@index([creatorWalletId])
   @@index([blockchainId])
   @@index([publicId])
   @@index([visibility])
@@ -155,7 +150,6 @@ model Version {
   userId                String
   encryptedSymmetricKey String
   comment               String?
-  blockchainRetries     Int                 @default(0)
   blockchainError       String?
   blockchainTxHash      String?
   ipfsCid               String?
@@ -173,6 +167,8 @@ model Version {
   @@index([userId])
   @@index([blockchainStatus])
   @@index([createdAt])
+  @@index([ipfsCid])
+  @@unique([documentId, versionNumber])
 }
 
 model DocumentSignature {
@@ -180,7 +176,6 @@ model DocumentSignature {
   documentId                  String
   versionId                   String
   userId                      String?
-  blockchainRetries           Int              @default(0)
   blockchainError             String?
   blockchainTxHash            String?
   signerWalletId              String?
@@ -210,7 +205,6 @@ model Event {
   transactionHash String?
   blockNumber     Int?
   blockTimestamp  DateTime?
-  gasUsed         BigInt?
   createdAt       DateTime  @default(now())
   document        Document? @relation(fields: [documentId], references: [id])
   user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -220,36 +214,29 @@ model Event {
   @@index([createdAt])
   @@index([transactionHash])
   @@index([blockNumber])
+  @@index([documentId])
 }
 
-model UserStats {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  totalDocuments  Int      @default(0)
-  totalSize       BigInt   @default(0)
-  totalShared     Int      @default(0)
-  totalDownloads  Int      @default(0)
-  totalSignatures Int      @default(0)
-  totalTransfers  Int      @default(0)
-  totalRestores   Int      @default(0)
-  totalUnpins     Int      @default(0)
-  lastActivityAt  DateTime @default(now())
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model DocumentShareKey {
+  id                    String   @id @default(cuid())
+  documentId            String
+  userId                String
+  encryptedSymmetricKey String
+  createdAt             DateTime @default(now())
+  document              Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([documentId, userId])
+  @@index([documentId])
   @@index([userId])
 }
 
 model DocumentStats {
-  id              String   @id @default(cuid())
-  documentId      String   @unique
-  totalVersions   Int      @default(1)
-  totalSignatures Int      @default(0)
-  totalDownloads  Int      @default(0)
-  totalShares     Int      @default(0)
-  totalViews      Int      @default(0)
-  totalRestores   Int      @default(0)
-  lastActivityAt  DateTime @default(now())
-  document        Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  documentId     String   @unique
+  totalDownloads Int      @default(0)
+  lastActivityAt DateTime @default(now())
+  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@index([documentId])
 }
@@ -259,21 +246,8 @@ model SystemStats {
   statType        String
   periodStart     DateTime
   periodEnd       DateTime
-  newUsers        Int      @default(0)
-  activeUsers     Int      @default(0)
-  totalUsers      Int      @default(0)
-  newDocuments    Int      @default(0)
-  totalDocuments  Int      @default(0)
-  totalStorage    BigInt   @default(0)
-  newStorage      BigInt   @default(0)
-  totalEvents     Int      @default(0)
-  totalShares     Int      @default(0)
-  totalSignatures Int      @default(0)
-  totalTransfers  Int      @default(0)
-  totalRestores   Int      @default(0)
-  totalUnpins     Int      @default(0)
-  createdAt       DateTime @default(now())
   lastSyncedBlock Int      @default(0)
+  createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@unique([statType, periodStart])

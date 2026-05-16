@@ -1,0 +1,867 @@
+ANEXO I
+Plan de proyecto.
+Diseño y desarrollo de una plataforma robótica para la
+agilización de procesos en la hostelería
+Trabajo de Fin de Grado
+Grado en Ingeniería Informática
+
+Julio 2022
+
+Autor
+David Cruz García
+
+Tutores
+André Filipe Sales Mendes
+Gabriel Villarrubia González
+Juan Francisco de Paz Santana
+
+1
+
+Anexo I: Plan de proyecto.
+
+Tabla de contenido
+1 INTRODUCCIÓN ........................................................................................ 5
+2 ESTIMACIÓN TEMPORAL ......................................................................... 6
+2.1 INTERACCIÓN DE LOS ACTORES CON EL SISTEMA ...................... 6
+2.2 COMPLEJIDAD DE LOS CASOS DE USO .......................................... 7
+2.3 OTROS FACTORES IMPLICADOS...................................................... 9
+2.3.1 FACTORES DE COMPLEJIDAD TÉCNICA ................................... 9
+2.3.2 FACTORES DE ENTORNO ......................................................... 11
+2.4 ESTIMACIÓN DEL TIEMPO DE DURACIÓN ..................................... 12
+3 PLANIFICACIÓN TEMPORAL .................................................................. 15
+3.1 TAREAS Y DIAGRAMA DE GANTT ................................................... 15
+3.2 RECURSOS ....................................................................................... 18
+4 COMPARACIÓN EZESTIMATE Y PROJECT........................................... 20
+5 REFERENCIAS......................................................................................... 21
+
+2
+
+Anexo I: Plan de proyecto.
+
+Índice de tablas
+Tabla 1. Pesos según interacción con el sistema. .................................................... 6
+Tabla 2. Pesos de cada actor del sistema ................................................................ 7
+Tabla 3. Complejidad según número de transacciones de un caso de uso. ............. 7
+Tabla 4. Numero de transacciones y complejidad de cada caso de uso. .................. 9
+Tabla 5. Pesos de los factores de complejidad técnica. ......................................... 10
+Tabla 6. Peso de los factores de entorno. .............................................................. 11
+
+3
+
+Anexo I: Plan de proyecto.
+
+Índice de ilustraciones
+Ilustración 1. Ilustración del Proceso Unificado. Fases e interacciones. ................... 5
+Ilustración 2. Casos de uso por modulo en EZEstimate. ........................................ 12
+Ilustración 3. Factores de complejidad técnica en EZEstimate. .............................. 13
+Ilustración 4. Factores de entorno en EZEstimate. ................................................. 13
+Ilustración 5. Resumen de EZEstimate................................................................... 14
+Ilustración 6. Estimación del EZEstimate. ............................................................... 14
+Ilustración 7. Calendario de trabajo y horario. ........................................................ 15
+Ilustración 8. Tareas y diagrama de Gantt 1 ........................................................... 16
+Ilustración 9. Tareas y diagrama de Gantt 2. .......................................................... 16
+Ilustración 10. Tareas y diagrama de Gantt 3 ......................................................... 17
+Ilustración 11. Tareas y diagrama de Gantt 4 ......................................................... 17
+Ilustración 12. Tareas y diagrama de Gantt 5 ......................................................... 17
+Ilustración 13. Tareas y diagrama de Gantt 6 ......................................................... 18
+Ilustración 14. Tareas y diagrama de Gantt 7 ......................................................... 18
+Ilustración 16. Recurso de trabajo (autor). .............................................................. 19
+Ilustración 17. Gráfico de uso de recursos por semestres. ..................................... 19
+Ilustración 18. Gráfico de uso de recursos por meses. ........................................... 19
+
+4
+
+Anexo I: Plan de proyecto.
+
+1 INTRODUCCIÓN
+En este documento se pretende estudiar la planificación temporal del proyecto
+durante la realización de este.
+Durante este proceso, se identificarán las diferentes tareas a desarrollar, se les
+asignarán distintos tiempos y recursos que marcarán un tiempo de duración para esas
+tareas, y, finalmente, se planificará una secuencia de ejecución de estas tareas tratando
+de reducir el tiempo total de desarrollo al mínimo posible.
+Para ello, se realizará una estimación temporal utilizando un diagrama de Gantt,
+teniendo en cuenta que para el desarrollo del proyecto se ha seguido el marco de
+desarrollo del Proceso Unificado. Con este diagrama se presentan de una forma visual
+mediante gráficas la estimación de tiempo de cada tarea y del desarrollo del proceso en
+su conjunto.
+Finalmente, se desarrollará un marco de trabajo liderado por el uso de la
+metodología del Proceso Unificado y un desarrollo software guiado por la utilización de
+casos de uso, con lo que se podrá desarrollar el proyecto de manera iterativa e
+incremental, dividiendo el tiempo de desarrollo en distintas interacciones, proponiendo
+mejoras para el proyecto entre las mismas. Esto mismo se puede observar en la
+ilustración expuesta a continuación, donde podemos ver el desarrollo de un proyecto
+dividido en fases, y dentro de estas fases las interacciones:
+
+Ilustración 1. Ilustración del Proceso Unificado. Fases e interacciones.
+
+5
+
+Anexo I: Plan de proyecto.
+
+2 ESTIMACIÓN TEMPORAL
+En primer lugar, se comenzará con una estimación del tiempo que se destinará para
+cada una de las fases según los distintos casos de uso a desarrollar, los actores
+implicados y otros factores que afectan directamente al tiempo de desarrollo de un
+proyecto. Los casos de uso y los actores pueden ser consultados en el siguiente anexo:
+“Anexo II: Especificación de requisitos software”.
+Para ello, se usará la herramienta EZEstimate una vez se hayan concretado los
+pesos de los distintos parámetros (puntos de caso de uso) para sacar una estimación
+de tiempo total del desarrollo.
+
+2.1 INTERACCIÓN DE LOS ACTORES CON EL SISTEMA
+Para el sistema que se va a desarrollar se prevén 5 tipos de actores que interactuarán
+(o no) con las distintas funcionalidades del sistema. Estos actores son:
+•
+•
+•
+•
+•
+
+Usuario no logueado
+Usuario logueado
+Cliente
+Administrador
+Sistema
+
+El peso que tendrán los actores depende directamente de la complejidad asignada a
+los mismos. Para ello, se puede seguir la siguiente tabla para asignar los distintos pesos:
+
+Interacción con el sistema
+
+Peso asociado
+
+NINGUNA (actores ficticios, no interaccionan)
+
+0
+
+SIMPLE (interaccionan mediante una API)
+
+1
+
+MEDIA (interaccionan a través de protocolo)
+
+2
+
+COMPLEJA (interaccionan a través de una interfaz gráfica)
+
+3
+
+Tabla 1. Pesos según interacción con el sistema.
+
+Aplicando esta tabla a nuestros actores, obtenemos:
+Actor
+
+Tipo (Peso)
+
+Usuario no logueado
+
+COMPLEJA (3)
+
+Usuario logueado
+
+NINGUNA (0)
+
+Cliente
+
+COMPLEJA (3)
+
+6
+
+Anexo I: Plan de proyecto.
+
+Administrador
+
+COMPLEJA (3)
+
+Sistema
+
+SIMPLE (1)
+Tabla 2. Pesos de cada actor del sistema
+
+Tanto un cliente no logueado, como un cliente logueado o un administrador trabajarán
+a través de una interfaz gráfica asociada a las distintas funcionalidades, mientras que,
+por el contrario, el Usuario Logueado es un actor ficticio que sirve para describir al
+conjunto de actores clientes y administradores, por tanto, no tiene complejidad alguna
+ya que no existe como usuario real. Finalmente, el sistema tendrá cierta complejidad ya
+que funciona a través de APIs, y, por tanto, tendrá una complejidad simple.
+Para el EZEstimate, los usuarios que no interaccionan con el sistema (peso 0) no
+serán especificados, ya que estos actores solo son necesarios para realizar una
+jerarquización.
+
+2.2 COMPLEJIDAD DE LOS CASOS DE USO
+Para determinar la complejidad de un caso de uso se cuenta el número de
+transacciones de ese caso de uso, considerando una transacción como una interacción
+entre el usuario y el sistema hasta que el sistema responde a su solicitud. En caso de
+haber excepciones, se considera cada excepción como transacción si esta interacciona
+con el usuario (solo 1 por paso).
+Además, al igual que con los actores, se considera la siguiente tabla donde se
+relaciona el número de transacciones de un caso de uso con su complejidad:
+Número de transacciones
+
+Complejidad
+
+3 o menos transacciones
+
+Simple
+
+4 a 7 transacciones
+
+Media
+
+Más de 7 transacciones
+
+Compleja
+
+Tabla 3. Complejidad según número de transacciones de un caso de uso.
+
+Con todo esto, ya podemos construir una tabla con cada caso de uso y su
+complejidad asociada:
+Caso de uso
+
+Número de transacciones
+
+Complejidad
+
+UC-001
+
+5
+
+Media
+
+UC-002
+
+1
+
+Simple
+
+UC-003
+
+4
+
+Media
+7
+
+Anexo I: Plan de proyecto.
+
+UC-004
+
+4
+
+Media
+
+UC-005
+
+2
+
+Simple
+
+UC-006
+
+2
+
+Simple
+
+UC-007
+
+5
+
+Media
+
+UC-008
+
+1
+
+Simple
+
+UC-009
+
+2
+
+Simple
+
+UC-010
+
+2
+
+Simple
+
+UC-011
+
+4
+
+Media
+
+UC-012
+
+2
+
+Simple
+
+UC-013
+
+2
+
+Simple
+
+UC-014
+
+2
+
+Simple
+
+UC-015
+
+3
+
+Simple
+
+UC-016
+
+3
+
+Simple
+
+UC-017
+
+2
+
+Simple
+
+UC-018
+
+2
+
+Simple
+
+UC-019
+
+2
+
+Simple
+
+UC-020
+
+2
+
+Simple
+
+UC-021
+
+2
+
+Simple
+
+UC-022
+
+2
+
+Simple
+
+UC-023
+
+4
+
+Media
+
+UC-024
+
+4
+
+Media
+
+UC-025
+
+4
+
+Media
+
+UC-026
+
+3
+
+Simple
+
+UC-027
+
+2
+
+Simple
+
+UC-028
+
+2
+
+Simple
+
+UC-029
+
+4
+
+Media
+
+UC-030
+
+2
+
+Simple
+
+UC-031
+
+2
+
+Simple
+
+8
+
+Anexo I: Plan de proyecto.
+
+UC-032
+
+3
+
+Simple
+
+UC-033
+
+5
+
+Media
+
+UC-034
+
+4
+
+Media
+
+UC-035
+
+2
+
+Simple
+
+UC-036
+
+2
+
+Simple
+
+UC-037
+
+2
+
+Simple
+
+UC-038
+
+3
+
+Simple
+
+UC-039
+
+1
+
+Simple
+
+UC-040
+
+0
+
+Simple
+
+UC-041
+
+1
+
+Simple
+
+Tabla 4. Numero de transacciones y complejidad de cada caso de uso.
+
+2.3 OTROS FACTORES IMPLICADOS
+Finalmente, se asignarán unos pesos a una serie de factores que influirán en la
+planificación temporal del proyecto.
+
+2.3.1 FACTORES DE COMPLEJIDAD TÉCNICA
+Factor de complejidad técnica
+
+Peso
+
+T1 Sistemas Distribuidos
+
+1
+
+T2 Rendimiento
+
+3
+
+T3 Eficiencia del usuario final
+
+2
+
+T4 Procesamiento interno complejo
+
+1
+
+T5 Reusabilidad
+
+4
+
+T6 Facilidad de instalación
+
+3
+
+T7 Facilidad de uso
+
+4
+
+T8 Portabilidad
+
+3
+
+T9 Facilidad de cambio
+
+3
+
+T10 Concurrencia
+
+1
+
+9
+
+Anexo I: Plan de proyecto.
+
+T11 Características especiales de seguridad
+
+2
+
+T12 Acceso directo a terceras partes
+
+1
+
+T13 Se requiere entrenamiento especial del usuario
+
+1
+
+Tabla 5. Pesos de los factores de complejidad técnica.
+
+•
+
+•
+•
+
+•
+
+•
+
+•
+•
+
+•
+
+•
+
+•
+
+T1 Sistemas Distribuidos: Se le ha asignado el valor de 1 ya que, aunque la
+aplicación pueda trabajar en varios dispositivos a la vez, solo se dispone de
+1 robot y 1 servidor, por lo que ese servidor se encargará de todas las
+peticiones.
+T2 Rendimiento: Se le ha asignado el valor de 3 porque se necesita un
+rendimiento no muy alto pero lo suficiente como para proporcionar un buen
+servicio a los clientes y una buena comunicación con el robot.
+T3 Eficiencia del usuario final: Se le ha asignado el valor de 2 ya que no se
+requiere que el usuario final haga demasiadas acciones dentro de un corto
+periodo de tiempo. Esto se debe a que la acción principal dentro de este
+sistema es la de pedir la preparación de una receta, por lo que como solo hay
+1 robot se tardará en preparar dicha receta un tiempo determinado donde el
+usuario no hará ninguna otra petición.
+T4 Procesamiento interno complejo: Se le ha asignado el valor de 2 porque
+el sistema no necesita de un procesamiento complejo de datos ya que los
+únicos cálculos que hará son el cálculo de posiciones y el cálculo de
+estadísticas, ambos algoritmos muy sencillos.
+T5 Reusabilidad: Se le ha asignado el valor de 4 ya que el sistema
+proporciona una API para realizar las peticiones pertinentes, por lo que,
+aunque principalmente se trabaje desde un entorno web se podrán desarrollar
+otras aplicaciones que se comuniquen con esta API y generar las mismas
+funcionalidades.
+T6 Facilidad de instalación: Se le ha asignado el valor de 3 porque solo se
+requiere de la instalación de ambos servidores, de una manera muy sencilla,
+en algún equipo de la red.
+T7 Facilidad de uso: Se le ha asignado el valor de 4 ya que se busca en todo
+momento que el cliente vea de forma muy visual todas las opciones posibles,
+interaccionando de la forma más sencilla posible como cualquier aplicación
+de la vida cotidiana.
+T8 Portabilidad: Se le ha asignado el valor de 3 ya que, aunque lo servidores
+sean muy portables (están desarrollados sobre una plataforma disponible en
+muchos sistemas operativos), se limita la portabilidad del sistema completo
+por el hecho de tener el robot. El robot hace que sea necesario desplazarlo
+de forma física, limitando así la portabilidad del sistema.
+T9 Facilidad de cambio: Se le ha asignado el valor de 3 porque, al igual que
+en el caso anterior, los servidores proporcionan gran flexibilidad ya que ambos
+se comunican mediante una API desarrollada, facilitando en gran medida
+nuevos cambios. El problema recae sobre el robot, ya que para realizar algún
+cambio habría que modificar físicamente el robot y disponer de las piezas
+necesarias para ello, además de realizar las modificaciones oportunas en el
+servidor para las nuevas posiciones de los dispensadores, etc.
+T10 Concurrencia: Se le ha asignado el valor de 1 porque, como ya se ha
+comentado, aunque varios usuarios accedan a la vez a la aplicación esta solo
+10
+
+Anexo I: Plan de proyecto.
+
+•
+
+•
+
+•
+
+trabajará sobre 1 robot, por lo que solo habrá 1 usuario capaz de preparar la
+bebida en un momento determinado.
+T11 Características especiales de seguridad: Se le ha asignado el valor de
+2 ya que no estas características especiales no son realmente importantes
+dentro del sistema ya que no se trabaja con datos muy sensibles, por lo que,
+aunque el sistema pudiera tener una brecha de seguridad los usuarios no se
+verían dañados de ningún modo.
+T12 Acceso directo a terceras partes: Se le ha asignado el valor de 1 ya que
+solo se accederá a terceras partes para la obtención de iconos y elementos
+visuales en el servidor Frontend de la aplicación, ya que accederá a través de
+internet a algunas URL.
+T13 Se requiere entrenamiento especial del usuario: Se le ha asignado el
+valor de 1 ya que el usuario interactuará con una aplicación intuitiva y sencilla
+para controlar todo el robot y el resto de las opciones, por lo que solo será
+necesario un mínimo entrenamiento del funcionamiento del robot
+principalmente.
+
+2.3.2 FACTORES DE ENTORNO
+Factor de entorno
+
+Peso
+
+E1 Familiaridad con UML
+
+2
+
+E2 Trabajadores a tiempo parcial
+
+0
+
+E3 Capacidad de los analistas
+
+2
+
+E4 Experiencia en la aplicación
+
+3
+
+E5 Experiencia en Orientación a Objetos
+
+4
+
+E6 Motivación
+
+5
+
+E7 Dificultad del lenguaje de programación
+
+2
+
+E8 Estabilidad de los requisitos
+
+5
+
+Tabla 6. Peso de los factores de entorno.
+
+•
+•
+•
+
+E1 Familiaridad con UML: Gracias a proyectos dentro de la carrera
+universitaria se dispone de cierta familiaridad con UML.
+E2 Trabajadores a tiempo parcial: El sistema se desarrolla por una única
+persona, por lo que no habrá trabajadores a tiempo parcial.
+E3 Capacidad de los analistas: Al igual que con el factor E1, se dispone de
+cierta experiencia gracias a la carrera, pero no se ha aplicado a un entorno
+real.
+
+11
+
+Anexo I: Plan de proyecto.
+
+•
+
+•
+•
+•
+•
+
+E4 Experiencia en la aplicación: Al igual que los anteriores, se dispone de
+cierta experiencia con UML gracias a la carrera universitaria, además de
+experiencia en proyectos con creación de APIs gracias a proyectos
+individuales.
+E5 Experiencia en Orientación a Objetos: se posee algo más de experiencia
+no solo gracias a la carrera o proyectos individuales, si no a la realización de
+proyectos en las prácticas externas desarrolladas y otros entornos.
+E6 Motivación: Se trata del proyecto fin de carrera y el más importante de
+todos, por lo que la motivación es muy alta.
+E7 Dificultad del lenguaje de programación: se dispone cierta experiencia
+en el lenguaje de programación gracias a proyectos personales y el lenguaje
+se trata de un lenguaje sencillo, por lo que la dificultad es relativamente baja.
+E8 Estabilidad de los requisitos: Los requisitos vienen dados por un proyecto propio
+y han sido especificados anteriormente, por lo que tendrá una estabilidad muy alta,
+dando lugar a mínimos cambios de mejora.
+
+2.4 ESTIMACIÓN DEL TIEMPO DE DURACIÓN
+Una vez establecidos todos los parámetros, los introducimos a la herramienta
+EZEstimate para obtener la estimación temporal del proyecto.
+
+Ilustración 2. Casos de uso por modulo en EZEstimate.
+
+12
+
+Anexo I: Plan de proyecto.
+
+Ilustración 3. Factores de complejidad técnica en EZEstimate.
+
+Ilustración 4. Factores de entorno en EZEstimate.
+
+13
+
+Anexo I: Plan de proyecto.
+
+Ilustración 5. Resumen de EZEstimate.
+
+Ilustración 6. Estimación del EZEstimate.
+
+Finalmente, se obtiene una estimación total de 1158,83h. Teniendo en cuenta que
+solo trabajará en el proyecto 1 única persona durante 8h al día, se obtiene una duración
+estimada del proyecto de:
+𝟏𝟏𝟓𝟖, 𝟖𝟑𝒉
+= 𝟏𝟒𝟒, 𝟖𝟓 𝒅í𝒂𝒔
+𝟖 𝒉/𝒅í𝒂
+
+14
+
+Anexo I: Plan de proyecto.
+
+3 PLANIFICACIÓN TEMPORAL
+3.1 TAREAS Y DIAGRAMA DE GANTT
+Finalmente, una vez calculada la estimación del tiempo dependiendo de los casos de
+uso, los actores y otros factores, se procede a calcular la planificación temporal del
+proyecto.
+Para ello establecerán una serie de fases siguiendo e modelo de Proceso Unificado,
+donde cada fase tendrá una serie de iteraciones donde se desarrollará el proyecto de
+forma incremental, implementando mejoras entre iteraciones.
+Todo esto se hará a través de la herramienta Microsoft Project, que nos permite
+establecer un calendario de trabajo estableciendo las horas que se va a trabajar en el
+proyecto, además de establecer la duración de cada fase para establecer un resultado
+total de días similar al estimado con el EZEstimate.
+
+Ilustración 7. Calendario de trabajo y horario.
+
+Una vez establecido el calendario de trabajo y el horario donde se trabajarán 8 horas
+diarias se procede a establecer las distintas fases y sus iteraciones según el modelo del
+Proceso Unificado.
+Estas fases son:
+•
+•
+•
+
+•
+
+Modelado de negocio: análisis, investigación y búsqueda de recursos y
+relaciones con el proyecto.
+Requisitos: se fijarán los objetivos, actores y requisitos del proyecto (se
+pueden consultar en el Anexo II: Especificación de requisitos software.).
+Análisis y diseño: Análisis de requisitos especificados durante la etapa
+anterior junto al diseño de los distintos componentes del sistema,
+determinando que componentes son necesarios y como funcionarán.
+Implementación: Elaboración y programación del sistema usando lenguajes
+de programación y las herramientas necesarias.
+
+15
+
+Anexo I: Plan de proyecto.
+•
+
+Pruebas: realización de pruebas de todo el sistema verificando el correcto
+diseño, implementación y funcionamiento del sistema, así como obtener
+feedback para corregir posibles errores.
+
+Todas estas fases se muestran a continuación junto al Diagrama de Gantt asociado,
+un diagrama que proporciona una vista general de las tareas programadas:
+
+Ilustración 8. Tareas y diagrama de Gantt 1
+
+Ilustración 9. Tareas y diagrama de Gantt 2.
+
+16
+
+Anexo I: Plan de proyecto.
+
+Ilustración 10. Tareas y diagrama de Gantt 3
+
+Ilustración 11. Tareas y diagrama de Gantt 4
+
+Ilustración 12. Tareas y diagrama de Gantt 5
+
+17
+
+Anexo I: Plan de proyecto.
+
+Ilustración 13. Tareas y diagrama de Gantt 6
+
+Ilustración 14. Tareas y diagrama de Gantt 7
+
+3.2 RECURSOS
+En cuanto a la asignación de recursos, se ha asignado únicamente el recurso del
+autor del proyecto. Es decir, el único recurso a tener en cuenta es el tiempo de trabajo
+del autor en el proyecto y el único requisito es el de controlar que no se exceda ese
+tiempo de trabajo por días.
+
+18
+
+Anexo I: Plan de proyecto.
+
+Ilustración 15. Recurso de trabajo (autor).
+
+Ilustración 16. Gráfico de uso de recursos por semestres.
+
+Ilustración 17. Gráfico de uso de recursos por meses.
+
+19
+
+Anexo I: Plan de proyecto.
+
+4 COMPARACIÓN EZESTIMATE Y PROJECT
+Finalmente, solo queda comparar los resultados obtenidos con estas dos
+herramientas.
+En el EZEstimate obtuvimos una previsión temporal de aproximadamente 145 días.
+Una vez planificadas todas las tareas a realizar, se obtuvo un resultado de 145 días
+también, ajustándose lo máximo posible a los días previstos.
+Además, se asegura que no hay sobrecarga de trabajo para el autor y los recursos
+están distribuidos correctamente, con lo que podemos seguir dicha planificación
+correctamente.
+
+20
+
+Anexo I: Plan de proyecto.
+
+5 REFERENCIAS
+•
+•
+•
+•
+
+Rumbaugh, J., Jacobson, I., Booch, G. “El Lenguaje Unificado de Modelado.
+Manual de Referencia”. 2ª ed., Addison-Wesley. 2007
+Pressman, R. S. “Ingeniería del Software: Un Enfoque Práctico”. 7ª Edición.
+McGraw-Hill. 2010.
+Tuya, J., Ramos, I. y Dolado, J. (eds.) Técnicas Cuantitativas para la Gestión
+de Proyectos, Netbiblo, 2007.
+Documentación de Microsoft Project (visitado el 18-05-2022)
+o https://docs.microsoft.com/es-es/project/
+
+21
+
+

@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Login / pagina verify-email" as ui
 control "Endpoints de verificacion de correo (/api/email)" as api
 control "EmailController" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 participant "Proveedor de email" as email
 
 user -> ui: Solicita reenviar el correo de verificacion
@@ -24,4 +24,5 @@ else Cuenta pendiente
 	ui --> user: Se muestra la confirmacion
 end
 @enduml
+
 

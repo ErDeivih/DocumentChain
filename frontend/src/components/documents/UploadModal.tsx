@@ -25,15 +25,28 @@ import {
 } from '../../lib/blockchain/contracts';
 import { useAuth } from '../../contexts/AuthContext';
 
+/**
+ * Props del componente UploadModal.
+ */
 interface UploadModalProps {
+  /** Controla la visibilidad del modal. */
   isOpen: boolean;
+  /** Callback para cerrar el modal. */
   onClose: () => void;
+  /** Callback que se ejecuta tras una subida exitosa. */
   onSuccess: () => void;
+  /** Identificador de la carpeta predeterminada. */
   defaultFolderId?: string;
 }
 
+/** Pasos del flujo de subida de un documento. */
 type UploadStep = 'form' | 'select_wallet' | 'preparing' | 'signing' | 'confirming' | 'success' | 'error';
 
+/**
+ * Modal para subir nuevos documentos.
+ * Gestiona la selección de archivo, carpeta, etiquetas, visibilidad
+ * y la firma de la transacción blockchain mediante un wallet.
+ */
 export const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
@@ -117,7 +130,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   /**
-   * Start upload process - show wallet selector
+   * Inicia el proceso de subida mostrando el selector de wallets.
    */
   const handleStartUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,7 +145,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   /**
-   * Handle wallet selection - prepare and sign transaction (Backend Encryption Architecture)
+   * Gestiona la selección de wallet para preparar y firmar la transacción.
    */
   const handleWalletSelected = async (wallet: SavedWallet | null, connectedAddress: string) => {
     setShowWalletModal(false);
@@ -210,7 +223,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   /**
-   * Get step status icon
+   * Obtiene el icono de estado correspondiente a un paso del flujo.
    */
   const getStepIcon = (stepName: UploadStep) => {
     if (step === stepName) {
@@ -427,7 +440,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({
               variant="default"
               onClick={handleStartUpload}
               disabled={!file || isProcessing}
-              type="submit"
+                type="button"
+                data-testid="upload-submit-btn"
             >
               {isProcessing ? (
                 <>

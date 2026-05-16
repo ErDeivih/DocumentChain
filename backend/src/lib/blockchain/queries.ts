@@ -1,6 +1,6 @@
 /**
- * Blockchain Query Helpers
- * Abstrae las consultas a smart contracts para evitar duplicación de código
+ * Utilidades de consulta a la blockchain.
+ * Abstrae las llamadas a los smart contracts para evitar duplicación de código.
  */
 
 import { getContracts } from '../../config/blockchain';
@@ -8,6 +8,9 @@ import { ethers } from 'ethers';
 import { NotFoundError, BlockchainError } from '../../utils/errors';
 import logger from '../../utils/logger';
 
+/**
+ * Representación de un documento en la blockchain.
+ */
 export interface BlockchainDocument {
   owner: string;
   docId: string;
@@ -18,6 +21,9 @@ export interface BlockchainDocument {
   updatedAt: Date;
 }
 
+/**
+ * Representación de una versión de documento en la blockchain.
+ */
 export interface BlockchainVersion {
   docId: string;
   versionNumber: number;
@@ -28,6 +34,9 @@ export interface BlockchainVersion {
   restoredFrom: number;
 }
 
+/**
+ * Representación de una firma de versión en la blockchain.
+ */
 export interface BlockchainSignature {
   docId: string;
   versionNumber: number;
@@ -38,9 +47,17 @@ export interface BlockchainSignature {
   timestamp: Date;
 }
 
+/**
+ * Clase de utilidades para realizar consultas a los smart contracts de DocumentChain.
+ * Provee métodos estáticos para obtener documentos, versiones, firmas y permisos directamente desde la blockchain.
+ */
 export class BlockchainQueries {
   /**
-   * Get document data from blockchain
+   * Obtiene los datos de un documento desde la blockchain.
+   * @param blockchainId - Identificador del documento en la blockchain (bytes32).
+   * @returns Objeto con la información del documento.
+   * @throws NotFoundError si el documento no existe (owner es la dirección cero).
+   * @throws BlockchainError si ocurre un error durante la consulta.
    */
   static async getDocument(blockchainId: string): Promise<BlockchainDocument> {
     try {
@@ -78,7 +95,12 @@ export class BlockchainQueries {
   }
 
   /**
-   * Get all versions for a document from blockchain
+   * Obtiene todas las versiones de un documento desde la blockchain.
+   * Itera desde la versión 1 hasta la última registrada.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @returns Lista de versiones del documento.
+   * @throws NotFoundError si el documento no existe.
+   * @throws BlockchainError si ocurre un error durante la consulta.
    */
   static async getAllVersions(blockchainId: string): Promise<BlockchainVersion[]> {
     try {
@@ -126,16 +148,21 @@ export class BlockchainQueries {
   }
 
   /**
-   * Get specific version data from blockchain
+   * Obtiene los datos de una versión específica desde la blockchain.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param versionNumber - Número de versión a consultar.
+   * @returns Información de la versión solicitada.
+   * @throws NotFoundError si la versión no existe (createdBy es la dirección cero).
+   * @throws BlockchainError si ocurre un error durante la consulta.
    */
   static async getVersion(blockchainId: string, versionNumber: number): Promise<BlockchainVersion> {
     try {
       const contracts = getContracts();
       
-      // DocumentRegistry stores versions in a mapping; fetch by docId + versionNumber directly
+      // DocumentRegistry almacena las versiones en un mapping; se consulta directamente por docId + versionNumber
       const version = await contracts.documentRegistry.getVersion(blockchainId, versionNumber);
       
-      // A zero-address createdBy indicates the version does not exist
+      // Una dirección cero en createdBy indica que la versión no existe
       if (!version || version.createdBy === ethers.ZeroAddress) {
         throw new NotFoundError('Versión en blockchain', `${blockchainId}:${versionNumber}`);
       }
@@ -167,7 +194,10 @@ export class BlockchainQueries {
   }
 
   /**
-   * Get operational version for a document
+   * Obtiene la versión operativa de un documento.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @returns La versión marcada como operativa, o `null` si no existe.
+   * @throws BlockchainError si ocurre un error durante la consulta.
    */
   static async getOperationalVersion(blockchainId: string): Promise<BlockchainVersion | null> {
     try {
@@ -188,7 +218,11 @@ export class BlockchainQueries {
   }
 
   /**
-   * Get all signatures for a version from blockchain
+   * Obtiene todas las firmas asociadas a una versión desde la blockchain.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param versionNumber - Número de versión a consultar.
+   * @returns Lista de firmas registradas para la versión.
+   * @throws BlockchainError si ocurre un error durante la consulta.
    */
   static async getVersionSignatures(
     blockchainId: string, 
@@ -227,7 +261,13 @@ export class BlockchainQueries {
   }
 
   /**
-   * Get specific signature from blockchain
+   * Obtiene una firma específica desde la blockchain.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param versionNumber - Número de versión a consultar.
+   * @param signerAddress - Dirección Ethereum del firmante.
+   * @returns Información de la firma solicitada.
+   * @throws NotFoundError si la firma no existe.
+   * @throws BlockchainError si ocurre un error durante la consulta.
    */
   static async getSignature(
     blockchainId: string, 
@@ -267,8 +307,12 @@ export class BlockchainQueries {
   }
 
   /**
-   * Check if a user has signed a specific version
-   * Uses getVersionSignatures (the contract has no direct hasSignedVersion getter)
+   * Verifica si un usuario ha firmado una versión específica.
+   * Dado que el contrato no expone un getter directo, se obtienen todas las firmas de la versión y se busca la dirección.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param versionNumber - Número de versión a consultar.
+   * @param signerAddress - Dirección Ethereum del posible firmante.
+   * @returns `true` si el usuario ha firmado la versión, `false` en caso contrario.
    */
   static async hasUserSigned(
     blockchainId: string,
@@ -296,15 +340,18 @@ export class BlockchainQueries {
   }
 
   /**
-   * Get user's role for a document
-   * Uses getUserPermission() from DocumentRegistry (single-contract architecture).
-   * The old implementation wrongly used AccessControl.hasRole() with invented role names;
-   * document permissions are managed through the _permissions mapping, not AccessControl.
+   * Obtiene el rol de un usuario para un documento específico.
+   * Utiliza `getUserPermission()` del contrato DocumentRegistry (arquitectura de contrato único).
+   * La implementación anterior utilizaba incorrectamente `AccessControl.hasRole()` con nombres de rol inventados;
+   * los permisos de documentos se gestionan a través del mapping `_permissions`, no mediante AccessControl.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns Rol del usuario (`DOCUMENT_OWNER`, `DOCUMENT_SHARED_WRITE`, `DOCUMENT_SHARED_READ`) o `null`.
    */
   static async getUserRole(blockchainId: string, userAddress: string): Promise<string | null> {
     try {
       const contracts = getContracts();
-      // Returns DocumentRole enum: 0=NONE, 1=VIEWER, 2=EDITOR, 3=OWNER
+      // Devuelve el enum DocumentRole: 0=NONE, 1=VIEWER, 2=EDITOR, 3=OWNER
       const roleValue = await contracts.documentRegistry.getUserPermission(blockchainId, userAddress);
       const roleNum = Number(roleValue);
       switch (roleNum) {
@@ -324,7 +371,10 @@ export class BlockchainQueries {
   }
 
   /**
-   * Verificar si un usuario puede leer un documento
+   * Verifica si un usuario puede leer un documento.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si el usuario tiene permiso de lectura, `false` en caso contrario.
    */
   static async canRead(blockchainId: string, userAddress: string): Promise<boolean> {
     try {
@@ -341,7 +391,10 @@ export class BlockchainQueries {
   }
 
   /**
-   * Verificar si un usuario puede escribir en un documento
+   * Verifica si un usuario puede escribir en un documento.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si el usuario tiene permiso de escritura, `false` en caso contrario.
    */
   static async canWrite(blockchainId: string, userAddress: string): Promise<boolean> {
     try {
@@ -358,12 +411,15 @@ export class BlockchainQueries {
   }
 
   /**
-   * Verificar si un usuario puede firmar un documento
+   * Verifica si un usuario puede firmar un documento.
+   * Cualquier usuario con permiso de lectura puede firmar.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si el usuario puede firmar, `false` en caso contrario.
    */
   static async canSign(blockchainId: string, userAddress: string): Promise<boolean> {
     try {
       const contracts = getContracts();
-      // Cualquier usuario con acceso de lectura puede firmar
       return await contracts.documentRegistry.canView(blockchainId, userAddress);
     } catch (error) {
       logger.error('Error al verificar permiso de firma', {
@@ -376,7 +432,10 @@ export class BlockchainQueries {
   }
 
   /**
-   * Verificar si un usuario es dueño de un documento
+   * Verifica si un usuario es propietario de un documento.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si el usuario es propietario, `false` en caso contrario.
    */
   static async isOwner(blockchainId: string, userAddress: string): Promise<boolean> {
     try {
@@ -393,12 +452,15 @@ export class BlockchainQueries {
   }
 
   /**
-   * Verificar si un usuario puede compartir un documento
+   * Verifica si un usuario puede compartir un documento.
+   * Solo el propietario puede compartir documentos.
+   * @param blockchainId - Identificador del documento en la blockchain.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns `true` si el usuario puede compartir, `false` en caso contrario.
    */
   static async canShare(blockchainId: string, userAddress: string): Promise<boolean> {
     try {
       const contracts = getContracts();
-      // Solo el owner puede compartir documentos
       return await contracts.documentRegistry.isOwner(blockchainId, userAddress);
     } catch (error) {
       logger.error('Error al verificar permiso de compartir', {
@@ -411,7 +473,10 @@ export class BlockchainQueries {
   }
 
   /**
-   * Obtener documentos de un usuario (propios y compartidos)
+   * Obtiene los documentos asociados a un usuario (propios y compartidos).
+   * Filtra únicamente aquellos documentos para los que el usuario tiene permiso de lectura activo.
+   * @param userAddress - Dirección Ethereum del usuario.
+   * @returns Lista de identificadores de documento en la blockchain.
    */
   static async getUserDocuments(userAddress: string): Promise<string[]> {
     try {

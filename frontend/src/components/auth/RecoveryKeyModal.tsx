@@ -5,12 +5,23 @@ import AlertMessage from '../ui/AlertMessage';
 import { Copy, Download, AlertTriangle, Check } from 'lucide-react';
 import { copyToClipboard } from '../../lib/utils';
 
+/**
+ * Props del componente RecoveryKeyModal.
+ */
 interface RecoveryKeyModalProps {
+  /** Controla la visibilidad del modal. */
   isOpen: boolean;
+  /** Clave de recuperación generada para el usuario. */
   recoveryKey: string;
+  /** Callback para cerrar el modal. */
   onClose: () => void;
 }
 
+/**
+ * Modal para presentar la clave de recuperación al usuario.
+ * Ofrece opciones para copiarla al portapapeles o descargarla como archivo de texto,
+ * además de requerir una confirmación explícita antes de continuar.
+ */
 export const RecoveryKeyModal: React.FC<RecoveryKeyModalProps> = ({
   isOpen,
   recoveryKey,

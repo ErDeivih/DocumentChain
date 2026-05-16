@@ -1,0 +1,29 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0031: Revocar acceso a documento compartido (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Detalle / Modal permisos" as ui
+control "Gestor de compartición" as ctrl
+entity "Documento" as doc
+entity "Compartido" as share
+
+user -> ui: Seleccionar "Revocar acceso"
+ui --> user: Solicitar confirmación
+user -> ui: Confirmar revocación
+ui -> ctrl: Solicitar revocación (idCompartición)
+
+ctrl -> doc: Verificar propiedad
+doc --> ctrl: Propiedad verificada
+
+ctrl -> share: Verificar compartición
+share --> ctrl: Compartición válida
+
+ctrl -> share: Eliminar / desactivar compartición
+share --> ctrl: Acceso revocado
+
+ctrl --> ui: Confirmación
+ui --> user: Acceso revocado
+
+@enduml

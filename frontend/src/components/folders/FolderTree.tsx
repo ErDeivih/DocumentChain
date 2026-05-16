@@ -3,21 +3,40 @@ import { Folder, ChevronRight, ChevronDown, FolderOpen, Plus } from 'lucide-reac
 import { Folder as FolderType } from '../../types';
 import { getFolders } from '../../api/folders';
 
+/**
+ * Props del componente FolderTree.
+ */
 interface FolderTreeProps {
+  /** Callback al seleccionar una carpeta. */
   onFolderSelect?: (folderId: string | null) => void;
+  /** Identificador de la carpeta actualmente seleccionada. */
   selectedFolderId?: string | null;
+  /** Callback para crear una carpeta en un nivel determinado. */
   onCreateFolder?: (parentId: string | null) => void;
+  /** Callback para crear una subcarpeta dentro de una carpeta existente. */
   onCreateSubfolder?: (parentFolder: FolderType) => void;
+  /** Callback para eliminar una carpeta. */
   onDeleteFolder?: (folder: FolderType) => void;
+  /** Indica si se muestra el botón de crear carpeta. */
   showCreateButton?: boolean;
 }
 
+/**
+ * Nodo extendido del árbol de carpetas.
+ */
 interface FolderNode extends FolderType {
+  /** Subcarpetas hijas. */
   children: FolderNode[];
+  /** Nivel de profundidad en la jerarquía. */
   level: number;
+  /** Cantidad de documentos contenidos en la carpeta. */
   documentCount?: number;
 }
 
+/**
+ * Árbol interactivo de carpetas.
+ * Permite expandir, colapsar y seleccionar carpetas, además de crear subcarpetas.
+ */
 export const FolderTree: React.FC<FolderTreeProps> = ({
   onFolderSelect,
   selectedFolderId,

@@ -186,11 +186,11 @@ function getDemoIdentity(index: number): DemoIdentity {
 
 const PROFILES: Record<ProfileName, ProfileConfig> = {
   'qa-fast': {
-    users: 8,
-    docsPerUser: 5,
-    maxVersionsPerDoc: 4,
-    signaturesPerDoc: 3,
-    walletsPerUser: 3,
+    users: 2,
+    docsPerUser: 2,
+    maxVersionsPerDoc: 2,
+    signaturesPerDoc: 1,
+    walletsPerUser: 1,
   },
   'qa-max': {
     users: 20,
@@ -302,27 +302,7 @@ async function createUser(
       encryptedPrivateKey,
       recoveryKeyHash,
       encryptedPrivateKeyRecovery,
-      twoFactorEnabled: index % 2 === 0,
-      twoFactorSecret: index % 2 === 0 ? `JBSWY3DPEHPK3PXP${index}` : null,
-      twoFactorBackupCodes: index % 2 === 0 ? JSON.stringify([`code-${index}-1`, `code-${index}-2`]) : null,
-      isSuspended: index > 0 && index % 9 === 0,
-      suspendedAt: index > 0 && index % 9 === 0 ? new Date(Date.now() - index * 3600 * 1000) : null,
-      suspendReason: index > 0 && index % 9 === 0 ? 'Cuenta suspendida para pruebas QA' : null,
       emailVerified: true,
-    },
-  });
-
-  await prisma.userStats.create({
-    data: {
-      userId: user.id,
-      totalDocuments: 0,
-      totalSize: BigInt(0),
-      totalShared: 0,
-      totalDownloads: 0,
-      totalSignatures: 0,
-      totalTransfers: 0,
-      totalRestores: 0,
-      totalUnpins: 0,
     },
   });
 
@@ -440,23 +420,6 @@ async function ensureDefaultAdmin(bc: BlockchainContext | null): Promise<Generat
         recoveryKeyHash,
         encryptedPrivateKeyRecovery,
         emailVerified: true,
-        twoFactorEnabled: false,
-        twoFactorSecret: null,
-        twoFactorBackupCodes: null,
-      },
-    });
-
-    await prisma.userStats.create({
-      data: {
-        userId: admin.id,
-        totalDocuments: 0,
-        totalSize: BigInt(0),
-        totalShared: 0,
-        totalDownloads: 0,
-        totalSignatures: 0,
-        totalTransfers: 0,
-        totalRestores: 0,
-        totalUnpins: 0,
       },
     });
 
@@ -511,26 +474,7 @@ async function ensureDefaultAdmin(bc: BlockchainContext | null): Promise<Generat
     data: {
       role: 'ADMIN',
       emailVerified: true,
-      twoFactorEnabled: false,
-      twoFactorSecret: null,
-      twoFactorBackupCodes: null,
     },
-  });
-
-  await prisma.userStats.upsert({
-    where: { userId: existingAdmin.id },
-    create: {
-      userId: existingAdmin.id,
-      totalDocuments: 0,
-      totalSize: BigInt(0),
-      totalShared: 0,
-      totalDownloads: 0,
-      totalSignatures: 0,
-      totalTransfers: 0,
-      totalRestores: 0,
-      totalUnpins: 0,
-    },
-    update: {},
   });
 
   await prisma.notificationPreference.upsert({
@@ -650,24 +594,7 @@ async function createAdminUser(index: number): Promise<GeneratedUser> {
       encryptedPrivateKey,
       recoveryKeyHash,
       encryptedPrivateKeyRecovery,
-      twoFactorEnabled: false,
-      twoFactorSecret: null,
-      twoFactorBackupCodes: null,
       emailVerified: true,
-    },
-  });
-
-  await prisma.userStats.create({
-    data: {
-      userId: user.id,
-      totalDocuments: 0,
-      totalSize: BigInt(0),
-      totalShared: 0,
-      totalDownloads: 0,
-      totalSignatures: 0,
-      totalTransfers: 0,
-      totalRestores: 0,
-      totalUnpins: 0,
     },
   });
 
@@ -799,7 +726,6 @@ async function createDocumentsAndEvents(
       // ── Send real createDocument transaction ────────────────────────────
       let docTxHash = txHash(blockchainCounter);
       let docBlockNumber = 9000 + blockchainCounter;
-      let docGasUsed = BigInt(135000 + d * 1000);
       let docStatus: BlockchainStatus = BlockchainStatus.SYNCED;
       let docError: string | null = null;
 
@@ -811,11 +737,10 @@ async function createDocumentsAndEvents(
             ipfsCid,
             encKeyHash,
           );
-          const receipt = await tx.wait(1) as ethers.TransactionReceipt;
-          docTxHash = receipt.hash;
-          docBlockNumber = receipt.blockNumber;
-          docGasUsed = receipt.gasUsed;
-          docStatus = BlockchainStatus.SYNCED;
+            const receipt = await tx.wait(1) as ethers.TransactionReceipt;
+            docTxHash = receipt.hash;
+            docBlockNumber = receipt.blockNumber;
+            docStatus = BlockchainStatus.SYNCED;
         } catch (err) {
           const reason = err instanceof Error ? err.message : String(err);
           console.warn(`    [bc] createDocument u=${u} d=${d} falló: ${reason}`);
@@ -862,7 +787,6 @@ async function createDocumentsAndEvents(
           transactionHash: document.blockchainTxHash,
           blockNumber: docBlockNumber,
           blockTimestamp: new Date(docCreatedAt.getTime() + 2 * 60 * 1000),
-            gasUsed: docGasUsed,
           createdAt: new Date(docCreatedAt.getTime() + 2 * 60 * 1000),
         },
       });
@@ -878,7 +802,6 @@ async function createDocumentsAndEvents(
 
         let verTxHash = txHash(blockchainCounter + v);
         let verBlockNumber = 9500 + blockchainCounter + v;
-        let verGasUsed = BigInt(100000 + v * 500);
 
         // v=0: version already created on-chain by createDocument; only send tx for v>0
         if (v > 0 && bc && docStatus === BlockchainStatus.SYNCED) {
@@ -892,7 +815,6 @@ async function createDocumentsAndEvents(
             const receipt = await tx.wait(1) as ethers.TransactionReceipt;
             verTxHash = receipt.hash;
             verBlockNumber = receipt.blockNumber;
-            verGasUsed = receipt.gasUsed;
             latestOnchainVersionNum = v + 1;
           } catch (err) {
             console.warn(`    [bc] createVersion u=${u} d=${d} v=${v} falló: ${err instanceof Error ? err.message : err}`);
@@ -931,7 +853,6 @@ async function createDocumentsAndEvents(
             transactionHash: version.blockchainTxHash,
             blockNumber: verBlockNumber,
             blockTimestamp: new Date(docCreatedAt.getTime() + (v + 1) * 20 * 60 * 1000),
-            gasUsed: verGasUsed,
             createdAt: new Date(docCreatedAt.getTime() + (v + 1) * 20 * 60 * 1000),
           },
         });
@@ -946,7 +867,6 @@ async function createDocumentsAndEvents(
 
         let sigTxHash = txHash(blockchainCounter + s + 99);
         let sigBlockNumber = 9800 + blockchainCounter + s;
-        let sigGasUsed = BigInt(80000 + s * 1200);
 
         if (bc && docStatus === BlockchainStatus.SYNCED) {
           try {
@@ -978,7 +898,6 @@ async function createDocumentsAndEvents(
             const receipt = await tx.wait(1) as ethers.TransactionReceipt;
             sigTxHash = receipt.hash;
             sigBlockNumber = receipt.blockNumber;
-            sigGasUsed = receipt.gasUsed;
           } catch (err) {
             console.warn(`    [bc] signDocument u=${u} d=${d} s=${s} falló: ${err instanceof Error ? err.message : err}`);
           }
@@ -1009,40 +928,7 @@ async function createDocumentsAndEvents(
             transactionHash: signature.blockchainTxHash,
             blockNumber: sigBlockNumber,
             blockTimestamp: signedAt,
-            gasUsed: sigGasUsed,
             createdAt: signedAt,
-          },
-        });
-
-        await prisma.event.create({
-          data: {
-            eventType: 'DocumentShared',
-            userId: owner.id,
-            documentId: document.id,
-            metadata: {
-              sharedWithUserId: signer.id,
-              role: s % 2 === 0 ? 'VIEWER' : 'EDITOR',
-            },
-            transactionHash: txHash(blockchainCounter + s + 199),
-            blockNumber: 9900 + blockchainCounter + s,
-            blockTimestamp: new Date(docCreatedAt.getTime() + (s + 1) * 55 * 60 * 1000),
-            createdAt: new Date(docCreatedAt.getTime() + (s + 1) * 55 * 60 * 1000),
-          },
-        });
-
-        await prisma.notification.create({
-          data: {
-            userId: signer.id,
-            type: 'FILE_SHARED',
-            title: 'Nuevo documento compartido',
-            message: `${owner.username} compartio ${document.name} contigo`,
-            link: `/app/documents/${document.id}`,
-            data: {
-              documentId: document.id,
-              owner: owner.username,
-            },
-            isRead: s % 2 === 0,
-            readAt: s % 2 === 0 ? new Date(docCreatedAt.getTime() + 65 * 60 * 1000) : null,
           },
         });
 
@@ -1135,104 +1021,28 @@ async function recomputeStats(users: GeneratedUser[]): Promise<void> {
 
   for (const doc of allDocuments) {
     const totalDownloads = Math.floor(Math.random() * 15);
-    const totalViews = totalDownloads + Math.floor(Math.random() * 20);
 
     await prisma.documentStats.upsert({
       where: { documentId: doc.id },
       create: {
         documentId: doc.id,
-        totalVersions: doc.versions.length,
-        totalSignatures: doc.signatures.length,
         totalDownloads,
-        totalShares: await prisma.event.count({
-          where: {
-            documentId: doc.id,
-            eventType: 'DocumentShared',
-          },
-        }),
-        totalViews,
-        totalRestores: await prisma.event.count({
-          where: {
-            documentId: doc.id,
-            eventType: 'VersionRestored',
-          },
-        }),
+        lastActivityAt: new Date(),
       },
       update: {
-        totalVersions: doc.versions.length,
-        totalSignatures: doc.signatures.length,
         totalDownloads,
-        totalShares: await prisma.event.count({
-          where: {
-            documentId: doc.id,
-            eventType: 'DocumentShared',
-          },
-        }),
-        totalViews,
-        totalRestores: await prisma.event.count({
-          where: {
-            documentId: doc.id,
-            eventType: 'VersionRestored',
-          },
-        }),
-      },
-    });
-  }
-
-  for (const user of users) {
-    const ownedDocs = await prisma.document.findMany({
-      where: { ownerId: user.id },
-      select: { size: true },
-    });
-
-    const totalSize = ownedDocs.reduce<bigint>((acc, item) => acc + item.size, BigInt(0));
-
-    await prisma.userStats.update({
-      where: { userId: user.id },
-      data: {
-        totalDocuments: ownedDocs.length,
-        totalSize,
-        totalShared: await prisma.event.count({
-          where: { userId: user.id, eventType: 'DocumentShared' },
-        }),
-        totalDownloads: await prisma.notification.count({
-          where: { userId: user.id, type: 'FILE_SHARED' },
-        }),
-        totalSignatures: await prisma.documentSignature.count({
-          where: { userId: user.id },
-        }),
-        totalTransfers: await prisma.event.count({
-          where: { userId: user.id, eventType: 'DocumentTransferred' },
-        }),
-        totalRestores: await prisma.event.count({
-          where: { userId: user.id, eventType: 'VersionRestored' },
-        }),
-        totalUnpins: 0,
         lastActivityAt: new Date(),
       },
     });
   }
+
+
 
   await prisma.systemStats.create({
     data: {
       statType: 'DAILY',
       periodStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
       periodEnd: new Date(),
-      newUsers: users.length,
-      activeUsers: users.length,
-      totalUsers: await prisma.user.count(),
-      newDocuments: await prisma.document.count(),
-      totalDocuments: await prisma.document.count(),
-      totalStorage: (await prisma.document.aggregate({
-        _sum: { size: true },
-      }))._sum.size || BigInt(0),
-      newStorage: BigInt(0),
-      totalEvents: await prisma.event.count(),
-      totalShares: await prisma.event.count({ where: { eventType: 'DocumentShared' } }),
-      totalSignatures: await prisma.documentSignature.count(),
-      totalTransfers: await prisma.event.count({ where: { eventType: 'DocumentTransferred' } }),
-      totalRestores: await prisma.event.count({ where: { eventType: 'VersionRestored' } }),
-      totalUnpins: 0,
       lastSyncedBlock: 11000,
     },
   });
@@ -1243,11 +1053,7 @@ async function recomputeStats(users: GeneratedUser[]): Promise<void> {
     update: { value: 'strict' },
   });
 
-  await prisma.systemConfig.upsert({
-    where: { key: '2fa.requiredForAdmin' },
-    create: { key: '2fa.requiredForAdmin', value: 'true' },
-    update: { value: 'true' },
-  });
+  // Fin de la configuracion del sistema
 
   await prisma.systemConfig.upsert({
     where: { key: 'notifications.digest' },
@@ -1267,7 +1073,6 @@ async function printSummary(profile: ProfileName, generatedUsers: GeneratedUser[
     signatures: await prisma.documentSignature.count(),
     events: await prisma.event.count(),
     notifications: await prisma.notification.count(),
-    suspendedUsers: await prisma.user.count({ where: { isSuspended: true } }),
     failedDocuments: await prisma.document.count({ where: { blockchainStatus: BlockchainStatus.FAILED } }),
   };
 
@@ -1284,7 +1089,6 @@ async function printSummary(profile: ProfileName, generatedUsers: GeneratedUser[
   console.log(`Firmas: ${totals.signatures}`);
   console.log(`Eventos de auditoria: ${totals.events}`);
   console.log(`Notificaciones: ${totals.notifications}`);
-  console.log(`Usuarios suspendidos: ${totals.suspendedUsers}`);
   console.log(`Documentos en FAILED: ${totals.failedDocuments}`);
   console.log('--------------------------------------------');
   console.log('Credenciales demo para validacion manual:');

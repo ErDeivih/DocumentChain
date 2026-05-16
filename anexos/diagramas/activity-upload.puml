@@ -1,0 +1,50 @@
+﻿@startuml
+!include _structure-style.puml
+
+title Diagrama de Actividad: Subida de Documento con Firma
+
+start
+
+:Usuario selecciona archivo y metadatos;
+
+:Frontend cifra contenido con AES-256-GCM\n(genera clave simetrica unica);
+
+:POST /documents/prepare\n(envia metadatos cifrados);
+
+:Backend valida permisos y metadatos;
+
+:Backend almacena contenido cifrado en IPFS\n(obtiene CID);
+
+:Backend crea registro en Base de datos\n(estado: PREPARING);
+
+:Backend construye datos de transaccion\n(messageToSign EIP-712);
+
+:Backend devuelve transactionData al frontend;
+
+:Frontend presenta mensaje legible al usuario;
+
+if (Usuario firma?) then (si)
+  :POST /documents/confirm\n(envia transaccion firmada);
+  
+  :Backend envia transaccion a Hardhat;
+  
+  :EventListenerService espera evento\nDocumentRegistered;
+  
+  if (Evento confirmado?) then (si)
+    :Backend actualiza Base de datos\n(estado: SYNCED, blockchainId);
+    :Backend notifica al frontend via WebSocket;
+    :Frontend actualiza lista de documentos;
+  else (no / revertido)
+    :Backend marca estado FAILED;
+    :Notifica error al usuario;
+  endif
+  
+else (no)
+  :Backend elimina registro PREPARING;
+  :Operacion cancelada sin coste;
+endif
+
+stop
+
+@enduml
+

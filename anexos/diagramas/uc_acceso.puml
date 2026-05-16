@@ -1,30 +1,29 @@
 @startuml
 !include _structure-style.puml
 left to right direction
+title Casos de uso - Acceso y cuenta
 
 actor "Usuario" as USER
 actor "Sistema de email" as EMAIL
 actor "Blockchain" as SC
 
-rectangle "Gestion de Acceso y Cuenta" {
+rectangle "Modulo de acceso y cuenta" {
   usecase "UC-0001: Registrar Usuario" as UC1
-  usecase "UC-0002: Iniciar Sesion" as UC3
-  usecase "UC-0003: Validar Segundo Factor" as UC4
-  usecase "UC-0004: Cerrar Sesion" as UC5
-  usecase "UC-0005: Conectar Wallet" as UC6
-  usecase "UC-0006: Eliminar Wallet" as UC7
-  usecase "UC-0007: Establecer Wallet Principal" as UC8
-  usecase "UC-0008: Renombrar Wallet" as UC9
-  usecase "UC-0009: Gestionar Perfil" as UC10
-  usecase "UC-0010: Desactivar Propia Cuenta" as UC11
-  usecase "UC-0011: Reactivar Propia Cuenta" as UC12
-  usecase "UC-0012: Cambiar Contrasena" as UC13
-  usecase "UC-0013: Recuperar Contrasena" as UC14
-  usecase "UC-0014: Verificar Email" as UC15
-  usecase "UC-0015: Reenviar Verificacion" as UC16
+  usecase "UC-0002: Iniciar Sesion" as UC2
+  usecase "UC-0003: Cerrar Sesion" as UC3
+  usecase "UC-0004: Conectar Wallet" as UC4
+  usecase "UC-0005: Eliminar Wallet" as UC5
+  usecase "UC-0006: Establecer Wallet Principal" as UC6
+  usecase "UC-0007: Renombrar Wallet" as UC7
+  usecase "UC-0008: Gestionar Perfil y Notificaciones" as UC8
+  usecase "UC-0009: Eliminar Cuenta" as UC9
+  usecase "UC-0010: Cambiar Contrasena" as UC10
+  usecase "UC-0011: Verificar Email" as UC11
+  usecase "UC-0012: Reenviar Verificacion" as UC12
 }
 
-UC1 -[hidden]down-> UC3
+UC1 -[hidden]down-> UC2
+UC2 -[hidden]down-> UC3
 UC3 -[hidden]down-> UC4
 UC4 -[hidden]down-> UC5
 UC5 -[hidden]down-> UC6
@@ -34,12 +33,9 @@ UC8 -[hidden]down-> UC9
 UC9 -[hidden]down-> UC10
 UC10 -[hidden]down-> UC11
 UC11 -[hidden]down-> UC12
-UC12 -[hidden]down-> UC13
-UC13 -[hidden]down-> UC14
-UC14 -[hidden]down-> UC15
-UC15 -[hidden]down-> UC16
 
 USER --> UC1
+USER --> UC2
 USER --> UC3
 USER --> UC4
 USER --> UC5
@@ -50,26 +46,19 @@ USER --> UC9
 USER --> UC10
 USER --> UC11
 USER --> UC12
-USER --> UC13
-USER --> UC14
-USER --> UC15
-USER --> UC16
 
 EMAIL --> UC1
-EMAIL --> UC14
-EMAIL --> UC15
-EMAIL --> UC16
-SC --> UC12
+EMAIL --> UC11
+EMAIL --> UC12
+SC --> UC9
 
-note right of UC10
-  Integra como subflujos:
-  configuracion avanzada de 2FA
-  y regeneracion de codigos de respaldo.
+note right of UC8
+  Agrupa configuracion de perfil de usuario
+  y preferencias de notificacion.
 end note
 
 note right of UC1
-  El registro con wallet opcional
-  queda como variante dentro del
-  flujo principal de registro.
+  El registro con wallet es la opcion primaria.
+  Soporta autenticacion wallet-based.
 end note
 @enduml

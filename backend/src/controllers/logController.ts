@@ -3,6 +3,17 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../utils/logger';
 
+/**
+ * Controlador de logs.
+ * Gestiona la consulta, estadísticas, limpieza y registro de errores del cliente.
+ */
+
+/**
+ * Analiza una línea de log en formato JSON o texto legado.
+ *
+ * @param line - Línea de texto del archivo de log.
+ * @returns Objeto estructurado con timestamp, nivel, mensaje y metadatos.
+ */
 function parseLogLine(line: string) {
   try {
     const parsed = JSON.parse(line) as Record<string, unknown>;
@@ -50,7 +61,12 @@ function parseLogLine(line: string) {
 }
 
 /**
- * Obtener logs recientes
+ * Obtiene los registros de log recientes de un tipo determinado.
+ * Endpoint: GET /api/logs
+ *
+ * @param req - Objeto de solicitud HTTP. La query puede incluir { type, lines }.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con la lista de logs parseados.
  */
 export async function getLogs(req: Request, res: Response): Promise<void> {
   try {
@@ -88,7 +104,12 @@ export async function getLogs(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Obtener estadísticas de logs
+ * Obtiene estadísticas de los archivos de log existentes.
+ * Endpoint: GET /api/logs/stats
+ *
+ * @param req - Objeto de solicitud HTTP.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con el tamaño, líneas y fecha de modificación de cada archivo.
  */
 export async function getLogStats(req: Request, res: Response): Promise<void> {
   try {
@@ -116,7 +137,12 @@ export async function getLogStats(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Limpiar logs (solo admin)
+ * Limpia los archivos de log del sistema (solo administradores).
+ * Endpoint: POST /api/logs/clear
+ *
+ * @param req - Objeto de solicitud HTTP con { type } en el cuerpo.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con la confirmación de limpieza.
  */
 export async function clearLogs(req: Request, res: Response): Promise<void> {
   try {
@@ -157,7 +183,12 @@ export async function clearLogs(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Registrar error del cliente (desde frontend)
+ * Registra un error reportado por el cliente (frontend).
+ * Endpoint: POST /api/logs/client-error
+ *
+ * @param req - Objeto de solicitud HTTP con { error, message, stack, context } en el cuerpo.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con la confirmación de registro.
  */
 export async function logClientError(req: Request, res: Response): Promise<void> {
   try {

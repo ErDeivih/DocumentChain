@@ -1,6 +1,6 @@
-﻿@startuml
+@startuml
 !include _structure-style.puml
-title Diagrama de componentes y comunicacion
+title Arquitectura de componentes
 
 node "Cliente web" {
     [Aplicacion web] as Frontend
@@ -16,16 +16,16 @@ node "Servidor de aplicacion" {
     [Sincronizador blockchain] as EventListener
 }
 
-node "Persistencia" {
-    database "PostgreSQL" as DB
+node "Capa de persistencia" {
+    database "Base de datos" as DB
 }
 
 node "Almacenamiento distribuido" {
     [IPFS compatible] as IPFS
 }
 
-node "Blockchain" {
-    [Contrato inteligente] as SC
+node "Red blockchain" {
+    [DocumentRegistry] as SC
     [Nodo blockchain] as ETH
 }
 
@@ -43,4 +43,5 @@ EventListener --> SocketSrv
 SocketSrv --> SocketClient
 SC --> ETH
 @enduml
+
 

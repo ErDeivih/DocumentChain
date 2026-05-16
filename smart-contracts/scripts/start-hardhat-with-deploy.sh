@@ -19,6 +19,13 @@ until node -e "const http=require('http');const body=JSON.stringify({jsonrpc:'2.
 done
 
 echo "Hardhat RPC listo en http://0.0.0.0:8545"
-echo "El despliegue de contratos se realiza desde el flujo externo de arranque para evitar direcciones divergentes."
+echo "Desplegando contrato DocumentRegistry..."
+
+npx hardhat run scripts/deploy.js --network localhost || true
+
+if [ -f deployments/localhost.json ]; then
+  REGISTRY_ADDR=$(node -e "console.log(require('./deployments/localhost.json').contracts.DocumentRegistry)")
+  echo "DocumentRegistry desplegado en: $REGISTRY_ADDR"
+fi
 
 wait "$NODE_PID"

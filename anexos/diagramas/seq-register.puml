@@ -1,26 +1,38 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Pagina Registro" as ui
-control "Endpoints de autenticacion (/api/auth)" as api
+boundary "Register.tsx" as ui
+control "AuthController (/api/auth)" as api
 control "AuthService" as srv
-control "Criptografia local" as crypto
-database "PostgreSQL" as db
+control "KeyManager" as crypto
+database "Base de datos" as db
 control "EmailService" as email
 
-user -> ui: Introduce datos personales y contrasena
-ui -> ui: Valida el formulario
-ui -> crypto: Generar claves del usuario
-crypto --> ui: publicKey y encryptedPrivateKey
-ui -> api: Solicitar registro
-api -> srv: Validar y crear cuenta
-srv -> db: Comprobar unicidad y guardar usuario
+user -> ui: Introduce username, email, password y nombre completo
+ui -> ui: Valida formato de formulario
+ui -> api: POST /auth/register
+api -> srv: register({username, email, password, fullName})
+srv -> db: Comprobar unicidad de username y email
+db --> srv: Disponible
+srv -> crypto: generateKeyPair()
+crypto --> srv: publicKey, privateKey
+srv -> crypto: generateRecoveryKey()
+crypto --> srv: recoveryKey, recoveryKeyHash
+srv -> crypto: encryptPrivateKey(privateKey, password)
+crypto --> srv: encryptedPrivateKey
+srv -> crypto: encryptPrivateKeyWithRecovery(privateKey, recoveryKey)
+crypto --> srv: encryptedPrivateKeyRecovery
+srv -> crypto: hashRecoveryKey(recoveryKey)
+crypto --> srv: recoveryKeyHash
+srv -> crypto: hashPassword(password) [Argon2id]
+crypto --> srv: hashedPassword
+srv -> db: Crear usuario con claves y recoveryKeyHash
 db --> srv: Usuario creado
-srv -> email: Enviar verificacion
+srv -> email: Enviar email de verificacion
 email --> srv: OK
 srv --> api: Recovery key y confirmacion de alta
-api --> ui: Mostrar recovery key y aviso de verificacion
-ui --> user: Guarda recovery key y espera el correo
+api --> ui: 201 Created {recoveryKey, message}
+ui --> user: Muestra recovery key y aviso de verificacion por email
 
 @enduml
 

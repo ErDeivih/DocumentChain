@@ -14,18 +14,34 @@ import logger from '../utils/logger';
  * interactuar directamente con el adapter IPFS
  */
 
+/**
+ * Resultado de la subida de un archivo a IPFS.
+ * @property cid - Content Identifier generado por IPFS
+ * @property size - Tamaño del archivo en bytes
+ * @property pinned - Indica si el archivo fue anclado en el nodo
+ */
 export interface IPFSUploadResult {
   cid: string;
   size: number;
   pinned: boolean;
 }
 
+/**
+ * Estado de anclaje (pin) de un contenido en IPFS.
+ * @property cid - Content Identifier consultado
+ * @property isPinned - Indica si está anclado
+ * @property peerMap - Mapa de pares con replicación del contenido
+ */
 export interface IPFSPinStatus {
   cid: string;
   isPinned: boolean;
   peerMap: Record<string, any>;
 }
 
+/**
+ * Servicio de interacción con IPFS (nodo self-hosted).
+ * Proporciona operaciones de subida, descarga, anclaje y verificación de contenido.
+ */
 export class IPFSService {
   private client: IPFSAdapter;
 

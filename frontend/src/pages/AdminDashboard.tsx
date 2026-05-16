@@ -11,7 +11,6 @@ import { LogsViewer } from '../components/admin/LogsViewer';
 import {
   Users,
   FileText,
-  HardDrive,
   Shield,
   TrendingUp,
   AlertCircle,
@@ -21,14 +20,11 @@ import {
   Clock,
 } from 'lucide-react';
 
-const formatBytes = (bytes: number) => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-};
-
+/**
+ * Formatea una cadena de fecha ISO a un formato legible en español.
+ * @param dateString - Fecha en formato ISO 8601.
+ * @returns Cadena formateada localizada a es-ES.
+ */
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('es-ES', {
@@ -40,6 +36,14 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
+/**
+ * Página del panel de administración del sistema.
+ *
+ * Muestra estadísticas globales, estado de los servicios, distribución de usuarios
+ * y actividad reciente mediante pestañas interactivas.
+ *
+ * @returns JSX.Element con el dashboard administrativo.
+ */
 export const AdminDashboard: React.FC = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminStats'],
@@ -81,7 +85,6 @@ export const AdminDashboard: React.FC = () => {
   if (!data?.stats) return null;
 
   const { stats } = data;
-  const storageUsed = parseInt(stats.totalStorageUsed || '0');
 
   const systemCards = [
     {
@@ -101,15 +104,6 @@ export const AdminDashboard: React.FC = () => {
       bgGradient: 'from-green-500/10 to-green-600/10',
       iconColor: 'text-green-600',
       borderColor: 'border-green-200',
-    },
-    {
-      title: 'Storage Used',
-      value: formatBytes(storageUsed),
-      subtitle: 'Total system storage',
-      icon: <HardDrive className="w-8 h-8" />,
-      bgGradient: 'from-purple-500/10 to-purple-600/10',
-      iconColor: 'text-purple-600',
-      borderColor: 'border-purple-200',
     },
     {
       title: 'System Status',
@@ -226,42 +220,6 @@ export const AdminDashboard: React.FC = () => {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Storage Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <HardDrive className="w-5 h-5 mr-2" />
-                  Distribución de Almacenamiento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">Total Usado</span>
-                      <span className="text-sm text-muted-foreground">{formatBytes(storageUsed)}</span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-secondary/70">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
-                        style={{ width: `${Math.min((storageUsed / (5 * 1024 * 1024 * 1024)) * 100, 100)}%` }}
-                      />
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Cuota por usuario: 5 GB
-                    </p>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground">
-                      Promedio por usuario: <span className="font-semibold">
-                        {stats.totalUsers > 0 ? formatBytes(storageUsed / stats.totalUsers) : '0 Bytes'}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* User Distribution */}
             <Card>
               <CardHeader>

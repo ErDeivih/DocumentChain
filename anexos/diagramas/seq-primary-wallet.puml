@@ -1,10 +1,10 @@
-@startuml
+﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Ajustes / Wallets" as ui
 control "Endpoints de wallets (/api/wallets)" as api
 control "WalletService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Marca una wallet como principal
 ui -> api: Guardar wallet principal
@@ -15,3 +15,4 @@ srv --> api: Cambio confirmado
 api --> ui: Estado sincronizado
 ui --> user: La wallet queda como opcion predeterminada
 @enduml
+

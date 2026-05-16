@@ -7,9 +7,15 @@ import {
   verifyByIPFSSchema 
 } from '../schemas/verification.schema';
 
+/**
+ * Router de verificación de autenticidad de documentos.
+ * Permite verificar documentos por archivo, hash IPFS o identificador de blockchain.
+ */
 const router = Router();
 
-// Configurar multer para manejar uploads en memoria
+/**
+ * Instancia de multer configurada para almacenar archivos en memoria con un límite de 100 MB.
+ */
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -17,13 +23,22 @@ const upload = multer({
   },
 });
 
-// Verificar documento subiendo un archivo
+/**
+ * POST /file
+ * Verifica la autenticidad de un documento subiendo el archivo directamente.
+ */
 router.post('/file', upload.single('file'), verificationController.verifyByFile);
 
-// Verificar documento por hash IPFS
+/**
+ * POST /ipfs
+ * Verifica la autenticidad de un documento a partir de su hash IPFS.
+ */
 router.post('/ipfs', validateBody(verifyByIPFSSchema), verificationController.verifyByIPFS);
 
-// Verificar documento por ID de blockchain
+/**
+ * POST /blockchain
+ * Verifica la autenticidad de un documento mediante su identificador en blockchain.
+ */
 router.post('/blockchain', validateBody(verifyByBlockchainSchema), verificationController.verifyByBlockchain);
 
 export default router;

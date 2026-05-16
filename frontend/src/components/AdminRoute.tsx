@@ -1,10 +1,18 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * Props del componente AdminRoute.
+ */
 interface AdminRouteProps {
+  /** Contenido protegido que se renderizará si el usuario es administrador. */
   children: React.ReactNode;
 }
 
+/**
+ * Ruta protegida exclusiva para usuarios administradores.
+ * Redirige a la página de documentos si el usuario no tiene privilegios de administrador.
+ */
 export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
 

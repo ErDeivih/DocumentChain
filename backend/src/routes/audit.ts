@@ -3,17 +3,9 @@ import { AuditService } from '../services/auditService';
 import logger from '../utils/logger';
 
 /**
- * AuditController - Endpoints PÚBLICOS de auditoría
- * 
- * ⚠️ IMPORTANTE: Estos endpoints NO requieren autenticación
- * para maximizar la transparencia y permitir auditorías externas.
- * 
- * Rutas:
- * - GET /audit/trail/:blockchainId - Historial completo de eventos
- * - GET /audit/integrity/:fileId - Verificar integridad
- * - GET /audit/ownership/:blockchainId/:walletAddress - Verificar propiedad
- * - GET /audit/metadata/:blockchainId - Metadata pública
- * - GET /audit/stats - Estadísticas públicas
+ * Router de auditoría pública.
+ * Expone endpoints de transparencia sin autenticación para consultar trazas de auditoría,
+ * verificar integridad, propiedad, metadatos públicos, estadísticas y detalles de transacciones.
  */
 
 const router = Router();

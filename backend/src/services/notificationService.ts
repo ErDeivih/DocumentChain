@@ -7,7 +7,7 @@ import { emailService } from './emailService';
 const prisma = new PrismaClient();
 
 /**
- * Tipos de notificaciones soportadas
+ * Tipos de notificaciones soportadas por el sistema.
  */
 export enum NotificationType {
   FILE_UPLOADED = 'FILE_UPLOADED',
@@ -21,7 +21,6 @@ export enum NotificationType {
   QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
   BLOCKCHAIN_CONFIRMED = 'BLOCKCHAIN_CONFIRMED',
   SECURITY_ALERT = 'SECURITY_ALERT',
-  TWO_FACTOR_ENABLED = 'TWO_FACTOR_ENABLED',
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   FILE_TRANSFER = 'FILE_TRANSFER',
   ACCESS_GRANTED = 'ACCESS_GRANTED',
@@ -31,7 +30,13 @@ export enum NotificationType {
 }
 
 /**
- * Datos para crear notificación
+ * Datos requeridos para crear una notificación.
+ * @property userId - Identificador del destinatario
+ * @property type - Tipo de notificación
+ * @property title - Título de la notificación
+ * @property message - Cuerpo del mensaje
+ * @property link - Enlace de acción (opcional)
+ * @property data - Metadatos adicionales (opcional)
  */
 export interface CreateNotificationData {
   userId: string;
@@ -43,7 +48,11 @@ export interface CreateNotificationData {
 }
 
 /**
- * Opciones de consulta de notificaciones
+ * Opciones de consulta y filtrado de notificaciones.
+ * @property unreadOnly - Solo notificaciones no leídas
+ * @property type - Filtrar por tipo específico
+ * @property limit - Límite de resultados
+ * @property offset - Desplazamiento para paginación
  */
 export interface GetNotificationsOptions {
   unreadOnly?: boolean;
@@ -53,20 +62,16 @@ export interface GetNotificationsOptions {
 }
 
 /**
- * NotificationService - Sistema de notificaciones multi-canal
- * 
+ * Sistema de notificaciones multi-canal.
+ * Gestiona la creación, consulta y envío de notificaciones mediante base de datos, WebSocket y email.
+ *
  * Canales:
- * - Base de datos (histórico, siempre guardado)
- * - WebSocket (push en tiempo real si usuario conectado)
- * - Email (si habilitado en preferencias)
- * 
- * Arquitectura:
- * - BD: Almacena todas las notificaciones (privado del usuario)
- * - WebSocket: Notificaciones push instantáneas
- * - Preferencias: Control granular por tipo de notificación
- * 
- * ⚠️ IMPORTANTE: Las notificaciones SON DATOS PRIVADOS del usuario
- * NO SE ALMACENAN EN BLOCKCHAIN (solo metadata de archivos va a blockchain)
+ * - Base de datos: histórico persistente
+ * - WebSocket: push en tiempo real
+ * - Email: notificaciones por correo según preferencias del usuario
+ *
+ * ⚠️ IMPORTANTE: Las notificaciones SON DATOS PRIVADOS del usuario.
+ * NO se almacenan en blockchain.
  */
 export class NotificationService {
   /**

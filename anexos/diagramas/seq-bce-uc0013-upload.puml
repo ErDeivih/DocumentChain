@@ -1,0 +1,41 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0013: Subir Documento (Analisis BCE)
+
+actor Actor
+boundary "Biblioteca / ModalSubida" as BU
+control "GestorDocumentos" as CD
+entity "Documento" as ED
+
+database "Base de datos" as DB
+boundary "IPFS" as IPFS
+boundary "Blockchain" as BC
+
+Actor -> BU : 1. Selecciona archivo y metadatos
+BU -> BU : 2. Valida tamano y tipo
+BU -> CD : 3. Envia archivo y metadatos
+CD -> CD : 4. Solicita cifrado
+note right : Control genera clave simetrica y cifra el archivo
+CD -> IPFS : 5. Sube contenido cifrado a IPFS
+IPFS --> CD : retorna CID
+
+CD -> ED : 6. Crea Entity Documento en BD
+ED -> DB : INSERT documento
+DB --> ED : confirmacion
+ED --> CD : documento creado
+
+CD -> BC : 7. Prepara transaccion blockchain
+BC --> CD : datos de transaccion
+BU --> Actor : 8. Solicita firma en wallet
+Actor -> BU : autoriza firma
+BU -> CD : 9. Firma recibida
+
+CD -> BC : 10. Registra hash/CID en blockchain
+BC --> CD : confirmacion on-chain
+
+CD --> BU : 11. Confirmacion final
+BU --> Actor : 12. Muestra confirmacion de subida
+
+@enduml
+

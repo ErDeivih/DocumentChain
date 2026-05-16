@@ -3,6 +3,13 @@ import prisma from '../config/database';
 import logger from '../utils/logger';
 import { ethers } from 'ethers';
 
+/**
+ * Resultado de una operación de sincronización de administrador en blockchain.
+ * @property success - Indica si la operación fue exitosa
+ * @property address - Dirección Ethereum afectada
+ * @property txHash - Hash de la transacción (opcional)
+ * @property error - Mensaje de error en caso de fallo
+ */
 export interface AdminSyncResult {
   success: boolean;
   address: string;
@@ -11,13 +18,10 @@ export interface AdminSyncResult {
 }
 
 /**
- * BlockchainAdminService
- * 
- * Servicio para sincronizar administradores del sistema entre la base de datos
- * y el contrato inteligente. Asegura que cualquier usuario con rol ADMIN en la DB
- * también tenga el rol ADMIN_ROLE en blockchain.
- * 
- * Patrón Auto-sync: 
+ * Servicio para sincronizar administradores entre la base de datos y el contrato inteligente.
+ * Asegura que los usuarios con rol ADMIN en la base de datos posean el rol ADMIN_ROLE en blockchain.
+ *
+ * Patrón Auto-sync:
  * - Cuando se crea un admin → se otorga ADMIN_ROLE en blockchain
  * - Cuando se elimina un admin → se revoca ADMIN_ROLE en blockchain
  * - syncAllAdmins() puede ejecutarse periódicamente para garantizar consistencia
@@ -250,29 +254,5 @@ export class BlockchainAdminService {
       logger.error(`[BLOCKCHAIN_ADMIN] Error en syncAdminOnWalletConnect:`, error);
       throw error;
     }
-  }
-
-  /**
-   * Suspender usuario en blockchain (todas sus wallets)
-   */
-  static async suspendUserOnChain(walletAddresses: string[]): Promise<AdminSyncResult[]> {
-    logger.warn('[BLOCKCHAIN_ADMIN] La suspensión administrativa en blockchain está deshabilitada');
-    return walletAddresses.map((address) => ({
-      success: false,
-      address,
-      error: 'La suspensión administrativa está deshabilitada. Solo el propio usuario puede suspender su cuenta.',
-    }));
-  }
-
-  /**
-   * Reactivar usuario en blockchain (todas sus wallets)
-   */
-  static async unsuspendUserOnChain(walletAddresses: string[]): Promise<AdminSyncResult[]> {
-    logger.warn('[BLOCKCHAIN_ADMIN] La reactivación administrativa en blockchain está deshabilitada');
-    return walletAddresses.map((address) => ({
-      success: false,
-      address,
-      error: 'La reactivación administrativa está deshabilitada. Solo el propio usuario puede reactivar su cuenta.',
-    }));
   }
 }

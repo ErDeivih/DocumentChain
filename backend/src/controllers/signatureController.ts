@@ -1,31 +1,37 @@
 /**
- * Signature Controller - Refactored for Frontend Wallet Signatures
- * 
- * Implements the prepare/confirm pattern:
- * - prepareSignature: Creates DB record with PREPARING status
- * - confirmSignature: Updates record after blockchain transaction
- * 
- * The backend NO LONGER:
- * - Handles passwords
- * - Signs blockchain transactions (user's wallet does this)
+ * Controlador de firmas refactorizado para firmas de wallet en el frontend.
+ *
+ * Implementa el patrón preparar/confirmar:
+ * - prepareSignature: Crea el registro en base de datos con estado PREPARING.
+ * - confirmSignature: Actualiza el registro tras la transacción en blockchain.
+ *
+ * El backend ya NO maneja contraseñas ni firma transacciones blockchain;
+ * estas operaciones las realiza la wallet del usuario.
  */
-
 import { Request, Response } from 'express';
 import { SignatureService } from '../services/signatureService';
 import logger from '../utils/logger';
 import prisma from '../config/database';
 
+/**
+ * Controlador de firmas digitales.
+ * Gestiona la preparación, confirmación, consulta y reversión de firmas
+ * asociadas a versiones de documentos.
+ */
 export class SignatureController {
   // ============================================
-  // NEW: Prepare/Confirm Pattern Endpoints
+  // Endpoints del patrón Preparar/Confirmar
   // ============================================
 
   /**
-   * Prepare a signature for creation
-   * POST /api/signatures/prepare
-   * 
-   * Frontend requests to sign a document version.
-   * Backend creates DB record with PREPARING status.
+   * Prepara una firma para su creación.
+   * El frontend solicita firmar una versión de documento;
+   * el backend crea el registro en estado PREPARING.
+   * Endpoint: POST /api/signatures/prepare
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { documentId, versionNumber, walletId }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el resultado de la preparación de la firma.
    */
   static async prepareSignature(req: Request, res: Response): Promise<void> {
     try {
@@ -75,10 +81,12 @@ export class SignatureController {
   }
 
   /**
-   * Confirm a signature after blockchain transaction
-   * POST /api/signatures/confirm
-   * 
-   * Frontend calls this after signing and submitting the blockchain transaction.
+   * Confirma una firma tras la transacción en blockchain.
+   * Endpoint: POST /api/signatures/confirm
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { signatureId, txHash, ecdsaSignature }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la firma confirmada.
    */
   static async confirmSignature(req: Request, res: Response): Promise<void> {
     try {
@@ -128,8 +136,12 @@ export class SignatureController {
   }
 
   /**
-   * Get signatures for a version
-   * GET /api/versions/:versionId/signatures
+   * Obtiene todas las firmas asociadas a una versión específica.
+   * Endpoint: GET /api/versions/:versionId/signatures
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la versión.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de firmas.
    */
   static async getVersionSignatures(req: Request, res: Response): Promise<void> {
     try {
@@ -148,8 +160,12 @@ export class SignatureController {
   }
 
   /**
-   * Get all signatures for a document
-   * GET /api/documents/:documentId/signatures
+   * Obtiene todas las firmas asociadas a un documento.
+   * Endpoint: GET /api/documents/:documentId/signatures
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de firmas del documento.
    */
   static async getDocumentSignatures(req: Request, res: Response): Promise<void> {
     try {
@@ -168,8 +184,12 @@ export class SignatureController {
   }
 
   /**
-   * Check if user has signed a version
-   * GET /api/versions/:versionId/signatures/check
+   * Verifica si el usuario autenticado ha firmado una versión específica.
+   * Endpoint: GET /api/versions/:versionId/signatures/check
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la versión.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con un indicador booleano.
    */
   static async checkSignature(req: Request, res: Response): Promise<void> {
     try {
@@ -188,8 +208,12 @@ export class SignatureController {
   }
 
   /**
-   * Get user's signature for a version
-   * GET /api/versions/:versionId/signatures/me
+   * Obtiene la firma del usuario autenticado para una versión específica.
+   * Endpoint: GET /api/versions/:versionId/signatures/me
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la versión.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la firma del usuario o un error 404.
    */
   static async getMySignature(req: Request, res: Response): Promise<void> {
     try {
@@ -214,8 +238,12 @@ export class SignatureController {
   }
 
   /**
-   * Rollback a signature preparation (delete PREPARING record)
-   * POST /api/signatures/:signatureId/rollback
+   * Revierte una firma en estado PREPARING eliminando su registro.
+   * Endpoint: POST /api/signatures/:signatureId/rollback
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la firma.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de reversión.
    */
   static async rollbackSignature(req: Request, res: Response): Promise<void> {
     try {
@@ -238,8 +266,12 @@ export class SignatureController {
   }
 
   /**
-   * Get signatures for a specific version by version number
-   * GET /api/documents/:documentId/versions/:versionNumber/signatures
+   * Obtiene las firmas de una versión específica identificada por su número.
+   * Endpoint: GET /api/documents/:documentId/versions/:versionNumber/signatures
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento y el número de versión.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de firmas de la versión.
    */
   static async getVersionSignaturesByNumber(req: Request, res: Response): Promise<void> {
     try {

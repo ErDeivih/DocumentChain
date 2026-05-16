@@ -25,15 +25,28 @@ import { blockchainProvider } from '../../lib/blockchain/provider';
 import { AccessRole, DocumentRegistryContract } from '../../lib/blockchain/contracts';
 import { UserPlus, AlertCircle, Info, Loader2, Wallet } from 'lucide-react';
 
+/**
+ * Propiedades del componente ShareModal.
+ */
 interface ShareModalProps {
+  /** Indica si el modal está abierto. */
   isOpen: boolean;
+  /** Función para cerrar el modal. */
   onClose: () => void;
+  /** Identificador único del documento a compartir. */
   documentId: string;
+  /** Nombre del documento a compartir. */
   documentName: string;
 }
 
 type ShareStep = 'form' | 'validating' | 'preparing' | 'signing' | 'confirming' | 'success' | 'error';
 
+/**
+ * Modal para compartir un documento con otro usuario mediante cifrado seguro y registro en blockchain.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX del modal de compartición.
+ */
 export const ShareModal: React.FC<ShareModalProps> = ({
   isOpen,
   onClose,
@@ -47,8 +60,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const [selectedRole, setSelectedRole] = useState<DocumentRole>(DocumentRole.SHARED_READ);
   const [error, setError] = useState<string | null>(null);
   const [pendingRecipient, setPendingRecipient] = useState<UserSearchResult | null>(null);
-  
-  // Wallet and transaction state
+
+  // Estado de la wallet y de la transacción
   const [step, setStep] = useState<ShareStep>('form');
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -56,7 +69,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const isProcessing = step !== 'form' && step !== 'error';
 
   /**
-   * Start share process - validate and show wallet selector
+   * Inicia el proceso de compartición: valida el destinatario y muestra el selector de wallet.
    */
   const handleStartShare = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +105,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   };
 
   /**
-   * Handle wallet selection for sharing (Backend Encryption Architecture)
+   * Gestiona la selección de wallet para compartir (Arquitectura de Cifrado en Backend).
    */
   const handleWalletSelected = async (wallet: SavedWallet | null, connectedAddress: string) => {
     setShowWalletModal(false);
@@ -104,25 +117,25 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         throw new Error('Usuario no autenticado');
       }
 
-      // Get signer
+      // Obtiene el firmante
       const signer = blockchainProvider.getSigner();
       if (!signer) {
         throw new Error('No signer available. Please connect your wallet.');
       }
       
-      // Verify connected address matches
+      // Verifica que la dirección conectada coincida
       const signerAddress = await signer.getAddress();
       if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
         throw new Error('Connected wallet does not match selected wallet.');
       }
 
-      // Step 1: Use the validated recipient, falling back to a lookup only if needed
+      // Paso 1: utiliza el destinatario validado, recurriendo a una búsqueda solo si es necesario
       const recipientUser = pendingRecipient ?? (await usersApi.search(username.trim())).users?.[0];
       if (!recipientUser) {
         throw new Error(`Usuario "${username.trim()}" no encontrado`);
       }
 
-      // Step 2: Get document to access encrypted symmetric key
+      // Paso 2: obtiene el documento para acceder a la clave simétrica cifrada
       const { document } = await documentsApi.get(documentId);
       if (document.visibility === 'PUBLIC') {
         throw new Error('Los documentos públicos se comparten mediante enlace o QR, no mediante compartición privada.');
@@ -132,7 +145,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         throw new Error('El documento no tiene clave de cifrado');
       }
 
-      // Step 3: Decrypt user's private key with password
+      // Paso 3: descifra la clave privada del usuario con la contraseña
       if (!user.encryptedPrivateKey) {
         throw new Error('Usuario no tiene claves configuradas');
       }
@@ -143,18 +156,18 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         user.keySalt
       );
 
-      // Step 4: Decrypt symmetric key with user's private key
+      // Paso 4: descifra la clave simétrica con la clave privada del usuario
       const decryptedSymmetricKeyBuffer = await KeyManager.decryptWithPrivateKey(
         document.encryptedSymmetricKey,
         privateKey
       );
 
-      // Convert to base64
+      // Convierte a base64
       const decryptedSymmetricKey = btoa(
         String.fromCharCode(...new Uint8Array(decryptedSymmetricKeyBuffer))
       );
 
-      // Step 5: Call backend prepare (backend re-encrypts for recipient)
+      // Paso 5: llama al backend para preparar (el backend recifra para el destinatario)
       const prepareResult = await sharesApi.prepareShare({
         documentId,
         sharedWithUserId: recipientUser.id,
@@ -163,38 +176,38 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         decryptedSymmetricKey,
       });
       
-      // Step 6: Sign blockchain transaction for access control
+      // Paso 6: firma la transacción blockchain para el control de acceso
       setStep('signing');
-      
-      // Create registry contract instance
+
+      // Crea la instancia del contrato de registro
       const registryContract = new DocumentRegistryContract(signer);
       
       const role = selectedRole === DocumentRole.SHARED_WRITE
         ? AccessRole.EDITOR
         : AccessRole.VIEWER;
       
-      // Grant permission on blockchain using recipient's wallet address
+      // Otorga permiso en blockchain utilizando la dirección de wallet del destinatario
       const tx = await registryContract.shareDocument(
         prepareResult.blockchainId as `0x${string}`,
         prepareResult.sharedWithAddress as `0x${string}`,
         role
       );
-      
+
       setTxHash(tx.hash);
       setStep('confirming');
-      
-      // Wait for confirmation
+
+      // Espera la confirmación
       await tx.wait();
-      
-      // Step 7: Confirm share in backend
+
+      // Paso 7: confirma la compartición en el backend
       await sharesApi.confirmShare({
         shareId: prepareResult.shareId,
         txHash: tx.hash,
       });
-      
+
       setStep('success');
-      
-      // Invalidate queries and close after delay
+
+      // Invalida las consultas y cierra tras una espera
       queryClient.invalidateQueries({ queryKey: ['shares', documentId] });
       
       setTimeout(() => {
@@ -377,7 +390,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Wallet Selector Modal */}
+      {/* Modal selector de wallet */}
       <WalletSelectorModal
         isOpen={showWalletModal}
         onClose={() => setShowWalletModal(false)}

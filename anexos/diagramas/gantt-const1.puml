@@ -7,9 +7,9 @@ Project starts 2026-01-05
 [T24: Configuracion backend base Node/Express/Prisma] lasts 10 days
 then [T25: Modulo autenticacion JWT y Argon2id] lasts 8 days
 then [T26: Modulo registro y gestion de usuario] lasts 5 days
-[T27: Desarrollo smart contract Solidity] lasts 10 days
-[T27: Desarrollo smart contract Solidity] starts at [T24: Configuracion backend base Node/Express/Prisma]'s end
-then [T28: Pruebas e integracion del smart contract] lasts 5 days
+[T27: Desarrollo DocumentRegistry Solidity] lasts 10 days
+[T27: Desarrollo DocumentRegistry Solidity] starts at [T24: Configuracion backend base Node/Express/Prisma]'s end
+then [T28: Pruebas e integracion del DocumentRegistry] lasts 5 days
 
 -- Backend: Documentos, cifrado e IPFS --
 then [T29: Modulo cifrado hibrido AES-256-GCM y RSA-OAEP] lasts 8 days

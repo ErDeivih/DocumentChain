@@ -2,30 +2,31 @@ import crypto from 'crypto';
 import { KeyManager } from './KeyManager';
 
 /**
- * FileCrypto handles file encryption/decryption using AES-256-GCM
- * Symmetric keys are generated per file and encrypted with user's public key
+ * Gestiona el cifrado y descifrado de archivos mediante AES-256-GCM.
+ * Las claves simétricas se generan por archivo y se cifran con la clave pública del usuario.
  */
 export class FileCrypto {
   /**
-   * Generate a random AES-256 symmetric key
-   * @returns 256-bit key as Buffer
+   * Genera una clave simétrica aleatoria de 256 bits para AES.
+   * @returns Clave de 256 bits como Buffer.
    */
   static generateSymmetricKey(): Buffer {
     return crypto.randomBytes(32); // 256 bits
   }
 
   /**
-   * Encrypt file data with AES-256-GCM
-   * @param fileData - File data to encrypt
-   * @param symmetricKey - 256-bit symmetric key
-   * @returns Encrypted data with IV and auth tag (format: iv:authTag:encryptedData)
+   * Cifra los datos de un archivo con AES-256-GCM.
+   * @param fileData - Datos del archivo a cifrar.
+   * @param symmetricKey - Clave simétrica de 256 bits.
+   * @returns Cadena con los datos cifrados en formato `iv:authTag:encryptedData` (base64).
+   * @throws Error si la longitud de la clave no es de 32 bytes.
    */
   static encryptFile(fileData: Buffer, symmetricKey: Buffer): string {
     if (symmetricKey.length !== 32) {
       throw new Error('La clave simétrica debe ser de 256 bits (32 bytes)');
     }
 
-    const iv = crypto.randomBytes(12); // 96-bit IV for GCM
+    const iv = crypto.randomBytes(12); // IV de 96 bits para GCM
     const cipher = crypto.createCipheriv('aes-256-gcm', symmetricKey, iv);
 
     const encrypted = Buffer.concat([
@@ -35,15 +36,16 @@ export class FileCrypto {
 
     const authTag = cipher.getAuthTag();
 
-    // Return format: iv:authTag:encryptedData (all base64)
+    // Formato de salida: iv:authTag:encryptedData (todo en base64)
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
   }
 
   /**
-   * Decrypt file data encrypted with encryptFile
-   * @param encryptedData - Encrypted data (format: iv:authTag:encryptedData)
-   * @param symmetricKey - 256-bit symmetric key used for encryption
-   * @returns Decrypted file data as Buffer
+   * Descifra datos de archivo previamente cifrados con {@link encryptFile}.
+   * @param encryptedData - Datos cifrados en formato `iv:authTag:encryptedData`.
+   * @param symmetricKey - Clave simétrica de 256 bits utilizada durante el cifrado.
+   * @returns Datos del archivo descifrados como Buffer.
+   * @throws Error si el formato es inválido o la clave no coincide.
    */
   static decryptFile(encryptedData: string, symmetricKey: Buffer): Buffer {
     if (symmetricKey.length !== 32) {
@@ -75,11 +77,12 @@ export class FileCrypto {
   }
 
   /**
-   * Encrypt file and prepare encrypted symmetric key for owner
-   * @param fileData - File data to encrypt
-   * @param ownerPublicKey - Owner's public key (PEM format)
-   * @param ownerPrivateKey - Owner's private key (PEM format)
-   * @returns Object with encrypted file and encrypted symmetric key
+   * Cifra un archivo y prepara la clave simétrica cifrada para el propietario.
+   * Genera una clave simétrica, cifra el archivo y cifra dicha clave con la clave pública del propietario.
+   * @param fileData - Datos del archivo a cifrar.
+   * @param ownerPublicKey - Clave pública del propietario en formato PEM.
+   * @param ownerPrivateKey - Clave privada del propietario en formato PEM.
+   * @returns Objeto con el archivo cifrado, la clave simétrica cifrada y la clave simétrica en claro.
    */
   static encryptFileForOwner(
     fileData: Buffer,
@@ -90,13 +93,13 @@ export class FileCrypto {
     encryptedSymmetricKey: string;
     symmetricKey: Buffer;
   } {
-    // Generate symmetric key
+    // Generar clave simétrica
     const symmetricKey = this.generateSymmetricKey();
 
-    // Encrypt file
+    // Cifrar archivo
     const encryptedFile = this.encryptFile(fileData, symmetricKey);
 
-    // Encrypt symmetric key with owner's public key
+    // Cifrar clave simétrica con la clave pública del propietario
     const encryptedSymmetricKey = KeyManager.encryptForRecipient(
       symmetricKey,
       ownerPublicKey,
@@ -111,12 +114,12 @@ export class FileCrypto {
   }
 
   /**
-   * Decrypt file using owner's private key to decrypt the symmetric key
-   * @param encryptedFile - Encrypted file data
-   * @param encryptedSymmetricKey - Encrypted symmetric key
-   * @param ownerPublicKey - Owner's public key (PEM format)
-   * @param ownerPrivateKey - Owner's private key (PEM format)
-   * @returns Decrypted file data as Buffer
+   * Descifra un archivo utilizando la clave privada del propietario para obtener la clave simétrica.
+   * @param encryptedFile - Datos del archivo cifrado.
+   * @param encryptedSymmetricKey - Clave simétrica cifrada para el propietario.
+   * @param ownerPublicKey - Clave pública del propietario en formato PEM.
+   * @param ownerPrivateKey - Clave privada del propietario en formato PEM.
+   * @returns Datos del archivo descifrados como Buffer.
    */
   static decryptFileAsOwner(
     encryptedFile: string,
@@ -124,26 +127,25 @@ export class FileCrypto {
     ownerPublicKey: string,
     ownerPrivateKey: string
   ): Buffer {
-    // Decrypt symmetric key
+    // Descifrar clave simétrica
     const symmetricKey = KeyManager.decryptFromSender(
       encryptedSymmetricKey,
       ownerPublicKey,
       ownerPrivateKey
     );
 
-    // Decrypt file
+    // Descifrar archivo
     return this.decryptFile(encryptedFile, symmetricKey);
   }
 
   /**
-   * Re-encrypt symmetric key for sharing with another user
-   * Used when sharing a document - we decrypt the symmetric key with owner's key,
-   * then re-encrypt it with recipient's public key
-   * @param encryptedSymmetricKey - Current encrypted symmetric key
-   * @param ownerPublicKey - Owner's public key (PEM format)
-   * @param ownerPrivateKey - Owner's private key (PEM format)
-   * @param recipientPublicKey - Recipient's public key (PEM format)
-   * @returns Encrypted symmetric key for recipient
+   * Recifra la clave simétrica para compartirla con otro usuario.
+   * Descifra la clave simétrica con las claves del propietario y la vuelve a cifrar con la clave pública del destinatario.
+   * @param encryptedSymmetricKey - Clave simétrica cifrada actualmente.
+   * @param ownerPublicKey - Clave pública del propietario en formato PEM.
+   * @param ownerPrivateKey - Clave privada del propietario en formato PEM.
+   * @param recipientPublicKey - Clave pública del destinatario en formato PEM.
+   * @returns Clave simétrica cifrada para el destinatario.
    */
   static reEncryptSymmetricKeyForRecipient(
     encryptedSymmetricKey: string,
@@ -151,14 +153,14 @@ export class FileCrypto {
     ownerPrivateKey: string,
     recipientPublicKey: string
   ): string {
-    // Decrypt symmetric key using owner's keys
+    // Descifrar clave simétrica usando las claves del propietario
     const symmetricKey = KeyManager.decryptFromSender(
       encryptedSymmetricKey,
       ownerPublicKey,
       ownerPrivateKey
     );
 
-    // Re-encrypt for recipient
+    // Recifrar para el destinatario
     return KeyManager.encryptForRecipient(
       symmetricKey,
       recipientPublicKey,
@@ -167,12 +169,12 @@ export class FileCrypto {
   }
 
   /**
-   * Decrypt file as a shared user (not owner)
-   * @param encryptedFile - Encrypted file data
-   * @param encryptedSymmetricKey - Symmetric key encrypted for this user
-   * @param ownerPublicKey - Document owner's public key (PEM format)
-   * @param userPrivateKey - This user's private key (PEM format)
-   * @returns Decrypted file data as Buffer
+   * Descifra un archivo como usuario con acceso compartido (no propietario).
+   * @param encryptedFile - Datos del archivo cifrado.
+   * @param encryptedSymmetricKey - Clave simétrica cifrada para este usuario.
+   * @param ownerPublicKey - Clave pública del propietario del documento en formato PEM.
+   * @param userPrivateKey - Clave privada de este usuario en formato PEM.
+   * @returns Datos del archivo descifrados como Buffer.
    */
   static decryptFileAsSharedUser(
     encryptedFile: string,
@@ -180,31 +182,31 @@ export class FileCrypto {
     ownerPublicKey: string,
     userPrivateKey: string
   ): Buffer {
-    // Decrypt symmetric key
+    // Descifrar clave simétrica
     const symmetricKey = KeyManager.decryptFromSender(
       encryptedSymmetricKey,
       ownerPublicKey,
       userPrivateKey
     );
 
-    // Decrypt file
+    // Descifrar archivo
     return this.decryptFile(encryptedFile, symmetricKey);
   }
 
   /**
-   * Hash file content to verify integrity
-   * @param fileData - File data to hash
-   * @returns SHA-256 hash as hex string
+   * Calcula el hash SHA-256 del contenido de un archivo para verificar su integridad.
+   * @param fileData - Datos del archivo a hashear.
+   * @returns Hash SHA-256 en formato hexadecimal.
    */
   static hashFile(fileData: Buffer): string {
     return crypto.createHash('sha256').update(fileData).digest('hex');
   }
 
   /**
-   * Verify file integrity using hash
-   * @param fileData - File data to verify
-   * @param expectedHash - Expected SHA-256 hash (hex string)
-   * @returns true if hash matches, false otherwise
+   * Verifica la integridad de un archivo comparando su hash calculado con el esperado.
+   * @param fileData - Datos del archivo a verificar.
+   * @param expectedHash - Hash SHA-256 esperado (hexadecimal).
+   * @returns `true` si coinciden, `false` en caso contrario.
    */
   static verifyFileHash(fileData: Buffer, expectedHash: string): boolean {
     const actualHash = this.hashFile(fileData);
@@ -212,12 +214,12 @@ export class FileCrypto {
   }
 
   /**
-   * Generate metadata hash for blockchain storage
-   * Combines filename, size, and content hash
-   * @param filename - Original filename
-   * @param size - File size in bytes
-   * @param contentHash - SHA-256 hash of file content
-   * @returns Combined hash as hex string
+   * Genera un hash de metadatos para almacenamiento en blockchain.
+   * Combina el nombre del archivo, su tamaño y el hash de contenido.
+   * @param filename - Nombre original del archivo.
+   * @param size - Tamaño del archivo en bytes.
+   * @param contentHash - Hash SHA-256 del contenido del archivo.
+   * @returns Hash combinado en formato hexadecimal.
    */
   static generateMetadataHash(filename: string, size: number, contentHash: string): string {
     const metadata = `${filename}:${size}:${contentHash}`;

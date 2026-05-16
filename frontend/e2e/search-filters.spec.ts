@@ -105,7 +105,7 @@ test.describe('Search and filters', () => {
     await page.goto(`/app/documents/${documentId}`);
     await expect(page.getByRole('heading', { name: archiveName })).toBeVisible({ timeout: 30000 });
     await page.getByRole('button', { name: 'Archivar' }).click();
-    await expect(page.getByText('Archivado')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('button', { name: 'Desarchivar' })).toBeVisible({ timeout: 30000 });
 
     // Volver a documentos y aplicar filtro de archivados
     await page.goto('/app/documents');

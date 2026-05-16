@@ -2,8 +2,18 @@ import { Request, Response } from 'express';
 import { VerificationService } from '../services/verificationService';
 
 /**
- * POST /api/verify/file
- * Verificar documento subiendo un archivo
+ * Controlador de verificación de documentos.
+ * Permite verificar la autenticidad e integridad de documentos mediante
+ * archivos, hashes IPFS o identificadores de blockchain.
+ */
+
+/**
+ * Verifica un documento subiendo su archivo para comparar el hash.
+ * Endpoint: POST /api/verify/file
+ *
+ * @param req - Objeto de solicitud HTTP con el archivo en multipart/form-data.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con el resultado de la verificación.
  */
 export async function verifyByFile(req: Request, res: Response) {
   try {
@@ -29,8 +39,12 @@ export async function verifyByFile(req: Request, res: Response) {
 }
 
 /**
- * POST /api/verify/ipfs
- * Verificar documento por hash IPFS
+ * Verifica un documento a partir de su hash IPFS.
+ * Endpoint: POST /api/verify/ipfs
+ *
+ * @param req - Objeto de solicitud HTTP con { ipfsHash } en el cuerpo.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con el resultado de la verificación.
  */
 export async function verifyByIPFS(req: Request, res: Response) {
   try {
@@ -58,8 +72,12 @@ export async function verifyByIPFS(req: Request, res: Response) {
 }
 
 /**
- * POST /api/verify/blockchain
- * Verificar documento por ID de blockchain
+ * Verifica un documento a partir de su identificador en blockchain.
+ * Endpoint: POST /api/verify/blockchain
+ *
+ * @param req - Objeto de solicitud HTTP con { blockchainId } en el cuerpo.
+ * @param res - Objeto de respuesta HTTP.
+ * @returns Promesa que resuelve con el resultado de la verificación.
  */
 export async function verifyByBlockchain(req: Request, res: Response) {
   try {

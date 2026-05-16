@@ -1,23 +1,25 @@
 /**
- * SISTEMA DE DISEÑO CENTRALIZADO
+ * Sistema de diseño centralizado.
  * ================================
- * Define todos los valores de diseño, colores, espaciados, etc.
- * para mantener consistencia en toda la aplicación.
+ * Define todos los valores de diseño, colores, espaciados y demás parámetros
+ * para mantener la consistencia visual en toda la aplicación.
  */
 
 // ========================================
 // COLORES
 // ========================================
+
+/** Paleta de colores principales, semánticos y específicos de blockchain. */
 export const colors = {
-  // Primarios
+  /** Colores primarios de la aplicación. */
   primary: {
     main: '#0ea5e9',
     light: '#38bdf8',
     dark: '#0369a1',
     contrast: '#ffffff',
   },
-  
-  // Secundarios (neutros)
+
+  /** Escala de grises y neutros. */
   secondary: {
     50: '#f8fafc',
     100: '#f1f5f9',
@@ -27,27 +29,29 @@ export const colors = {
     700: '#334155',
     900: '#0f172a',
   },
-  
-  // Estados
+
+  /** Estados de éxito. */
   success: {
     main: '#10b981',
     light: '#34d399',
     dark: '#059669',
   },
-  
+
+  /** Estados de advertencia. */
   warning: {
     main: '#f59e0b',
     light: '#fbbf24',
     dark: '#d97706',
   },
-  
+
+  /** Estados de error. */
   error: {
     main: '#ef4444',
     light: '#f87171',
     dark: '#dc2626',
   },
-  
-  // Blockchain específico
+
+  /** Colores específicos del módulo blockchain. */
   blockchain: {
     main: '#8b5cf6',
     light: '#a78bfa',
@@ -58,6 +62,8 @@ export const colors = {
 // ========================================
 // ESPACIADO
 // ========================================
+
+/** Escala de espaciados en rem. */
 export const spacing = {
   xs: '0.25rem',   // 4px
   sm: '0.5rem',    // 8px
@@ -71,12 +77,14 @@ export const spacing = {
 // ========================================
 // TIPOGRAFÍA
 // ========================================
+
+/** Configuración tipográfica de la aplicación. */
 export const typography = {
   fontFamily: {
     sans: "'Inter', system-ui, -apple-system, sans-serif",
     mono: "'JetBrains Mono', 'Consolas', monospace",
   },
-  
+
   fontSize: {
     xs: '0.75rem',    // 12px
     sm: '0.875rem',   // 14px
@@ -87,7 +95,7 @@ export const typography = {
     '3xl': '2rem',    // 32px
     '4xl': '2.5rem',  // 40px
   },
-  
+
   fontWeight: {
     light: 300,
     normal: 400,
@@ -95,7 +103,7 @@ export const typography = {
     semibold: 600,
     bold: 700,
   },
-  
+
   lineHeight: {
     tight: 1.2,
     normal: 1.6,
@@ -106,6 +114,8 @@ export const typography = {
 // ========================================
 // SOMBRAS
 // ========================================
+
+/** Definiciones de sombras CSS reutilizables. */
 export const shadows = {
   none: 'none',
   soft: '0 2px 8px rgba(0, 0, 0, 0.05)',
@@ -117,6 +127,8 @@ export const shadows = {
 // ========================================
 // RADIOS DE BORDE
 // ========================================
+
+/** Escala de radios de borde. */
 export const borderRadius = {
   none: '0',
   sm: '0.25rem',   // 4px
@@ -129,6 +141,8 @@ export const borderRadius = {
 // ========================================
 // TRANSICIONES
 // ========================================
+
+/** Duraciones y curvas de transición CSS. */
 export const transitions = {
   fast: '150ms ease-in-out',
   base: '250ms ease-in-out',
@@ -138,6 +152,8 @@ export const transitions = {
 // ========================================
 // BREAKPOINTS RESPONSIVE
 // ========================================
+
+/** Puntos de ruptura para diseño responsive. */
 export const breakpoints = {
   sm: '640px',
   md: '768px',
@@ -149,6 +165,8 @@ export const breakpoints = {
 // ========================================
 // Z-INDEX
 // ========================================
+
+/** Escala de índices Z para gestión de capas. */
 export const zIndex = {
   base: 0,
   dropdown: 1000,
@@ -161,6 +179,8 @@ export const zIndex = {
 // ========================================
 // ICONOS Y TAMAÑOS
 // ========================================
+
+/** Tamaños estándar para iconos. */
 export const iconSizes = {
   xs: '16px',
   sm: '20px',
@@ -172,6 +192,8 @@ export const iconSizes = {
 // ========================================
 // ESTADOS DE BLOCKCHAIN
 // ========================================
+
+/** Configuración visual de los estados de sincronización blockchain. */
 export const blockchainStatus = {
   PREPARING: {
     label: 'Preparando',
@@ -202,6 +224,8 @@ export const blockchainStatus = {
 // ========================================
 // ROLES DE USUARIO
 // ========================================
+
+/** Configuración visual y de permisos para cada rol de usuario. */
 export const userRoles = {
   ADMIN: {
     label: 'Administrador',
@@ -233,6 +257,8 @@ export const userRoles = {
 // ========================================
 // CONFIGURACIÓN DE LAYOUT
 // ========================================
+
+/** Dimensiones fijas de los componentes estructurales de la interfaz. */
 export const layout = {
   sidebar: {
     width: '256px',
@@ -254,6 +280,8 @@ export const layout = {
 // ========================================
 // CONFIGURACIÓN DE ANIMACIONES
 // ========================================
+
+/** Nombres y duraciones de animaciones CSS globales. */
 export const animations = {
   fadeIn: 'fadeIn 0.3s ease-in-out',
   slideUp: 'slideUp 0.3s ease-out',
@@ -264,6 +292,13 @@ export const animations = {
 // ========================================
 // HELPER: Obtener color de estado blockchain
 // ========================================
+
+/**
+ * Obtiene la configuración visual asociada a un estado de sincronización blockchain.
+ *
+ * @param status - Clave del estado (p. ej., `"SYNCED"`).
+ * @returns Objeto con etiqueta, color, fondo e icono del estado.
+ */
 export const getBlockchainStatusColor = (status: keyof typeof blockchainStatus) => {
   return blockchainStatus[status] || blockchainStatus.PREPARING;
 };
@@ -271,6 +306,13 @@ export const getBlockchainStatusColor = (status: keyof typeof blockchainStatus) 
 // ========================================
 // HELPER: Obtener color de rol
 // ========================================
+
+/**
+ * Obtiene la configuración visual y permisos asociados a un rol de usuario.
+ *
+ * @param role - Clave del rol (p. ej., `"ADMIN"`).
+ * @returns Objeto con etiqueta, color y permisos del rol.
+ */
 export const getRoleColor = (role: keyof typeof userRoles) => {
   return userRoles[role] || userRoles.USER;
 };
@@ -278,6 +320,8 @@ export const getRoleColor = (role: keyof typeof userRoles) => {
 // ========================================
 // EXPORTAR TODO COMO DEFAULT
 // ========================================
+
+/** Objeto tema que agrupa todo el sistema de diseño. */
 export const theme = {
   colors,
   spacing,

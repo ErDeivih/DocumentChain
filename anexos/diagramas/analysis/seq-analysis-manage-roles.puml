@@ -1,0 +1,31 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0039: Gestionar roles de usuario (Análisis BCE)
+
+actor "Administrador" as admin
+boundary "Panel de administración" as ui
+control "Gestor de administración" as ctrl
+entity "Cuenta de usuario" as account
+
+admin -> ui: Seleccionar usuario y "Gestionar rol"
+ui -> ctrl: Solicitar cambio de rol (idUsuario, nuevoRol)
+
+ctrl -> account: Verificar usuario existe
+account --> ctrl: Usuario encontrado
+
+alt Cambio inválido (último admin, auto-descenso)
+    ctrl -> account: Validar restricciones de rol
+    account --> ctrl: Cambio no permitido
+    ctrl --> ui: Error
+    ui --> admin: Mostrar restricción
+else Cambio válido
+    ctrl -> account: Actualizar rol
+    account --> ctrl: Rol actualizado
+    ctrl -> account: Notificar al usuario afectado
+    account --> ctrl: Notificación enviada
+    ctrl --> ui: Confirmación
+    ui --> admin: Rol actualizado
+end
+
+@enduml

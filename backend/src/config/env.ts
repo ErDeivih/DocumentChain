@@ -1,5 +1,27 @@
 import { cleanEnv, str, port, url, num } from 'envalid';
 
+function stripWrappedQuotes(value: string): string {
+  let normalized = value.trim();
+
+  // Some Docker/env_file combinations can pass values wrapped once or more.
+  while (
+    normalized.length >= 2 &&
+    ((normalized.startsWith('"') && normalized.endsWith('"')) ||
+      (normalized.startsWith("'") && normalized.endsWith("'")))
+  ) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+
+  return normalized;
+}
+
+const normalizedProcessEnv = Object.fromEntries(
+  Object.entries(process.env).map(([key, value]) => [
+    key,
+    typeof value === 'string' ? stripWrappedQuotes(value) : value,
+  ]),
+) as NodeJS.ProcessEnv;
+
 const SECRET_MIN_LENGTH = 32;
 const PRODUCTION_SECRET_PLACEHOLDER_PATTERNS = [
   /change-this/i,
@@ -10,6 +32,13 @@ const PRODUCTION_SECRET_PLACEHOLDER_PATTERNS = [
   /secure-random-string/i,
 ];
 
+/**
+ * Valida que un secreto cumpla con la longitud mínima requerida.
+ *
+ * @param secretValue - Valor del secreto a validar.
+ * @param secretName - Nombre del secreto (para mensajes de error).
+ * @throws Error si el secreto es más corto de lo permitido.
+ */
 function validateSecretLength(secretValue: string | undefined, secretName: string): void {
   if (!secretValue) {
     return;
@@ -20,6 +49,13 @@ function validateSecretLength(secretValue: string | undefined, secretName: strin
   }
 }
 
+/**
+ * Valida que un secreto no utilice un valor placeholder en entornos de producción.
+ *
+ * @param secretValue - Valor del secreto a validar.
+ * @param secretName - Nombre del secreto (para mensajes de error).
+ * @throws Error si el secreto no está configurado o utiliza un placeholder.
+ */
 function validateProductionSecret(secretValue: string | undefined, secretName: string): void {
   if (!secretValue) {
     throw new Error(`${secretName} debe configurarse con un valor seguro en producción`);
@@ -31,10 +67,11 @@ function validateProductionSecret(secretValue: string | undefined, secretName: s
 }
 
 /**
- * Validación y tipado de variables de entorno
- * Falla rápido al inicio si faltan variables críticas
+ * Validación y tipado estricto de las variables de entorno.
+ * Falla de forma inmediata durante el arranque si faltan variables críticas
+ * o si sus valores no cumplen con los requisitos definidos.
  */
-export const env = cleanEnv(process.env, {
+export const env = cleanEnv(normalizedProcessEnv, {
   // Database
   DATABASE_URL: url({
     desc: 'PostgreSQL connection string'

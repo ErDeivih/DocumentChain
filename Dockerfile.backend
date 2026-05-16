@@ -37,7 +37,7 @@ WORKDIR /app
 COPY backend/package*.json ./
 
 # Instalar dependencias
-RUN npm ci --no-audit --prefer-offline
+RUN npm ci --no-audit --prefer-offline --legacy-peer-deps
 
 # Copiar código fuente
 COPY backend/ .
@@ -67,13 +67,13 @@ ENV npm_config_fetch_retries=5 \
 WORKDIR /app
 
 # Copiar package files
-# Instalar OpenSSL 3 (requerido por Prisma en Alpine Linux 3.17+)
-RUN apk add --no-cache openssl
+# Instalar OpenSSL 3 (requerido por Prisma en Alpine Linux 3.17+) y postgresql-client para pg_isready
+RUN apk add --no-cache openssl postgresql-client
 
 COPY backend/package*.json ./
 
 # Instalar todas las dependencias (incluyendo swagger-ui-express que está en devDependencies)
-RUN npm ci --no-audit --prefer-offline
+RUN npm ci --no-audit --prefer-offline --legacy-peer-deps
 
 # Copiar compiled code from builder
 COPY --from=builder /app/dist ./dist
@@ -83,6 +83,8 @@ COPY backend/src/templates ./dist/templates
 
 # Copiar archivos de configuración necesarios
 COPY backend/prisma ./prisma
+COPY backend/tsconfig.json ./
+COPY backend/src ./src
 
 # Copiar ABI del contrato (necesario en runtime para ethers)
 COPY --from=contracts /contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json \
@@ -98,5 +100,9 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=50s --retries=3 \
      CMD node -e "require('http').get('http://localhost:3000/health', (r) => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>process.exit(r.statusCode===200?0:1)); }).on('error',()=>process.exit(1))"
 
-# Ejecutar aplicación
-CMD ["node", "dist/index.js"]
+# Copiar entrypoint script
+COPY backend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Ejecutar aplicación via entrypoint (migraciones + seed + start)
+ENTRYPOINT ["/docker-entrypoint.sh"]

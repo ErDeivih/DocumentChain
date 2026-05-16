@@ -9,8 +9,19 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import AlertMessage from '../components/ui/AlertMessage';
 
+/**
+ * Estados posibles del proceso de verificación de correo electrónico.
+ */
 type VerificationStatus = 'loading' | 'success' | 'error' | 'pending';
 
+/**
+ * Página de verificación de correo electrónico.
+ *
+ * Procesa el token de verificación recibido por URL, actualiza la sesión
+ * del usuario y permite reenviar el correo de verificación si es necesario.
+ *
+ * @returns JSX.Element con la interfaz de verificación de email.
+ */
 export const VerifyEmail: React.FC = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -127,6 +138,7 @@ export const VerifyEmail: React.FC = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* Estado de verificación */}
           {status === 'success' ? (
             <AlertMessage type="success" message={message} />
           ) : null}
@@ -155,6 +167,7 @@ export const VerifyEmail: React.FC = () => {
             </div>
           ) : null}
 
+          {/* Formulario de reenvío de verificación */}
           {canResendVerification ? (
             <div className="space-y-2">
               <div className="space-y-2">
@@ -193,6 +206,7 @@ export const VerifyEmail: React.FC = () => {
             </div>
           ) : null}
 
+          {/* Enlaces de navegación */}
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link to="/login" className="sm:flex-1">
               <Button variant="primary" className="w-full">

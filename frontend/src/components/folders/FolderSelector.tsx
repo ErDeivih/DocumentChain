@@ -3,15 +3,28 @@ import { Folder, ChevronDown } from 'lucide-react';
 import { Folder as FolderType } from '../../types';
 import { getFolders } from '../../api/folders';
 
+/**
+ * Props del componente FolderSelector.
+ */
 interface FolderSelectorProps {
+  /** Identificador de la carpeta seleccionada. */
   value: string | null;
+  /** Callback al cambiar la carpeta seleccionada. */
   onChange: (folderId: string | null) => void;
+  /** Etiqueta del campo. */
   label?: string;
+  /** Texto del placeholder. */
   placeholder?: string;
+  /** Indica si el selector está deshabilitado. */
   disabled?: boolean;
+  /** Identificadores de carpetas a excluir del selector. */
   excludeFolderIds?: string[];
 }
 
+/**
+ * Selector desplegable de carpetas con visualización jerárquica.
+ * Muestra las carpetas disponibles incluyendo su ruta completa.
+ */
 export const FolderSelector: React.FC<FolderSelectorProps> = ({
   value,
   onChange,

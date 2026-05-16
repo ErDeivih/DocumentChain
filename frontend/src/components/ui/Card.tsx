@@ -1,6 +1,10 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Componente contenedor de tarjeta con estilos de borde y sombra.
+ * @param props - Props del componente Card.
+ */
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -16,6 +20,10 @@ const Card = React.forwardRef<
 ));
 Card.displayName = 'Card';
 
+/**
+ * Encabezado del componente Card.
+ * @param props - Props del componente CardHeader.
+ */
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -28,6 +36,10 @@ const CardHeader = React.forwardRef<
 ));
 CardHeader.displayName = 'CardHeader';
 
+/**
+ * Título del componente Card.
+ * @param props - Props del componente CardTitle.
+ */
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
@@ -43,6 +55,10 @@ const CardTitle = React.forwardRef<
 ));
 CardTitle.displayName = 'CardTitle';
 
+/**
+ * Descripción del componente Card.
+ * @param props - Props del componente CardDescription.
+ */
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -55,6 +71,10 @@ const CardDescription = React.forwardRef<
 ));
 CardDescription.displayName = 'CardDescription';
 
+/**
+ * Contenido principal del componente Card.
+ * @param props - Props del componente CardContent.
+ */
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -63,6 +83,10 @@ const CardContent = React.forwardRef<
 ));
 CardContent.displayName = 'CardContent';
 
+/**
+ * Pie del componente Card.
+ * @param props - Props del componente CardFooter.
+ */
 const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>

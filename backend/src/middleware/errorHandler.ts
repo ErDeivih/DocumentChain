@@ -156,15 +156,3 @@ export function notFoundHandler(
     method: req.method
   });
 }
-
-/**
- * Envoltorio de errores asíncronos
- * Envuelve manejadores de ruta asíncronos para capturar errores
- */
-export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
-) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-}

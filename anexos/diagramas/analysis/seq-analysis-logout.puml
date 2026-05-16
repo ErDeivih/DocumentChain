@@ -1,0 +1,21 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0003: Cerrar sesión (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Barra de navegación / Header" as ui
+control "Gestor de autenticación" as ctrl
+entity "Sesión activa" as session
+
+user -> ui: Seleccionar "Cerrar sesión"
+ui -> ctrl: Solicitar cierre de sesión
+
+ctrl -> session: Invalidar sesión actual
+session --> ctrl: Sesión invalidada
+
+ctrl --> ui: Sesión cerrada
+ui -> ui: Limpiar datos de sesión local
+ui --> user: Redirigir a página pública / login
+
+@enduml

@@ -1,17 +1,16 @@
 /**
- * Document Service - Refactored for Backend Encryption
- * 
- * This service implements the prepare/confirm pattern:
- * 1. prepareDocument: Receives UNENCRYPTED file, encrypts it, uploads to IPFS, creates DB record with PREPARING status
- * 2. confirmDocument: Updates DB record after frontend signs blockchain transaction
- * 
- * Backend NOW HANDLES:
- * - File encryption (AES-256-GCM)
- * - File validation (size, MIME type)
- * - IPFS upload
- * 
- * Backend DOES NOT:
- * - Sign blockchain transactions (user's wallet does this via frontend)
+ * Servicio de documentos — refactorizado para cifrado en el backend.
+ *
+ * Este servicio implementa el patrón prepare/confirm:
+ * 1. `prepareDocument`: recibe el archivo SIN CIFRAR, lo cifra, lo sube a IPFS y crea un registro en BD con estado PREPARING.
+ * 2. `confirmDocument`: actualiza el registro en BD tras la firma de la transacción blockchain por parte del frontend.
+ *
+ * Responsabilidades del backend:
+ * - Cifrado de archivos (AES-256-GCM).
+ * - Validación de archivos (tamaño, tipo MIME).
+ * - Subida a IPFS.
+ *
+ * El backend NO firma transacciones blockchain; la wallet del usuario lo hace a través del frontend.
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -54,9 +53,12 @@ function generatePublicId(): string {
 }
 
 // ============================================
-// Types
+// Tipos
 // ============================================
 
+/**
+ * Información completa de un documento para la API pública.
+ */
 export interface DocumentInfo {
   id: string;
   blockchainId: string | null;
@@ -93,11 +95,14 @@ export interface DocumentInfo {
   } | null;
 }
 
+/**
+ * Datos de entrada para la preparación de un documento.
+ */
 export interface PrepareDocumentInput {
   name: string;
   description?: string;
   mimeType: string;
-  fileBuffer: Buffer;  // UNENCRYPTED file from frontend
+  fileBuffer: Buffer;  // Archivo SIN CIFRAR proveniente del frontend
   ownerId: string;
   walletId: string;
   visibility?: 'PRIVATE' | 'PUBLIC';
@@ -106,13 +111,19 @@ export interface PrepareDocumentInput {
   fileExtension?: string;
 }
 
+/**
+ * Resultado de la preparación de un documento.
+ */
 export interface PrepareDocumentResult {
-  docId: string;           // bytes32 for blockchain
-  ipfsCid: string;         // CID of the encrypted file
-  documentId: string;      // UUID of the document in DB
+  docId: string;           // bytes32 para blockchain
+  ipfsCid: string;         // CID del archivo cifrado
+  documentId: string;      // UUID del documento en BD
   publicId: string | null;
 }
 
+/**
+ * Respuesta paginada de documentos.
+ */
 export interface PaginatedDocumentInfo {
   documents: DocumentInfo[];
   total: number;
@@ -120,6 +131,9 @@ export interface PaginatedDocumentInfo {
   totalPages: number;
 }
 
+/**
+ * Información pública de una versión de documento.
+ */
 export interface PublicDocumentVersionInfo {
   id: string;
   versionNumber: number;
@@ -130,6 +144,9 @@ export interface PublicDocumentVersionInfo {
   blockchainStatus: BlockchainStatus;
 }
 
+/**
+ * Información pública de una firma sobre una versión.
+ */
 export interface PublicDocumentSignatureInfo {
   id: string;
   versionId: string;
@@ -141,6 +158,9 @@ export interface PublicDocumentSignatureInfo {
   } | null;
 }
 
+/**
+ * Información pública de un documento.
+ */
 export interface PublicDocumentInfo {
   id: string;
   publicId: string;
@@ -165,6 +185,9 @@ export interface PublicDocumentInfo {
   signatures: PublicDocumentSignatureInfo[];
 }
 
+/**
+ * Datos de entrada para confirmar un documento en blockchain.
+ */
 export interface ConfirmDocumentInput {
   documentId: string;
   txHash: string;
@@ -172,17 +195,26 @@ export interface ConfirmDocumentInput {
 }
 
 // ============================================
-// Document Service Class
+// Clase DocumentService
 // ============================================
 
+/**
+ * Servicio principal para la gestión del ciclo de vida de los documentos.
+ * Incluye preparación, confirmación, descarga, listado y rollback.
+ */
 export class DocumentService {
   /**
-   * Prepare a document for creation
-   * - Validates file (size, MIME type)
-   * - Encrypts file with AES-256-GCM
-   * - Uploads encrypted file to IPFS
-   * - Creates DB record with PREPARING status
-   * - Returns data needed for frontend to sign blockchain transaction
+   * Prepara un documento para su creación en blockchain.
+   * Flujo:
+   * 1. Valida la wallet y obtiene la clave pública del usuario.
+   * 2. Valida el archivo (tamaño máximo 100 MB).
+   * 3. Cifra el archivo con AES-256-GCM (solo si es privado).
+   * 4. Sube el archivo a IPFS.
+   * 5. Crea el registro en BD con estado `PREPARING`.
+   * 6. Devuelve los datos necesarios para que el frontend firme la transacción blockchain.
+   * @param input - Datos de entrada para la preparación.
+   * @returns Resultado de la preparación con `docId`, `ipfsCid`, `documentId` y `publicId`.
+   * @throws Error si la validación falla o ocurre un problema durante la preparación.
    */
   static async prepareDocument(input: PrepareDocumentInput): Promise<PrepareDocumentResult> {
     const {
@@ -201,7 +233,7 @@ export class DocumentService {
     let ipfsCid: string | null = null;
 
     try {
-      // 1. Validate wallet belongs to user
+      // 1. Validar que la wallet pertenece al usuario
       const wallet = await prisma.wallet.findFirst({
         where: {
           id: walletId,
@@ -213,7 +245,7 @@ export class DocumentService {
         throw new Error('Wallet no encontrada o no pertenece al usuario');
       }
 
-      // 2. Get user's public key for encryption
+      // 2. Obtener clave pública del usuario para cifrar
       const user = await prisma.user.findUnique({
         where: { id: ownerId },
         select: { publicKey: true },
@@ -223,9 +255,9 @@ export class DocumentService {
         throw new Error('Usuario no tiene clave pública configurada');
       }
 
-      // 3. Validate file
-      Encryption.validateFileSize(fileBuffer.length, 100); // Max 100MB
-      // MIME type validation is optional - can add whitelist here if needed
+      // 3. Validar archivo
+      Encryption.validateFileSize(fileBuffer.length, 100); // Máx. 100 MB
+      // La validación de tipo MIME es opcional; se puede añadir una lista blanca aquí
       // Encryption.validateMimeType(mimeType, ['application/pdf', 'image/*', ...]);
 
       const documentVisibility = visibility === 'PUBLIC'
@@ -249,10 +281,10 @@ export class DocumentService {
       ipfsCid = await uploadToIPFS(encryptionResult ? encryptionResult.encryptedData : fileBuffer);
       logger.info(`[PREPARE] Archivo subido a IPFS: ${ipfsCid}`);
 
-      // 7. Generate docId (bytes32 for blockchain)
+      // 7. Generar docId (bytes32 para blockchain)
       const docId = ethers.id(`${ownerId}-${walletId}-${ipfsCid}-${Date.now()}`);
 
-      // 8. Calculate metadata hash
+      // 8. Calcular hash de metadatos
       const metadata = JSON.stringify({
         name,
         description,
@@ -264,11 +296,11 @@ export class DocumentService {
       });
       const metadataHash = Encryption.calculateHash(Buffer.from(metadata));
 
-      // 9. Create document in DB with PREPARING status
+      // 9. Crear documento en BD con estado PREPARING
       const document = await prisma.document.create({
         data: {
           id: uuidv4(),
-          blockchainId: undefined, // Will be set after blockchain confirmation
+          blockchainId: undefined, // Se establecerá tras la confirmación blockchain
           name,
           description: description || null,
           mimeType,
@@ -284,7 +316,7 @@ export class DocumentService {
           fileExtension: deriveFileExtension(name, fileExtension),
           folderId: folderId || null,
           tags: tags || [],
-          // Store encryption metadata
+          // Almacenar metadatos de cifrado
           encryptionIV: encryptionResult?.iv ?? null,
           encryptionAuthTag: encryptionResult?.authTag ?? null,
         },
@@ -292,7 +324,7 @@ export class DocumentService {
 
       logger.info(`[PREPARE] Documento creado en DB: ${document.id}, estado: PREPARING`);
 
-      // 5. Log the preparation
+      // 5. Registrar evento de preparación
       await prisma.event.create({
         data: {
           id: uuidv4(),
@@ -320,7 +352,7 @@ export class DocumentService {
     } catch (error) {
       logger.error('[PREPARE] Error al preparar documento:', error);
 
-      // Cleanup IPFS if upload succeeded but DB failed
+      // Limpieza de IPFS si la subida tuvo éxito pero falló la BD
       if (ipfsCid) {
         try {
           await deleteFromIPFS(ipfsCid);
@@ -335,14 +367,17 @@ export class DocumentService {
   }
 
   /**
-   * Confirm a document after blockchain transaction
-   * - Updates DB record with TX_SUBMITTED status
-   * - Event listener will update to SYNCED when confirmed
+   * Confirma un documento tras la firma de la transacción blockchain.
+   * Actualiza el registro en BD a estado `TX_SUBMITTED` y, si es posible,
+   * sincroniza inmediatamente a `SYNCED` a partir del receipt.
+   * @param input - Datos de confirmación (`documentId`, `txHash`, `blockchainId`).
+   * @returns Información del documento actualizado.
+   * @throws Error si el documento no se encuentra o falta el CID de IPFS preparado.
    */
   static async confirmDocument(input: ConfirmDocumentInput): Promise<DocumentInfo> {
     const { documentId, txHash, blockchainId } = input;
 
-    // 1. Find the document
+    // 1. Buscar el documento
     const document = await prisma.document.findUnique({
       where: { id: documentId },
     });
@@ -366,13 +401,13 @@ export class DocumentService {
       return typeof metadata?.ipfsCid === 'string' ? metadata.ipfsCid : null;
     })();
 
-    // 2. Validate current status
+    // 2. Validar estado actual
     if (document.blockchainStatus !== BlockchainStatus.PREPARING) {
       logger.warn(`[CONFIRM] Documento ${documentId} no está en estado PREPARING (actual: ${document.blockchainStatus})`);
-      // Still proceed but log the warning
+      // Se continúa de todos modos pero se registra la advertencia
     }
 
-    // 3. Update document with transaction info
+    // 3. Actualizar documento con información de la transacción
     const updated = await prisma.$transaction(async (tx) => {
       const updatedDocument = await tx.document.update({
         where: { id: documentId },
@@ -557,10 +592,13 @@ export class DocumentService {
   }
 
   /**
-   * Get document by ID
+   * Obtiene un documento por su identificador interno.
+   * @param documentId - UUID del documento en BD.
+   * @param userId - UUID del usuario solicitante.
+   * @returns Información del documento o `null` si no existe o el usuario no tiene acceso.
    */
   static async getDocumentById(documentId: string, userId: string): Promise<DocumentInfo | null> {
-    // Check if user has access
+    // Verificar acceso del usuario
     const hasAccess = await this.userHasAccess(documentId, userId);
     if (!hasAccess) {
       return null;
@@ -588,8 +626,10 @@ export class DocumentService {
   }
 
   /**
-   * List documents for a user
-   * Can filter by wallet, folder, and archived status
+   * Lista los documentos accesibles para un usuario con soporte de paginación y filtros.
+   * @param userId - UUID del usuario.
+   * @param options - Opciones de paginación, búsqueda y filtros (wallet, carpeta, archivados, tipo de archivo, etc.).
+   * @returns Documentos paginados con metadatos de paginación.
    */
   static async listDocuments(
     userId: string,
@@ -621,7 +661,7 @@ export class DocumentService {
       isDeleted: false,
     };
 
-    // Archive filtering
+    // Filtro de archivado
     if (onlyArchived) {
       where.isArchived = true;
     } else if (!includeArchived) {
@@ -636,7 +676,7 @@ export class DocumentService {
       where.folderId = folderId;
     }
 
-    // Search by name
+    // Búsqueda por nombre
     if (search) {
       where.name = {
         contains: search,
@@ -644,7 +684,7 @@ export class DocumentService {
       };
     }
 
-    // Filter by file type
+    // Filtro por tipo de archivo
     if (normalizedFileType) {
       where.fileExtension = normalizedFileType;
     }
@@ -684,8 +724,12 @@ export class DocumentService {
   }
 
   /**
-   * Download document (returns encrypted file from IPFS)
-   * Decryption happens in frontend
+   * Descarga un documento desde IPFS.
+   * El descifrado se realiza en el frontend.
+   * @param documentId - UUID del documento.
+   * @param userId - UUID del usuario solicitante.
+   * @returns Buffer con el archivo cifrado y metadatos necesarios para el descifrado.
+   * @throws Error si el usuario no tiene acceso o el documento no tiene versión operacional.
    */
   static async downloadDocument(documentId: string, userId: string): Promise<{
     encryptedFile: Buffer;
@@ -695,13 +739,13 @@ export class DocumentService {
     name: string;
     mimeType: string;
   }> {
-    // Check access
+    // Verificar acceso
     const hasAccess = await this.userHasAccess(documentId, userId);
     if (!hasAccess) {
       throw new Error('Acceso denegado');
     }
 
-    // Get document
+    // Obtener documento
     const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
@@ -725,10 +769,26 @@ export class DocumentService {
       throw new Error('Documento no tiene versión operacional en IPFS');
     }
 
-    // Download from IPFS
+    // Determinar la clave simétrica cifrada correcta para este usuario
+    let encryptedSymmetricKey: string;
+    if (document.ownerId === userId) {
+      encryptedSymmetricKey = operationalVersion.encryptedSymmetricKey || document.encryptedSymmetricKey || 'UNENCRYPTED';
+    } else {
+      const shareKey = await prisma.documentShareKey.findUnique({
+        where: {
+          documentId_userId: {
+            documentId,
+            userId,
+          },
+        },
+      });
+      encryptedSymmetricKey = shareKey?.encryptedSymmetricKey || operationalVersion.encryptedSymmetricKey || document.encryptedSymmetricKey || 'UNENCRYPTED';
+    }
+
+    // Descargar desde IPFS
     const encryptedFile = await downloadFromIPFS(operationalVersion.ipfsCid);
 
-    // Log download
+    // Registrar descarga
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -738,7 +798,7 @@ export class DocumentService {
       },
     });
 
-    // Update stats
+    // Actualizar estadísticas
     await prisma.documentStats.update({
       where: { documentId: document.id },
       data: {
@@ -746,12 +806,12 @@ export class DocumentService {
         lastActivityAt: new Date(),
       },
     }).catch(() => {
-      // Stats might not exist, ignore
+      // Las estadísticas pueden no existir; se ignora el error
     });
 
     return {
       encryptedFile,
-      encryptedSymmetricKey: operationalVersion.encryptedSymmetricKey || document.encryptedSymmetricKey || 'UNENCRYPTED',
+      encryptedSymmetricKey,
       encryptionIV: operationalVersion.encryptionIV || document.encryptionIV || null,
       encryptionAuthTag: operationalVersion.encryptionAuthTag || document.encryptionAuthTag || null,
 
@@ -761,7 +821,10 @@ export class DocumentService {
   }
 
   /**
-   * Check if user has access to a document
+   * Verifica si un usuario tiene acceso a un documento.
+   * @param documentId - UUID del documento.
+   * @param userId - UUID del usuario.
+   * @returns `true` si tiene acceso, `false` en caso contrario.
    */
   static async userHasAccess(documentId: string, userId: string): Promise<boolean> {
     const document = await prisma.document.findUnique({
@@ -773,41 +836,14 @@ export class DocumentService {
 
     if (document.isDeleted) return false;
 
-    // Owner has access
+    // El propietario siempre tiene acceso
     if (document.ownerId === userId) return true;
 
     if (document.visibility === DocumentVisibility.PUBLIC) {
       return true;
     }
 
-    // Check if any linked wallet has access on chain.
-    if (document.blockchainId) {
-      const wallets = await prisma.wallet.findMany({
-        where: { userId },
-        select: { walletAddress: true },
-      });
-
-      if (wallets.length > 0) {
-        for (const wallet of wallets) {
-          try {
-            const documents = await BlockchainQueries.getUserDocuments(wallet.walletAddress);
-            if (documents.includes(document.blockchainId)) {
-              return true;
-            }
-          } catch {
-            // Fall through to the confirmed-share fallback below.
-          }
-        }
-      }
-    }
-
-    // Fallback for contract revisions that do not expose the same permission getters.
-    const { ShareService } = await import('./shareService');
-    const fallbackShares = await ShareService.getSharedWithUser(userId);
-    if (fallbackShares.some((share) => share.documentId === documentId)) {
-      return true;
-    }
-
+    // Los permisos se verifican exclusivamente on-chain; la blockchain es la única fuente de verdad.
     if (document.blockchainId) {
       const wallets = await prisma.wallet.findMany({
         where: { userId },
@@ -828,10 +864,14 @@ export class DocumentService {
   }
 
   /**
-   * Get documents by wallet
+   * Obtiene los documentos creados con una wallet específica.
+   * @param userId - UUID del usuario.
+   * @param walletId - UUID de la wallet.
+   * @returns Lista de documentos asociados a la wallet.
+   * @throws Error si la wallet no pertenece al usuario.
    */
   static async getDocumentsByWallet(userId: string, walletId: string): Promise<DocumentInfo[]> {
-    // Verify wallet belongs to user
+    // Verificar que la wallet pertenece al usuario
     const wallet = await prisma.wallet.findFirst({
       where: { id: walletId, userId },
     });
@@ -863,6 +903,11 @@ export class DocumentService {
     return documents.map(d => this.toDocumentInfo(d));
   }
 
+  /**
+   * Obtiene la información pública de un documento por su `publicId`.
+   * @param publicId - Identificador público del documento.
+   * @returns Información pública del documento o `null` si no existe.
+   */
   static async getPublicDocumentByPublicId(publicId: string): Promise<PublicDocumentInfo | null> {
     const document = await prisma.document.findFirst({
       where: {
@@ -956,6 +1001,13 @@ export class DocumentService {
     };
   }
 
+  /**
+   * Descarga un documento público por su `publicId`.
+   * @param publicId - Identificador público del documento.
+   * @param versionNumber - Número de versión opcional; si no se especifica, se descarga la versión operativa.
+   * @returns Archivo descargado con nombre, tipo MIME y número de versión.
+   * @throws Error si el documento no es público o la versión solicitada no está disponible sin cifrado.
+   */
   static async downloadPublicDocumentByPublicId(
     publicId: string,
     versionNumber?: number,
@@ -1014,7 +1066,9 @@ export class DocumentService {
   }
 
   /**
-   * Mark document as failed
+   * Marca un documento como fallido en blockchain.
+   * @param documentId - UUID del documento.
+   * @param error - Mensaje de error descriptivo.
    */
   static async markDocumentFailed(documentId: string, error: string): Promise<void> {
     await prisma.document.update({
@@ -1029,7 +1083,9 @@ export class DocumentService {
   }
 
   /**
-   * Update document status to SYNCED
+   * Actualiza el estado de un documento a `SYNCED`.
+   * @param documentId - UUID del documento.
+   * @param blockchainId - Identificador en blockchain (bytes32).
    */
   static async markDocumentSynced(documentId: string, blockchainId: string): Promise<void> {
     await prisma.document.update({
@@ -1044,7 +1100,10 @@ export class DocumentService {
   }
 
   /**
-   * Convert Prisma document to DocumentInfo
+   * Convierte un documento de Prisma al tipo `DocumentInfo`.
+   * @param document - Objeto documento devuelto por Prisma.
+   * @param role - Rol del usuario solicitante (opcional).
+   * @returns Información normalizada del documento.
    */
   private static toDocumentInfo(document: any, role: DocumentInfo['role'] = null): DocumentInfo {
     const isEncrypted = document.encryptedSymmetricKey !== 'UNENCRYPTED';
@@ -1089,10 +1148,7 @@ export class DocumentService {
   }
 
   private static async resolveUserRole(document: Pick<Document, 'id' | 'ownerId' | 'blockchainId'>, userId: string): Promise<DocumentInfo['role']> {
-    if (document.ownerId === userId) {
-      return 'OWNER';
-    }
-
+    // Cuando existe blockchainId, se verifican propiedad y roles on-chain (única fuente de verdad)
     if (document.blockchainId) {
       const wallets = await prisma.wallet.findMany({
         where: { userId },
@@ -1100,34 +1156,42 @@ export class DocumentService {
       });
 
       for (const wallet of wallets) {
-        const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
+        const isOwner = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
+        if (isOwner) {
+          return 'OWNER';
+        }
 
+        const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
         if (role === PermissionRole.EDITOR) {
           return 'SHARED_WRITE';
         }
-
         if (role === PermissionRole.VIEWER) {
           return 'SHARED_READ';
         }
       }
+
+      return null;
     }
 
-    const { ShareService } = await import('./shareService');
-    const shares = await ShareService.getSharedWithUser(userId);
-    const matchingShare = shares.find((share) => share.documentId === document.id);
+    // Fallback para documentos aún no registrados en blockchain
+    if (document.ownerId === userId) {
+      return 'OWNER';
+    }
 
-    return matchingShare?.role ?? null;
+    return null;
   }
 
   /**
-   * Rollback document creation
-   * - Deletes document and all versions from DB
-   * - Unpins all IPFS CIDs
-   * - Used when blockchain transaction fails after prepare
+   * Revierte la creación de un documento.
+   * Elimina el documento y sus versiones de la BD, desancla los CIDs de IPFS
+   * y registra el evento. Se utiliza cuando la transacción blockchain falla tras la preparación.
+   * @param documentId - UUID del documento.
+   * @param userId - UUID del usuario que solicita el rollback (debe ser el propietario).
+   * @throws Error si el documento no existe o el usuario no es el propietario.
    */
   static async rollbackDocument(documentId: string, userId: string): Promise<void> {
     try {
-      // Get document with versions
+      // Obtener documento con versiones
       const document = await prisma.document.findUnique({
         where: { id: documentId },
         include: { versions: true },
@@ -1137,12 +1201,12 @@ export class DocumentService {
         throw new Error('Document not found');
       }
 
-      // Verify ownership
+      // Verificar propiedad
       if (document.ownerId !== userId) {
         throw new Error('No tienes permiso para eliminar este documento');
       }
 
-      // Collect all IPFS CIDs to unpin (from versions only)
+      // Recopilar todos los CIDs de IPFS a desanclar (solo de versiones)
       const cidsToUnpin: string[] = [];
       document.versions.forEach(v => {
         if (v.ipfsCid) {
@@ -1150,12 +1214,12 @@ export class DocumentService {
         }
       });
 
-      // Delete from database (cascade delete will handle versions, shares, etc.)
+      // Eliminar de la base de datos (el borrado en cascada gestiona versiones, compartidos, etc.)
       await prisma.document.delete({
         where: { id: documentId },
       });
 
-      // Unpin from IPFS
+      // Desanclar de IPFS
       for (const cid of cidsToUnpin) {
         try {
           await deleteFromIPFS(cid);
@@ -1165,7 +1229,7 @@ export class DocumentService {
         }
       }
 
-      // Log event
+      // Registrar evento
       await prisma.event.create({
         data: {
           id: uuidv4(),

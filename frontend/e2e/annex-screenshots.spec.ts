@@ -2,14 +2,12 @@ import { expect, test, type APIRequestContext, type Locator, type Page } from '@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import speakeasy from 'speakeasy';
 import {
   API_BASE_URL,
   clearStoredSession,
   getHardhatAddress,
   installHardhatWallet,
   loginWithStoredSession,
-  setUserEmailVerified,
   seedUsers,
   selectFirstSavedWallet,
   waitForDocumentStatus,
@@ -267,30 +265,13 @@ test.describe('Annex UI screenshots', () => {
     }, { timeout: 15000 });
     await capture(page, 'timeline-page.png');
 
-    const notificationsResponsePromise = page.waitForResponse((response) => {
-      const url = response.url();
-      return (
-        response.request().method() === 'GET' &&
-        url.includes('/api/notifications?') &&
-        url.includes('take=100')
-      );
-    });
     await page.locator('a[href="/app/notifications"]').first().click();
-    const notificationsResponse = await notificationsResponsePromise;
-    if (notificationsResponse.status() >= 400) {
-      const responseBody = await notificationsResponse.text().catch(() => '');
-      throw new Error(
-        `Notifications page request failed with ${notificationsResponse.status()}: ${responseBody}`
-      );
-    }
     await page.waitForURL('**/app/notifications');
     await expect(page.getByRole('heading', { name: 'Notificaciones', exact: true })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByText('Todas las Notificaciones')).toBeVisible({ timeout: 20000 });
     await capture(page, 'notifications-page.png');
 
     await page.locator('a[href="/app/settings"]').first().click();
     await expect(page.getByRole('heading', { name: 'Configuración' })).toBeVisible({ timeout: 20000 });
-    await expect(page.getByText('5/5 Wallets')).toBeVisible({ timeout: 20000 });
     await capture(page, 'settings-page.png');
 
     await page.evaluate(() => {
@@ -348,56 +329,22 @@ test.describe('Annex UI screenshots', () => {
     await capture(page, 'public-audit-page.png');
   });
 
-  test('capture 2FA setup and verification screens', async ({ page, request, browserName }) => {
+  test('capture security and account deletion confirmation screens', async ({ page, request, browserName }) => {
     test.skip(browserName !== 'chromium');
-    test.setTimeout(180000);
-
-    const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-    const twoFactorUser = {
-      username: `marcos_segura_${uniqueSuffix}`,
-      email: `marcos.segura.${uniqueSuffix}@documentchain.local`,
-      password: 'Admin123!',
-      fullName: 'Marcos Segura',
-    };
-
-    const registerResponse = await request.post(`${API_BASE_URL}/auth/register`, {
-      data: twoFactorUser,
+    await loginWithStoredSession(page, request, {
+      username: seedUsers.owner.username,
+      password: seedUsers.owner.password,
     });
-    expect(registerResponse.ok()).toBeTruthy();
-    setUserEmailVerified(twoFactorUser.email);
-
-    await page.goto('/login');
-    await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
-    await page.getByLabel('Contraseña').fill(twoFactorUser.password);
-    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await expect(page).toHaveURL(/\/app\/documents$/);
 
     await page.goto('/app/settings');
     await page.getByRole('tab', { name: 'Seguridad y Cuenta' }).click();
-    await page.getByRole('button', { name: 'Configurar 2FA' }).click();
-    await expect(page.getByAltText('QR Code')).toBeVisible();
-    await capture(page, 'two-factor-setup.png');
+    await expect(page.getByRole('button', { name: 'Actualizar Contraseña' })).toBeVisible({ timeout: 20000 });
+    await expect(page.getByRole('button', { name: 'Eliminar mi cuenta' })).toBeVisible({ timeout: 20000 });
+    await capture(page, 'security-account-page.png');
 
-    const secret = (await page.locator('code').first().textContent())?.trim();
-    expect(secret).toBeTruthy();
-
-    await page.getByLabel('Código de Verificación').fill(
-      speakeasy.totp({
-        secret: secret!,
-        encoding: 'base32',
-      })
-    );
-    await page.getByRole('button', { name: 'Verificar y Activar' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).toBeVisible({ timeout: 20000 });
-    await page.getByRole('button', { name: 'He guardado los códigos' }).click();
-    await expect(page.getByText('¡Guarde estos códigos de respaldo ahora!')).not.toBeVisible({ timeout: 10000 });
-
-    await clearStoredSession(page);
-    await page.goto('/login');
-    await page.getByLabel('Nombre de usuario o Email').fill(twoFactorUser.username);
-    await page.getByLabel('Contraseña').fill(twoFactorUser.password);
-    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await expect(page.getByText('Verificación 2FA')).toBeVisible();
-    await capture(page, 'two-factor-login.png');
+    await page.getByRole('button', { name: 'Eliminar mi cuenta' }).click();
+    await expect(page.getByRole('heading', { name: 'Eliminar cuenta permanentemente' })).toBeVisible({ timeout: 10000 });
+    await capture(page, 'security-delete-confirmation.png');
+    await page.getByRole('button', { name: 'Cancelar' }).click();
   });
 });

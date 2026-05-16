@@ -1,6 +1,7 @@
 /**
- * Componente Selector de Versión Operacional
+ * Componente selector de versión operacional.
  * Permite al propietario cambiar la versión activa de un documento
+ * y visualizar los firmantes de cada versión.
  */
 
 import React, { useEffect, useState } from 'react';
@@ -9,10 +10,16 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
 import { Modal } from '../ui/Modal';
-import { api, getErrorMessage } from '../../lib/api';
+import { getErrorMessage } from '../../lib/api';
+import { formatRelativeTime } from '../../lib/utils';
 import { signaturesApi } from '../../api/signatures';
+import { versionsApi } from '../../api/versions';
 import { PublicLinkActions } from '../public/PublicLinkActions';
+import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
+import { blockchainProvider } from '../../lib/blockchain/provider';
+import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
 import type { Signature, Version } from '../../types';
+import type { SavedWallet } from '../../contexts/WalletManagerContext';
 import {
   GitBranch,
   CheckCircle,
@@ -21,25 +28,47 @@ import {
   ArrowRight,
   FileSignature,
   ShieldCheck,
-  Wallet
+  Wallet,
+  Download
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
 
+/**
+ * Versión extendida con información de restauración.
+ */
 type OperationalVersion = Version & {
+  /** Número de versión desde la cual se restauró, si aplica. */
   restoredFrom?: number | null;
 };
 
+/**
+ * Props del componente OperationalVersionSelector.
+ */
 interface OperationalVersionSelectorProps {
+  /** Identificador del documento. */
   documentId: string;
+  /** Indica si el usuario actual es el propietario. */
   isOwner: boolean;
+  /** Indica si el documento está archivado. */
   isArchived?: boolean;
+  /** Lista de versiones del documento. */
   versions: Version[];
+  /** Indica si el documento es público. */
   isPublic?: boolean;
+  /** Identificador público del documento, si existe. */
   publicId?: string | null;
+  /** Indica si se están cargando las versiones. */
   isLoading?: boolean;
+  /** Callback al cambiar la versión operacional. */
   onVersionChange?: (versionNumber: number) => void;
+  /** Callback para descargar una versión específica. */
+  onDownloadVersion?: (versionId: string) => void;
 }
 
+/**
+ * Selector de versión operacional de un documento.
+ * Permite cambiar la versión activa y visualizar firmantes asociados a cada versión.
+ */
 export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProps> = ({
   documentId,
   isOwner,
@@ -48,7 +77,8 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   isPublic = false,
   publicId = null,
   isLoading = false,
-  onVersionChange
+  onVersionChange,
+  onDownloadVersion
 }) => {
   const [versions, setVersions] = useState<OperationalVersion[]>(providedVersions);
   const [changing, setChanging] = useState<number | null>(null);
@@ -59,44 +89,62 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   const [selectedSignatureId, setSelectedSignatureId] = useState<string | null>(null);
   const [loadingSignaturesForVersion, setLoadingSignaturesForVersion] = useState<number | null>(null);
   const [signaturesError, setSignaturesError] = useState<string | null>(null);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [pendingVersionNumber, setPendingVersionNumber] = useState<number | null>(null);
 
   useEffect(() => {
     setVersions(providedVersions);
   }, [providedVersions]);
 
-  const setOperationalVersion = async (versionNumber: number) => {
+  const handleStartSetOperational = (versionNumber: number) => {
+    setPendingVersionNumber(versionNumber);
+    setShowWalletModal(true);
+  };
+
+  const handleWalletSelected = async (wallet: SavedWallet | null, connectedAddress: string) => {
+    setShowWalletModal(false);
+    if (!wallet || !pendingVersionNumber) return;
+
+    setChanging(pendingVersionNumber);
+    setError(null);
+    setSuccess(null);
+
     try {
-      setChanging(versionNumber);
-      setError(null);
-      setSuccess(null);
+      // 1. PREPARE
+      const prepare = await versionsApi.prepareSetOperational(documentId, pendingVersionNumber);
 
-      await api.put(`/documents/${documentId}/operational-version`, {
-        versionNumber
-      });
+      // 2. Validar signer
+      const signer = blockchainProvider.getSigner();
+      if (!signer) {
+        throw new Error('No hay wallet conectada. Conecta tu wallet para firmar la transacción.');
+      }
+      const signerAddress = await signer.getAddress();
+      if (signerAddress.toLowerCase() !== connectedAddress.toLowerCase()) {
+        throw new Error('La wallet conectada no coincide con la seleccionada.');
+      }
 
-      // Actualizar estado local
+      // 3. Firmar transacción on-chain
+      const registry = new DocumentRegistryContract(signer);
+      const tx = await registry.setOperationalVersion(prepare.blockchainId, pendingVersionNumber);
+
+      // 4. Confirmar en backend
+      await versionsApi.confirmSetOperational(documentId, pendingVersionNumber, tx.hash);
+
+      // 5. Actualización optimista: reflejar el cambio inmediatamente en UI
       setVersions(prev => prev.map(v => ({
         ...v,
-        isOperational: v.versionNumber === versionNumber
+        isOperational: v.versionNumber === pendingVersionNumber,
       })));
 
-      setSuccess(`Versión ${versionNumber} establecida como operacional`);
-      onVersionChange?.(versionNumber);
+      setSuccess(`Transacción enviada. La versión ${pendingVersionNumber} se sincronizará con la blockchain en breve.`);
+      onVersionChange?.(pendingVersionNumber);
     } catch (err: any) {
       console.error('Error al cambiar versión operacional:', err);
       setError(getErrorMessage(err));
     } finally {
       setChanging(null);
+      setPendingVersionNumber(null);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
   };
 
   const truncateCid = (cid: string) => {
@@ -122,32 +170,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
 
   const getSignerWalletAddress = (signature: Signature) => {
     return signature.signer?.walletAddress || signature.walletAddress || 'Wallet no disponible';
-  };
-
-  const getStatusLabel = (status: Signature['blockchainStatus']) => {
-    switch (status) {
-      case 'SYNCED':
-        return 'Registrada';
-      case 'TX_SUBMITTED':
-        return 'Pendiente de sincronización';
-      case 'PREPARING':
-        return 'Preparando';
-      case 'FAILED':
-        return 'Fallida';
-      default:
-        return status;
-    }
-  };
-
-  const getStatusVariant = (status: Signature['blockchainStatus']): 'success' | 'warning' | 'destructive' => {
-    switch (status) {
-      case 'SYNCED':
-        return 'success';
-      case 'FAILED':
-        return 'destructive';
-      default:
-        return 'warning';
-    }
   };
 
   const truncateWalletAddress = (walletAddress: string) => {
@@ -303,14 +325,14 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     </div>
                     
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{formatDate(version.createdAt)}</span>
+                      <span>{formatRelativeTime(version.createdAt)}</span>
                       <span>·</span>
                       <span className="font-mono">{truncateCid(version.ipfsCid || 'CID pendiente')}</span>
                     </div>
                     
                     {version.comment && (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {version.comment}
+                        <span className="font-medium">Descripción:</span> {version.comment}
                       </p>
                     )}
 
@@ -338,11 +360,23 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     Ver firmantes
                   </Button>
 
+                  {onDownloadVersion && version.id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDownloadVersion(version.id)}
+                      data-testid={`download-v${version.versionNumber}`}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Descargar
+                    </Button>
+                  )}
+
                   {isOwner && !version.isOperational && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setOperationalVersion(version.versionNumber)}
+                      onClick={() => handleStartSetOperational(version.versionNumber)}
                       disabled={changing !== null || isArchived}
                       title={isArchived ? 'No se puede cambiar la versión operacional de un documento archivado' : undefined}
                     >
@@ -435,13 +469,10 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                           ) : null}
                         </div>
                       </div>
-                      <Badge variant={getStatusVariant(signature.blockchainStatus)} className="shrink-0">
-                        {getStatusLabel(signature.blockchainStatus)}
-                      </Badge>
                     </div>
                     <p className="mt-3 font-mono text-xs text-muted-foreground">{truncateWalletAddress(walletAddress)}</p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {signature.signedAt ? formatDate(signature.signedAt) : 'Fecha pendiente'}
+                      {signature.signedAt ? formatRelativeTime(signature.signedAt) : 'Fecha pendiente'}
                     </p>
                   </button>
                 );
@@ -460,14 +491,6 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="text-lg font-semibold text-foreground">Perfil del firmante</h3>
-                  <Badge variant={getStatusVariant(selectedSignature.blockchainStatus)}>
-                    {getStatusLabel(selectedSignature.blockchainStatus)}
-                  </Badge>
-                  {selectedSignature.signer?.source === 'snapshot' ? (
-                    <Badge variant="outline">Histórico</Badge>
-                  ) : (
-                    <Badge variant="info">Cuenta actual</Badge>
-                  )}
                 </div>
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -518,6 +541,17 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
           </div>
         )}
       </Modal>
+
+      <WalletSelectorModal
+        isOpen={showWalletModal}
+        onClose={() => {
+          setShowWalletModal(false);
+          setPendingVersionNumber(null);
+        }}
+        onSelect={handleWalletSelected}
+        title="Firmar cambio de versión operacional"
+        description="Selecciona la wallet con la que firmarás la transacción en la blockchain para cambiar la versión operacional."
+      />
     </Card>
   );
 };

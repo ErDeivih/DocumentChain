@@ -2,6 +2,16 @@ import React, { useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { X } from 'lucide-react';
 
+/**
+ * Props del componente Modal.
+ * @property isOpen - Controla si el modal está visible.
+ * @property onClose - Función que se ejecuta al cerrar el modal.
+ * @property title - Título opcional del modal.
+ * @property children - Contenido del modal.
+ * @property size - Tamaño del modal: sm, md, lg o xl.
+ * @property showCloseButton - Indica si se muestra el botón de cerrar.
+ * @property footer - Contenido opcional para el pie del modal.
+ */
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,6 +22,10 @@ export interface ModalProps {
   footer?: React.ReactNode;
 }
 
+/**
+ * Componente de ventana modal con soporte para cierre con tecla Escape y clic fuera.
+ * @param props - Props del componente Modal.
+ */
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -102,6 +116,10 @@ export const Modal: React.FC<ModalProps> = ({
   );
 };
 
+/**
+ * Contenedor auxiliar para el pie del modal.
+ * @param props - Props del componente ModalFooter.
+ */
 export const ModalFooter: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <>{children}</>
 );

@@ -1,12 +1,21 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { WalletService } from '../services/walletService';
 import { BlockchainAdminService } from '../services/blockchainAdminService';
 import logger from '../utils/logger';
 
+/**
+ * Controlador de wallets.
+ * Gestiona la obtención, adición, eliminación, configuración principal
+ * y verificación de las direcciones de wallet de los usuarios.
+ */
 export class WalletController {
   /**
-   * Obtener todas las wallets del usuario actual
-   * GET /api/wallets
+   * Obtiene todas las wallets asociadas al usuario autenticado.
+   * Endpoint: GET /api/wallets
+   *
+   * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de wallets.
    */
   static async getWallets(req: Request, res: Response): Promise<void> {
     try {
@@ -24,9 +33,12 @@ export class WalletController {
   }
 
   /**
-   * Añadir una nueva wallet
-   * POST /api/wallets
-   * Body: { address, signature, message, label?, isPrimary? }
+   * Añade una nueva wallet al usuario autenticado.
+   * Endpoint: POST /api/wallets
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { address, signature?, message?, label?, isPrimary? }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet creada.
    */
   static async addWallet(req: Request, res: Response): Promise<void> {
     try {
@@ -37,7 +49,7 @@ export class WalletController {
 
       const { address, signature, message, label, isPrimary } = req.body;
 
-      console.debug(`[wallets:add] user=${req.user.userId} address=${address} label=${label} isPrimary=${isPrimary} hasSig=${!!signature} hasMsg=${!!message}`);
+      logger.debug(`[wallets:add] user=${req.user.userId} address=${address} label=${label} isPrimary=${isPrimary} hasSig=${!!signature} hasMsg=${!!message}`);
 
       if (!address) {
         res.status(400).json({ error: 'Se requiere la dirección de la wallet' });
@@ -61,7 +73,7 @@ export class WalletController {
         isPrimary
       );
 
-      console.debug(`[wallets:add] created walletId=${wallet.id}`);
+      logger.debug(`[wallets:add] created walletId=${wallet.id}`);
 
       // Si el usuario es admin, sincronizar con blockchain
       try {
@@ -80,14 +92,18 @@ export class WalletController {
 
       res.status(201).json({ wallet });
     } catch (error: any) {
-      console.error('[wallets:add] error', error);
+      logger.error('[wallets:add] error', error);
       res.status(400).json({ error: error.message });
     }
   }
 
   /**
-   * Eliminar una wallet
-   * DELETE /api/wallets/:walletId
+   * Elimina una wallet del usuario autenticado.
+   * Endpoint: DELETE /api/wallets/:walletId
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la wallet.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de eliminación.
    */
   static async removeWallet(req: Request, res: Response): Promise<void> {
     try {
@@ -107,8 +123,12 @@ export class WalletController {
   }
 
   /**
-   * Establecer wallet principal
-   * PUT /api/wallets/:walletId/primary
+   * Establece una wallet como principal para el usuario autenticado.
+   * Endpoint: PUT /api/wallets/:walletId/primary
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la wallet.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet actualizada.
    */
   static async setPrimaryWallet(req: Request, res: Response): Promise<void> {
     try {
@@ -128,9 +148,12 @@ export class WalletController {
   }
 
   /**
-   * Actualizar etiqueta de wallet
-   * PUT /api/wallets/:walletId/label
-   * Body: { label }
+   * Actualiza la etiqueta (nombre descriptivo) de una wallet.
+   * Endpoint: PUT /api/wallets/:walletId/label
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { label } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet actualizada.
    */
   static async updateLabel(req: Request, res: Response): Promise<void> {
     try {
@@ -160,9 +183,12 @@ export class WalletController {
   }
 
   /**
-   * Obtener mensaje de desafío para verificación de wallet
-   * POST /api/wallets/challenge
-   * Body: { address }
+   * Genera un mensaje de desafío para la verificación de propiedad de una wallet.
+   * Endpoint: POST /api/wallets/challenge
+   *
+   * @param req - Objeto de solicitud HTTP con { address } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el mensaje de desafío.
    */
   static async getChallenge(req: Request, res: Response): Promise<void> {
     try {
@@ -182,8 +208,12 @@ export class WalletController {
   }
 
   /**
-   * Obtener wallet principal
-   * GET /api/wallets/primary
+   * Obtiene la wallet principal del usuario autenticado.
+   * Endpoint: GET /api/wallets/primary
+   *
+   * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet principal o un error 404.
    */
   static async getPrimaryWallet(req: Request, res: Response): Promise<void> {
     try {

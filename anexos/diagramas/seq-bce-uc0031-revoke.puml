@@ -1,0 +1,40 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0031: Revocar Acceso a Documento (Analisis BCE)
+
+actor Actor
+boundary "ModalCompartir" as BF
+control "GestorComparticion" as CS
+entity "Compartido" as EC
+entity "Documento" as ED
+
+database "Base de datos" as DB
+boundary "Blockchain" as BC
+
+Actor -> BF : 1. Selecciona usuario a revocar
+BF -> CS : 2. Peticion de revocacion
+CS -> ED : 3. Verifica propiedad del documento
+ED -> DB : consulta propietario
+DB --> ED : propietario actual
+ED --> CS : propiedad confirmada
+
+CS -> EC : 4. Busca permiso compartido
+EC -> DB : consulta permiso compartido
+DB --> EC : permiso encontrado
+EC --> CS : datos del permiso
+
+CS -> BC : 5. Revoca permiso en blockchain
+BC --> CS : confirmacion on-chain
+
+CS -> EC : 6. Elimina acceso compartido
+EC -> DB : DELETE permiso compartido
+DB --> EC : confirmacion
+EC --> CS : acceso revocado
+
+CS --> BF : 7. Confirmacion de revocacion
+BF --> Actor : 8. Muestra lista actualizada de permisos
+
+@enduml
+
+

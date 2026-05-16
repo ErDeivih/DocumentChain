@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JWTPayload } from '../config/jwt';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
-import { UserSuspensionService } from '../services/userSuspensionService';
 import logger from '../utils/logger';
 
 // Extender Express Request para incluir usuario
@@ -36,29 +35,13 @@ export async function authenticate(
     // Verificar token
     const payload = verifyToken(accessToken);
 
-    // Verificar si la sesión existe y es válida (incluye datos de suspensión)
+    // Verificar si la sesión existe y es válida
     const session = await prisma.session.findUnique({
-      where: { accessToken },
-      include: {
-        user: {
-          select: { id: true, isSuspended: true, suspendReason: true }
-        }
-      }
+      where: { accessToken }
     });
 
     if (!session || session.accessTokenExpiresAt < new Date()) {
       res.status(401).json({ error: 'Sesión inválida o expirada' });
-      return;
-    }
-
-    const suspensionStatus = await resolveSuspensionStatus(session.user.id, accessToken, session.user.isSuspended, session.user.suspendReason);
-
-    if (suspensionStatus.isSuspended) {
-      res.status(403).json({
-        error: 'Tu cuenta está suspendida. Puedes reactivarla desde Ajustes → Zona de Peligro.',
-        suspended: true,
-        reason: suspensionStatus.reason ?? undefined
-      });
       return;
     }
 
@@ -68,88 +51,6 @@ export async function authenticate(
     next();
   } catch (error) {
     res.status(401).json({ error: 'Token inválido' });
-  }
-}
-
-/**
- * Middleware igual que authenticate pero permite el paso a usuarios suspendidos.
- * Usar únicamente en rutas de auto-reactivación o de sesión mínima (/auth/me).
- */
-export async function authenticateEvenIfSuspended(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No se ha proporcionado token' });
-      return;
-    }
-    const accessToken = authHeader.substring(7);
-    const payload = verifyToken(accessToken);
-    const session = await prisma.session.findUnique({ where: { accessToken } });
-    if (!session || session.accessTokenExpiresAt < new Date()) {
-      res.status(401).json({ error: 'Sesión inválida o expirada' });
-      return;
-    }
-    // Sin comprobación de suspensión: el usuario puede reactivar su cuenta
-    req.user = payload;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Token inválido' });
-  }
-}
-
-async function resolveSuspensionStatus(
-  userId: string,
-  accessToken: string,
-  dbSuspended: boolean,
-  dbReason: string | null,
-): Promise<{ isSuspended: boolean; reason: string | null }> {
-  try {
-    const primaryWallet = await prisma.wallet.findFirst({
-      where: {
-        userId,
-        isPrimary: true,
-      },
-      select: {
-        walletAddress: true,
-      },
-    });
-
-    if (!primaryWallet) {
-      return { isSuspended: dbSuspended, reason: dbReason };
-    }
-
-    const onChainSuspended = await UserSuspensionService.getOnChainSuspensionState(primaryWallet.walletAddress);
-    if (!onChainSuspended || dbSuspended) {
-      return { isSuspended: dbSuspended, reason: dbReason };
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        isSuspended: true,
-        suspendedAt: new Date(),
-      },
-    });
-
-    await prisma.session.deleteMany({
-      where: {
-        userId,
-        NOT: { accessToken },
-      },
-    });
-
-    return { isSuspended: true, reason: dbReason };
-  } catch (error) {
-    logger.warn('No se pudo sincronizar el estado de suspensión con blockchain', {
-      userId,
-      error: error instanceof Error ? error.message : 'Error desconocido',
-    });
-
-    return { isSuspended: dbSuspended, reason: dbReason };
   }
 }
 

@@ -1,6 +1,6 @@
-import { APIRequestContext, expect, Page } from '@playwright/test';
+﻿import { APIRequestContext, expect, Page } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ethers } from 'ethers';
@@ -9,7 +9,7 @@ export const API_BASE_URL = process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:30
 const HARDHAT_RPC_URL = process.env.E2E_RPC_URL ?? 'http://127.0.0.1:8545';
 const E2E_DATABASE_URL = process.env.E2E_DATABASE_URL ?? 'postgresql://documentchain:documentchain@127.0.0.1:5433/documentchain?schema=public';
 const HARDHAT_MNEMONIC = 'test test test test test test test test test test test junk';
-const SUSPENSION_ABI = ['function suspendMyself()', 'function unsuspendMyself()'];
+// Suspension ABI eliminada - funcionalidad deprecada
 
 export const seedUsers = {
   admin: {
@@ -18,16 +18,16 @@ export const seedUsers = {
     password: 'Admin123!',
   },
   owner: {
+    username: 'laura_garcia',
+    email: 'laura.garcia@documentchain.local',
+    password: 'Demo123!',
+    walletIndex: 0,
+  },
+  recipient: {
     username: 'carmen_martin',
     email: 'carmen.martin@documentchain.local',
     password: 'Demo123!',
     walletIndex: 1,
-  },
-  recipient: {
-    username: 'diego_ortega',
-    email: 'diego.ortega@documentchain.local',
-    password: 'Demo123!',
-    walletIndex: 3,
   },
 } as const;
 
@@ -145,9 +145,6 @@ async function createApiSession(
   expect(response.ok()).toBeTruthy();
 
   const body = await response.json();
-  if (body.requires2FA) {
-    throw new Error(`The user ${credentials.username} requires interactive 2FA.`);
-  }
 
   return body as {
     accessToken: string;
@@ -156,97 +153,6 @@ async function createApiSession(
   };
 }
 
-export async function ensureUserSuspensionState(
-  request: APIRequestContext,
-  userConfig: { username: string; password: string; walletIndex: number },
-  expectedState: 'active' | 'suspended'
-): Promise<void> {
-  const session = await createApiSession(request, userConfig);
-  const authHeaders = {
-    Authorization: `Bearer ${session.accessToken}`,
-  };
-
-  const meResponse = await request.get(`${API_BASE_URL}/auth/me`, {
-    headers: authHeaders,
-  });
-  expect(meResponse.ok()).toBeTruthy();
-
-  const meBody = await meResponse.json();
-  const isSuspended = Boolean(meBody.user?.isSuspended);
-  const shouldBeSuspended = expectedState === 'suspended';
-  const expectedPrimaryAddress = getHardhatAddress(userConfig.walletIndex).toLowerCase();
-
-  if (!isSuspended) {
-    const walletsResponse = await request.get(`${API_BASE_URL}/wallets`, {
-      headers: authHeaders,
-    });
-    expect(walletsResponse.ok()).toBeTruthy();
-
-    const walletsBody = await walletsResponse.json();
-    const targetWallet = (walletsBody.wallets || []).find(
-      (wallet: { id: string; address: string; isPrimary: boolean }) => wallet.address.toLowerCase() === expectedPrimaryAddress
-    );
-
-    if (!targetWallet) {
-      throw new Error(`The expected Hardhat wallet ${expectedPrimaryAddress} is not saved for ${userConfig.username}.`);
-    }
-
-    if (!targetWallet.isPrimary) {
-      const setPrimaryResponse = await request.put(`${API_BASE_URL}/wallets/${targetWallet.id}/primary`, {
-        headers: authHeaders,
-      });
-      expect(setPrimaryResponse.ok()).toBeTruthy();
-    }
-  }
-
-  if (isSuspended === shouldBeSuspended) {
-    return;
-  }
-
-  const wallet = deriveHardhatWallet(userConfig.walletIndex).connect(
-    new ethers.JsonRpcProvider(HARDHAT_RPC_URL)
-  );
-
-  const preparePath = shouldBeSuspended ? '/users/me/suspend/prepare' : '/users/me/unsuspend/prepare';
-  const confirmPath = shouldBeSuspended ? '/users/me/suspend/confirm' : '/users/me/unsuspend/confirm';
-  const preparePayload = shouldBeSuspended ? { reason: 'E2E setup reset' } : undefined;
-
-  const preparationResponse = await request.post(`${API_BASE_URL}${preparePath}`, {
-    headers: authHeaders,
-    data: preparePayload,
-  });
-  expect(preparationResponse.ok()).toBeTruthy();
-
-  const preparation = await preparationResponse.json();
-  const expectedWalletAddress = String(preparation.wallet?.address || '').toLowerCase();
-  if (wallet.address.toLowerCase() !== expectedWalletAddress) {
-    throw new Error('The configured Hardhat wallet does not match the primary wallet required for suspension flow.');
-  }
-
-  const contract = new ethers.Contract(preparation.contractAddress, SUSPENSION_ABI, wallet);
-  const tx = shouldBeSuspended
-    ? await contract.suspendMyself()
-    : await contract.unsuspendMyself();
-  await tx.wait();
-
-  const confirmationResponse = await request.post(`${API_BASE_URL}${confirmPath}`, {
-    headers: authHeaders,
-    data: shouldBeSuspended
-      ? { txHash: tx.hash, reason: 'E2E setup reset' }
-      : { txHash: tx.hash },
-  });
-  expect(confirmationResponse.ok()).toBeTruthy();
-
-  const finalMeResponse = await request.get(`${API_BASE_URL}/auth/me`, {
-    headers: authHeaders,
-  });
-  expect(finalMeResponse.ok()).toBeTruthy();
-
-  const finalMe = await finalMeResponse.json();
-  if (Boolean(finalMe.user?.isSuspended) !== shouldBeSuspended) {
-    throw new Error(`Failed to force suspension state to ${expectedState}.`);
-  }
-}
 
 export async function installHardhatWallet(page: Page, walletIndex: number): Promise<string> {
   const address = getHardhatAddress(walletIndex);
@@ -410,7 +316,6 @@ export async function clearStoredSession(page: Page): Promise<void> {
 
 export function provisionPasswordResetToken(email: string): string {
   const rawToken = randomBytes(32).toString('hex');
-  const hashedToken = createHash('sha256').update(rawToken).digest('hex');
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const normalizedEmail = email.toLowerCase().trim();
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -425,14 +330,14 @@ export function provisionPasswordResetToken(email: string): string {
       if (!user) {
         throw new Error('User not found for password reset token provisioning');
       }
-      await prisma.session.create({
+      await prisma.passwordReset.create({
         data: {
-          id: crypto.randomUUID(),
           userId: user.id,
-          accessToken: ${JSON.stringify(hashedToken)},
-          refreshToken: ${JSON.stringify(hashedToken)},
-          accessTokenExpiresAt: new Date(${JSON.stringify(expiresAt)}),
-          refreshTokenExpiresAt: new Date(${JSON.stringify(expiresAt)})
+          token: ${JSON.stringify(rawToken)},
+          expiresAt: new Date(${JSON.stringify(expiresAt)}),
+          used: false,
+          ipAddress: '127.0.0.1',
+          userAgent: 'playwright-e2e'
         }
       });
       await prisma.$disconnect();

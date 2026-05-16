@@ -1,46 +1,65 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Detalle / Nueva version" as ui
-control "Endpoints de versiones (/api/documents/:id/versions)" as api
+boundary "UploadVersionModal.tsx" as ui
+control "VersionController (/api/documents/:id/versions)" as api
 control "VersionService" as srv
-entity "IPFS" as ipfs
-database "PostgreSQL" as db
-participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+control "DocumentPermissionService" as perm
+entity "DocumentRegistry" as sc
+control "IPFSService" as ipfs
+entity "Document" as doc
+entity "DocumentVersion" as ver
+database "Base de datos" as db
+participant "Wallet (EIP-6963 / WalletConnect)" as wallet
+control "EventListenerService" as listener
 
-user -> ui: Selecciona archivo y comentario
-ui -> api: Preparar nueva version
-api -> srv: Validar permisos y wallet
+user -> ui: Selecciona archivo y comentario para nueva version
+ui -> api: POST /api/documents/:documentId/versions/prepare (multipart/form-data)
+api -> srv: prepareVersion(documentId, file, comment, userId, walletId)
+srv -> perm: isOwner / canEdit(blockchainId, walletAddress)
+perm -> sc: getUserPermission(docId, userAddress)
+sc --> perm: DocumentRole.OWNER o EDITOR
+perm --> srv: Permiso de escritura validado
+srv -> doc: Cargar metadatos de documento y modo de privacidad
+doc -> db: Obtener blockchainId, ownerPublicKey, visibilidad
+db --> doc: Documento operativo
+doc --> srv: Contexto de versionado
 alt Documento privado
-	srv -> srv: Cifrar contenido y clave de la version
+    srv -> srv: generateSymmetricKey() + cifrar contenido con AES-256-GCM
+    srv -> srv: encryptSymmetricKeyWithPublicKey(ownerPublicKey)
 else Documento publico
-	srv -> srv: Mantener contenido en claro para acceso publico
+    srv -> srv: Mantener contenido en claro, preservar publicId
 end
-srv -> ipfs: Subir nueva version
+srv -> ipfs: uploadFile(buffer, filename)
 ipfs --> srv: CID
-srv -> db: Guardar version en PREPARING
-db --> srv: versionId, versionNumber y blockchainId
-srv --> api: Datos para firmar
-api --> ui: Version preparada
+srv -> ver: Crear version en estado PREPARING
+ver -> db: Persistir CID, comentario y metadatos de cifrado
+db --> ver: {versionId, versionNumber, blockchainId}
+ver --> srv: Version preparada
+srv --> api: {versionId, versionNumber, blockchainId, messageToSign}
+api --> ui: 200 OK version preparada
 
-ui -> wallet: Solicitar firma de version
-wallet -> sc: Registrar nueva version on-chain
+ui -> wallet: eth_signTypedData_v4(messageToSign)
+wallet -> sc: createVersion(docId, cid, metadataHash)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: Confirmar version
-api -> srv: Registrar TX_SUBMITTED
-srv -> db: Actualizar version pendiente
-db --> srv: OK
-srv --> api: Pendiente de sincronizacion
-api --> ui: Confirmacion registrada
+ui -> api: POST /api/documents/:documentId/versions/confirm {versionId, txHash, walletAddress}
+api -> srv: confirmVersion(versionId, txHash, walletAddress)
+srv -> ver: Marcar transaccion enviada
+ver -> db: Actualizar estado a TX_SUBMITTED y guardar txHash
+db --> ver: OK
+ver --> srv: Confirmacion persistida
+srv --> api: {status: "TX_SUBMITTED"}
+api --> ui: 200 OK confirmacion registrada
 
-sc -> listener: Evento de nueva version confirmado
-listener -> db: Marcar version SYNCED y registrar evento
-listener -> ui: Refrescar pestana Versiones
-ui --> user: Nueva version disponible
+sc -> listener: Evento VersionCreated(docId, versionNumber, cid, timestamp)
+listener -> ver: Resolver version por docId + versionNumber
+ver -> db: Actualizar version a SYNCED y fecha de bloque
+db --> ver: Version sincronizada
+listener -> db: Registrar evento de timeline asociado
+listener -> ui: WebSocket / refrescar pestana Versiones
+ui --> user: Nueva version disponible en el historial
 
 @enduml
 

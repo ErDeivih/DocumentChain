@@ -1,23 +1,23 @@
 @startuml
 !include _structure-style.puml
 left to right direction
+title Casos de uso - Administracion
 
 actor "Administrador" as ADMIN
 
-rectangle "Administracion" {
-  usecase "UC-0041: Listar Usuarios" as UC49
-  usecase "UC-0042: Gestionar Roles" as UC50
+rectangle "Modulo de administracion" {
+  usecase "UC-0038: Listar Usuarios" as UC38
+  usecase "UC-0039: Gestionar Roles" as UC39
 }
 
-UC49 -[hidden]down-> UC50
+UC38 -[hidden]down-> UC39
 
-ADMIN --> UC49
-ADMIN --> UC50
+ADMIN --> UC38
+ADMIN --> UC39
 
-note right of UC50
-  Las acciones administrativas especializadas
-  (pausar sistema, suspender usuarios,
-  crear administradores) se ejecutan como
-  operaciones del panel de administracion.
+note right of UC39
+  La gestion de roles incluye la
+  asignacion y revocacion de permisos
+  de administrador sobre la blockchain.
 end note
 @enduml

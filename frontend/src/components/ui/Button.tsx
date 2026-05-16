@@ -29,6 +29,14 @@ const buttonVariants = cva(
   }
 );
 
+/**
+ * Props del componente Button.
+ * @property variant - Variante visual del botón.
+ * @property size - Tamaño del botón.
+ * @property asChild - Si se debe renderizar como elemento hijo.
+ * @property isLoading - Indica si el botón está en estado de carga.
+ * @property className - Clases CSS adicionales.
+ */
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
@@ -36,6 +44,10 @@ export interface ButtonProps
   isLoading?: boolean;
 }
 
+/**
+ * Componente de botón con múltiples variantes, tamaños y soporte para estado de carga.
+ * @param props - Props del componente Button.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, isLoading, disabled, children, ...props }, ref) => {
     return (
@@ -76,4 +88,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button';
 
 export { Button, buttonVariants };
-

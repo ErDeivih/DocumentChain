@@ -1,10 +1,18 @@
 import multer from 'multer';
 import { validateFile } from '../utils/fileValidation';
 
-// Configure multer to store files in memory
+/**
+ * Configuración de almacenamiento en memoria para Multer.
+ */
 const storage = multer.memoryStorage();
 
-// File filter to validate file types using our whitelist
+/**
+ * Filtro de archivos que valida los tipos permitidos mediante la lista blanca de validación.
+ *
+ * @param req - Objeto de solicitud de Express.
+ * @param file - Archivo recibido por Multer.
+ * @param cb - Callback de filtrado de Multer.
+ */
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const validation = validateFile(file.originalname, file.mimetype, 0); // Size will be checked after upload
   
@@ -15,13 +23,23 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
   cb(null, true);
 };
 
-// File filter for encrypted files (accepts any file type since it's encrypted)
+/**
+ * Filtro de archivos para contenido cifrado.
+ * Acepta cualquier tipo de archivo ya que el contenido se encuentra cifrado.
+ *
+ * @param req - Objeto de solicitud de Express.
+ * @param file - Archivo recibido por Multer.
+ * @param cb - Callback de filtrado de Multer.
+ */
 const encryptedFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // Encrypted files are binary blobs, accept them
   cb(null, true);
 };
 
-// Configure multer
+/**
+ * Instancia de Multer configurada para la subida de archivos estándar.
+ * Tamaño máximo: 100 MB.
+ */
 export const upload = multer({
   storage,
   fileFilter,
@@ -30,7 +48,10 @@ export const upload = multer({
   }
 });
 
-// Configure multer for encrypted files
+/**
+ * Instancia de Multer configurada para la subida de archivos cifrados.
+ * Tamaño máximo: 200 MB (mayor debido al sobrecoste de cifrado).
+ */
 export const uploadEncryptedMiddleware = multer({
   storage,
   fileFilter: encryptedFileFilter,
@@ -39,16 +60,28 @@ export const uploadEncryptedMiddleware = multer({
   }
 });
 
-// Single file upload middleware
+/**
+ * Middleware para la subida de un único archivo estándar.
+ */
 export const uploadSingle = upload.single('file');
 
-// Multiple files upload middleware (for future use)
-export const uploadMultiple = upload.array('files', 10); // Max 10 files
+/**
+ * Middleware para la subida de múltiples archivos (máximo 10).
+ */
+export const uploadMultiple = upload.array('files', 10);
 
-// Encrypted file upload middleware
+/**
+ * Middleware para la subida de un archivo cifrado.
+ */
 export const uploadEncrypted = uploadEncryptedMiddleware.single('encryptedFile');
 
-// Avatar upload: images only, max 2MB
+/**
+ * Filtro de archivos para avatares: solo imágenes, máximo 2 MB.
+ *
+ * @param req - Objeto de solicitud de Express.
+ * @param file - Archivo recibido por Multer.
+ * @param cb - Callback de filtrado de Multer.
+ */
 const avatarFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (!file.mimetype.startsWith('image/')) {
     return cb(new Error('Solo se permiten archivos de imagen'));
@@ -56,12 +89,19 @@ const avatarFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFi
   cb(null, true);
 };
 
+/**
+ * Instancia de Multer configurada para la subida de avatares.
+ * Solo acepta imágenes y limita el tamaño a 2 MB.
+ */
 export const uploadAvatarMiddleware = multer({
   storage,
   fileFilter: avatarFileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2 MB
+    fileSize: 2 * 1024 * 1024,
   }
 });
 
+/**
+ * Middleware para la subida de un avatar individual.
+ */
 export const uploadAvatar = uploadAvatarMiddleware.single('avatar');

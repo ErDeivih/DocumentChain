@@ -1,0 +1,35 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0005: Eliminar wallet (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Página de gestión de wallets" as ui
+control "Gestor de wallets" as ctrl
+entity "Wallet" as wallet
+entity "Documento" as doc
+
+user -> ui: Seleccionar "Eliminar wallet"
+ui --> user: Solicitar confirmación
+
+user -> ui: Confirmar eliminación
+ui -> ctrl: Solicitar eliminación (idWallet)
+
+ctrl -> wallet: Verificar propiedad
+wallet --> ctrl: Propiedad verificada
+
+ctrl -> doc: Verificar si wallet tiene firmas asociadas
+alt Wallet con firmas asociadas
+    doc --> ctrl: Firmas encontradas
+    ctrl --> ui: Advertencia (wallet usada en firmas)
+    ui --> user: Mostrar advertencia + solicitar confirmación forzada
+    user -> ui: Confirmar eliminación forzada
+    ui -> ctrl: Eliminar forzosamente
+end
+
+ctrl -> wallet: Eliminar wallet
+wallet --> ctrl: Wallet eliminada
+ctrl --> ui: Confirmación
+ui --> user: Wallet eliminada
+
+@enduml

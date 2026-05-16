@@ -1,29 +1,42 @@
 /**
- * SecureStorage - In-memory storage for private keys
- * Keys are stored only in memory and auto-cleared after timeout
+ * @fileoverview SecureStorage - Almacenamiento seguro en memoria de claves privadas.
+ *
+ * Gestiona el almacenamiento temporal de claves privadas en memoria con
+ * mecanismos de auto-eliminación, reducción de tiempo de vida cuando la
+ * pestaña está oculta y limpieza ante el cierre de la ventana.
  */
 
+/**
+ * Entrada de caché para una clave privada almacenada en memoria.
+ */
 export interface KeyCacheEntry {
+  /** Clave privada como CryptoKey. */
   key: CryptoKey;
+  /** Marca de tiempo de la última actividad (ms desde epoch). */
   timestamp: number;
+  /** Identificador del temporizador de auto-eliminación. */
   timeoutId: ReturnType<typeof setTimeout> | null;
 }
 
 /**
- * SecureStorage class for managing private keys in memory
- * Implements auto-clear and visibility-based security
+ * Almacenamiento seguro en memoria para claves privadas.
+ *
+ * Implementa:
+ * - Auto-eliminación tras un tiempo de inactividad configurable.
+ * - Reducción de tiempos de espera cuando la pestaña del navegador está oculta.
+ * - Limpieza completa ante el evento `beforeunload`.
  */
 export class SecureStorage {
-  private static readonly DEFAULT_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
-  private static readonly REDUCED_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes when hidden
-  
+  private static readonly DEFAULT_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutos
+  private static readonly REDUCED_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutos cuando está oculta
+
   private static privateKeyCache = new Map<string, KeyCacheEntry>();
   private static timeoutMs = SecureStorage.DEFAULT_TIMEOUT_MS;
   private static isVisibilityListenerSetup = false;
   private static isBeforeUnloadListenerSetup = false;
 
   /**
-   * Initialize visibility and beforeunload listeners
+   * Configura los listeners de visibilidad de documento y cierre de ventana.
    */
   private static setupListeners(): void {
     if (!this.isVisibilityListenerSetup) {
@@ -38,26 +51,27 @@ export class SecureStorage {
   }
 
   /**
-   * Handle visibility change (tab switch)
+   * Maneja los cambios de visibilidad de la pestaña.
+   * Reduce los tiempos de espera cuando la pestaña está oculta.
    */
   private static handleVisibilityChange(): void {
     if (document.hidden) {
-      // Reduce timeouts when tab is hidden
+      // Reducir tiempos de espera cuando la pestaña está oculta
       this.reduceTimeouts(this.REDUCED_TIMEOUT_MS);
     }
   }
 
   /**
-   * Store a private key in memory
-   * 
-   * @param userId User ID
-   * @param key Private key to store
-   * @param customTimeout Optional custom timeout in ms
+   * Almacena una clave privada en memoria.
+   *
+   * @param userId - Identificador del usuario.
+   * @param key - Clave privada a almacenar.
+   * @param customTimeout - Tiempo de espera personalizado en milisegundos (opcional).
    */
   static storePrivateKey(userId: string, key: CryptoKey, customTimeout?: number): void {
     this.setupListeners();
 
-    // Clear existing entry if exists
+    // Eliminar entrada existente si la hay
     if (this.privateKeyCache.has(userId)) {
       const existing = this.privateKeyCache.get(userId)!;
       if (existing.timeoutId) {
@@ -66,14 +80,13 @@ export class SecureStorage {
     }
 
     const timeout = customTimeout || this.timeoutMs;
-    
-    // Create timeout for auto-clear
+
+    // Crear temporizador de auto-eliminación
     const timeoutId = setTimeout(() => {
       this.clearPrivateKey(userId);
-      console.log(`[SecureStorage] Private key auto-cleared for user ${userId} after timeout`);
     }, timeout);
 
-    // Store the key
+    // Almacenar la clave
     this.privateKeyCache.set(userId, {
       key,
       timestamp: Date.now(),
@@ -82,42 +95,42 @@ export class SecureStorage {
   }
 
   /**
-   * Get a private key from memory
-   * 
-   * @param userId User ID
-   * @returns Private key or null if not found/expired
+   * Obtiene una clave privada de la memoria.
+   *
+   * Al acceder, reinicia el temporizador de inactividad.
+   *
+   * @param userId - Identificador del usuario.
+   * @returns Clave privada o `null` si no existe o ha expirado.
    */
   static getPrivateKey(userId: string): CryptoKey | null {
     const entry = this.privateKeyCache.get(userId);
-    
+
     if (!entry) {
       return null;
     }
 
-    // Reset timeout on access (activity-based refresh)
+    // Reiniciar temporizador al acceder (refresco basado en actividad)
     this.refreshTimeout(userId);
-    
+
     return entry.key;
   }
 
   /**
-   * Check if a private key exists in memory
-   * 
-   * @param userId User ID
-   * @returns True if key exists
+   * Verifica si existe una clave privada en memoria para un usuario.
+   * @param userId - Identificador del usuario.
+   * @returns `true` si la clave existe.
    */
   static hasPrivateKey(userId: string): boolean {
     return this.privateKeyCache.has(userId);
   }
 
   /**
-   * Clear a specific private key from memory
-   * 
-   * @param userId User ID
+   * Elimina una clave privada específica de la memoria.
+   * @param userId - Identificador del usuario.
    */
   static clearPrivateKey(userId: string): void {
     const entry = this.privateKeyCache.get(userId);
-    
+
     if (entry) {
       if (entry.timeoutId) {
         clearTimeout(entry.timeoutId);
@@ -127,7 +140,7 @@ export class SecureStorage {
   }
 
   /**
-   * Clear all private keys from memory
+   * Elimina todas las claves privadas de la memoria.
    */
   static clearAll(): void {
     for (const [_userId, entry] of this.privateKeyCache) {
@@ -136,40 +149,39 @@ export class SecureStorage {
       }
     }
     this.privateKeyCache.clear();
-    console.log('[SecureStorage] All private keys cleared');
   }
 
   /**
-   * Refresh the timeout for a key
-   * 
-   * @param userId User ID
+   * Refresca el temporizador de una clave almacenada.
+   * @param userId - Identificador del usuario.
    */
   private static refreshTimeout(userId: string): void {
     const entry = this.privateKeyCache.get(userId);
-    
+
     if (!entry) {
       return;
     }
 
-    // Clear existing timeout
+    // Eliminar temporizador existente
     if (entry.timeoutId) {
       clearTimeout(entry.timeoutId);
     }
 
-    // Set new timeout
+    // Establecer nuevo temporizador
     entry.timeoutId = setTimeout(() => {
       this.clearPrivateKey(userId);
-      console.log(`[SecureStorage] Private key auto-cleared for user ${userId} after timeout`);
     }, this.timeoutMs);
 
-    // Update timestamp
+    // Actualizar marca de tiempo
     entry.timestamp = Date.now();
   }
 
   /**
-   * Reduce all timeouts (used when tab becomes hidden)
-   * 
-   * @param newTimeout New timeout in ms
+   * Reduce los tiempos de espera de todas las claves almacenadas.
+   *
+   * Útil cuando la pestaña del navegador pasa a segundo plano.
+   *
+   * @param newTimeout - Nuevo tiempo de espera en milisegundos.
    */
   static reduceTimeouts(newTimeout: number): void {
     for (const [userId, entry] of this.privateKeyCache) {
@@ -177,10 +189,10 @@ export class SecureStorage {
       const remaining = newTimeout - elapsed;
 
       if (remaining <= 0) {
-        // Already exceeded reduced timeout, clear immediately
+        // Ya se ha superado el tiempo reducido, eliminar inmediatamente
         this.clearPrivateKey(userId);
       } else {
-        // Update timeout
+        // Actualizar temporizador
         if (entry.timeoutId) {
           clearTimeout(entry.timeoutId);
         }
@@ -192,23 +204,21 @@ export class SecureStorage {
   }
 
   /**
-   * Set the default timeout for all keys
-   * 
-   * @param timeoutMs Timeout in milliseconds
+   * Establece el tiempo de espera predeterminado para todas las claves.
+   * @param timeoutMs - Tiempo de espera en milisegundos.
    */
   static setDefaultTimeout(timeoutMs: number): void {
     this.timeoutMs = timeoutMs;
   }
 
   /**
-   * Get the time remaining before a key is cleared
-   * 
-   * @param userId User ID
-   * @returns Time remaining in ms, or 0 if key doesn't exist
+   * Obtiene el tiempo restante antes de que una clave sea eliminada.
+   * @param userId - Identificador del usuario.
+   * @returns Tiempo restante en milisegundos, o `0` si la clave no existe.
    */
   static getTimeRemaining(userId: string): number {
     const entry = this.privateKeyCache.get(userId);
-    
+
     if (!entry) {
       return 0;
     }
@@ -218,27 +228,24 @@ export class SecureStorage {
   }
 
   /**
-   * Get all user IDs that have keys stored
-   * 
-   * @returns Array of user IDs
+   * Obtiene los identificadores de todos los usuarios con claves almacenadas.
+   * @returns Array de identificadores de usuario.
    */
   static getStoredUserIds(): string[] {
     return Array.from(this.privateKeyCache.keys());
   }
 
   /**
-   * Check if storage is empty
-   * 
-   * @returns True if no keys are stored
+   * Verifica si el almacenamiento está vacío.
+   * @returns `true` si no hay claves almacenadas.
    */
   static isEmpty(): boolean {
     return this.privateKeyCache.size === 0;
   }
 
   /**
-   * Get the number of keys stored
-   * 
-   * @returns Number of keys
+   * Obtiene el número de claves almacenadas actualmente.
+   * @returns Número de claves en memoria.
    */
   static size(): number {
     return this.privateKeyCache.size;

@@ -1,9 +1,15 @@
 import { Folder } from '@prisma/client';
 import prisma from '../config/database';
 
+/**
+ * Servicio de gestión de carpetas y organización jerárquica de documentos.
+ * Permite crear, actualizar, eliminar y consultar carpetas asociadas a un usuario.
+ */
 export class FolderService {
   /**
-   * Obtener todas las carpetas de un usuario
+   * Obtener todas las carpetas de un usuario.
+   * @param userId - ID del usuario propietario
+   * @returns Lista de carpetas con conteos de documentos y subcarpetas
    */
   static async getUserFolders(userId: string): Promise<Folder[]> {
     return prisma.folder.findMany({
@@ -21,7 +27,10 @@ export class FolderService {
   }
 
   /**
-   * Obtener una carpeta por ID
+   * Obtener una carpeta por ID incluyendo documentos y subcarpetas.
+   * @param folderId - ID de la carpeta
+   * @param userId - ID del usuario propietario
+   * @returns Carpeta encontrada o null
    */
   static async getFolderById(folderId: string, userId: string): Promise<Folder | null> {
     return prisma.folder.findFirst({
@@ -53,7 +62,15 @@ export class FolderService {
   }
 
   /**
-   * Crear una nueva carpeta
+   * Crear una nueva carpeta.
+   * @param data - Datos de la carpeta a crear
+   * @param data.userId - ID del propietario
+   * @param data.name - Nombre de la carpeta
+   * @param data.description - Descripción (opcional)
+   * @param data.parentId - ID de la carpeta padre (opcional)
+   * @param data.color - Color identificativo (opcional)
+   * @param data.icon - Icono (opcional)
+   * @returns Carpeta creada
    */
   static async createFolder(data: {
     userId: string;
@@ -103,7 +120,11 @@ export class FolderService {
   }
 
   /**
-   * Actualizar una carpeta
+   * Actualizar una carpeta existente.
+   * @param folderId - ID de la carpeta
+   * @param userId - ID del propietario
+   * @param data - Campos a actualizar
+   * @returns Carpeta actualizada
    */
   static async updateFolder(
     folderId: string,
@@ -162,7 +183,10 @@ export class FolderService {
   }
 
   /**
-   * Eliminar una carpeta (y opcionalmente su contenido)
+   * Eliminar una carpeta y, opcionalmente, su contenido.
+   * @param folderId - ID de la carpeta
+   * @param userId - ID del propietario
+   * @param deleteContents - Si es true, mueve documentos y subcarpetas a la raíz antes de eliminar
    */
   static async deleteFolder(
     folderId: string,
@@ -205,7 +229,10 @@ export class FolderService {
   }
 
   /**
-   * Mover documentos a una carpeta
+   * Mover documentos a una carpeta destino.
+   * @param documentIds - IDs de los documentos a mover
+   * @param folderId - ID de la carpeta destino (null para raíz)
+   * @param userId - ID del propietario
    */
   static async moveDocumentsToFolder(
     documentIds: string[],
@@ -243,7 +270,10 @@ export class FolderService {
   }
 
   /**
-   * Obtener la ruta completa de una carpeta (breadcrumb)
+   * Obtener la ruta completa de una carpeta (breadcrumb).
+   * @param folderId - ID de la carpeta destino
+   * @param userId - ID del propietario
+   * @returns Array de carpetas desde la raíz hasta la carpeta indicada
    */
   static async getFolderPath(folderId: string, userId: string): Promise<Folder[]> {
     const path: Folder[] = [];
@@ -283,7 +313,10 @@ export class FolderService {
   }
 
   /**
-   * Obtener estadísticas de una carpeta
+   * Obtener estadísticas de una carpeta.
+   * @param folderId - ID de la carpeta
+   * @param userId - ID del propietario
+   * @returns Conteo de documentos, tamaño total y número de subcarpetas
    */
   static async getFolderStats(folderId: string, userId: string) {
     const folder = await prisma.folder.findFirst({

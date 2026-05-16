@@ -14,6 +14,10 @@
  * - Creates blockchain records
  * - Does NOT handle passwords or private keys
  * - Does NOT sign blockchain transactions (user's wallet does this)
+ * 
+ * IMPORTANT: Permissions are the SOLE responsibility of the smart contract.
+ * PostgreSQL is NEVER used as a source of truth for authorization.
+ * The Event table is used ONLY for audit logs and timeline visualization.
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -29,6 +33,17 @@ import { normalizeEthereumAddress } from '../utils/ethereum';
 // Types
 // ============================================
 
+/**
+ * Información de una compartición de documento.
+ * @property id - Identificador del share
+ * @property documentId - ID del documento compartido
+ * @property userId - ID del usuario destinatario
+ * @property role - Rol asignado (lectura, escritura o propietario)
+ * @property sharerWalletId - Wallet que realizó la compartición
+ * @property blockchainStatus - Estado de sincronización en blockchain
+ * @property createdAt - Fecha de creación en formato ISO
+ * @property user - Datos básicos del destinatario
+ */
 export interface ShareInfo {
   id: string;
   documentId: string;
@@ -45,6 +60,16 @@ export interface ShareInfo {
   };
 }
 
+/**
+ * Datos de entrada para preparar una compartición.
+ * @property documentId - ID del documento a compartir
+ * @property sharedWithUserId - ID del usuario destinatario
+ * @property role - Rol a asignar
+ * @property sharerUserId - ID del usuario que comparte
+ * @property sharerWalletId - Wallet del usuario que comparte
+ * @property decryptedSymmetricKey - Clave simétrica descifrada (Base64)
+ * @property sharedToWalletAddress - Dirección destino (opcional)
+ */
 export interface PrepareShareInput {
   documentId: string;
   sharedWithUserId: string;
@@ -55,17 +80,40 @@ export interface PrepareShareInput {
   sharedToWalletAddress?: string;
 }
 
+/**
+ * Resultado de la preparación de una compartición.
+ * @property blockchainId - ID del documento en blockchain
+ * @property sharedWithAddress - Dirección del destinatario
+ * @property shareId - Identificador del share
+ */
 export interface PrepareShareResult {
   blockchainId: string;
   sharedWithAddress: string;
   shareId: string;
 }
 
+/**
+ * Datos de entrada para confirmar una compartición.
+ * @property shareId - Identificador del share
+ * @property txHash - Hash de la transacción blockchain
+ * @property documentId - ID del documento (opcional)
+ * @property recipientId - ID del destinatario (opcional)
+ * @property role - Rol confirmado (opcional)
+ */
 export interface ConfirmShareInput {
   shareId: string;
   txHash: string;
+  documentId?: string;
+  recipientId?: string;
+  role?: 'SHARED_READ' | 'SHARED_WRITE';
 }
 
+/**
+ * Resultado de la preparación de revocación de acceso.
+ * @property blockchainId - ID del documento en blockchain
+ * @property shareId - Identificador del share
+ * @property sharedWithAddress - Dirección del usuario afectado
+ */
 export interface PrepareRevokeShareResult {
   blockchainId: string;
   shareId: string;
@@ -76,6 +124,11 @@ export interface PrepareRevokeShareResult {
 // Share Service Class
 // ============================================
 
+/**
+ * Servicio de gestión de comparticiones de documentos.
+ * Implementa el patrón prepare/confirm con re-encriptación de claves simétricas en backend.
+ * La autorización es responsabilidad exclusiva del contrato inteligente.
+ */
 export class ShareService {
   private static buildInsensitiveWalletWhere(addresses: string[]) {
     return {
@@ -88,140 +141,10 @@ export class ShareService {
     };
   }
 
-  private static async getConfirmedShareEntries(documentId?: string, recipientUserId?: string): Promise<Array<{
-    shareId: string;
-    documentId: string;
-    recipientId: string;
-    role: 'SHARED_READ' | 'SHARED_WRITE';
-    createdAt: Date;
-  }>> {
-    const events = await prisma.event.findMany({
-      where: {
-        eventType: {
-          in: ['SHARE_CONFIRMED', 'SHARE_REVOKED'],
-        },
-        ...(documentId ? { documentId } : {}),
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: documentId ? 100 : 500,
-    });
-
-    const latestByRecipient = new Map<string, {
-      shareId: string;
-      documentId: string;
-      recipientId: string;
-      role: 'SHARED_READ' | 'SHARED_WRITE';
-      createdAt: Date;
-      eventType: 'SHARE_CONFIRMED' | 'SHARE_REVOKED';
-    }>();
-
-    for (const event of events) {
-      if (!event.documentId) {
-        continue;
-      }
-
-      const metadata = (event.metadata as {
-        shareId?: unknown;
-        recipientId?: unknown;
-        role?: unknown;
-      } | null) ?? null;
-
-      const resolvedRecipientId = typeof metadata?.recipientId === 'string' ? metadata.recipientId : null;
-      if (!resolvedRecipientId) {
-        continue;
-      }
-
-      if (recipientUserId && resolvedRecipientId !== recipientUserId) {
-        continue;
-      }
-
-      const stateKey = `${event.documentId}:${resolvedRecipientId}`;
-
-      if (latestByRecipient.has(stateKey)) {
-        continue;
-      }
-
-      latestByRecipient.set(stateKey, {
-        shareId: typeof metadata?.shareId === 'string' ? metadata.shareId : `${event.documentId}:${resolvedRecipientId}`,
-        documentId: event.documentId,
-        recipientId: resolvedRecipientId,
-        role: metadata?.role === 'SHARED_WRITE' ? 'SHARED_WRITE' : 'SHARED_READ',
-        createdAt: event.createdAt,
-        eventType: event.eventType === 'SHARE_REVOKED' ? 'SHARE_REVOKED' : 'SHARE_CONFIRMED',
-      });
-    }
-
-    return Array.from(latestByRecipient.values())
-      .filter((entry) => entry.eventType === 'SHARE_CONFIRMED')
-      .map(({ eventType, ...entry }) => entry);
-  }
-
-  private static async buildShareInfoFromEvents(
-    document: { id: string; creatorWalletId: string | null },
-    entries: Array<{
-      shareId: string;
-      documentId: string;
-      recipientId: string;
-      role: 'SHARED_READ' | 'SHARED_WRITE';
-      createdAt: Date;
-    }>
-  ): Promise<ShareInfo[]> {
-    if (entries.length === 0) {
-      return [];
-    }
-
-    const users = await prisma.user.findMany({
-      where: {
-        id: {
-          in: entries.map((entry) => entry.recipientId),
-        },
-      },
-      select: {
-        id: true,
-        username: true,
-        fullName: true,
-        email: true,
-        avatarUrl: true,
-      },
-    });
-
-    const userById = new Map(users.map((user) => [user.id, user]));
-
-    return entries.map((entry) => {
-      const user = userById.get(entry.recipientId);
-
-      return {
-        id: entry.shareId,
-        documentId: entry.documentId,
-        userId: entry.recipientId,
-        role: entry.role,
-        sharerWalletId: document.creatorWalletId,
-        blockchainStatus: BlockchainStatus.SYNCED,
-        createdAt: entry.createdAt.toISOString(),
-        user: user
-          ? {
-              username: user.username,
-              fullName: user.fullName,
-              email: user.email,
-              avatarUrl: user.avatarUrl ?? null,
-            }
-          : {
-              username: entry.recipientId,
-              fullName: null,
-              email: '',
-              avatarUrl: null,
-            },
-      };
-    });
-  }
-
   /**
    * Prepare a share for creation
-   * - Validates permissions
+   * - Validates ownership ON-CHAIN (sole source of truth)
    * - Re-encrypts symmetric key with recipient's public key
-   * - Creates DB record with PREPARING status
    * - Returns data needed for frontend to sign blockchain transaction
    */
   static async prepareShare(input: PrepareShareInput): Promise<PrepareShareResult> {
@@ -235,24 +158,17 @@ export class ShareService {
       sharedToWalletAddress,
     } = input;
 
-    // 1. Check ownership
-    const document = await prisma.document.findFirst({
-      where: {
-        id: documentId,
-        ownerId: sharerUserId,
-      },
+    // 1. Find document and validate blockchainId
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
     });
 
     if (!document) {
-      throw new Error('Documento no encontrado o acceso denegado');
+      throw new Error('Documento no encontrado');
     }
 
     if (!document.blockchainId) {
       throw new Error('El documento no tiene ID de blockchain aún');
-    }
-
-    if (document.isArchived) {
-      throw new Error('No se pueden compartir documentos archivados');
     }
 
     // 2. Validate sharer's wallet
@@ -267,7 +183,17 @@ export class ShareService {
       throw new Error('Wallet no encontrada o no pertenece al usuario');
     }
 
-    // 3. Get recipient's info including public key
+    // 3. Validate ownership ON-CHAIN (sole source of truth)
+    const isOwnerOnChain = await DocumentPermissionService.isOwner(
+      document.blockchainId,
+      sharerWallet.walletAddress
+    );
+
+    if (!isOwnerOnChain) {
+      throw new Error('No eres el propietario del documento');
+    }
+
+    // 4. Get recipient's info including public key
     const recipient = await prisma.user.findUnique({
       where: { id: sharedWithUserId },
       select: {
@@ -288,8 +214,6 @@ export class ShareService {
       throw new Error('El destinatario no tiene clave pública configurada');
     }
 
-    // TODO: Verificar desde blockchain con DocumentPermissionService si ya está compartido
-
     // 5. Get recipient's wallet address (use provided or first wallet)
     const primaryRecipientWallet = recipient.wallets.find((wallet) => wallet.isPrimary) || recipient.wallets[0];
     const recipientWalletAddress = sharedToWalletAddress || primaryRecipientWallet?.walletAddress || null;
@@ -308,12 +232,29 @@ export class ShareService {
     // 7. Use the real document blockchain ID for the on-chain permission grant
     const blockchainId = document.blockchainId;
 
-    // TODO: Implementar persistencia en DB con modelo alternativo o gestionar desde blockchain
-    const share = { id: uuidv4() }; // Temporary mock
+    // 8. Persist the re-encrypted key for the recipient in DocumentShareKey
+    await prisma.documentShareKey.upsert({
+      where: {
+        documentId_userId: {
+          documentId,
+          userId: sharedWithUserId,
+        },
+      },
+      create: {
+        documentId,
+        userId: sharedWithUserId,
+        encryptedSymmetricKey: reEncryptedKey,
+      },
+      update: {
+        encryptedSymmetricKey: reEncryptedKey,
+      },
+    });
 
-    logger.info(`[PREPARE] Share creado en DB: ${share.id}, estado: PREPARING`);
+    const share = { id: uuidv4() };
 
-    // 9. Log the preparation
+    logger.info(`[PREPARE] Share preparado: ${share.id}`);
+
+    // 9. Log the preparation (audit log only - not used for authorization)
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -339,40 +280,50 @@ export class ShareService {
 
   /**
    * Confirm a share after blockchain transaction
-   * Logs the event - permissions are managed on blockchain
+   * Logs the event for timeline/audit - permissions are managed exclusively on blockchain
    */
   static async confirmShare(input: ConfirmShareInput): Promise<ShareInfo> {
-    const { shareId, txHash } = input;
+    const { shareId, txHash, documentId: inputDocumentId, recipientId: inputRecipientId, role: inputRole } = input;
 
-    const preparedEvents = await prisma.event.findMany({
-      where: {
-        eventType: 'SHARE_PREPARED',
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: 100,
-    });
+    // Try to recover metadata from the prepared event for convenience,
+    // but do NOT depend on it for authorization.
+    let resolvedDocumentId = inputDocumentId || null;
+    let resolvedRecipientId = inputRecipientId || null;
+    let resolvedRole: 'SHARED_READ' | 'SHARED_WRITE' = inputRole || 'SHARED_READ';
 
-    const preparedEvent = preparedEvents.find((event) => {
-      const metadata = event.metadata as { shareId?: unknown } | null;
-      return metadata?.shareId === shareId;
-    });
+    if (!resolvedDocumentId || !resolvedRecipientId) {
+      const preparedEvents = await prisma.event.findMany({
+        where: {
+          eventType: 'SHARE_PREPARED',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 100,
+      });
 
-    if (!preparedEvent?.documentId) {
+      const preparedEvent = preparedEvents.find((event) => {
+        const metadata = event.metadata as { shareId?: unknown } | null;
+        return metadata?.shareId === shareId;
+      });
+
+      if (preparedEvent?.documentId) {
+        resolvedDocumentId = resolvedDocumentId || preparedEvent.documentId;
+        const metadata = (preparedEvent.metadata as {
+          recipientId?: unknown;
+          role?: unknown;
+        } | null) ?? null;
+        resolvedRecipientId = resolvedRecipientId || (typeof metadata?.recipientId === 'string' ? metadata.recipientId : null);
+        resolvedRole = inputRole || (metadata?.role === 'SHARED_WRITE' ? 'SHARED_WRITE' : 'SHARED_READ');
+      }
+    }
+
+    if (!resolvedDocumentId) {
       throw new Error('No se encontró la preparación del share');
     }
 
-    const metadata = (preparedEvent.metadata as {
-      recipientId?: unknown;
-      role?: unknown;
-    } | null) ?? null;
-
-    const recipientId = typeof metadata?.recipientId === 'string' ? metadata.recipientId : null;
-    const role = metadata?.role === 'SHARED_WRITE' ? 'SHARED_WRITE' : 'SHARED_READ';
-
     const document = await prisma.document.findUnique({
-      where: { id: preparedEvent.documentId },
+      where: { id: resolvedDocumentId },
       include: {
         owner: {
           select: {
@@ -389,9 +340,28 @@ export class ShareService {
       throw new Error('Documento no encontrado para confirmar el share');
     }
 
-    if (recipientId) {
+    // Validate on-chain that the share actually exists (recipient has access)
+    if (document.blockchainId && resolvedRecipientId) {
+      const recipient = await prisma.user.findUnique({
+        where: { id: resolvedRecipientId },
+        select: { wallets: { select: { walletAddress: true } } },
+      });
+      if (recipient?.wallets[0]) {
+        const onChainRole = await DocumentPermissionService.getUserRole(
+          document.blockchainId,
+          recipient.wallets[0].walletAddress
+        );
+        if (onChainRole === DocumentRole.NONE || onChainRole === DocumentRole.OWNER) {
+          logger.warn(`[CONFIRM] Share ${shareId} no encontrado on-chain para el destinatario`);
+        } else {
+          resolvedRole = onChainRole === DocumentRole.EDITOR ? 'SHARED_WRITE' : 'SHARED_READ';
+        }
+      }
+    }
+
+    if (resolvedRecipientId) {
       await notificationService.createNotification({
-        userId: recipientId,
+        userId: resolvedRecipientId,
         type: NotificationType.FILE_SHARED,
         title: 'Documento compartido',
         message: `${document.owner.username} compartió "${document.name}" contigo`,
@@ -400,11 +370,12 @@ export class ShareService {
           documentId: document.id,
           shareId,
           txHash,
-          role,
+          role: resolvedRole,
         },
       });
     }
 
+    // Audit log only - not used for authorization
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -414,20 +385,19 @@ export class ShareService {
         transactionHash: txHash,
         metadata: {
           shareId,
-          recipientId,
-          role,
+          recipientId: resolvedRecipientId,
+          role: resolvedRole,
         },
       },
     });
 
-    // Permissions are managed via blockchain - just log the event
     logger.info(`[CONFIRM] Share ${shareId} confirmado con txHash: ${txHash}`);
 
     return {
       id: shareId,
       documentId: document.id,
-      userId: recipientId || '',
-      role,
+      userId: resolvedRecipientId || '',
+      role: resolvedRole,
       sharerWalletId: document.creatorWalletId,
       blockchainStatus: BlockchainStatus.SYNCED,
       createdAt: new Date().toISOString(),
@@ -436,32 +406,53 @@ export class ShareService {
 
   /**
    * Get shares for a document
+   * Queries the smart contract exclusively - no fallback to PostgreSQL events
    */
   static async getDocumentShares(documentId: string, userId: string): Promise<ShareInfo[]> {
-    // Check if user owns the document
-    const document = await prisma.document.findFirst({
-      where: {
-        id: documentId,
-        ownerId: userId,
-      },
+    // Find document
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
     });
 
     if (!document) {
-      throw new Error('Documento no encontrado o acceso denegado');
+      throw new Error('Documento no encontrado');
     }
 
     if (!document.blockchainId) {
       return [];
     }
 
+    // Validate ownership ON-CHAIN
+    const userWallet = await prisma.wallet.findFirst({
+      where: { userId },
+    });
+
+    if (!userWallet) {
+      throw new Error('Wallet no encontrada');
+    }
+
+    const isOwnerOnChain = await DocumentPermissionService.isOwner(
+      document.blockchainId,
+      userWallet.walletAddress
+    );
+
+    // Si es propietario en BD pero no on-chain (documento no registrado en el contrato),
+    // devolver lista vacía en lugar de error
+    if (!isOwnerOnChain) {
+      if (document.ownerId === userId) {
+        return [];
+      }
+      throw new Error('Documento no encontrado o acceso denegado');
+    }
+
+    // Query blockchain for users with access
     const usersWithRoles = await DocumentPermissionService.getDocumentUsersWithRoles(document.blockchainId);
     const sharedUsers = usersWithRoles.filter(
       (entry) => entry.role !== DocumentRole.OWNER && entry.role !== DocumentRole.NONE
     );
 
     if (sharedUsers.length === 0) {
-      const eventEntries = await this.getConfirmedShareEntries(documentId);
-      return this.buildShareInfoFromEvents(document, eventEntries);
+      return [];
     }
 
     const walletAddresses = sharedUsers
@@ -518,45 +509,83 @@ export class ShareService {
   }
 
   /**
-   * Get shares for a user (documents shared with them)
+   * Get documents shared with a user
+   * Queries the smart contract exclusively - no fallback to PostgreSQL events
    */
   static async getSharedWithUser(userId: string): Promise<ShareInfo[]> {
-    const eventEntries = await this.getConfirmedShareEntries(undefined, userId);
+    // Get user's wallets
+    const userWallets = await prisma.wallet.findMany({
+      where: { userId },
+      select: { walletAddress: true },
+    });
 
-    if (eventEntries.length === 0) {
+    if (userWallets.length === 0) {
       return [];
     }
 
+    // Collect all blockchain document IDs the user has access to
+    const accessibleBlockchainIds = new Set<string>();
+    for (const wallet of userWallets) {
+      try {
+        const docs = await DocumentPermissionService.getUserDocuments(wallet.walletAddress);
+        docs.forEach((id) => accessibleBlockchainIds.add(id));
+      } catch {
+        // Continue with other wallets
+      }
+    }
+
+    if (accessibleBlockchainIds.size === 0) {
+      return [];
+    }
+
+    // Find documents in PostgreSQL by blockchainId
     const documents = await prisma.document.findMany({
       where: {
-        id: {
-          in: eventEntries.map((entry) => entry.documentId),
-        },
+        blockchainId: { in: Array.from(accessibleBlockchainIds) },
       },
       select: {
         id: true,
+        blockchainId: true,
         creatorWalletId: true,
+        ownerId: true,
       },
     });
 
-    const documentById = new Map(documents.map((document) => [document.id, document]));
+    // Filter out documents the user owns (only return shared ones)
+    const ownedDocumentIds = new Set(
+      documents.filter((d) => d.ownerId === userId).map((d) => d.id)
+    );
 
     const shares: ShareInfo[] = [];
 
-    for (const entry of eventEntries) {
-      const document = documentById.get(entry.documentId);
-      if (!document) {
+    for (const document of documents) {
+      if (ownedDocumentIds.has(document.id)) {
         continue;
       }
 
+      // Determine role for each wallet
+      let role: 'SHARED_READ' | 'SHARED_WRITE' = 'SHARED_READ';
+      for (const wallet of userWallets) {
+        if (!document.blockchainId) continue;
+        try {
+          const userRole = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
+          if (userRole === DocumentRole.EDITOR) {
+            role = 'SHARED_WRITE';
+            break;
+          }
+        } catch {
+          // Continue
+        }
+      }
+
       shares.push({
-        id: entry.shareId,
-        documentId: entry.documentId,
-        userId: entry.recipientId,
-        role: entry.role,
+        id: `${document.id}:${userId}`,
+        documentId: document.id,
+        userId,
+        role,
         sharerWalletId: document.creatorWalletId,
         blockchainStatus: BlockchainStatus.SYNCED,
-        createdAt: entry.createdAt.toISOString(),
+        createdAt: new Date().toISOString(),
       });
     }
 
@@ -573,12 +602,12 @@ export class ShareService {
     ownerId: string,
     sharerWalletId: string
   ): Promise<PrepareRevokeShareResult> {
-    const document = await prisma.document.findFirst({
-      where: { id: documentId, ownerId },
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
     });
 
     if (!document) {
-      throw new Error('Documento no encontrado o acceso denegado');
+      throw new Error('Documento no encontrado');
     }
 
     if (!document.blockchainId) {
@@ -594,6 +623,16 @@ export class ShareService {
 
     if (!sharerWallet) {
       throw new Error('Wallet no encontrada o no pertenece al usuario');
+    }
+
+    // Validate ownership ON-CHAIN
+    const isOwnerOnChain = await DocumentPermissionService.isOwner(
+      document.blockchainId,
+      sharerWallet.walletAddress
+    );
+
+    if (!isOwnerOnChain) {
+      throw new Error('No eres el propietario del documento');
     }
 
     const normalizedRecipientAddress = normalizeEthereumAddress(recipientIdentifier);
@@ -642,9 +681,7 @@ export class ShareService {
       throw new Error('El destinatario no tiene wallet configurada');
     }
 
-    const activeEventShare = resolvedRecipientId
-      ? (await this.getConfirmedShareEntries(documentId, resolvedRecipientId))[0]
-      : null;
+    // Verify the user actually has on-chain access
     const onChainUsers = await DocumentPermissionService.getDocumentUsersWithRoles(document.blockchainId);
     const hasOnChainAccess = onChainUsers.some(
       (entry) =>
@@ -653,12 +690,13 @@ export class ShareService {
         entry.role !== DocumentRole.OWNER
     );
 
-    if (!activeEventShare && !hasOnChainAccess) {
+    if (!hasOnChainAccess) {
       throw new Error('El usuario no tiene acceso activo a este documento');
     }
 
-    const shareId = activeEventShare?.shareId || `${documentId}:${resolvedRecipientId || recipientWallet.walletAddress}`;
+    const shareId = `${documentId}:${resolvedRecipientId || recipientWallet.walletAddress}`;
 
+    // Audit log only
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -739,6 +777,7 @@ export class ShareService {
       });
     }
 
+    // Audit log only
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -756,37 +795,6 @@ export class ShareService {
     logger.info(`[CONFIRM_REVOKE] Share ${shareId} revocado con txHash: ${txHash}`);
   }
 
-  /**
-   * Mark share as failed
-   */
-  static async markShareFailed(shareId: string, error: string): Promise<void> {
-    // DEPRECATED: documentShare ya no existe
-    logger.warn('[DEPRECATED] markShareFailed - Los shares ya no existen en DB');
-  }
-
-  /**
-   * Update share status to SYNCED
-   */
-  static async markShareSynced(shareId: string): Promise<void> {
-    // DEPRECATED: documentShare ya no existe
-    logger.warn('[DEPRECATED] markShareSynced - Los shares ya no existen en DB');
-  }
-
-  /**
-   * Convert Prisma share to ShareInfo
-   */
-  private static toShareInfo(share: any): ShareInfo {
-    return {
-      id: share.id,
-      documentId: share.documentId,
-      userId: share.userId,
-      role: share.role,
-      sharerWalletId: share.sharerWalletId,
-      blockchainStatus: share.blockchainStatus,
-      createdAt: share.createdAt,
-      user: share.user,
-    };
-  }
 }
 
 export default ShareService;

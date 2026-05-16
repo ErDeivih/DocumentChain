@@ -11,26 +11,50 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente DocumentTypeIcon.
+ */
 interface DocumentTypeIconProps {
+  /** Extensión del archivo (por ejemplo, "pdf", "docx"). */
   fileExtension?: string | null;
+  /** Tipo MIME del archivo. */
   mimeType?: string | null;
+  /** Clases CSS adicionales para el icono. */
   className?: string;
 }
 
+/**
+ * Configuración visual para un tipo de documento.
+ */
 interface DocumentTypeVisual {
+  /** Componente de icono de Lucide. */
   icon: LucideIcon;
+  /** Clases CSS para el color del icono. */
   colorClassName: string;
+  /** Clases CSS para el fondo del icono. */
   backgroundClassName: string;
 }
 
+/**
+ * Normaliza una extensión de archivo eliminando el punto inicial y convirtiendo a minúsculas.
+ */
 function normalizeExtension(fileExtension?: string | null): string {
   return (fileExtension || '').replace(/^\./, '').trim().toLowerCase();
 }
 
+/**
+ * Normaliza un tipo MIME eliminando espacios y convirtiendo a minúsculas.
+ */
 function normalizeMimeType(mimeType?: string | null): string {
   return (mimeType || '').trim().toLowerCase();
 }
 
+/**
+ * Obtiene la configuración visual (icono y colores) correspondiente al tipo de documento.
+ * @param fileExtension - Extensión del archivo.
+ * @param mimeType - Tipo MIME del archivo.
+ * @returns Configuración visual del tipo de documento.
+ */
 export function getDocumentTypeVisual(
   fileExtension?: string | null,
   mimeType?: string | null
@@ -133,6 +157,9 @@ export function getDocumentTypeVisual(
   };
 }
 
+/**
+ * Icono visual que representa el tipo de documento según su extensión o MIME.
+ */
 export const DocumentTypeIcon: React.FC<DocumentTypeIconProps> = ({
   fileExtension,
   mimeType,

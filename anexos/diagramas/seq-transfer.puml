@@ -1,38 +1,61 @@
 ﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
-boundary "Detalle / Transferir" as ui
-control "Endpoints de transferencias (/api/transfers)" as api
+boundary "DocumentTransfer.tsx" as ui
+control "DocumentController (/api/documents/:id/transfer)" as api
 control "TransferService" as srv
-database "PostgreSQL" as db
-participant "Wallet del usuario (navegador o WalletConnect)" as wallet
-entity "Smart Contract" as sc
-control "Event Listener" as listener
+control "DocumentPermissionService" as perm
+entity "Document" as doc
+entity "DocumentTransfer" as trx
+database "Base de datos" as db
+participant "Wallet (EIP-6963 / WalletConnect)" as wallet
+entity "DocumentRegistry" as sc
+control "EventListenerService" as listener
 
-user -> ui: Elige nuevo propietario
-ui -> api: Preparar transferencia
-api -> srv: Validar propietario y destinatario
-srv -> db: Resolver blockchainId y wallet destino
-db --> srv: Datos de transferencia
-srv --> api: Payload para firmar
-api --> ui: Transferencia preparada
+user -> ui: Elige nuevo propietario desde detalle del documento
+ui -> api: POST /api/documents/:documentId/transfer/prepare {newOwnerUserId, walletId}
+api -> srv: prepareTransfer(documentId, newOwnerUserId, currentOwnerId, walletId)
+srv -> perm: isOwner(blockchainId, currentWalletAddress)
+perm -> sc: getUserPermission(docId, userAddress)
+sc --> perm: DocumentRole.OWNER
+perm --> srv: Propietario validado
+srv -> doc: Cargar documento y claves de cifrado asociadas
+doc -> db: Obtener blockchainId y estado actual de propiedad
+db --> doc: Documento sincronizado
+doc --> srv: Contexto de transferencia
+srv -> trx: Resolver wallet y publicKey del nuevo propietario
+trx -> db: Buscar destino de transferencia
+db --> trx: newOwnerWalletAddress + publicKey
+trx -> srv: Destino validado
+srv -> trx: Re-encriptar clave simetrica para nuevo propietario
+srv -> trx: Crear transferencia en PREPARING
+trx -> db: Persistir solicitud de transferencia + material criptografico
+db --> trx: transferId, blockchainId, newOwnerWalletAddress
+trx --> srv: Transferencia preparada
+srv --> api: {transferId, messageToSign}
+api --> ui: 200 OK transferencia preparada
 
-ui -> wallet: Solicitar firma de transferencia
-wallet -> sc: Registrar transferencia on-chain
+ui -> wallet: eth_signTypedData_v4(messageToSign)
+wallet -> sc: transferOwnership(docId, newOwnerAddress)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: Confirmar transferencia
-api -> srv: Registrar TX_SUBMITTED
-srv -> db: Actualizar documento y evento preliminar
-db --> srv: OK
-srv --> api: Pendiente de sincronizacion
-api --> ui: Confirmacion registrada
+ui -> api: POST /api/documents/:documentId/transfer/confirm {transferId, txHash}
+api -> srv: confirmTransfer(transferId, txHash)
+srv -> trx: Marcar transaccion enviada
+trx -> db: Actualizar transferencia/documento/versiones a TX_SUBMITTED
+db --> trx: OK
+trx --> srv: Confirmacion persistida
+srv --> api: {status: "TX_SUBMITTED"}
+api --> ui: 200 OK confirmacion registrada
 
-sc -> listener: Evento de cambio de propietario confirmado
-listener -> db: Cambiar propietario y marcar SYNCED
-listener -> ui: Refrescar detalle y listado
-ui --> user: Transferencia completada
+sc -> listener: Evento OwnershipTransferred(docId, previousOwner, newOwner, timestamp)
+listener -> trx: Resolver transferencia por docId y txHash/evento
+trx -> db: Marcar transferencia SYNCED y actualizar nuevo propietario
+db --> trx: Titularidad actualizada
+listener -> db: Registrar evento de timeline de cambio de propiedad
+listener -> ui: WebSocket / refrescar detalle y listado
+ui --> user: Transferencia completada, documento ya no aparece en biblioteca propia
 
 @enduml
 

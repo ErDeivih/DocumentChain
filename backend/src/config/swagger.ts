@@ -1,5 +1,8 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 
+/**
+ * Opciones de configuración para la generación de la especificación Swagger/OpenAPI.
+ */
 const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -83,4 +86,7 @@ const options: swaggerJSDoc.Options = {
   ]
 };
 
+/**
+ * Especificación Swagger/OpenAPI generada a partir de las opciones configuradas.
+ */
 export const swaggerSpec = swaggerJSDoc(options);

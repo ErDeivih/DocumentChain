@@ -25,8 +25,20 @@ import {
   FileText,
 } from 'lucide-react';
 
+/**
+ * Tipos de búsqueda soportados en la auditoría blockchain.
+ */
 type SearchType = 'blockchainId' | 'walletAddress' | 'fileId' | 'txHash';
 
+/**
+ * Página pública de auditoría blockchain.
+ *
+ * Permite consultar el historial de eventos de un documento, verificar propiedad,
+ * integridad y explorar transacciones por hash, funcionando como un explorador
+ * similar a Etherscan orientado a documentos.
+ *
+ * @returns JSX.Element con la interfaz de auditoría.
+ */
 export const Audit: React.FC = () => {
   const [searchType, setSearchType] = useState<SearchType>('blockchainId');
   const [searchValue, setSearchValue] = useState('');
@@ -543,10 +555,12 @@ export const Audit: React.FC = () => {
                         </div>
                       )}
                       {event.details && Object.keys(event.details).length > 0 && (
-                        <div className="mt-2 rounded border border-border bg-secondary/35 p-2 text-xs text-foreground">
-                          <pre className="whitespace-pre-wrap">
-                            {JSON.stringify(event.details, null, 2)}
-                          </pre>
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {Object.entries(event.details).map(([key, value]) => (
+                            <span key={key} className="mr-3">
+                              <span className="font-medium">{key}:</span> {String(value)}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>

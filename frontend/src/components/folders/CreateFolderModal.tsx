@@ -6,15 +6,25 @@ import { Button } from '../ui/Button';
 import { Folder as FolderType } from '../../types';
 import { createFolder, updateFolder, getFolders } from '../../api/folders';
 
+/**
+ * Props del componente CreateFolderModal.
+ */
 interface CreateFolderModalProps {
+  /** Controla la visibilidad del modal. */
   isOpen: boolean;
+  /** Callback para cerrar el modal. */
   onClose: () => void;
+  /** Callback que se ejecuta tras crear o actualizar una carpeta exitosamente. */
   onSuccess?: (folder: FolderType) => void;
+  /** Identificador de la carpeta padre. */
   parentId?: string | null;
+  /** Carpeta padre seleccionada. */
   parentFolder?: FolderType | null;
+  /** Carpeta en modo edición, si aplica. */
   editFolder?: FolderType | null;
 }
 
+/** Paleta de colores disponibles para las carpetas. */
 const FOLDER_COLORS = [
   { value: '#3B82F6', label: 'Azul' },
   { value: '#10B981', label: 'Verde' },
@@ -27,6 +37,10 @@ const FOLDER_COLORS = [
   { value: '#6B7280', label: 'Gris' },
 ];
 
+/**
+ * Modal para crear o editar carpetas.
+ * Permite definir nombre, descripción, color y carpeta padre.
+ */
 export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
   isOpen,
   onClose,

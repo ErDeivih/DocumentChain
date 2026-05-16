@@ -1,20 +1,23 @@
 import logger from '../utils/logger';
 
 /**
- * PasswordPolicy - Validación de contraseñas robustas
- * 
+ * Política de validación de contraseñas robustas.
+ *
  * Cumple con:
  * - OWASP Password Guidelines 2024
  * - NIST SP 800-63B
  * - GDPR (protección de credenciales)
- * 
+ *
  * Requisitos:
  * - Longitud: 12-128 caracteres
- * - Complejidad: Mayúsculas, minúsculas, números, caracteres especiales
- * - Anti-patrones: Sin secuencias, repeticiones, palabras comunes
- * - Lista de passwords comunes (top 10,000)
+ * - Complejidad: mayúsculas, minúsculas, números, caracteres especiales
+ * - Anti-patrones: sin secuencias, repeticiones ni palabras comunes
+ * - Lista de contraseñas comunes (top 10 000)
  */
 
+/**
+ * Interfaz que define la configuración de la política de contraseñas.
+ */
 export interface PasswordPolicyConfig {
   minLength: number;
   maxLength: number;
@@ -28,15 +31,22 @@ export interface PasswordPolicyConfig {
   forbiddenPatterns: RegExp[];
 }
 
+/**
+ * Interfaz que representa el resultado de la validación de una contraseña.
+ */
 export interface PasswordValidationResult {
+  /** Indica si la contraseña cumple con todos los requisitos. */
   valid: boolean;
+  /** Lista de mensajes de error detectados. */
   errors: string[];
+  /** Categoría de fortaleza de la contraseña. */
   strength: 'weak' | 'medium' | 'strong' | 'very-strong';
-  score: number; // 0-100
+  /** Puntuación numérica entre 0 y 100. */
+  score: number;
 }
 
 /**
- * Configuración de política de contraseñas
+ * Configuración por defecto de la política de contraseñas.
  */
 export const PASSWORD_POLICY: PasswordPolicyConfig = {
   minLength: 8,  // Bajado de 12 a 8 para facilitar desarrollo/demos
@@ -55,8 +65,8 @@ export const PASSWORD_POLICY: PasswordPolicyConfig = {
 };
 
 /**
- * Top 100 contraseñas más comunes (versión reducida)
- * En producción, usar lista completa de 10,000+
+ * Lista reducida con las 100 contraseñas más comunes.
+ * En producción se recomienda utilizar una lista completa de 10 000+ elementos.
  * Fuente: https://github.com/danielmiessler/SecLists
  */
 const COMMON_PASSWORDS = [
@@ -74,17 +84,16 @@ const COMMON_PASSWORDS = [
 ];
 
 /**
- * Validar contraseña según política
- * 
- * @param password - Contraseña a validar
- * @param customPolicy - Política personalizada (opcional)
- * @returns Resultado de validación con errores y fortaleza
- * 
+ * Valida una contraseña según la política configurada.
+ *
+ * @param password - Contraseña a validar.
+ * @param customPolicy - Política personalizada opcional que sobrescribe valores por defecto.
+ * @returns Resultado de la validación con errores detectados y nivel de fortaleza.
+ *
  * @example
  * const result = validatePassword('MySecurePass123!');
  * if (!result.valid) {
  *   console.log('Errores:', result.errors);
- *   // ['Contraseña demasiado común']
  * }
  * console.log('Fortaleza:', result.strength); // 'strong'
  */
@@ -165,16 +174,16 @@ export function validatePassword(
 }
 
 /**
- * Calcular score de fortaleza (0-100)
- * 
- * Factores:
- * - Longitud (40 puntos máx)
+ * Calcula la puntuación de fortaleza de una contraseña en una escala de 0 a 100.
+ *
+ * Factores considerados:
+ * - Longitud (máximo 40 puntos)
  * - Variedad de caracteres (45 puntos)
- * - Entropía/caracteres únicos (15 puntos)
- * 
- * @param password - Contraseña
- * @param policy - Política
- * @returns Score 0-100
+ * - Entropía / caracteres únicos (15 puntos)
+ *
+ * @param password - Contraseña a evaluar.
+ * @param policy - Política de contraseñas activa.
+ * @returns Puntuación entre 0 y 100.
  */
 function calculatePasswordScore(
   password: string,
@@ -210,10 +219,10 @@ function calculatePasswordScore(
 }
 
 /**
- * Obtener categoría de fortaleza según score
- * 
- * @param score - Score 0-100
- * @returns Categoría de fortaleza
+ * Obtiene la categoría de fortaleza correspondiente a una puntuación.
+ *
+ * @param score - Puntuación entre 0 y 100.
+ * @returns Categoría de fortaleza (`weak`, `medium`, `strong` o `very-strong`).
  */
 function getPasswordStrength(score: number): 'weak' | 'medium' | 'strong' | 'very-strong' {
   if (score >= 80) return 'very-strong';
@@ -223,12 +232,12 @@ function getPasswordStrength(score: number): 'weak' | 'medium' | 'strong' | 'ver
 }
 
 /**
- * Validar que nueva contraseña sea diferente de la anterior
- * 
- * @param newPassword - Nueva contraseña
- * @param oldPassword - Contraseña anterior
- * @param minDifference - Mínimo % de caracteres diferentes (default: 50%)
- * @returns true si es suficientemente diferente
+ * Determina si una nueva contraseña es suficientemente diferente de la anterior.
+ *
+ * @param newPassword - Nueva contraseña propuesta.
+ * @param oldPassword - Contraseña anterior existente.
+ * @param minDifference - Porcentaje mínimo de diferencia requerido (por defecto: 0.5).
+ * @returns `true` si la nueva contraseña supera el umbral de diferencia.
  */
 export function isDifferentPassword(
   newPassword: string,
@@ -254,11 +263,11 @@ export function isDifferentPassword(
 }
 
 /**
- * Generar sugerencia de contraseña segura
- * 
- * @param length - Longitud deseada (default: 16)
- * @returns Contraseña aleatoria segura
- * 
+ * Genera una contraseña segura aleatoria que cumple con la política configurada.
+ *
+ * @param length - Longitud deseada de la contraseña (por defecto: 16).
+ * @returns Contraseña aleatoria segura.
+ *
  * @example
  * const suggestion = generateSecurePassword(20);
  * // 'aB3#xY7@mK9!pQ2$rT5%'
@@ -294,17 +303,17 @@ export function generateSecurePassword(length: number = 16): string {
 }
 
 /**
- * Estimar tiempo de crackeo de contraseña
- * 
- * @param password - Contraseña a analizar
- * @returns Estimación legible (segundos, minutos, años, etc.)
- * 
+ * Estima el tiempo necesario para descifrar una contraseña mediante fuerza bruta.
+ *
+ * @param password - Contraseña a analizar.
+ * @returns Cadena legible con la estimación (segundos, minutos, años, etc.).
+ *
  * @example
  * const time = estimateCrackTime('abc123');
  * // '2 segundos' (muy débil)
- * 
+ *
  * const time2 = estimateCrackTime('aB3#xY7@mK9!pQ2$rT5%');
- * // '3 millones de años' (muy fuerte)
+ * // '3 mil años' (muy fuerte)
  */
 export function estimateCrackTime(password: string): string {
   // Calcular espacio de caracteres

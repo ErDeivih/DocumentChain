@@ -1,0 +1,35 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0034: Ver estadísticas de usuario (Análisis BCE)
+
+actor "Usuario autenticado" as user
+boundary "Página de estadísticas" as ui
+control "Gestor de estadísticas" as ctrl
+entity "Cuenta de usuario" as account
+entity "Documento" as doc
+entity "Firma" as sig
+entity "Compartido" as share
+
+user -> ui: Solicitar estadísticas
+ui -> ctrl: Solicitar datos estadísticos
+
+ctrl -> account: Obtener datos base
+account --> ctrl: Datos base
+
+ctrl -> doc: Contar documentos del usuario
+doc --> ctrl: Total documentos
+
+ctrl -> sig: Contar firmas realizadas
+sig --> ctrl: Total firmas
+
+ctrl -> share: Contar documentos compartidos
+share --> ctrl: Total compartidos
+
+ctrl -> doc: Calcular espacio utilizado
+doc --> ctrl: Espacio total
+
+ctrl --> ui: Estadísticas consolidadas
+ui --> user: Mostrar panel (documentos, firmas, compartidos, espacio, actividad)
+
+@enduml

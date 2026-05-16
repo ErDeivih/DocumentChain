@@ -1,0 +1,26 @@
+@startuml
+!include _structure-style.puml
+left to right direction
+title Casos de uso - Acceso y cuenta: Gestion de wallets
+
+actor "Usuario" as USER
+actor "Blockchain" as SC
+
+rectangle "Gestion de wallets" {
+  usecase "UC-0004: Conectar Wallet" as UC4
+  usecase "UC-0005: Eliminar Wallet" as UC5
+  usecase "UC-0006: Establecer Wallet Principal" as UC6
+  usecase "UC-0007: Renombrar Wallet" as UC7
+}
+
+UC4 -[hidden]down-> UC5
+UC5 -[hidden]down-> UC6
+UC6 -[hidden]down-> UC7
+
+USER --> UC4
+USER --> UC5
+USER --> UC6
+USER --> UC7
+
+SC --> UC4
+@enduml

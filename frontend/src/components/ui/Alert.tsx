@@ -24,6 +24,10 @@ const alertVariants = cva(
   }
 );
 
+/**
+ * Componente de alerta que muestra un mensaje destacado con variante de estilo.
+ * @param props - Propiedades del componente, incluyendo className, variant y atributos de HTMLDivElement.
+ */
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
@@ -37,6 +41,10 @@ const Alert = React.forwardRef<
 ));
 Alert.displayName = 'Alert';
 
+/**
+ * Título del componente Alert.
+ * @param props - Propiedades del componente, incluyendo className y atributos de HTMLHeadingElement.
+ */
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
@@ -49,6 +57,10 @@ const AlertTitle = React.forwardRef<
 ));
 AlertTitle.displayName = 'AlertTitle';
 
+/**
+ * Descripción del componente Alert.
+ * @param props - Propiedades del componente, incluyendo className y atributos de HTMLParagraphElement.
+ */
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

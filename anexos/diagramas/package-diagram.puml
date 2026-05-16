@@ -1,4 +1,4 @@
-﻿@startuml
+@startuml package-diagram
 !include _structure-style.puml
 package "Cliente web" {
     [Pages]
@@ -17,8 +17,8 @@ package "Servidor de aplicacion" {
 }
 
 package "Persistencia" {
-    [Prisma ORM]
-    [PostgreSQL]
+    [Capa de acceso a base de datos]
+    [Base de datos]
 }
 
 package "Infraestructura" {
@@ -30,7 +30,7 @@ package "Infraestructura" {
 }
 
 package "Blockchain" {
-    [Contrato inteligente]
+    [DocumentRegistry]
     [Nodo blockchain]
 }
 
@@ -42,16 +42,17 @@ package "Storage" {
 [Pages] --> [Integracion API]
 [Pages] --> [Blockchain Utils]
 [Integracion API] --> [Controladores]
-[Blockchain Utils] --> [Contrato inteligente]
+[Blockchain Utils] --> [DocumentRegistry]
 [Controladores] --> [Servicios]
-[Servicios] --> [Prisma ORM]
+[Servicios] --> [Capa de acceso a base de datos]
 [Servicios] --> [Cliente IPFS]
 [Servicios] --> [Cliente blockchain]
-[Prisma ORM] --> [PostgreSQL]
+[Capa de acceso a base de datos] --> [Base de datos]
 [Cliente IPFS] --> [IPFS compatible]
-[Cliente blockchain] --> [Contrato inteligente]
-[Contrato inteligente] --> [Nodo blockchain]
-[Sincronizador blockchain] --> [Contrato inteligente]
-[Sincronizador blockchain] --> [Prisma ORM]
+[Cliente blockchain] --> [DocumentRegistry]
+[DocumentRegistry] --> [Nodo blockchain]
+[Sincronizador blockchain] --> [DocumentRegistry]
+[Sincronizador blockchain] --> [Capa de acceso a base de datos]
 @enduml
+
 

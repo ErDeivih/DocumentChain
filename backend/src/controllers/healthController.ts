@@ -8,24 +8,18 @@ import webSocketService from '../services/webSocketService';
 type ServiceStatus = 'healthy' | 'degraded' | 'unhealthy';
 
 /**
- * HealthController - Endpoints para monitoring
- * 
- * Endpoints:
- * - GET /health - Health check básico
- * - GET /health/detailed - Health check detallado con todos los servicios
- * 
- * Servicios monitorizados:
- * - Database (PostgreSQL + Prisma)
- * - Blockchain (Ethereum RPC)
- * - IPFS (opcional)
- * - WebSocket (conexiones activas)
- * - Sistema (memoria, uptime)
+ * Controlador de salud del sistema.
+ * Expone endpoints para el monitoreo del estado de los servicios críticos:
+ * base de datos, blockchain, email, WebSocket y recursos del sistema.
  */
 class HealthController {
   /**
-   * GET /health
-   * 
-   * Health check básico - rápido para load balancers
+   * Realiza una comprobación básica de salud del sistema.
+   * Endpoint: GET /health
+   *
+   * @param req - Objeto de solicitud HTTP.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el estado de salud básico.
    */
   async healthCheck(req: Request, res: Response): Promise<void> {
     try {
@@ -50,9 +44,12 @@ class HealthController {
   }
   
   /**
-   * GET /health/detailed
-   * 
-   * Health check detallado con estado de todos los servicios
+   * Realiza una comprobación detallada de salud incluyendo todos los servicios.
+   * Endpoint: GET /health/detailed
+   *
+   * @param req - Objeto de solicitud HTTP.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el estado detallado de cada servicio.
    */
   async detailedHealthCheck(req: Request, res: Response): Promise<void> {
     const startTime = Date.now();
@@ -95,7 +92,9 @@ class HealthController {
   }
   
   /**
-   * Verificar estado de la base de datos
+   * Verifica el estado de conectividad de la base de datos.
+   *
+   * @returns Promesa que resuelve con el estado, latencia y posible error de la base de datos.
    */
   private async checkDatabase(): Promise<{
     status: ServiceStatus;
@@ -126,7 +125,9 @@ class HealthController {
   }
   
   /**
-   * Verificar estado del blockchain
+   * Verifica el estado de conectividad con la blockchain.
+   *
+   * @returns Promesa que resuelve con el estado, número de bloque, latencia y posible error.
    */
   private async checkBlockchain(): Promise<{
     status: ServiceStatus;
@@ -158,7 +159,9 @@ class HealthController {
   }
   
   /**
-   * Verificar estado del WebSocket
+   * Verifica el estado del servicio WebSocket.
+   *
+   * @returns Estado del WebSocket junto con estadísticas de conexiones activas.
    */
   private checkWebSocket(): {
     status: ServiceStatus;
@@ -177,7 +180,9 @@ class HealthController {
   }
 
   /**
-   * Verificar estado del servicio SMTP y su configuración efectiva.
+   * Verifica el estado del servicio SMTP y su configuración efectiva.
+   *
+   * @returns Promesa que resuelve con el estado, latencia, configuración y advertencias del servicio de email.
    */
   private async checkEmail(): Promise<{
     status: ServiceStatus;
@@ -223,7 +228,9 @@ class HealthController {
   }
   
   /**
-   * Obtener información del sistema
+   * Obtiene información del entorno de ejecución del sistema.
+   *
+   * @returns Objeto con versión de Node.js, plataforma, arquitectura, memoria y núcleos de CPU.
    */
   private getSystemInfo(): {
     nodeVersion: string;

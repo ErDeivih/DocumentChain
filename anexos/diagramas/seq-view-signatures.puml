@@ -4,16 +4,26 @@ actor Usuario as user
 boundary "Detalle / Firmas" as ui
 control "Endpoints de firmas (/api/documents/:id/signatures)" as api
 control "SignatureService" as srv
-database "PostgreSQL" as db
+control "DocumentPermissionService" as perm
+entity "DocumentRegistry" as sc
+entity "DocumentSignature" as sig
+database "Base de datos" as db
 
-user -> ui: Abre la pestaña de firmas
+user -> ui: Abre la pestana de firmas
 ui -> api: Solicitar firmas del documento
 api -> srv: Resolver firmas visibles para el usuario
-srv -> db: Recuperar firmas ordenadas
-db --> srv: Firmas y metadatos
+srv -> perm: canView(blockchainId, walletAddress)
+perm -> sc: getUserPermission(docId, userAddress)
+sc --> perm: DocumentRole (OWNER/VIEWER/EDITOR)
+perm --> srv: Acceso de lectura validado
+srv -> sig: Obtener firmas de la version operativa
+sig -> db: Recuperar firmas ordenadas + snapshot de firmante
+db --> sig: Firmas y metadatos
+sig --> srv: Resultado normalizado
 srv --> api: Resultado de firmas
 api --> ui: Panel actualizado
 ui --> user: Ve firmante, fecha y referencia blockchain
 
 @enduml
+
 

@@ -10,7 +10,6 @@ import { auditApi } from '../api/audit';
 import {
   Search,
   Filter,
-  Download,
   Hash,
   User,
   FileText,
@@ -24,27 +23,50 @@ import {
   ExternalLink,
 } from 'lucide-react';
 
+/**
+ * Evento registrado en la blockchain proveniente del sistema de auditoría.
+ */
 interface BlockchainEvent {
+  /** Identificador único del evento. */
   id: string;
+  /** Tipo de evento (ej. DocumentCreated, DocumentShared). */
   eventType: string;
+  /** Identificador del usuario que generó el evento. */
   userId: string | null;
+  /** Identificador del documento relacionado. */
   documentId: string | null;
+  /** Metadatos adicionales del evento. */
   metadata: Record<string, unknown> | null;
+  /** Hash de la transacción en la blockchain. */
   transactionHash: string | null;
+  /** Número de bloque donde se registró el evento. */
   blockNumber: number | null;
+  /** Marca temporal del bloque en formato ISO. */
   blockTimestamp: string | null;
+  /** Fecha de creación del registro en la base de datos. */
   createdAt: string;
+  /** Información del usuario asociado al evento. */
   user: {
+    /** Identificador del usuario. */
     id: string;
+    /** Nombre de usuario. */
     username: string;
+    /** Correo electrónico del usuario. */
     email: string;
   } | null;
+  /** Información del documento asociado al evento. */
   document: {
+    /** Identificador del documento. */
     id: string;
+    /** Nombre del documento. */
     name: string;
+    /** Identificador único en la blockchain. */
     blockchainId: string;
+    /** Propietario del documento. */
     owner: {
+      /** Identificador del propietario. */
       id: string;
+      /** Nombre de usuario del propietario. */
       username: string;
     };
   } | null;
@@ -63,12 +85,18 @@ const EVENT_TYPES = [
   { value: 'OwnershipTransferred', label: 'Propiedad Transferida', icon: '🔄', color: 'bg-cyan-500' },
   { value: 'OperationalVersionChanged', label: 'Versión Operacional', icon: '🔀', color: 'bg-teal-500' },
   { value: 'DocumentTransferred', label: 'Transferencia', icon: '➡️', color: 'bg-pink-500' },
-  { value: 'SystemPaused', label: 'Sistema Pausado', icon: '⏸️', color: 'bg-red-600' },
-  { value: 'SystemUnpaused', label: 'Sistema Reanudado', icon: '▶️', color: 'bg-green-600' },
   { value: 'AdminRoleRevoked', label: 'Admin Revocado', icon: '🔓', color: 'bg-gray-500' },
 ];
 
-
+/**
+ * Página de auditoría técnica blockchain.
+ *
+ * Explorador avanzado de eventos on-chain que permite filtrar por tipo,
+ * dirección de wallet, hash de transacción, rango de bloques y fechas.
+ * Soporta visualización de detalles de transacciones.
+ *
+ * @returns JSX.Element con el explorador de eventos blockchain.
+ */
 export const BlockchainAuditor: React.FC = () => {
   const [events, setEvents] = useState<BlockchainEvent[]>([]);
   const [total, setTotal] = useState(0);
@@ -191,29 +219,9 @@ export const BlockchainAuditor: React.FC = () => {
     }
   };
 
-  const exportToCSV = () => {
-    const csv = [
-      ['Tipo', 'Usuario', 'Documento', 'Tx Hash', 'Bloque', 'Fecha'].join(','),
-      ...events.map(e => [
-        e.eventType,
-        e.user?.username || e.userId || '-',
-        e.document?.name || e.documentId || '-',
-        e.transactionHash || '-',
-        e.blockNumber || '-',
-        formatDate(e.blockTimestamp ?? e.createdAt)
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `blockchain-events-${Date.now()}.csv`;
-    a.click();
-  };
-
   return (
     <div className="space-y-4 p-4">
+      {/* Encabezado y controles principales */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -256,15 +264,6 @@ export const BlockchainAuditor: React.FC = () => {
             <Filter className="w-4 h-4" />
             Filtros {selectedTypes.length > 0 && `(${selectedTypes.length})`}
           </Button>
-          <Button
-            variant="outline"
-            onClick={exportToCSV}
-            disabled={events.length === 0}
-            className="flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            CSV
-          </Button>
           <Button onClick={fetchEvents} className="flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />
             Actualizar
@@ -272,6 +271,7 @@ export const BlockchainAuditor: React.FC = () => {
         </div>
       </div>
 
+      {/* Panel de filtros avanzados */}
       {showFilters && (
         <Card>
           <CardHeader>
@@ -326,6 +326,7 @@ export const BlockchainAuditor: React.FC = () => {
 
       {error && <AlertMessage type="error" message={error} onClose={() => setError(null)} />}
 
+      {/* Listado de eventos blockchain */}
       <Card>
         <CardHeader>
           <CardTitle>Eventos ({total.toLocaleString()})</CardTitle>

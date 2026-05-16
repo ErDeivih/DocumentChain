@@ -22,12 +22,24 @@ const toastVariants = cva(
   }
 );
 
+/**
+ * Props del componente Toast.
+ * @property variant - Variante visual del toast.
+ * @property title - Título del toast.
+ * @property description - Descripción del toast.
+ * @property onClose - Función que se ejecuta al cerrar el toast.
+ * @property className - Clases CSS adicionales.
+ */
 interface ToastProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof toastVariants> {
   title?: string;
   description?: string;
   onClose?: () => void;
 }
 
+/**
+ * Componente de notificación flotante con variantes de estilo y opción de cierre.
+ * @param props - Props del componente Toast.
+ */
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
   ({ className, variant, title, description, onClose, ...props }, ref) => {
     return (
@@ -55,7 +67,14 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
 
 Toast.displayName = 'Toast';
 
-// Toast context and provider
+/**
+ * Datos de un toast individual.
+ * @property id - Identificador único del toast.
+ * @property title - Título del toast.
+ * @property description - Descripción del toast.
+ * @property variant - Variante visual del toast.
+ * @property duration - Duración en milisegundos antes de auto-cerrarse.
+ */
 interface ToastData {
   id: string;
   title?: string;
@@ -64,6 +83,12 @@ interface ToastData {
   duration?: number;
 }
 
+/**
+ * Valor del contexto de toasts.
+ * @property toasts - Lista de toasts activos.
+ * @property toast - Función para crear un nuevo toast.
+ * @property dismiss - Función para descartar un toast por su id.
+ */
 interface ToastContextValue {
   toasts: ToastData[];
   toast: (data: Omit<ToastData, 'id'>) => void;
@@ -74,6 +99,10 @@ const ToastContext = React.createContext<ToastContextValue | undefined>(undefine
 
 let toastCount = 0;
 
+/**
+ * Proveedor de contexto que gestiona la cola de notificaciones toast.
+ * @param props - Props del componente ToastProvider.
+ */
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = React.useState<ToastData[]>([]);
 
@@ -113,6 +142,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
+/**
+ * Hook para acceder al contexto de toasts y poder crear o descartar notificaciones.
+ * @returns El contexto de toasts.
+ */
 export const useToast = () => {
   const context = React.useContext(ToastContext);
   if (!context) {

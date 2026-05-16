@@ -1,6 +1,8 @@
 /**
- * KeyManager - RSA Key Pair Management for Frontend
- * Handles generation, encryption, and decryption of RSA key pairs
+ * @fileoverview KeyManager - Gestión de pares de claves RSA para el frontend.
+ *
+ * Proporciona operaciones para generar, cifrar, descifrar, importar y
+ * re-cifrar claves privadas mediante RSA-OAEP y AES-GCM.
  */
 
 import {
@@ -13,19 +15,33 @@ import {
   hashSHA256,
 } from './utils';
 
+/**
+ * Resultado de la generación de un par de claves RSA.
+ */
 export interface KeyPairResult {
-  publicKey: string;           // PEM format
-  encryptedPrivateKey: string; // Base64 encoded encrypted key
-  salt: string;                // Base64 encoded salt
+  /** Clave pública en formato PEM. */
+  publicKey: string;
+  /** Clave privada cifrada y codificada en Base64. */
+  encryptedPrivateKey: string;
+  /** Sal utilizada para el cifrado de la clave privada (Base64). */
+  salt: string;
 }
 
+/**
+ * Par de claves descifradas como objetos CryptoKey.
+ */
 export interface DecryptedKeyPair {
+  /** Clave pública como CryptoKey. */
   publicKey: CryptoKey;
+  /** Clave privada como CryptoKey. */
   privateKey: CryptoKey;
 }
 
 /**
- * Convert ArrayBuffer to PEM format
+ * Convierte un ArrayBuffer a formato PEM.
+ * @param buffer - Buffer de datos.
+ * @param type - Tipo de clave (PUBLIC KEY o PRIVATE KEY).
+ * @returns Cadena en formato PEM.
  */
 function arrayBufferToPem(buffer: ArrayBuffer, type: 'PUBLIC KEY' | 'PRIVATE KEY'): string {
   const base64 = arrayBufferToBase64(buffer);
@@ -34,7 +50,9 @@ function arrayBufferToPem(buffer: ArrayBuffer, type: 'PUBLIC KEY' | 'PRIVATE KEY
 }
 
 /**
- * Convert PEM to ArrayBuffer
+ * Convierte una cadena PEM a ArrayBuffer.
+ * @param pem - Cadena en formato PEM.
+ * @returns ArrayBuffer con los datos binarios de la clave.
  */
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const lines = pem.split('\n');
@@ -45,19 +63,30 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
 }
 
 /**
- * KeyManager class for RSA key operations
+ * Clase encargada de la gestión de pares de claves RSA.
+ *
+ * Incluye generación de claves, cifrado de clave privada con contraseña,
+ * importación de claves públicas y re-cifrado de claves privadas.
  */
 export class KeyManager {
   private static readonly RSA_MODULUS_LENGTH = 4096;
   private static readonly SALT_LENGTH = 16;
 
   /**
-   * Generate a new RSA key pair
-   * @param password Password to encrypt the private key
-   * @returns KeyPairResult with public key, encrypted private key, and salt
+   * Genera un nuevo par de claves RSA.
+   *
+   * Flujo:
+   * 1. Genera un par de claves RSA-OAEP de 4096 bits.
+   * 2. Exporta la clave pública a formato SPKI/PEM.
+   * 3. Exporta la clave privada a formato PKCS8.
+   * 4. Deriva una clave de cifrado a partir de la contraseña y una sal aleatoria.
+   * 5. Cifra la clave privada con AES-GCM.
+   *
+   * @param password - Contraseña para cifrar la clave privada.
+   * @returns Resultado con clave pública, clave privada cifrada y sal.
    */
   static async generateKeyPair(password: string): Promise<KeyPairResult> {
-    // Generate RSA key pair
+    // Generar par de claves RSA
     const keyPair = await crypto.subtle.generateKey(
       {
         name: 'RSA-OAEP',
@@ -69,24 +98,24 @@ export class KeyManager {
       ['encrypt', 'decrypt']
     );
 
-    // Export public key to SPKI format
+    // Exportar clave pública a formato SPKI
     const publicKeyBuffer = await crypto.subtle.exportKey('spki', keyPair.publicKey);
     const publicKeyPem = arrayBufferToPem(publicKeyBuffer, 'PUBLIC KEY');
 
-    // Export private key to PKCS8 format
+    // Exportar clave privada a formato PKCS8
     const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
 
-    // Generate salt for encryption
+    // Generar sal para el cifrado
     const salt = generateRandomBytes(this.SALT_LENGTH);
     const saltBase64 = uint8ArrayToBase64(salt);
 
-    // Derive encryption key from password
+    // Derivar clave de cifrado a partir de la contraseña
     const encryptionKey = await deriveKeyFromPassword(password, salt);
 
-    // Generate IV for AES-GCM
+    // Generar IV para AES-GCM
     const iv = generateRandomBytes(12);
 
-    // Encrypt private key
+    // Cifrar clave privada
     const encryptedPrivateKey = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
@@ -96,7 +125,7 @@ export class KeyManager {
       privateKeyBuffer
     );
 
-    // Combine IV and encrypted key
+    // Combinar IV y clave cifrada
     const combined = new Uint8Array(iv.length + encryptedPrivateKey.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(encryptedPrivateKey), iv.length);
@@ -111,11 +140,16 @@ export class KeyManager {
   }
 
   /**
-   * Decrypt a private key with password
-   * @param encryptedPrivateKey Base64 encoded encrypted private key
-   * @param password Password to decrypt
-   * @param salt Base64 encoded salt
-   * @returns Decrypted CryptoKey
+   * Descifra una clave privada mediante una contraseña.
+   *
+   * Soporta dos formatos de clave privada cifrada:
+   * - Formato antiguo: IV + ciphertext combinados y codificados en Base64.
+   * - Formato nuevo: sal:iv:authTag:ciphertext separados por dos puntos.
+   *
+   * @param encryptedPrivateKey - Clave privada cifrada en Base64.
+   * @param password - Contraseña para descifrar.
+   * @param salt - Sal en Base64 (requerida para el formato antiguo).
+   * @returns Clave privada descifrada como CryptoKey.
    */
   static async decryptPrivateKey(
     encryptedPrivateKey: string,
@@ -168,15 +202,15 @@ export class KeyManager {
       throw new Error('Falta la sal para descifrar la clave privada');
     }
 
-    // Decode the combined IV + encrypted key
+    // Decodificar IV + clave cifrada combinados
     const combined = base64ToUint8Array(encryptedPrivateKey);
     const iv = combined.slice(0, 12);
     const encryptedKey = combined.slice(12);
 
-    // Derive decryption key from password
+    // Derivar clave de descifrado a partir de la contraseña
     const decryptionKey = await deriveKeyFromPassword(password, salt);
 
-    // Decrypt private key
+    // Descifrar clave privada
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
@@ -186,7 +220,7 @@ export class KeyManager {
       encryptedKey
     );
 
-    // Import as CryptoKey
+    // Importar como CryptoKey
     return await crypto.subtle.importKey(
       'pkcs8',
       decryptedBuffer,
@@ -200,13 +234,13 @@ export class KeyManager {
   }
 
   /**
-   * Import a public key from PEM format
-   * @param publicKeyPem PEM formatted public key
-   * @returns CryptoKey
+   * Importa una clave pública desde formato PEM.
+   * @param publicKeyPem - Clave pública en formato PEM.
+   * @returns Clave pública como CryptoKey.
    */
   static async importPublicKey(publicKeyPem: string): Promise<CryptoKey> {
     const publicKeyBuffer = pemToArrayBuffer(publicKeyPem);
-    
+
     return await crypto.subtle.importKey(
       'spki',
       publicKeyBuffer,
@@ -220,17 +254,17 @@ export class KeyManager {
   }
 
   /**
-   * Encrypt data with a public key
-   * @param data Data to encrypt
-   * @param publicKey Public key (PEM or CryptoKey)
-   * @returns Encrypted data as Base64
+   * Cifra datos con una clave pública utilizando RSA-OAEP.
+   * @param data - Datos a cifrar.
+   * @param publicKey - Clave pública (PEM o CryptoKey).
+   * @returns Datos cifrados codificados en Base64.
    */
   static async encryptWithPublicKey(
     data: ArrayBuffer,
     publicKey: string | CryptoKey
   ): Promise<string> {
-    const key = typeof publicKey === 'string' 
-      ? await this.importPublicKey(publicKey) 
+    const key = typeof publicKey === 'string'
+      ? await this.importPublicKey(publicKey)
       : publicKey;
 
     const encrypted = await crypto.subtle.encrypt(
@@ -245,17 +279,17 @@ export class KeyManager {
   }
 
   /**
-   * Decrypt data with a private key
-   * @param encryptedData Base64 encoded encrypted data
-   * @param privateKey Private key (CryptoKey)
-   * @returns Decrypted data as ArrayBuffer
+   * Descifra datos con una clave privada utilizando RSA-OAEP.
+   * @param encryptedData - Datos cifrados en Base64.
+   * @param privateKey - Clave privada como CryptoKey.
+   * @returns Datos descifrados como ArrayBuffer.
    */
   static async decryptWithPrivateKey(
     encryptedData: string,
     privateKey: CryptoKey
   ): Promise<ArrayBuffer> {
     const encrypted = base64ToArrayBuffer(encryptedData);
-    
+
     return await crypto.subtle.decrypt(
       {
         name: 'RSA-OAEP',
@@ -266,19 +300,19 @@ export class KeyManager {
   }
 
   /**
-   * Generate a hash of the public key for verification
-   * @param publicKeyPem PEM formatted public key
-   * @returns SHA-256 hash of the public key
+   * Genera el hash SHA-256 de una clave pública para verificación.
+   * @param publicKeyPem - Clave pública en formato PEM.
+   * @returns Hash SHA-256 de la clave pública.
    */
   static async getPublicKeyHash(publicKeyPem: string): Promise<string> {
     return await hashSHA256(publicKeyPem);
   }
 
   /**
-   * Verify that a public key matches a hash
-   * @param publicKeyPem PEM formatted public key
-   * @param hash Expected hash
-   * @returns True if matches
+   * Verifica que una clave pública coincida con un hash esperado.
+   * @param publicKeyPem - Clave pública en formato PEM.
+   * @param hash - Hash esperado.
+   * @returns `true` si coincide; de lo contrario, `false`.
    */
   static async verifyPublicKeyHash(publicKeyPem: string, hash: string): Promise<boolean> {
     const computedHash = await this.getPublicKeyHash(publicKeyPem);
@@ -286,12 +320,19 @@ export class KeyManager {
   }
 
   /**
-   * Re-encrypt private key with a new password
-   * @param encryptedPrivateKey Current encrypted private key
-   * @param oldPassword Current password
-   * @param oldSalt Current salt
-   * @param newPassword New password
-   * @returns New KeyPairResult with re-encrypted private key
+   * Re-cifra una clave privada con una nueva contraseña.
+   *
+   * Flujo:
+   * 1. Descifra la clave privada con la contraseña antigua.
+   * 2. Exporta la clave privada a formato PKCS8.
+   * 3. Genera una nueva sal y deriva una nueva clave de cifrado.
+   * 4. Cifra la clave privada con AES-GCM y la nueva contraseña.
+   *
+   * @param encryptedPrivateKey - Clave privada cifrada actual.
+   * @param oldPassword - Contraseña actual.
+   * @param oldSalt - Sal actual.
+   * @param newPassword - Nueva contraseña.
+   * @returns Objeto con la clave privada re-cifrada y la nueva sal.
    */
   static async reEncryptPrivateKey(
     encryptedPrivateKey: string,
@@ -299,23 +340,23 @@ export class KeyManager {
     oldSalt: string,
     newPassword: string
   ): Promise<{ encryptedPrivateKey: string; salt: string }> {
-    // Decrypt with old password
+    // Descifrar con la contraseña antigua
     const privateKey = await this.decryptPrivateKey(encryptedPrivateKey, oldPassword, oldSalt);
 
-    // Export private key
+    // Exportar clave privada
     const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', privateKey);
 
-    // Generate new salt
+    // Generar nueva sal
     const newSalt = generateRandomBytes(this.SALT_LENGTH);
     const newSaltBase64 = uint8ArrayToBase64(newSalt);
 
-    // Derive new encryption key
+    // Derivar nueva clave de cifrado
     const newEncryptionKey = await deriveKeyFromPassword(newPassword, newSalt);
 
-    // Generate new IV
+    // Generar nuevo IV
     const iv = generateRandomBytes(12);
 
-    // Encrypt with new password
+    // Cifrar con la nueva contraseña
     const newEncryptedKey = await crypto.subtle.encrypt(
       {
         name: 'AES-GCM',
@@ -325,7 +366,7 @@ export class KeyManager {
       privateKeyBuffer
     );
 
-    // Combine IV and encrypted key
+    // Combinar IV y clave cifrada
     const combined = new Uint8Array(iv.length + newEncryptedKey.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(newEncryptedKey), iv.length);

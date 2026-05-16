@@ -1,8 +1,47 @@
 skinparam backgroundColor white
-skinparam monochrome true
 skinparam shadowing false
 skinparam linetype ortho
+skinparam roundcorner 6
+skinparam ArrowThickness 1.2
 skinparam packageStyle rectangle
 skinparam classAttributeIconSize 0
 skinparam DefaultFontName Arial
-skinparam DefaultFontSize 12
+skinparam DefaultFontSize 13
+skinparam ActorPadding 60
+skinparam Padding 8
+
+skinparam usecase {
+	BorderThickness 1.2
+	BackgroundColor #E8EAF6
+	BorderColor #283593
+	FontColor #1A237E
+	FontSize 14
+}
+
+skinparam actor {
+	BackgroundColor #FFF3E0
+	BorderColor #E65100
+}
+
+skinparam rectangle {
+	BackgroundColor #FAFAFA
+	BorderColor #616161
+	FontColor #212121
+}
+
+skinparam package {
+	BackgroundColor #F5F5F5
+	BorderColor #9E9E9E
+	FontColor #424242
+}
+
+skinparam note {
+	BackgroundColor #FFFDE7
+	BorderColor #F9A825
+	FontSize 11
+}
+
+skinparam arrow {
+	Color #546E7A
+	Thickness 1.2
+}

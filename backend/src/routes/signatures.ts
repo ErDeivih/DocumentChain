@@ -1,10 +1,12 @@
 /**
  * Signature Routes - Refactored for Frontend Wallet Signatures
- * 
+ *
  * New prepare/confirm pattern:
  * - POST /prepare: Request to sign a document version
  * - POST /confirm: Confirm after blockchain transaction submitted
- * 
+ *
+ * Router de gestión de firmas digitales.
+ * Permite preparar, confirmar y revertir firmas sobre versiones de documentos.
  */
 
 import { Router } from 'express';

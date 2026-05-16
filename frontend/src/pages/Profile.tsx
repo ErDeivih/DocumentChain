@@ -11,6 +11,14 @@ import { AvatarUpload } from '../components/user/AvatarUpload';
 import { User, Mail, Calendar, Key } from 'lucide-react';
 import { changePassword } from '../api/auth';
 
+/**
+ * Página de perfil del usuario autenticado.
+ *
+ * Permite visualizar información personal, actualizar el avatar,
+ * cambiar la contraseña y gestionar wallets de blockchain vinculadas.
+ *
+ * @returns JSX.Element con la interfaz de perfil de usuario.
+ */
 export const Profile: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const location = useLocation();
@@ -35,6 +43,14 @@ export const Profile: React.FC = () => {
 
   if (!user) return null;
 
+  /**
+   * Gestiona el cambio de contraseña del usuario autenticado.
+   *
+   * Valida la longitud mínima, la coincidencia entre la nueva contraseña
+   * y su confirmación, y luego invoca al servicio de autenticación.
+   *
+   * @param e - Evento del formulario.
+   */
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);

@@ -5,12 +5,22 @@ import AlertMessage from '../ui/AlertMessage';
 import { Copy, Download, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { copyToClipboard } from '../../lib/utils';
 
+/**
+ * Props del componente RecoveryKeyDisplay.
+ */
 interface RecoveryKeyDisplayProps {
+  /** Controla la visibilidad del modal. */
   isOpen: boolean;
+  /** Clave de recuperación generada para el usuario. */
   recoveryKey: string;
+  /** Callback para cerrar el modal. */
   onClose: () => void;
 }
 
+/**
+ * Modal para mostrar y guardar la clave de recuperación del usuario.
+ * Permite copiar, descargar y exige una confirmación antes de cerrar.
+ */
 export const RecoveryKeyDisplay: React.FC<RecoveryKeyDisplayProps> = ({
   isOpen,
   recoveryKey,

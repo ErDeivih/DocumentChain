@@ -1,0 +1,31 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0033: Ver Timeline de Documento (Analisis BCE)
+
+actor Actor
+boundary "VistaTimeline" as VT
+control "GestorAuditoria" as CA
+entity "Evento" as EE
+
+database "Base de datos" as DB
+boundary "Blockchain" as BC
+
+Actor -> VT : 1. Solicita timeline
+VT -> CA : 2. Peticion de historial
+CA -> EE : 3. Consulta eventos del documento en BD
+EE -> DB : SELECT eventos por documento
+DB --> EE : eventos de BD
+EE --> CA : retorna eventos BD
+
+CA -> BC : 4. Consulta eventos blockchain
+BC --> CA : eventos on-chain
+
+CA -> CA : 5. Ordena cronologicamente
+note right : Control fusiona y ordena eventos de BD y blockchain por timestamp
+
+CA --> VT : 6. Retorna historia completa
+VT --> Actor : 7. Renderiza timeline
+
+@enduml
+

@@ -1,33 +1,59 @@
 import { api } from '../lib/api';
 import type { Signature } from '../types';
 
-// Types for prepare/confirm pattern
+// Tipos para el patrón prepare/confirm
+
+/**
+ * Datos de entrada para preparar una firma.
+ */
 export interface PrepareSignatureInput {
+  /** Identificador del documento. */
   documentId: string;
+  /** Número de versión a firmar. */
   versionNumber: number;
+  /** Identificador de la wallet del firmante. */
   signerWalletId: string;
 }
 
+/**
+ * Respuesta de la preparación de una firma.
+ */
 export interface PrepareSignatureResponse {
-  signatureId: string;       // UUID of signature in DB
-  blockchainId: string;      // bytes32 for blockchain
-  versionId: number;         // Version number on blockchain
-  contentHash: string;       // Hash to sign
-}
-
-export interface ConfirmSignatureInput {
+  /** UUID de la firma en base de datos. */
   signatureId: string;
-  txHash: string;
-  ecdsaSignature: string;    // The actual signature from wallet
+  /** Identificador bytes32 para blockchain. */
+  blockchainId: string;
+  /** Número de versión en blockchain. */
+  versionId: number;
+  /** Hash del contenido a firmar. */
+  contentHash: string;
 }
 
+/**
+ * Datos de entrada para confirmar una firma.
+ */
+export interface ConfirmSignatureInput {
+  /** UUID de la firma. */
+  signatureId: string;
+  /** Hash de la transacción blockchain. */
+  txHash: string;
+  /** Firma ECDSA generada por la wallet. */
+  ecdsaSignature: string;
+}
+
+/** API de firmas de documentos. */
 export const signaturesApi = {
-  // ==================== NEW PREPARE/CONFIRM PATTERN ====================
+  // ==================== NUEVO PATRÓN PREPARE/CONFIRM ====================
 
   /**
-   * Prepare a signature for a document version.
-   * 1. Backend validates access and creates DB record with PREPARING status
-   * 2. Returns content hash that user needs to sign with their wallet
+   * Prepara una firma para una versión de documento.
+   *
+   * Flujo:
+   * 1. El backend valida el acceso y crea el registro en BD con estado PREPARING.
+   * 2. Devuelve el hash del contenido que el usuario debe firmar con su wallet.
+   *
+   * @param input - Datos de entrada para la preparación.
+   * @returns Datos preparados para la firma.
    */
   prepareSign: async (input: PrepareSignatureInput): Promise<PrepareSignatureResponse> => {
     const response = await api.post<PrepareSignatureResponse>('/signatures/prepare', {
@@ -39,18 +65,24 @@ export const signaturesApi = {
   },
 
   /**
-   * Confirm signature after blockchain transaction.
-   * Call this after the user signs with their wallet and submits the transaction.
+   * Confirma una firma tras la transacción blockchain.
+   *
+   * Llámalo después de que el usuario firme con su wallet y envíe la transacción.
+   *
+   * @param input - Datos de confirmación.
+   * @returns Firma creada.
    */
   confirmSign: async (input: ConfirmSignatureInput): Promise<{ signature: Signature }> => {
     const response = await api.post<{ signature: Signature }>('/signatures/confirm', input);
     return response.data;
   },
 
-  // ==================== EXISTING METHODS ====================
+  // ==================== MÉTODOS EXISTENTES ====================
 
   /**
-   * Get signatures for a document
+   * Obtiene las firmas de un documento.
+   * @param documentId - Identificador del documento.
+   * @returns Lista de firmas.
    */
   list: async (documentId: string): Promise<{ signatures: Signature[] }> => {
     const response = await api.get<{ signatures: Signature[] }>(`/documents/${documentId}/signatures`);
@@ -60,7 +92,10 @@ export const signaturesApi = {
   },
 
   /**
-   * Get signatures for a specific version
+   * Obtiene las firmas de una versión específica.
+   * @param documentId - Identificador del documento.
+   * @param versionNumber - Número de versión.
+   * @returns Lista de firmas.
    */
   listByVersion: async (documentId: string, versionNumber: number): Promise<{ signatures: Signature[] }> => {
     const response = await api.get<{ signatures: Signature[] }>(
@@ -72,7 +107,11 @@ export const signaturesApi = {
   },
 
   /**
-   * Verify a signature
+   * Verifica una firma.
+   * @param documentId - Identificador del documento.
+   * @param versionNumber - Número de versión.
+   * @param signerAddress - Dirección del firmante.
+   * @returns Indica si la firma es válida.
    */
   verify: async (documentId: string, versionNumber: number, signerAddress: string): Promise<{ valid: boolean }> => {
     const response = await api.get<{ valid: boolean }>(
@@ -81,10 +120,12 @@ export const signaturesApi = {
     return response.data;
   },
 
-  // ==================== BLOCKCHAIN SERVICE METHODS ====================
+  // ==================== MÉTODOS DEL SERVICIO BLOCKCHAIN ====================
 
   /**
-   * Prepare signature (alias for prepareSign)
+   * Prepara una firma (alias de prepareSign).
+   * @param input - Datos de entrada.
+   * @returns Datos preparados para la firma.
    */
   prepare: async (input: { documentId: string; versionNumber: number; walletId: string; comment?: string }): Promise<{
     signatureId: string;
@@ -101,7 +142,9 @@ export const signaturesApi = {
   },
 
   /**
-   * Confirm signature (alias for confirmSign)
+   * Confirma una firma (alias de confirmSign).
+   * @param input - Datos de confirmación.
+   * @returns Firma creada.
    */
   confirm: async (input: { signatureId: string; transactionHash: string; signature: string }): Promise<Signature> => {
     const response = await api.post<{ signature: Signature }>('/signatures/confirm', {
@@ -113,18 +156,29 @@ export const signaturesApi = {
   },
 
   /**
-   * Rollback signature creation
+   * Revierte la creación de una firma.
+   * @param signatureId - Identificador de la firma.
+   * @returns Promesa vacía.
    */
   rollback: async (signatureId: string): Promise<void> => {
     await api.post(`/signatures/${signatureId}/rollback`);
   }
 };
 
-// Aliases for backward compatibility
+// Alias para compatibilidad hacia atrás
+
+/** Alias de {@link signaturesApi.list}. */
 export const listSignatures = signaturesApi.list;
+/** Alias de {@link signaturesApi.listByVersion}. */
 export const listSignaturesByVersion = signaturesApi.listByVersion;
+/** Alias de {@link signaturesApi.verify}. */
 export const verifySignature = signaturesApi.verify;
 
+/**
+ * Normaliza una firma asegurando la dirección de la wallet.
+ * @param signature - Firma a normalizar.
+ * @returns Firma normalizada.
+ */
 function normalizeSignature(signature: Signature): Signature {
   return {
     ...signature,

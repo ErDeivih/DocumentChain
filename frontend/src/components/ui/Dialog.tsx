@@ -1,12 +1,22 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
+/**
+ * Props del componente Dialog.
+ * @property open - Controla si el diálogo está abierto.
+ * @property onOpenChange - Función que se ejecuta cuando cambia el estado de apertura.
+ * @property children - Contenido del diálogo.
+ */
 interface DialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
 }
 
+/**
+ * Componente contenedor de diálogo que gestiona su estado y contexto.
+ * @param props - Props del componente Dialog.
+ */
 const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
   const [isOpen, setIsOpen] = React.useState(open ?? false);
 
@@ -36,6 +46,10 @@ const DialogContext = React.createContext<{
   onOpenChange: () => {},
 });
 
+/**
+ * Elemento que activa la apertura del diálogo al hacer clic.
+ * @param props - Props del componente DialogTrigger.
+ */
 const DialogTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -55,10 +69,18 @@ const DialogTrigger = React.forwardRef<
 });
 DialogTrigger.displayName = 'DialogTrigger';
 
+/**
+ * Portal interno del diálogo.
+ * @param props - Props del componente DialogPortal.
+ */
 const DialogPortal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+/**
+ * Fondo oscuro semitransparente que cubre la pantalla detrás del diálogo.
+ * @param props - Props del componente DialogOverlay.
+ */
 const DialogOverlay = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -74,6 +96,10 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = 'DialogOverlay';
 
+/**
+ * Contenido principal del diálogo, posicionado en el centro de la pantalla.
+ * @param props - Props del componente DialogContent.
+ */
 const DialogContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -100,6 +126,10 @@ const DialogContent = React.forwardRef<
 });
 DialogContent.displayName = 'DialogContent';
 
+/**
+ * Encabezado del diálogo.
+ * @param props - Props del componente DialogHeader.
+ */
 const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
   ...props
@@ -111,6 +141,10 @@ const DialogHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 );
 DialogHeader.displayName = 'DialogHeader';
 
+/**
+ * Pie del diálogo.
+ * @param props - Props del componente DialogFooter.
+ */
 const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
   ...props
@@ -122,6 +156,10 @@ const DialogFooter: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
 );
 DialogFooter.displayName = 'DialogFooter';
 
+/**
+ * Título del diálogo.
+ * @param props - Props del componente DialogTitle.
+ */
 const DialogTitle = React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
@@ -134,6 +172,10 @@ const DialogTitle = React.forwardRef<
 ));
 DialogTitle.displayName = 'DialogTitle';
 
+/**
+ * Descripción del diálogo.
+ * @param props - Props del componente DialogDescription.
+ */
 const DialogDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

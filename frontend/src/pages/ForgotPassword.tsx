@@ -8,17 +8,39 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../co
 import { Alert, AlertDescription } from '../components/ui/Alert';
 import { Mail, ArrowLeft, AlertCircle, AlertTriangle } from 'lucide-react';
 
+/**
+ * Página para solicitar el restablecimiento de contraseña.
+ *
+ * Permite al usuario introducir su correo electrónico para recibir
+ * un enlace de recuperación que incluye un token de un solo uso.
+ *
+ * @returns JSX.Element con el formulario de recuperación de contraseña.
+ */
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  /**
+   * Valida el formato de una dirección de correo electrónico.
+   *
+   * @param email - Dirección de correo a validar.
+   * @returns `true` si el email cumple con el patrón estándar, `false` en caso contrario.
+   */
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
+  /**
+   * Gestiona el envío del formulario de recuperación de contraseña.
+   *
+   * Verifica que el email no esté vacío y sea válido antes de invocar la API
+   * de autenticación para solicitar el restablecimiento.
+   *
+   * @param e - Evento del formulario.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -94,6 +116,7 @@ export const ForgotPassword: React.FC = () => {
         </CardHeader>
 
         <CardContent>
+          {/* Mensajes de error y advertencia */}
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />

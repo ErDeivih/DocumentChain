@@ -17,20 +17,31 @@ import {
   LogOut
 } from 'lucide-react';
 
+/**
+ * Propiedades del componente WalletSelectorModal.
+ */
 interface WalletSelectorModalProps {
+  /** Indica si el modal está abierto. */
   isOpen: boolean;
+  /** Función para cerrar el modal. */
   onClose: () => void;
+  /** Función invocada al seleccionar una wallet, recibe la wallet guardada y la dirección conectada. */
   onSelect: (wallet: SavedWallet | null, connectedAddress: string) => void;
+  /** Título opcional del modal. */
   title?: string;
+  /** Descripción opcional del modal. */
   description?: string;
 }
 
 /**
- * Wallet Selector Modal
- * 
- * Shows when user needs to sign a blockchain transaction.
- * Allows selecting a saved wallet or connecting a new one.
- * Auto-detects all available browser wallets.
+ * Modal selector de wallets.
+ *
+ * Se muestra cuando el usuario necesita firmar una transacción blockchain.
+ * Permite seleccionar una wallet guardada o conectar una nueva.
+ * Detecta automáticamente todas las wallets disponibles en el navegador.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX del modal selector de wallets.
  */
 export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
   isOpen,
@@ -67,7 +78,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
     return leftLabel.localeCompare(rightLabel, 'es', { sensitivity: 'base' });
   });
 
-  // Detect available wallets when modal opens
+  // Detecta las wallets disponibles cuando se abre el modal
   useEffect(() => {
     const detectWallets = async () => {
       if (isOpen) {
@@ -85,19 +96,19 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
     setLocalError(null);
     
     try {
-      // Use the returned connection instead of connectedWallet state
+      // Utiliza la conexión devuelta en lugar del estado connectedWallet
       const connected = await connectWallet(walletType, provider);
-      
-      // If chain is likely Hardhat (31337), offer to add it
+
+      // Si la cadena es probablemente Hardhat (31337), ofrece añadirla
       if (connected?.chainId === 31337 || (!connected && walletType !== 'walletconnect')) {
         try {
           await BlockchainProvider.addHardhatNetwork();
         } catch (hardhatError) {
-          // Silently fail - network might already be added or user declined
+          // Fallo silencioso: la red podría estar ya añadida o el usuario la rechazó
           console.warn('Could not add Hardhat network:', hardhatError);
         }
       }
-      
+
       setShowAddWallet(true);
     } catch (err: any) {
       setLocalError(err.message || 'Error al conectar wallet');
@@ -116,7 +127,9 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
       const newWallet = await addWallet(newWalletLabel || undefined);
       setShowAddWallet(false);
       setNewWalletLabel('');
-      // Auto-select the newly added wallet
+      // Muestra retroalimentación de éxito
+      alert('Wallet guardada correctamente');
+      // Selecciona automáticamente la wallet recién añadida
       if (connectedWallet) {
         onSelect(newWallet, connectedWallet.address);
         onClose();
@@ -129,8 +142,8 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
   const handleSelectSaved = async (wallet: SavedWallet) => {
     setLocalError(null);
     
-    // If this wallet is already connected, use it
-    if (connectedWallet && 
+    // Si esta wallet ya está conectada, la utiliza directamente
+    if (connectedWallet &&
         connectedWallet.address.toLowerCase() === wallet.walletAddress.toLowerCase()) {
       onSelect(wallet, connectedWallet.address);
       onClose();
@@ -145,14 +158,14 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
       return;
     }
 
-    // Otherwise, need to connect first
-    // Try to auto-detect the wallet type from available wallets
+    // En caso contrario, es necesario conectar primero
+    // Intenta detectar automáticamente el tipo de wallet desde las disponibles
     const detectedType = detectedWallets.find(w => w.installed && w.type !== 'walletconnect')?.type || 'metamask';
-    
+
     try {
-      // Use the returned connection instead of connectedWallet state
+      // Utiliza la conexión devuelta en lugar del estado connectedWallet
       const connected = await connectWallet(detectedType);
-      // After connection, verify it's the right wallet
+      // Tras la conexión, verifica que sea la wallet correcta
       if (connected && 
           connected.address.toLowerCase() === wallet.walletAddress.toLowerCase()) {
         onSelect(wallet, connected.address);
@@ -220,7 +233,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {/* Error Display */}
+          {/* Visualización de errores */}
           {(error || localError) && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -228,7 +241,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
             </Alert>
           )}
 
-          {/* Currently Connected Wallet */}
+          {/* Wallet conectada actualmente */}
           {connectedWallet && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center justify-between">
@@ -261,7 +274,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
             </div>
           )}
 
-          {/* Saved Wallets */}
+          {/* Wallets guardadas */}
           {orderedWallets.length > 0 && !showAddWallet && (
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">
@@ -330,7 +343,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
             </div>
           )}
 
-          {/* Add New Wallet Section */}
+          {/* Sección de añadir nueva wallet */}
           {showAddWallet ? (
             <div className="space-y-3 p-3 border rounded-lg">
               <h4 className="text-sm font-medium">Guardar Wallet Actual</h4>
@@ -367,7 +380,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
             </div>
           ) : (
             <>
-              {/* Connect New Wallet */}
+              {/* Conectar nueva wallet */}
               {canAddWallet && !connectedWallet && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground">
@@ -412,7 +425,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
                 </div>
               )}
 
-              {/* Disconnect Button - Show when wallet is connected */}
+              {/* Botón de desconexión — se muestra cuando hay una wallet conectada */}
               {connectedWallet && (
                 <div className="border-t pt-3">
                   <Button
@@ -426,11 +439,11 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
                 </div>
               )}
 
-              {/* Save Connected Wallet */}
-              {connectedWallet && 
-               !savedWallets.some(w => 
-                 w.walletAddress.toLowerCase() === connectedWallet.address.toLowerCase()
-               ) && (
+              {/* Guardar wallet conectada */}
+              {connectedWallet &&
+               !savedWallets.some(w =>
+                  w.walletAddress.toLowerCase() === connectedWallet.address.toLowerCase()
+                ) && (
                 <Button
                   variant="outline"
                   onClick={() => setShowAddWallet(true)}
@@ -443,7 +456,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
             </>
           )}
 
-          {/* Actions */}
+          {/* Acciones */}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={onClose} className="flex-1">
               Cancelar

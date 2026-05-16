@@ -1,10 +1,10 @@
-@startuml
+﻿@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Perfil / Gestor de wallets" as ui
 control "Endpoints de wallets (/api/wallets)" as api
 control "WalletService" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 participant "Wallet del usuario (navegador o WalletConnect)" as wallet
 
 user -> ui: Solicita conectar una wallet
@@ -19,3 +19,4 @@ srv --> api: Vinculacion completada
 api --> ui: Listado actualizado
 ui --> user: Wallet disponible para futuras firmas
 @enduml
+

@@ -3,6 +3,13 @@ import { X } from 'lucide-react';
 import { Alert } from './Alert';
 import { Button } from './Button';
 
+/**
+ * Props del componente AlertMessage.
+ * @property type - Tipo de alerta: success, error, warning o info.
+ * @property message - Texto del mensaje a mostrar.
+ * @property onClose - Función opcional que se ejecuta al cerrar la alerta.
+ * @property className - Clases CSS adicionales.
+ */
 export interface AlertMessageProps {
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
@@ -10,6 +17,10 @@ export interface AlertMessageProps {
   className?: string;
 }
 
+/**
+ * Componente que muestra un mensaje de alerta con opción de cerrar.
+ * @param props - Props del componente AlertMessage.
+ */
 const AlertMessage: React.FC<AlertMessageProps> = ({
   type,
   message,

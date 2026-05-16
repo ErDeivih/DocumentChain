@@ -1,18 +1,22 @@
-﻿@startuml
+@startuml
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Detalle / Compartir" as ui
 control "Endpoints de comparticion\n(/api/documents/:id/share y /api/shares)" as shareApi
 control "Servicio de comparticion" as srv
-entity "Contrato inteligente" as sc
+entity "DocumentRegistry" as sc
 participant "Wallet del usuario\n(navegador o WalletConnect)" as wallet
-database "PostgreSQL" as db
+database "Base de datos" as db
 participant "Sincronizador blockchain" as listener
 
 == Fase PREPARE ==
 user -> ui: Click en "Revocar acceso" para un usuario compartido
 ui -> shareApi: Preparar revocacion de acceso
 shareApi -> srv: Validar propietario y acceso a revocar
+srv -> sc: isOwner(blockchainId, walletAddress)
+sc --> srv: Propietario validado
+srv -> sc: getDocumentUsersWithRoles (verificar acceso activo)
+sc --> srv: Usuario tiene acceso
 srv -> db: Recuperar acceso y wallet destinataria
 db --> srv: Datos para la revocacion
 srv --> shareApi: Payload para firmar

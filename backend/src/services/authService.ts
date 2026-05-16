@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+﻿import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import { getAddress, isAddress, verifyMessage as ethersVerifyMessage } from 'ethers';
@@ -10,45 +10,56 @@ import { validatePassword } from '../validators/passwordPolicy';
 import { emailService } from './emailService';
 import logger from '../utils/logger';
 
+/**
+ * Datos de entrada para el registro tradicional con contraseña.
+ */
 export interface RegisterInput {
   username: string;
   email: string;
   password: string;
   fullName?: string;
-  adminSecret?: string; // Optional secret to create admin user
+  adminSecret?: string; // Secreto opcional para crear usuario administrador
 }
 
-// NEW: Input for wallet-based registration
+/**
+ * Datos de entrada para el registro basado en wallet.
+ */
 export interface PrepareRegisterInput {
   username: string;
   email: string;
-  publicKey: string;              // Generated in frontend
-  encryptedPrivateKey: string;     // Encrypted in frontend with user's password
-  recoveryKeyHash?: string;       // Optional: hash of recovery key
-  encryptedPrivateKeyRecovery?: string; // Optional: private key encrypted with recovery key
+  publicKey: string;              // Generada en el frontend
+  encryptedPrivateKey: string;     // Cifrada en el frontend con la contraseña del usuario
+  recoveryKeyHash?: string;       // Opcional: hash de la clave de recuperación
+  encryptedPrivateKeyRecovery?: string; // Opcional: clave privada cifrada con la clave de recuperación
   fullName?: string;
   adminSecret?: string;
 }
 
+/**
+ * Datos de entrada para el inicio de sesión tradicional.
+ */
 export interface LoginInput {
-  identifier: string; // username or email
+  identifier: string; // nombre de usuario o email
   password: string;
 }
 
-// NEW: Input for wallet-based login
+/**
+ * Datos de entrada para el inicio de sesión con wallet.
+ */
 export interface WalletLoginInput {
   walletAddress: string;
-  signature: string;              // Signature of challenge message
-  message: string;                // The challenge message that was signed
+  signature: string;              // Firma del mensaje de reto
+  message: string;                // Mensaje de reto firmado
 }
 
+/**
+ * Respuesta de autenticación con tokens y datos del usuario.
+ */
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
-  recoveryKey?: string; // Only included in registration response
-  requires2FA?: boolean; // If 2FA is enabled, client must call /auth/2fa/verify
-  tempToken?: string; // Temporary token for 2FA verification (5 min expiry)
+  recoveryKey?: string; // Solo incluida en la respuesta de registro
   user: {
     id: string;
     username: string;
@@ -64,13 +75,20 @@ export interface AuthResponse {
   };
 }
 
+/**
+ * Servicio de autenticación y gestión de sesiones.
+ * Soporta registro/inicio de sesión tradicional con contraseña y autenticación basada en wallet.
+ */
 export class AuthService {
-  // ==================== NEW WALLET-BASED AUTHENTICATION ====================
+  // ==================== AUTENTICACIÓN BASADA EN WALLET ====================
 
   /**
-   * Prepare registration with wallet-based encryption.
-   * Frontend generates keypair and encrypts private key with user's password.
-   * Backend only stores the encrypted data.
+   * Prepara el registro de un usuario con cifrado basado en wallet.
+   * El frontend genera el par de claves y cifra la clave privada con la contraseña del usuario;
+   * el backend únicamente almacena los datos cifrados.
+   * @param input - Datos de entrada para el registro con wallet.
+   * @returns Respuesta de autenticación con tokens y datos del usuario.
+   * @throws Error si las validaciones de entrada fallan o el usuario/email ya existen.
    */
   static async prepareRegister(input: PrepareRegisterInput): Promise<AuthResponse> {
     const { 
@@ -84,7 +102,7 @@ export class AuthService {
       adminSecret 
     } = input;
 
-    // Validate input
+    // Validar entrada
     if (!username || username.length < 3) {
       throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
     }
@@ -101,7 +119,7 @@ export class AuthService {
       throw new Error('Se requiere la clave privada cifrada');
     }
 
-    // Check if username already exists
+    // Verificar si el nombre de usuario ya existe
     const existingUser = await prisma.user.findUnique({
       where: { username }
     });
@@ -110,7 +128,7 @@ export class AuthService {
       throw new Error('El nombre de usuario ya existe');
     }
 
-    // Check if email already exists
+    // Verificar si el email ya existe
     const existingEmail = await prisma.user.findUnique({
       where: { email }
     });
@@ -121,7 +139,7 @@ export class AuthService {
 
     logger.debug(`[prepare-register][service] creating username=${username} email=${email} publicKeyLen=${publicKey.length} encryptedPrivateKeyLen=${encryptedPrivateKey.length}`);
 
-    // Determine user role (admin if valid secret provided)
+    // Determinar rol de usuario (admin si se proporciona secreto válido)
     let userRole: 'USER' | 'ADMIN' = 'USER';
     const adminRegistrationSecret = process.env.ADMIN_REGISTRATION_SECRET;
     
@@ -130,13 +148,13 @@ export class AuthService {
       logger.info(`Creando usuario ADMIN: ${username}`);
     }
 
-    // Create user - NO password hash stored, only encrypted private key
+    // Crear usuario - NO se almacena hash de contraseña, solo la clave privada cifrada
     const user = await prisma.user.create({
       data: {
         id: uuidv4(),
         username,
         email,
-        passwordHash: '', // Empty - passwords are handled in frontend only
+        passwordHash: '', // Vacío - las contraseñas se gestionan únicamente en el frontend
         fullName: fullName || null,
         role: userRole,
         publicKey,
@@ -148,9 +166,9 @@ export class AuthService {
 
     logger.debug(`[prepare-register][service] created userId=${user.id} publicKeyLen=${user.publicKey?.length ?? 0} encryptedPrivateKeyLen=${user.encryptedPrivateKey?.length ?? 0}`);
 
-    // Create email verification token
+    // Crear token de verificación de email
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
 
     await prisma.emailVerification.create({
       data: {
@@ -160,13 +178,13 @@ export class AuthService {
       }
     });
 
-    // Send verification email (non-blocking)
+    // Enviar email de verificación (sin bloquear)
     emailService.sendVerificationEmail(user.email, user.username, verificationToken)
       .catch((error: any) => {
         logger.error('Error al enviar email de verificación:', error);
       });
 
-    // Send welcome email (optional, non-blocking)
+    // Enviar email de bienvenida (opcional, sin bloquear)
     emailService.sendWelcomeEmail(user.email, user.username)
       .catch((error: any) => {
         logger.error('Error al enviar email de bienvenida:', error);
@@ -174,7 +192,7 @@ export class AuthService {
 
     logger.info(`Usuario registrado correctamente: ${username} (${userRole})`);
 
-    // Generate token pair
+    // Generar par de tokens
     const tokens = await TokenService.generateTokenPair(
       user.id,
       user.username,
@@ -199,8 +217,11 @@ export class AuthService {
   }
 
   /**
-   * Login with wallet signature.
-   * User signs a challenge message with their wallet, backend verifies.
+   * Inicia sesión con firma de wallet.
+   * El usuario firma un mensaje de reto con su wallet; el backend verifica la firma.
+   * @param input - Datos de entrada para el login con wallet.
+   * @returns Respuesta de autenticación con tokens y datos del usuario.
+   * @throws Error si la dirección es inválida, la wallet no está registrada, el reto expiró o la firma no coincide.
    */
   static async loginWithWallet(input: WalletLoginInput): Promise<AuthResponse> {
     const { walletAddress, signature, message } = input;
@@ -211,7 +232,7 @@ export class AuthService {
 
     const normalizedWalletAddress = getAddress(walletAddress);
 
-    // Find user by wallet address
+    // Buscar usuario por dirección de wallet
     const wallet = await prisma.wallet.findFirst({
       where: { walletAddress: normalizedWalletAddress },
       include: { user: true }
@@ -223,26 +244,22 @@ export class AuthService {
 
     const user = wallet.user;
 
-    // Validate the challenge message format: "Sign this message to authenticate: <userId>:<timestamp>:<nonce>"
-    // The controller's getChallenge generates exactly this format.
+    // Validar formato del mensaje de reto: "Sign this message to authenticate: <userId>:<timestamp>:<nonce>"
     const CHALLENGE_PATTERN = /^Sign this message to authenticate: .+:\d+:[0-9a-f]+$/;
     if (!CHALLENGE_PATTERN.test(message)) {
       throw new Error('Formato de mensaje de reto inválido');
     }
 
-    // Validate the challenge has not expired (5 minute window)
+    // Validar que el reto no haya expirado (ventana de 5 minutos)
     const parts = message.split(':');
-    // Format: "Sign this message to authenticate: <userId>:<timestamp>:<nonce>"
-    // parts[0] = "Sign this message to authenticate",  userId has potential colons in UUID (none actually), so
-    // safely: extract timestamp (second-to-last) and nonce (last)
     const nonce = parts[parts.length - 1];
     const timestamp = parseInt(parts[parts.length - 2], 10);
-    const MAX_CHALLENGE_AGE_MS = 5 * 60 * 1000; // 5 minutes
+    const MAX_CHALLENGE_AGE_MS = 5 * 60 * 1000; // 5 minutos
     if (isNaN(timestamp) || Date.now() - timestamp > MAX_CHALLENGE_AGE_MS) {
       throw new Error('Challenge expirado o inválido');
     }
 
-    // Verify the ECDSA signature: recover the signer address and compare
+    // Verificar la firma ECDSA: recuperar la dirección del firmante y comparar
     let recoveredAddress: string;
     try {
       recoveredAddress = ethersVerifyMessage(message, signature);
@@ -255,34 +272,7 @@ export class AuthService {
 
     logger.info(`Wallet login verified for user ${user.id} with wallet ${normalizedWalletAddress}`);
 
-    // Check if 2FA is enabled
-    if (user.twoFactorEnabled) {
-      const tempToken = await TokenService.generateTempToken(user.id, user.username);
-
-      logger.info(`Usuario ${user.id} requiere verificación 2FA`);
-
-      return {
-        accessToken: '',
-        refreshToken: '',
-        expiresIn: 0,
-        requires2FA: true,
-        tempToken,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.role,
-          publicKey: user.publicKey,
-          emailVerified: user.emailVerified,
-          avatarUrl: user.avatarUrl,
-          createdAt: user.createdAt,
-          lastLogin: null
-        }
-      };
-    }
-
-    // Generate token pair
+    // Generar par de tokens
     const tokens = await TokenService.generateTokenPair(
       user.id,
       user.username,
@@ -306,12 +296,15 @@ export class AuthService {
     };
   }
 
-  // ==================== LEGACY METHODS (DEPRECATED) ====================
+  // ==================== MÉTODOS LEGADOS ====================
 
   /**
-   * Register with traditional username/password (NOT deprecated)
-   * This is the primary registration method for users
-   * Generates keypair and encrypts private key with password
+   * Registra un usuario con nombre de usuario/contraseña.
+   * Genera un par de claves RSA, cifra la clave privada con la contraseña,
+   * hashea la contraseña con Argon2id y crea el registro en BD.
+   * @param input - Datos de entrada para el registro.
+   * @returns Respuesta de autenticación con tokens, clave de recuperación y datos del usuario.
+   * @throws Error si las validaciones fallan o el usuario/email ya existen.
    */
   static async register(input: RegisterInput): Promise<AuthResponse> {
     const { username, email, password, fullName, adminSecret } = input;
@@ -351,19 +344,19 @@ export class AuthService {
       throw new Error('El email ya existe');
     }
 
-    // Generar par de claves ECDH para cifrado
+    // Generar par de claves RSA para cifrado
     const { publicKey, privateKey } = KeyManager.generateKeyPair();
 
     logger.debug(`[register][service] generated keys for username=${username} publicKeyLen=${publicKey.length}`);
 
-    // Generar clave de recuperación para recuperación de cuenta
+    // Generar clave de recuperación
     const recoveryKey = KeyManager.generateRecoveryKey();
     const recoveryKeyHash = KeyManager.hashRecoveryKey(recoveryKey);
 
     // Cifrar clave privada con la contraseña del usuario
     const encryptedPrivateKey = KeyManager.encryptPrivateKey(privateKey, password);
     
-    // Cifrar clave privada con clave de recuperación para recuperación de cuenta
+    // Cifrar clave privada con clave de recuperación
     const encryptedPrivateKeyRecovery = KeyManager.encryptPrivateKeyWithRecovery(privateKey, recoveryKey);
 
     // Hashear contraseña con Argon2id (recomendado por OWASP 2024)
@@ -407,11 +400,10 @@ export class AuthService {
       }
     });
 
-    // Enviar email de verificación (no esperamos resultado para no bloquear)
+    // Enviar email de verificación (sin bloquear)
     emailService.sendVerificationEmail(user.email, user.username, verificationToken)
       .catch((error: any) => {
         logger.error('Error al enviar email de verificación:', error);
-        // No lanzamos error para no bloquear el registro
       });
 
     // Enviar email de bienvenida (opcional)
@@ -449,15 +441,17 @@ export class AuthService {
   }
 
   /**
-   * Login existing user
-   * Includes automatic migration from bcrypt -> Argon2id
-   * Supports 2FA verification
+   * Inicia sesión de un usuario existente.
+  * Incluye migración automática de bcrypt a Argon2id.
+   * @param input - Datos de entrada para el inicio de sesión.
+   * @returns Respuesta de autenticación con tokens y datos del usuario.
+   * @throws Error si las credenciales son inválidas, el email no está verificado o el usuario requiere wallet.
    */
   static async login(input: LoginInput): Promise<AuthResponse> {
     const { identifier, password } = input;
     const trimmed = identifier.trim();
 
-    // Find user
+    // Buscar usuario
     const user = await prisma.user.findUnique({
       where: { username: trimmed }
     });
@@ -469,39 +463,34 @@ export class AuthService {
       throw new Error('Nombre de usuario o contraseña inválidos');
     }
 
-    // Reemplazar referencia para seguir usando la variable user abajo
     const finalUser = resolvedUser;
 
-    // If user has no password hash (wallet-based user), they can't login with password
+    // Si el usuario no tiene hash de contraseña (usuario basado en wallet), no puede iniciar sesión con contraseña
     if (!finalUser.passwordHash) {
       throw new Error('Este usuario requiere autenticación con wallet');
     }
 
-    // Detect hash type for automatic migration
+    // Detectar tipo de hash para migración automática
     const hashType = Argon2Service.detectHashType(finalUser.passwordHash);
     let isValidPassword = false;
     let needsMigration = false;
 
     if (hashType === 'argon2id') {
-      // Already using Argon2id, verify normally
       isValidPassword = await Argon2Service.verify(finalUser.passwordHash, password);
 
-      // Check if parameters are outdated
       if (isValidPassword) {
         needsMigration = await Argon2Service.needsRehash(finalUser.passwordHash);
       }
 
     } else if (hashType === 'bcrypt') {
-      // Legacy bcrypt hash, verify with bcrypt
       isValidPassword = await bcrypt.compare(password, finalUser.passwordHash);
-      needsMigration = isValidPassword; // Always migrate from bcrypt
+      needsMigration = isValidPassword; // Siempre migrar desde bcrypt
 
       if (isValidPassword) {
         logger.info(`Usuario ${finalUser.id} usando hash bcrypt heredado, se migrará a Argon2id`);
       }
 
     } else {
-      // Unknown hash type
       logger.error(`Usuario ${finalUser.id} tiene tipo de hash desconocido: ${hashType}`);
       throw new Error('Nombre de usuario o contraseña inválidos');
     }
@@ -525,40 +514,10 @@ export class AuthService {
         logger.info(`Contraseña de usuario ${finalUser.id} migrada a Argon2id exitosamente`);
       } catch (error) {
         logger.error(`Error al migrar contraseña de usuario ${finalUser.id}:`, error);
-        // No lanzar error, el login puede continuar
       }
     }
 
-    // Check if 2FA is enabled
-    if (finalUser.twoFactorEnabled) {
-      // Generate temporary token (5 minutes) for 2FA verification
-      const tempToken = await TokenService.generateTempToken(finalUser.id, finalUser.username);
-
-      logger.info(`Usuario ${finalUser.id} requiere verificación 2FA`);
-
-      return {
-        accessToken: '',
-        refreshToken: '',
-        expiresIn: 0,
-        requires2FA: true,
-        tempToken,
-        user: {
-          id: finalUser.id,
-          username: finalUser.username,
-          email: finalUser.email,
-          fullName: finalUser.fullName,
-          role: finalUser.role,
-          publicKey: finalUser.publicKey,
-          encryptedPrivateKey: finalUser.encryptedPrivateKey,
-          emailVerified: finalUser.emailVerified,
-          avatarUrl: finalUser.avatarUrl,
-          createdAt: finalUser.createdAt,
-          lastLogin: null
-        }
-      };
-    }
-
-    // Generate token pair (access + refresh)
+    // Generar par de tokens (acceso + refresco)
     const tokens = await TokenService.generateTokenPair(
       finalUser.id,
       finalUser.username,
@@ -584,7 +543,9 @@ export class AuthService {
   }
 
   /**
-   * Validate session token (legacy - for backward compatibility)
+   * Valida un token de sesión (legado - para compatibilidad hacia atrás).
+   * @param accessToken - Token de acceso a validar.
+   * @returns `true` si la sesión existe y no ha expirado.
    */
   static async validateSession(accessToken: string): Promise<boolean> {
     const session = await prisma.session.findUnique({
@@ -595,7 +556,6 @@ export class AuthService {
       return false;
     }
 
-    // Check if access token expired
     if (session.accessTokenExpiresAt < new Date()) {
       return false;
     }
@@ -604,12 +564,15 @@ export class AuthService {
   }
 
   /**
-   * @deprecated Private key decryption should happen in frontend only
-   * Get user's decrypted private key
-   * Used when user needs to decrypt files or sign transactions
+   * Obtiene la clave privada descifrada de un usuario.
+   * @deprecated El descifrado de clave privada debe realizarse únicamente en el frontend.
+   * @param userId - UUID del usuario.
+   * @param password - Contraseña del usuario.
+   * @returns Clave privada descifrada en formato PEM.
+   * @throws Error si el usuario no existe o la contraseña es inválida.
    */
   static async getPrivateKey(userId: string, password: string): Promise<string> {
-    console.warn('AuthService.getPrivateKey is deprecated. Private key decryption should happen in frontend only.');
+    logger.warn('AuthService.getPrivateKey is deprecated. Private key decryption should happen in frontend only.');
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -629,18 +592,22 @@ export class AuthService {
   }
 
   /**
-        publicKey: user.publicKey,
-        encryptedPrivateKey: user.encryptedPrivateKey
-   * Change user password
-   * Re-encrypts private key with new password
+   * Cambia la contraseña de un usuario.
+   * Descifra la clave privada con la contraseña actual, la recifra con la nueva
+   * y actualiza el hash de contraseña en BD.
+   * @deprecated La gestión de contraseñas debe realizarse en el frontend.
+   * @param userId - UUID del usuario.
+   * @param currentPassword - Contraseña actual.
+   * @param newPassword - Nueva contraseña.
+   * @throws Error si el usuario no existe, no tiene contraseña o la contraseña actual es incorrecta.
    */
   static async changePassword(
     userId: string,
     currentPassword: string,
     newPassword: string
   ): Promise<void> {
-    console.warn('AuthService.changePassword is deprecated. Password changes should be handled in frontend.');
-    // Validate new password with robust policy
+    logger.warn('AuthService.changePassword is deprecated. Password changes should be handled in frontend.');
+    // Validar nueva contraseña con política robusta
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.valid) {
       throw new Error(`Validación de contraseña fallida: ${passwordValidation.errors.join(', ')}`);
@@ -654,12 +621,12 @@ export class AuthService {
       throw new Error('Usuario no encontrado');
     }
 
-    // If user has no password hash (wallet-based user), they can't change password
+    // Si el usuario no tiene hash de contraseña (usuario basado en wallet), no puede cambiarla
     if (!user.passwordHash) {
       throw new Error('Este usuario no tiene contraseña configurada');
     }
 
-    // Verify current password (support both Argon2id and bcrypt)
+    // Verificar contraseña actual (soporta Argon2id y bcrypt)
     const hashType = Argon2Service.detectHashType(user.passwordHash);
     let isValidPassword = false;
 
@@ -675,21 +642,21 @@ export class AuthService {
       throw new Error('La contraseña actual es incorrecta');
     }
 
-    // Decrypt private key with current password
+    // Descifrar clave privada con contraseña actual
     const privateKey = KeyManager.decryptPrivateKey(
       user.encryptedPrivateKey,
       currentPassword
     );
 
-    // Re-encrypt with new password
+    // Recifrar con nueva contraseña
     const newEncryptedPrivateKey = KeyManager.encryptPrivateKey(privateKey, newPassword);
 
-    // Hash new password with Argon2id
+    // Hashear nueva contraseña con Argon2id
     const newHashedPassword = await Argon2Service.hash(newPassword);
 
     logger.info(`Usuario ${userId} cambiando contraseña (fortaleza: ${passwordValidation.strength})`);
 
-    // Update user
+    // Actualizar usuario
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -698,15 +665,19 @@ export class AuthService {
       }
     });
 
-    // Invalidate all sessions (force re-login with new password)
+    // Invalidar todas las sesiones (forzar re-login con nueva contraseña)
     await TokenService.revokeAllUserSessions(userId);
 
     logger.info(`Contraseña del usuario ${userId} cambiada exitosamente`);
   }
 
   /**
-   * Update user's encrypted private key (for wallet-based users)
-   * Called when user changes their encryption password in frontend
+   * Actualiza la clave privada cifrada de un usuario (para usuarios basados en wallet).
+   * Se invoca cuando el usuario cambia su contraseña de cifrado en el frontend.
+   * @param userId - UUID del usuario.
+   * @param newEncryptedPrivateKey - Nueva clave privada cifrada.
+   * @param newPublicKey - Nueva clave pública (opcional).
+   * @throws Error si el usuario no existe.
    */
   static async updateEncryptedPrivateKey(
     userId: string,
@@ -733,14 +704,17 @@ export class AuthService {
   }
 
   /**
-   * Logout user by revoking refresh token
+   * Cierra la sesión de un usuario revocando su refresh token.
+   * @param refreshToken - Token de refresco a revocar.
    */
   static async logout(refreshToken: string): Promise<void> {
     await TokenService.revokeRefreshToken(refreshToken);
   }
 
   /**
-   * Refresh access token using refresh token
+   * Refresca el access token utilizando un refresh token válido.
+   * @param refreshToken - Token de refresco.
+   * @returns Nuevo access token y tiempo de expiración.
    */
   static async refreshToken(refreshToken: string): Promise<{ accessToken: string; expiresIn: number }> {
     return await TokenService.refreshAccessToken(refreshToken);

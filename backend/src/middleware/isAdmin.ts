@@ -2,7 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
 
 /**
- * Middleware to check if authenticated user is admin
+ * Middleware que verifica si el usuario autenticado posee el rol de administrador.
+ *
+ * @param req - Objeto de solicitud de Express.
+ * @param res - Objeto de respuesta de Express.
+ * @param next - Función para pasar el control al siguiente middleware.
+ * @returns Promesa que se resuelve en void.
  */
 export async function isAdmin(
   req: Request,

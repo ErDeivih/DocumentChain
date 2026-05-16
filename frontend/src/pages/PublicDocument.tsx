@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
 import AlertMessage from '../components/ui/AlertMessage';
-import { formatBytes, formatDate } from '../lib/utils';
+import { formatBytes, formatRelativeTime } from '../lib/utils';
 import {
   Download,
   ExternalLink,
@@ -21,6 +21,14 @@ import {
   User,
 } from 'lucide-react';
 
+/**
+ * Página pública de visualización de un documento compartido.
+ *
+ * Permite a cualquier persona con el enlace ver la vista previa del documento,
+ * descargarlo, consultar su historial de auditoría, versiones y firmas registradas.
+ *
+ * @returns JSX.Element con la vista pública del documento.
+ */
 export const PublicDocument: React.FC = () => {
   const navigate = useNavigate();
   const { publicId, versionNumber } = useParams<{ publicId: string; versionNumber?: string }>();
@@ -55,10 +63,19 @@ export const PublicDocument: React.FC = () => {
   const contentUrl = publicDocumentsApi.getContentUrl(document.publicId, selectedVersion.versionNumber);
   const downloadUrl = publicDocumentsApi.getDownloadUrl(document.publicId, selectedVersion.versionNumber);
 
+  /**
+   * Navega al detalle del documento dentro de la aplicación autenticada.
+   */
   const openInApp = () => {
     navigate(`/app/documents/${document.id}`);
   };
 
+  /**
+   * Redirige a la página de inicio de sesión conservando la ruta de retorno.
+   *
+   * Permite que un usuario no autenticado acceda posteriormente al documento
+   * desde el entorno autenticado tras iniciar sesión.
+   */
   const loginForAdvancedActions = () => {
     navigate('/login', {
       state: {
@@ -71,6 +88,7 @@ export const PublicDocument: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
+      {/* Encabezado del documento público */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">{document.name}</h1>
@@ -79,6 +97,7 @@ export const PublicDocument: React.FC = () => {
           </p>
         </div>
 
+        {/* Acciones principales */}
         <div className="flex flex-wrap gap-2">
           <a href={downloadUrl}>
             <Button variant="primary">
@@ -101,10 +120,12 @@ export const PublicDocument: React.FC = () => {
         </div>
       </div>
 
+      {/* Contenido principal y barra lateral */}
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
         <div className="space-y-6">
           <PublicDocumentPreview contentUrl={contentUrl} mimeType={document.mimeType} fileName={document.name} />
 
+          {/* Historial de auditoría pública */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -118,7 +139,7 @@ export const PublicDocument: React.FC = () => {
                   <div key={event.id} className="rounded-lg border p-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-medium text-foreground">{event.eventType}</p>
-                      <span className="text-xs text-muted-foreground">{formatDate(event.timestamp)}</span>
+                      <span className="text-xs text-muted-foreground">{formatRelativeTime(event.timestamp)}</span>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">Actor: {event.actor || 'Sistema'}</p>
                   </div>
@@ -128,6 +149,7 @@ export const PublicDocument: React.FC = () => {
           </Card>
         </div>
 
+        {/* Panel lateral con metadatos, versiones y firmas */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -148,7 +170,7 @@ export const PublicDocument: React.FC = () => {
               </div>
               <div>
                 <p className="text-muted-foreground">Publicado el</p>
-                <p className="font-medium">{formatDate(document.createdAt)}</p>
+                <p className="font-medium">{formatRelativeTime(document.createdAt)}</p>
               </div>
               {document.blockchainId ? (
                 <div>
@@ -181,7 +203,7 @@ export const PublicDocument: React.FC = () => {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium">Versión {version.versionNumber}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(version.createdAt)}</p>
+                        <p className="text-xs text-muted-foreground">{formatRelativeTime(version.createdAt)}</p>
                       </div>
                       {version.isOperational ? <Badge variant="success">Activa</Badge> : null}
                     </div>
@@ -209,7 +231,7 @@ export const PublicDocument: React.FC = () => {
                       <p className="font-medium text-foreground">
                         {signature.signer?.fullName || signature.signer?.username || 'Firmante registrado'}
                       </p>
-                      <p className="text-xs text-muted-foreground">Versión {signature.versionNumber} · {formatDate(signature.signedAt)}</p>
+                      <p className="text-xs text-muted-foreground">Versión {signature.versionNumber} · {formatRelativeTime(signature.signedAt)}</p>
                     </div>
                   ))
                 )}

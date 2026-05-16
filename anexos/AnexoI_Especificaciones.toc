@@ -15,8 +15,8 @@
 \contentsline {subsection}{\numberline {4.1}Requisitos de información}{13}{subsection.4.1}%
 \contentsline {subsubsection}{\numberline {4.1.1}IRQ-0001: Datos de usuario y autenticación}{13}{subsubsection.4.1.1}%
 \contentsline {subsubsection}{\numberline {4.1.2}IRQ-0002: Documentos y versionado}{14}{subsubsection.4.1.2}%
-\contentsline {subsubsection}{\numberline {4.1.3}IRQ-0003: Organización y categorización}{15}{subsubsection.4.1.3}%
-\contentsline {subsubsection}{\numberline {4.1.4}IRQ-0004: Firmas digitales}{16}{subsubsection.4.1.4}%
+\contentsline {subsubsection}{\numberline {4.1.3}IRQ-0003: Organización y etiquetado}{15}{subsubsection.4.1.3}%
+\contentsline {subsubsection}{\numberline {4.1.4}IRQ-0004: Firmas digitales}{15}{subsubsection.4.1.4}%
 \contentsline {subsubsection}{\numberline {4.1.5}IRQ-0005: Eventos y auditoría}{16}{subsubsection.4.1.5}%
 \contentsline {subsubsection}{\numberline {4.1.6}IRQ-0006: Estadísticas y métricas}{17}{subsubsection.4.1.6}%
 \contentsline {subsubsection}{\numberline {4.1.7}IRQ-0007: Notificaciones y comunicaciones}{18}{subsubsection.4.1.7}%
@@ -63,32 +63,32 @@
 \contentsline {subsubsection}{UC-0025: Crear Nueva Versión}{50}{section*.54}%
 \contentsline {subsubsection}{UC-0026: Listar Versiones}{51}{section*.56}%
 \contentsline {subsubsection}{UC-0027: Establecer Versión Operativa}{52}{section*.58}%
-\contentsline {subsubsection}{UC-0028: Restaurar Versión Anterior}{52}{section*.60}%
-\contentsline {subsubsection}{UC-0029: Descargar Versión Específica}{53}{section*.62}%
-\contentsline {subsubsection}{UC-0030: Firmar Documento}{54}{section*.64}%
-\contentsline {subsubsection}{UC-0031: Ver Firmas de un Documento}{55}{section*.66}%
-\contentsline {subsubsection}{UC-0032: Verificar Firma en Blockchain}{56}{section*.68}%
-\contentsline {subsubsection}{UC-0033: Compartir Documento}{57}{section*.70}%
-\contentsline {subsubsection}{UC-0034: Revocar Acceso a Documento}{58}{section*.72}%
-\contentsline {subsubsection}{UC-0035: Ver Documentos Compartidos Conmigo}{59}{section*.74}%
-\contentsline {subsubsection}{UC-0036: Ver Timeline de Documento}{60}{section*.76}%
-\contentsline {subsubsection}{UC-0037: Ver Estadísticas Personales}{61}{section*.78}%
-\contentsline {subsubsection}{UC-0038: Ver Estadísticas Globales del Sistema}{62}{section*.80}%
-\contentsline {subsubsection}{UC-0039: Verificar Autenticidad de Documento}{63}{section*.82}%
-\contentsline {subsubsection}{UC-0040: Auditoría Blockchain}{64}{section*.84}%
-\contentsline {subsubsection}{UC-0041: Listar Usuarios}{65}{section*.86}%
-\contentsline {subsubsection}{UC-0042: Gestionar Roles de Usuario}{66}{section*.88}%
-\contentsline {section}{\numberline {5}Matrices de rastreabilidad}{67}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Matriz IRQ-OBJ}{67}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Matriz NFR-IRQ}{67}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Matriz NFR-NFR}{68}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Matriz NFR-OBJ}{68}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Matriz UC-NFR}{68}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Matriz UC-IRQ}{69}{subsection.5.6}%
-\contentsline {subsection}{\numberline {5.7}Matriz UC-UC}{70}{subsection.5.7}%
-\contentsline {subsection}{\numberline {5.8}Matriz UC-OBJ}{70}{subsection.5.8}%
-\contentsline {section}{\numberline {6}Propuesta arquitectónica}{71}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Arquitectura por paquetes}{71}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Diagrama de arquitectura}{72}{subsection.6.2}%
-\contentsline {section}{\numberline {7}Glosario}{74}{section.7}%
-\contentsline {section}{Bibliografía}{74}{section*.89}%
+\contentsline {subsubsection}{UC-0028: Restaurar Versión Anterior}{53}{section*.60}%
+\contentsline {subsubsection}{UC-0029: Descargar Versión Específica}{54}{section*.62}%
+\contentsline {subsubsection}{UC-0030: Firmar Documento}{55}{section*.64}%
+\contentsline {subsubsection}{UC-0031: Ver Firmas de un Documento}{56}{section*.66}%
+\contentsline {subsubsection}{UC-0032: Verificar Firma en Blockchain}{57}{section*.68}%
+\contentsline {subsubsection}{UC-0033: Compartir Documento}{58}{section*.70}%
+\contentsline {subsubsection}{UC-0034: Revocar Acceso a Documento}{59}{section*.72}%
+\contentsline {subsubsection}{UC-0035: Ver Documentos Compartidos Conmigo}{60}{section*.74}%
+\contentsline {subsubsection}{UC-0036: Ver Timeline de Documento}{61}{section*.76}%
+\contentsline {subsubsection}{UC-0037: Ver Estadísticas Personales}{62}{section*.78}%
+\contentsline {subsubsection}{UC-0038: Ver Estadísticas Globales del Sistema}{63}{section*.80}%
+\contentsline {subsubsection}{UC-0039: Verificar Autenticidad de Documento}{64}{section*.82}%
+\contentsline {subsubsection}{UC-0040: Auditoría Blockchain}{65}{section*.84}%
+\contentsline {subsubsection}{UC-0041: Listar Usuarios}{66}{section*.86}%
+\contentsline {subsubsection}{UC-0042: Gestionar Roles de Usuario}{67}{section*.88}%
+\contentsline {section}{\numberline {5}Matrices de rastreabilidad}{68}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Matriz IRQ-OBJ}{68}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Matriz NFR-IRQ}{68}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Matriz NFR-NFR}{69}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Matriz NFR-OBJ}{69}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Matriz UC-NFR}{69}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Matriz UC-IRQ}{70}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}Matriz UC-UC}{71}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Matriz UC-OBJ}{71}{subsection.5.8}%
+\contentsline {section}{\numberline {6}Propuesta arquitectónica}{72}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Arquitectura por paquetes}{72}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Diagrama de arquitectura}{73}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Glosario}{75}{section.7}%
+\contentsline {section}{Bibliografía}{75}{section*.89}%

@@ -10,10 +10,22 @@ import { DocumentList } from '../components/documents/DocumentList';
 import { UploadModal } from '../components/documents/UploadModal';
 import { CreateFolderModal } from '../components/folders/CreateFolderModal';
 import { FolderBreadcrumb } from '../components/folders/FolderBreadcrumb';
-import { Upload, FileText, FolderPlus, Search, Filter } from 'lucide-react';
+import { useDebounce } from '../hooks/useDebounce';
+import { Upload, FileText, FolderPlus, Search, Filter, Loader2 } from 'lucide-react';
 
+/**
+ * Tipos de vista para la lista de documentos del usuario.
+ */
 type ViewTab = 'active' | 'archived';
 
+/**
+ * Página de gestión de documentos del usuario.
+ *
+ * Permite listar, buscar, filtrar y paginar documentos activos y archivados,
+ * además de iniciar el flujo de subida de nuevos documentos y creación de carpetas.
+ *
+ * @returns JSX.Element con la interfaz de documentos del usuario.
+ */
 export const Documents: React.FC = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
@@ -21,8 +33,12 @@ export const Documents: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [parentFolderForCreate, setParentFolderForCreate] = useState<Folder | null>(null);
   const [activeTab, setActiveTab] = useState<ViewTab>('active');
+  const [searchInput, setSearchInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [fileTypeFilter, setFileTypeFilter] = useState<string>('');
+  const [pageSize, setPageSize] = useState(10);
+
+  const debouncedSearch = useDebounce(searchInput, 300);
 
   // Escuchar evento de selección de carpeta desde el Sidebar
   useEffect(() => {
@@ -38,16 +54,22 @@ export const Documents: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setSearchTerm(debouncedSearch);
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
   const {
     data: documentsData,
     isLoading,
+    isFetching,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['documents', currentPage, selectedFolder?.id, activeTab, searchTerm, fileTypeFilter],
+    queryKey: ['documents', currentPage, selectedFolder?.id, activeTab, searchTerm, fileTypeFilter, pageSize],
     queryFn: () => listDocuments({ 
       page: currentPage, 
-      limit: 10,
+      limit: pageSize,
       folderId: selectedFolder?.id,
       onlyArchived: activeTab === 'archived',
       includeArchived: false,
@@ -91,14 +113,14 @@ export const Documents: React.FC = () => {
   const hasDocuments = documentsData && documentsData.documents && documentsData.documents.length > 0;
   const pagination = {
     page: documentsData?.page || 1,
-    limit: 10,
+    limit: pageSize,
     total: documentsData?.total || 0,
     totalPages: documentsData?.totalPages || 1,
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground">Mis Documentos</h1>
           {selectedFolder && (
@@ -119,6 +141,61 @@ export const Documents: React.FC = () => {
             <Upload className="w-4 h-4 mr-2" />
             Subir Documento
           </Button>
+        </div>
+      </div>
+
+      {/* Search and Filters - Outside document container */}
+      <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-10 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
+          />
+          {isFetching && (
+            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <select
+              value={fileTypeFilter}
+              onChange={(e) => {
+                setFileTypeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Todos los tipos</option>
+              <option value="pdf">PDF</option>
+              <option value="doc">DOC</option>
+              <option value="docx">DOCX</option>
+              <option value="txt">TXT</option>
+              <option value="jpg">JPG</option>
+              <option value="png">PNG</option>
+              <option value="zip">ZIP</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Mostrar:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -157,47 +234,6 @@ export const Documents: React.FC = () => {
             Los documentos archivados permanecen visibles para quienes tienen acceso, pero no se pueden modificar ni crear nuevas versiones hasta que se desarchiven.
           </div>
         )}
-
-        {/* Search and Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="w-full rounded-lg border border-border bg-background py-2 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <select
-                  value={fileTypeFilter}
-                  onChange={(e) => {
-                    setFileTypeFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Todos los tipos</option>
-                  <option value="pdf">PDF</option>
-                  <option value="doc">DOC</option>
-                  <option value="docx">DOCX</option>
-                  <option value="txt">TXT</option>
-                  <option value="jpg">JPG</option>
-                  <option value="png">PNG</option>
-                  <option value="zip">ZIP</option>
-                </select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {!hasDocuments ? (
           <Card>

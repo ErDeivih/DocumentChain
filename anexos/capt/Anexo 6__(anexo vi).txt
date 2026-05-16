@@ -1,0 +1,577 @@
+ANEXO VI
+Manual de usuario.
+Diseño y desarrollo de una plataforma robótica para la
+agilización de procesos en la hostelería
+Trabajo de Fin de Grado
+Grado en Ingeniería Informática
+
+Julio 2022
+
+Autor
+David Cruz García
+
+Tutores
+André Filipe Sales Mendes
+Gabriel Villarrubia González
+Juan Francisco de Paz Santana
+
+Anexo VI: Manual de usuario.
+
+Tabla de contenido
+1 Introducción .............................................................................. 5
+.................................................................... 6
+2.1 Pantalla de pedidos usuario no logueado ............................ 7
+2.2 Pantalla de inicio de sesión ................................................. 9
+2.3 Pantalla de registro ........................................................... 10
+2.4 Restablecer contraseña .................................................... 12
+2.5 Pantalla de pedidos cliente ............................................... 14
+2.6 Pantalla de pedidos administrador .................................... 17
+2.7 Panel de control del administrador .................................... 18
+2.7.1 Pantalla Cocteles......................................................... 18
+2.7.2 Pantalla Recetas ......................................................... 19
+2.7.2 Pantalla Bebidas.......................................................... 23
+2.7.3 Pantalla Disposición .................................................... 25
+2.7.4 Pantalla Perfil .............................................................. 28
+2.7.5 Pantalla Estadísticas generales ................................... 28
+2.7.6 Pantalla Vista Cliente .................................................. 29
+2.7.7 Gestionar robot ............................................................ 29
+2.7.8 Otras opciones ............................................................ 30
+2.8 Robot ................................................................................ 31
+2.8.1 Arranque robot ............................................................ 31
+2.8.2 Cambio bebidas en dispensadores .............................. 32
+2.8.3 LED Robot ................................................................... 33
+
+2
+
+Anexo VI: Manual de usuario.
+
+Índice de ilustraciones
+Ilustración 1. Pantalla de pedidos desde ordenador. ................................................ 7
+Ilustración 2. Pantalla de pedidos desde ordenador bebida seleccionada ................ 7
+Ilustración 3. Pantalla de pedidos desde móvil bebida seleccionada ........................ 8
+Ilustración 4. Pantalla de pedidos desde móvil. ........................................................ 8
+Ilustración 5. Pantalla de pedidos bebidas más pedidas. ......................................... 8
+Ilustración 6. Menú pedidos desde móvil. ................................................................. 8
+Ilustración 7. Pantalla de Inicio de sesión. ................................................................ 9
+Ilustración 8. Pantalla de Inicio de sesión con error. ................................................. 9
+Ilustración 9. Pantalla de registro. .......................................................................... 10
+Ilustración 10. Pantalla de registro validación de datos. ......................................... 10
+Ilustración 11. Pantalla de Registro aviso tras registro. .......................................... 11
+Ilustración 12. Pantalla de Registro email de confirmación. .................................... 11
+Ilustración 13. Pantalla de Restablecer contraseña. ............................................... 12
+Ilustración 14. Pantalla para introducir código enviado al email. ............................. 12
+Ilustración 15. Correo electrónico con código de actualización. .............................. 12
+Ilustración 16. Aviso restableciendo contraseña. .................................................... 13
+Ilustración 17. Email nueva contraseña. ................................................................. 13
+Ilustración 18. Pantalla de pedidos para un cliente desde ordenador. .................... 14
+Ilustración 19. Pantalla de pedidos para un cliente desde móvil. ............................ 14
+Ilustración 20. Perfil del cliente. .............................................................................. 15
+Ilustración 21. Estadísticas del cliente. ................................................................... 15
+Ilustración 22. Email actualización de datos de perfil.............................................. 16
+Ilustración 23. Confirmación eliminar cuenta. ......................................................... 16
+Ilustración 24. Email eliminación de cuenta. ........................................................... 16
+Ilustración 25. Pantalla de pedidos para un administrador desde ordenador .......... 17
+Ilustración 26. Pantalla de pedidos para un administrador desde móvil. ................. 17
+Ilustración 27. Pantalla Cocteles panel de control administrador. ........................... 18
+Ilustración 28. Pantalla Cocteles con bebida inactiva. ............................................ 18
+Ilustración 29. Pantalla Recetas panel de control administrador. ............................ 19
+Ilustración 30. Pantalla para añadir receta. ............................................................ 19
+Ilustración 31. Pantalla para añadir imagen a receta. ............................................. 20
+Ilustración 32. Pantalla para asignar porcentajes a bebidas de receta. .................. 20
+Ilustración 33. Pantalla para modificar receta. ........................................................ 21
+Ilustración 34. Pantalla para eliminar receta. .......................................................... 21
+Ilustración 35. Diálogo de aviso en recetas. ........................................................... 22
+Ilustración 36. Diálogo de éxito en recetas. ............................................................ 22
+Ilustración 37. Pantalla Bebidas panel de control administrador. ............................ 23
+Ilustración 38. Pantalla para añadir bebida. ............................................................ 23
+Ilustración 39. Pantalla para modificar bebida. ....................................................... 24
+Ilustración 40. Pantalla para eliminar bebida. ......................................................... 24
+Ilustración 41. Diálogo de éxito en bebidas. ........................................................... 24
+Ilustración 42. Pantalla Disposición en ordenador. ................................................. 25
+Ilustración 43. Pantalla Disposición en móvil. ......................................................... 25
+Ilustración 44. Disposición tras eliminar la bebida "Limón". .................................... 26
+Ilustración 45. Recetas tras eliminar la bebida "Limón" de la disposición. .............. 26
+Ilustración 46. Activar receta con bebidas no activas. ............................................ 27
+Ilustración 47. Pantalla Perfil panel de control de administrador. ............................ 28
+Ilustración 48. Pantalla Estadísticas generales panel de control de administrador. 28
+3
+
+Anexo VI: Manual de usuario.
+Ilustración 49. Botón menú acceder vista cliente. ................................................... 29
+Ilustración 50. Botón menú acceder gestión robot. ................................................. 29
+Ilustración 51. Menú de gestión Barbot. ................................................................. 29
+Ilustración 52. Otras opciones. ............................................................................... 30
+Ilustración 53. Menú de configuración. ................................................................... 30
+Ilustración 54. Arranque del robot........................................................................... 31
+Ilustración 55. Retirar dispensadores. .................................................................... 32
+Ilustración 56. Colocar dispensador en botella. ...................................................... 32
+Ilustración 57. Colocar dispensador con botella. .................................................... 33
+Ilustración 58. LEDs de preparación y finalización de receta. ................................. 34
+
+4
+
+Anexo VI: Manual de usuario.
+
+1 Introducción
+Este documento está enfocado a proporcionar una explicación del funcionamiento de
+la aplicación a un usuario sin experiencia, de una forma comprensible y sencilla.
+El objetivo principal es el de dar un soporte a un nuevo usuario, explicando todas las
+interacciones posibles tanto para un usuario cliente como un usuario administrador.
+Se explicarán todas las funciones, desde iniciar/cerrar sesión, pedir una receta o ver
+estadísticas, hasta funciones más complejas para un administrador como gestionar el
+robot, ver la disposición de las bebidas o trabajar con las recetas.
+La aplicación está adaptada para distintos tipos de pantallas (es responsiva), por lo
+que se contemplará en las imágenes la vista de ordenador principalmente, aunque se
+adjuntarán imágenes desde la vista de móvil cuando haya cambios no solo en la
+disposición, sino en otros elementos relevantes (cambios en menús, reordenamiento de
+elementos, etc).
+
+5
+
+Anexo VI: Manual de usuario.
+
+6
+
+Anexo VI: Manual de usuario.
+
+2.1 Pantalla de pedidos usuario no logueado
+La pantalla de inicio para cualquier usuario será la pantalla de pedidos. En este
+apartado nos centramos en la vista del usuario no logueado. Aquí un usuario no
+logueado podrá hacer 4 cosas:
+• Iniciar sesión: el usuario podrá iniciar sesión. Se le redirigirá a la página de
+Inicio de sesión.
+• Bebidas: consultar las bebidas de una receta
+• Pedir: pedir una de las recetas para que sea preparada por el robot.
+• Consultar bebidas más pedidas: las medallas situadas en la parte superior
+izquierda indican que esas bebidas están en el top 3 de las bebidas más
+consumidas por los usuarios.
+
+Ilustración 1. Pantalla de pedidos desde ordenador.
+
+Ilustración 2. Pantalla de pedidos desde ordenador bebida seleccionada
+
+7
+
+Anexo VI: Manual de usuario.
+
+Ilustración 4. Pantalla de
+pedidos desde móvil.
+
+Ilustración 3. Pantalla de
+pedidos desde móvil bebida
+seleccionada
+
+Ilustración 5. Pantalla de pedidos bebidas más pedidas.
+
+Ilustración 6. Menú pedidos desde móvil.
+
+8
+
+Anexo VI: Manual de usuario.
+
+2.2 Pantalla de inicio de sesión
+En esta pantalla un usuario que no haya iniciado sesión dentro del sistema podrá
+iniciar sesión si dispone de unas credenciales válidas. Para ello las introducirá en las
+casillas de Usuario y Contraseña, pudiendo recordar dichas credenciales hasta que
+cierre sesión.
+En caso de no disponer de credenciales válidas, el usuario podrá dirigirse a:
+•
+•
+•
+
+Registro: accederá a la pantalla de registro donde podrá registrarse como
+cliente en el sistema.
+Restablecer contraseña: en caso de olvidar la contraseña, se redirigirá al
+usuario a la pantalla para recordar la contraseña.
+Pedidos: volverá a la pantalla de inicio para realizar pedidos sin credenciales
+válidas (2.1 Pantalla de pedidos usuario no logueado).
+
+En caso de iniciar sesión correctamente, se le redirigirá a la pantalla de inicio (2.1
+Pantalla de pedidos usuario no logueado) con una sesión activa. En caso de no poner
+correctamente los datos, será notificado.
+
+Ilustración 7. Pantalla de Inicio de sesión.
+
+Ilustración 8. Pantalla de Inicio de sesión con error.
+
+9
+
+Anexo VI: Manual de usuario.
+
+2.3 Pantalla de registro
+En esta pantalla el usuario podrá registrarse dentro del sistema. Para ello introducirá
+una serie de datos que serán validados por el sistema.
+En caso de no querer registrarse, podrá volver a la ventana de inicio de sesión.
+
+Ilustración 9. Pantalla de registro.
+
+Ilustración 10. Pantalla de registro validación de datos.
+
+Una vez el usuario ha introducido los datos correctamente, se enviará un email a su
+correo electrónico con un link para confirmar el registro. Una vez el usuario haga click
+en el link, su usuario quedará verificado y listo para iniciar sesión.
+
+10
+
+Anexo VI: Manual de usuario.
+
+Ilustración 11. Pantalla de Registro aviso tras registro.
+
+Ilustración 12. Pantalla de Registro email de confirmación.
+
+11
+
+Anexo VI: Manual de usuario.
+
+2.4 Restablecer contraseña
+Con esta pantalla el usuario podrá restablecer su contraseña introduciendo su email.
+Si el email es correcto se enviará un correo con un código que el usuario tendrá que
+introducir. Una vez introducido el código, si es correcto, se enviará una nueva
+contraseña a su correo electrónico.
+
+Ilustración 13. Pantalla de Restablecer contraseña.
+
+Ilustración 14. Pantalla para introducir código enviado al email.
+
+Ilustración 15. Correo electrónico con código de actualización.
+
+12
+
+Anexo VI: Manual de usuario.
+
+Ilustración 16. Aviso restableciendo contraseña.
+
+Ilustración 17. Email nueva contraseña.
+
+13
+
+Anexo VI: Manual de usuario.
+
+2.5 Pantalla de pedidos cliente
+Una vez el usuario ha iniciado sesión y es un cliente, aparecerán nuevas opciones
+en la barra de menú de la pantalla de pedidos. Esas opciones son:
+•
+•
+•
+
+Perfil: sirve para consultar su perfil como cliente. Mostrará los datos de perfil:
+usuario, email y contraseña, y permitirá modificarlo o eliminar la cuenta.
+Estadísticas: permite al cliente acceder a las estadísticas del usuario
+(número de veces pedida cada receta existente en el sistema).
+Cerrar sesión: permite finalizar la sesión.
+
+Ilustración 18. Pantalla de pedidos para un cliente desde ordenador.
+
+Ilustración 19. Pantalla de pedidos para un cliente desde móvil.
+
+14
+
+Anexo VI: Manual de usuario.
+En el caso de modificar el perfil o eliminar la cuenta, habrá que confirmar la acción
+introduciendo un código que permita realizar la acción (el código es enviado por email
+como en apartados anteriores)
+
+Ilustración 20. Perfil del cliente.
+
+Ilustración 21. Estadísticas del cliente.
+
+15
+
+Anexo VI: Manual de usuario.
+
+Ilustración 22. Email actualización de datos de perfil.
+
+Ilustración 23. Confirmación eliminar cuenta.
+
+Ilustración 24. Email eliminación de cuenta.
+
+16
+
+Anexo VI: Manual de usuario.
+
+2.6 Pantalla de pedidos administrador
+Una vez el usuario ha iniciado sesión y es un cliente, aparecerán nuevas opciones
+en la barra de menú de la pantalla de pedidos. Esas opciones son:
+•
+•
+
+Panel de control: permite acceder al panel de control donde se pueden
+gestionar las recetas, bebidas, …
+Cerrar sesión: permite finalizar la sesión.
+
+Ilustración 25. Pantalla de pedidos para un administrador desde ordenador
+
+Ilustración 26. Pantalla de pedidos para un administrador desde móvil.
+
+17
+
+Anexo VI: Manual de usuario.
+
+2.7 Panel de control del administrador
+2.7.1 Pantalla Cocteles
+En esta pantalla el administrador podrá administrar los cócteles con una vista similar
+al del cliente, pero con un cambio: aquí el administrador podrá activar/desactivar una
+receta. Esto solo será posible si las bebidas de la receta están colocadas en la
+disposición del robot (alguno de los surtidores).
+
+Ilustración 27. Pantalla Cocteles panel de control administrador.
+
+Ilustración 28. Pantalla Cocteles con bebida inactiva.
+
+18
+
+Anexo VI: Manual de usuario.
+
+2.7.2 Pantalla Recetas
+En esta pantalla el administrador puede gestionar completamente las recetas
+expuestas en la aplicación. Puede añadir recetas o eliminar/modificar alguna ya
+existente. Esta pantalla muestra una tabla con todas las recetas almacenadas,
+mostrando sus datos de una forma visual e intuitiva. Además, se dispone de un buscador
+con el que localizar de forma rápida las recetas dentro del sistema.
+
+Ilustración 29. Pantalla Recetas panel de control administrador.
+
+Se dispone de una pantalla que permite añadir una receta indicando su nombre, una
+descripción, una imagen de 1 hasta 6 bebidas (el máximo que permite el robot) y sus
+porcentajes para la receta. Además, las nuevas recetas vienen desactivadas por
+defecto, ya que para activarlas se debe de hacer manualmente teniendo las bebidas
+dispuestas en el robot.
+
+Ilustración 30. Pantalla para añadir receta.
+
+19
+
+Anexo VI: Manual de usuario.
+
+Ilustración 31. Pantalla para añadir imagen a receta.
+
+Ilustración 32. Pantalla para asignar porcentajes a bebidas de receta.
+
+El máximo porcentaje total es 100%. En caso de no respetarlo, la aplicación no
+permitirá seleccionar un porcentaje cuya suma supere ese 100%.
+Para modificar una receta existente, se dispone de otra pantalla que se accede a
+través del icono azul situado en la parte derecha de cada fila de la tabla. Este botón
+abrirá una pantalla similar a la anterior y con las mismas opciones, pero carga los datos
+de la bebida. Así, se podrá modificar cualquiera de los datos de la bebida, incluso
+activarla desde aquí si es necesario.
+
+20
+
+Anexo VI: Manual de usuario.
+
+Ilustración 33. Pantalla para modificar receta.
+
+Finalmente, la última opción dentro de esta pantalla es la opción de eliminar receta.
+Para acceder a ella hay que dirigirse al botón rojo situado en la parte derecha de cada
+receta (al lado del botón de editar). Este botón abrirá una pantalla pidiendo una
+confirmación, avisando mediante una advertencia (si es oportuna) cuando una de las
+recetas está activa en el sistema y las consecuencias de eliminarla.
+
+Ilustración 34. Pantalla para eliminar receta.
+
+21
+
+Anexo VI: Manual de usuario.
+
+En caso de añadir, modificar o eliminar una receta, se avisará al administrador
+mediante un diálogo situado en la parte inferior derecha donde se le indica si la acción
+realizada ha sido correctamente ejecutada. Por ejemplo, se mostrarán los siguientes
+mensajes dependiendo de la acción realizada:
+
+Ilustración 35. Diálogo de aviso en recetas.
+
+Ilustración 36. Diálogo de éxito en recetas.
+
+22
+
+Anexo VI: Manual de usuario.
+
+2.7.2 Pantalla Bebidas
+Pantalla muy similar a la anterior, pero para la gestión de bebidas. Aquí se podrán
+añadir, modificar o eliminar bebidas dentro del sistema de una forma similar a las
+recetas.
+
+Ilustración 37. Pantalla Bebidas panel de control administrador.
+
+Ilustración 38. Pantalla para añadir bebida.
+
+23
+
+Anexo VI: Manual de usuario.
+
+Ilustración 39. Pantalla para modificar bebida.
+
+En el caso de eliminar una bebida, se mostrarán varios avisos en el caso de que una
+bebida esté en uso en una receta y/o en la disposición del robot.
+
+Ilustración 40. Pantalla para eliminar bebida.
+
+Ilustración 41. Diálogo de éxito en bebidas.
+
+24
+
+Anexo VI: Manual de usuario.
+
+2.7.3 Pantalla Disposición
+En esta pantalla se mostrará de forma visual (según el color asignado a la bebida)
+una imagen con las botellas activas en el robot. Esta pantalla pretende ofrecer una vista
+similar a la del robot para que esta sea lo más intuitiva posible. Se pueden realizar 3
+acciones:
+• Asignar una bebida a la disposición de bebidas: se dispone de un
+desplegable por cada bebida en la disposición que permite seleccionar la
+bebida a colocar en esa posición.
+• Eliminar bebida de una posición: en cada posición se dispone de un botón
+rojo que permite eliminar la bebida asignada a dicha posición.
+• Guardar cambios: en caso de realizar una modificación en la disposición, se
+podrán guardar los cambios en el sistema.
+
+Ilustración 42. Pantalla Disposición en ordenador.
+
+Ilustración 43. Pantalla Disposición en móvil.
+
+25
+
+Anexo VI: Manual de usuario.
+Cabe destacar que la disposición es una parte fundamental para la exposición de
+recetas en la aplicación:
+•
+•
+
+Las recetas cuyas bebidas no están todas dispuestas en este menú (es decir,
+en el robot), no se podrán activar.
+En caso de eliminar una de las bebidas de la disposición, las recetas que
+contengan dicha bebida se desactivarán automáticamente.
+
+Ilustración 44. Disposición tras eliminar la bebida "Limón".
+
+Ilustración 45. Recetas tras eliminar la bebida "Limón" de la disposición.
+
+Como se observa en el ejemplo, una vez retiramos la bebida “Limón” todas las
+recetas con dicha bebida se desactivan automáticamente
+
+26
+
+Anexo VI: Manual de usuario.
+
+Ilustración 46. Activar receta con bebidas no activas.
+
+Al tratar de activar una de las recetas que no tienen todas sus bebidas colocadas en
+la disposición del robot se lanzará un mensaje de aviso al usuario indicándole que no
+se puede activar una bebida que no tenga todas sus bebidas listas.
+
+27
+
+Anexo VI: Manual de usuario.
+
+2.7.4 Pantalla Perfil
+Esta pantalla permite al usuario acceder a su perfil y sus estadísticas personales, del
+mismo modo que hacía el cliente en la “Ilustración 20: Perfil del cliente” e “Ilustración
+21: Estadísticas del cliente”. La principal diferencia es que un administrador no puede
+eliminar su cuenta directamente desde la aplicación para evitar sabotajes.
+
+Ilustración 47. Pantalla Perfil panel de control de administrador.
+
+2.7.5 Pantalla Estadísticas generales
+En esta pantalla el administrador podrá consultar las estadísticas generales sobre las
+recetas activas en el sistema. Con esto podrá tomar decisiones sobre las recetas
+ofrecidas según el número total de peticiones de las mismas.
+
+Ilustración 48. Pantalla Estadísticas generales panel de control de administrador.
+
+28
+
+Anexo VI: Manual de usuario.
+
+2.7.6 Pantalla Vista Cliente
+Esta opción del panel de control redirige al usuario a la vista del cliente (2.6 Pantalla
+de pedidos administrador).
+
+Ilustración 49. Botón menú acceder vista cliente.
+
+2.7.7 Gestionar robot
+Esta opción del panel de control redirige al usuario a la página de OctoPrint expuesta
+por el robot. En esta página se puede gestionar el robot, tanto su conexión como su
+funcionamiento.
+
+Ilustración 50. Botón menú acceder gestión robot.
+
+Ilustración 51. Menú de gestión Barbot.
+
+29
+
+Anexo VI: Manual de usuario.
+
+2.7.8 Otras opciones
+Además de las opciones anteriores, se dispone de otras opciones situadas en la parte
+superior e inferior derecha. Estas opciones permiten ir al perfil, abrir la configuración del
+panel de control (colores y otras opciones) o cerrar sesión en la cuenta del
+administrador.
+
+Ilustración 52. Otras opciones.
+
+•
+•
+•
+
+Boton 1: se redirecciona al administrador a su perfil (2.7.4 Pantalla perfil).
+Boton 2/4: se abre un menú de configuración donde se pueden configurar
+parámetros de los menús como el color, el tipo, etc.
+Botón 3: cierra la sesión y redirige al administrador como usuario no logueado
+al inicio de sesión (2.2 Pantalla de inicio de sesión).
+
+Ilustración 53. Menú de configuración.
+
+30
+
+Anexo VI: Manual de usuario.
+
+2.8 Robot
+2.8.1 Arranque robot
+Para arrancar el robot, basta con enchufar ambos cables a la corriente. Con esto, la
+Raspberry Pi y el Arduino se arrancarán y comunicarán automáticamente.
+
+Ilustración 54. Arranque del robot.
+
+31
+
+Anexo VI: Manual de usuario.
+
+2.8.2 Cambio bebidas en dispensadores
+Para cambiar una bebida del robot se seguirán los siguientes pasos:
+1. Retirar el dispensador: para ello, tirar del tope situado en la parte inferior del
+dispensador, y tirar de él hacia el exterior (con cuidado en caso de tener una
+botella ya instalada).
+
+Ilustración 55. Retirar dispensadores.
+
+2. Colocar dispensador en la botella: colocar el dispensador con la botella
+recta e insertar su goma dentro de la botella lo máximo posible.
+
+Ilustración 56. Colocar dispensador en botella.
+
+32
+
+Anexo VI: Manual de usuario.
+3. Colocar dispensador: una vez colocado el dispensador en la botella,
+giramos la botella y colocamos el dispensador en el sitio de donde se retiró.
+Para ello, levantamos la barra de sujeción del dispensador que sujetará la
+botella y empujamos el dispensador en su lugar para volverlo a colocar.
+
+Ilustración 57. Colocar dispensador con botella.
+
+2.8.3 LED Robot
+En el caso del robot, aunque ya se ha visto la gestión del robot (2.7.7 Gestionar
+robot), falta indicar la forma de comunicación del robot con el usuario mediante el LED
+colocado en la parte media de la plataforma deslizante.
+
+33
+
+Anexo VI: Manual de usuario.
+Este LED avisará mediante un color rojo en el momento en el que está preparando
+una receta, cambiando a color verde cuando la receta haya sido completada
+
+Ilustración 58. LEDs de preparación y finalización de receta.
+
+34
+
+

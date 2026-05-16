@@ -1,0 +1,29 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0011: Verificar email (Análisis BCE)
+
+actor "Usuario registrado" as user
+boundary "Enlace de verificación" as ui
+control "Gestor de autenticación" as ctrl
+entity "Token de verificación" as token
+entity "Cuenta de usuario" as account
+
+user -> ui: Acceder a enlace de verificación (token)
+ui -> ctrl: Solicitar verificación de email (token)
+
+alt Token inválido o expirado
+    ctrl --> ui: Error de verificación
+    ui --> user: Mostrar error (enlace no válido)
+else Token válido
+    ctrl -> token: Validar token
+    token --> ctrl: Token válido
+    ctrl -> account: Activar cuenta (emailVerificado = true)
+    account --> ctrl: Cuenta activada
+    ctrl -> token: Invalidar token
+    token --> ctrl: Token invalidado
+    ctrl --> ui: Verificación completada
+    ui --> user: Mostrar confirmación (cuenta activada)
+end
+
+@enduml

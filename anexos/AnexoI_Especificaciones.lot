@@ -12,7 +12,7 @@
 \contentsline {table}{\numberline {11}{\ignorespaces Especificación del requisito IRQ-0001}}{13}{table.11}%
 \contentsline {table}{\numberline {12}{\ignorespaces Especificación del requisito IRQ-0002}}{14}{table.12}%
 \contentsline {table}{\numberline {13}{\ignorespaces Especificación del requisito IRQ-0003}}{15}{table.13}%
-\contentsline {table}{\numberline {14}{\ignorespaces Especificación del requisito IRQ-0004}}{16}{table.14}%
+\contentsline {table}{\numberline {14}{\ignorespaces Especificación del requisito IRQ-0004}}{15}{table.14}%
 \contentsline {table}{\numberline {15}{\ignorespaces Especificación del requisito IRQ-0005}}{16}{table.15}%
 \contentsline {table}{\numberline {16}{\ignorespaces Especificación del requisito IRQ-0006}}{17}{table.16}%
 \contentsline {table}{\numberline {17}{\ignorespaces Especificación del requisito IRQ-0007}}{18}{table.17}%
@@ -53,30 +53,30 @@
 \contentsline {table}{\numberline {52}{Especificación del caso de uso UC-0024}}{50}{table.52}%
 \contentsline {table}{\numberline {53}{Especificación del caso de uso UC-0025}}{51}{table.53}%
 \contentsline {table}{\numberline {54}{Especificación del caso de uso UC-0026}}{52}{table.54}%
-\contentsline {table}{\numberline {55}{Especificación del caso de uso UC-0027}}{52}{table.55}%
-\contentsline {table}{\numberline {56}{Especificación del caso de uso UC-0028}}{53}{table.56}%
-\contentsline {table}{\numberline {57}{Especificación del caso de uso UC-0029}}{54}{table.57}%
-\contentsline {table}{\numberline {58}{Especificación del caso de uso UC-0030}}{55}{table.58}%
-\contentsline {table}{\numberline {59}{Especificación del caso de uso UC-0031}}{56}{table.59}%
-\contentsline {table}{\numberline {60}{Especificación del caso de uso UC-0032}}{57}{table.60}%
-\contentsline {table}{\numberline {61}{Especificación del caso de uso UC-0033}}{58}{table.61}%
-\contentsline {table}{\numberline {62}{Especificación del caso de uso UC-0034}}{59}{table.62}%
-\contentsline {table}{\numberline {63}{Especificación del caso de uso UC-0035}}{60}{table.63}%
-\contentsline {table}{\numberline {64}{Especificación del caso de uso UC-0036}}{61}{table.64}%
-\contentsline {table}{\numberline {65}{Especificación del caso de uso UC-0037}}{62}{table.65}%
-\contentsline {table}{\numberline {66}{Especificación del caso de uso UC-0038}}{63}{table.66}%
-\contentsline {table}{\numberline {67}{Especificación del caso de uso UC-0039}}{64}{table.67}%
-\contentsline {table}{\numberline {68}{Especificación del caso de uso UC-0040}}{65}{table.68}%
-\contentsline {table}{\numberline {69}{Especificación del caso de uso UC-0041}}{66}{table.69}%
-\contentsline {table}{\numberline {70}{Especificación del caso de uso UC-0042}}{67}{table.70}%
-\contentsline {table}{\numberline {71}{\ignorespaces Matriz de rastreabilidad IRQ-OBJ}}{67}{table.71}%
-\contentsline {table}{\numberline {72}{\ignorespaces Matriz de rastreabilidad NFR-IRQ}}{67}{table.72}%
-\contentsline {table}{\numberline {73}{\ignorespaces Matriz de rastreabilidad NFR-NFR (dependencias entre requisitos no funcionales)}}{68}{table.73}%
-\contentsline {table}{\numberline {74}{\ignorespaces Matriz de rastreabilidad NFR-OBJ}}{68}{table.74}%
-\contentsline {table}{\numberline {75}{Matriz de rastreabilidad UC-NFR}}{68}{table.75}%
+\contentsline {table}{\numberline {55}{Especificación del caso de uso UC-0027}}{53}{table.55}%
+\contentsline {table}{\numberline {56}{Especificación del caso de uso UC-0028}}{54}{table.56}%
+\contentsline {table}{\numberline {57}{Especificación del caso de uso UC-0029}}{55}{table.57}%
+\contentsline {table}{\numberline {58}{Especificación del caso de uso UC-0030}}{56}{table.58}%
+\contentsline {table}{\numberline {59}{Especificación del caso de uso UC-0031}}{57}{table.59}%
+\contentsline {table}{\numberline {60}{Especificación del caso de uso UC-0032}}{58}{table.60}%
+\contentsline {table}{\numberline {61}{Especificación del caso de uso UC-0033}}{59}{table.61}%
+\contentsline {table}{\numberline {62}{Especificación del caso de uso UC-0034}}{60}{table.62}%
+\contentsline {table}{\numberline {63}{Especificación del caso de uso UC-0035}}{61}{table.63}%
+\contentsline {table}{\numberline {64}{Especificación del caso de uso UC-0036}}{62}{table.64}%
+\contentsline {table}{\numberline {65}{Especificación del caso de uso UC-0037}}{63}{table.65}%
+\contentsline {table}{\numberline {66}{Especificación del caso de uso UC-0038}}{64}{table.66}%
+\contentsline {table}{\numberline {67}{Especificación del caso de uso UC-0039}}{65}{table.67}%
+\contentsline {table}{\numberline {68}{Especificación del caso de uso UC-0040}}{66}{table.68}%
+\contentsline {table}{\numberline {69}{Especificación del caso de uso UC-0041}}{67}{table.69}%
+\contentsline {table}{\numberline {70}{Especificación del caso de uso UC-0042}}{68}{table.70}%
+\contentsline {table}{\numberline {71}{\ignorespaces Matriz de rastreabilidad IRQ-OBJ}}{68}{table.71}%
+\contentsline {table}{\numberline {72}{\ignorespaces Matriz de rastreabilidad NFR-IRQ}}{68}{table.72}%
+\contentsline {table}{\numberline {73}{\ignorespaces Matriz de rastreabilidad NFR-NFR (dependencias entre requisitos no funcionales)}}{69}{table.73}%
+\contentsline {table}{\numberline {74}{\ignorespaces Matriz de rastreabilidad NFR-OBJ}}{69}{table.74}%
 \contentsline {table}{\numberline {75}{Matriz de rastreabilidad UC-NFR}}{69}{table.75}%
-\contentsline {table}{\numberline {76}{Matriz de rastreabilidad UC-IRQ}}{69}{table.76}%
+\contentsline {table}{\numberline {75}{Matriz de rastreabilidad UC-NFR}}{70}{table.75}%
 \contentsline {table}{\numberline {76}{Matriz de rastreabilidad UC-IRQ}}{70}{table.76}%
-\contentsline {table}{\numberline {78}{Matriz de rastreabilidad UC-OBJ}}{70}{table.78}%
+\contentsline {table}{\numberline {76}{Matriz de rastreabilidad UC-IRQ}}{71}{table.76}%
 \contentsline {table}{\numberline {78}{Matriz de rastreabilidad UC-OBJ}}{71}{table.78}%
-\contentsline {table}{\numberline {77}{\ignorespaces Matriz de rastreabilidad UC-UC (dependencias entre paquetes de casos de uso)}}{72}{table.77}%
+\contentsline {table}{\numberline {78}{Matriz de rastreabilidad UC-OBJ}}{72}{table.78}%
+\contentsline {table}{\numberline {77}{\ignorespaces Matriz de rastreabilidad UC-UC (dependencias entre paquetes de casos de uso)}}{73}{table.77}%

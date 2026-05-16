@@ -1,86 +1,122 @@
 /**
- * Blockchain Provider Manager for Frontend
- * Handles wallet connections and provider management
+ * @fileoverview Gestor de proveedores blockchain para el frontend.
+ *
+ * Maneja la conexión de wallets, detección de proveedores mediante EIP-6963,
+ * cambio de redes, firma de mensajes y eventos de wallet.
  */
 
 import { ethers, BrowserProvider, JsonRpcSigner } from 'ethers';
 import { CHAIN_CONFIG, isChainSupported, getNetworkConfig, GAS_CONFIG } from './config';
 import { getWalletConnectInstance } from '../walletconnect';
 
+/** Tipos de wallet soportados. */
 export type WalletType = 'metamask' | 'walletconnect' | 'coinbase' | 'brave' | 'trust' | 'other';
 
+/** Información de una conexión de wallet activa. */
 export interface WalletConnection {
+  /** Dirección de la cuenta conectada. */
   address: string;
+  /** Identificador de la cadena actual. */
   chainId: number;
+  /** Tipo de wallet conectada. */
   type: WalletType;
 }
 
-/**
- * Detected wallet information
- */
+/** Información de una wallet detectada en el navegador. */
 export interface DetectedWallet {
+  /** Nombre comercial de la wallet. */
   name: string;
+  /** Tipo de wallet. */
   type: WalletType;
+  /** Icono de la wallet (URL o SVG). */
   icon?: string;
+  /** Indica si la extensión está instalada. */
   installed: boolean;
+  /** Proveedor Ethereum inyectado. */
   provider?: unknown;
-  rdns?: string; // Reverse DNS identifier from EIP-6963
+  /** Identificador RDNS según EIP-6963. */
+  rdns?: string;
 }
 
 /**
- * EIP-6963: Multi-wallet discovery standard
- * https://eips.ethereum.org/EIPS/eip-6963
+ * Información de proveedor según EIP-6963.
+ * @see https://eips.ethereum.org/EIPS/eip-6963
  */
 export interface EIP6963ProviderInfo {
+  /** UUID único del proveedor. */
   uuid: string;
+  /** Nombre del proveedor. */
   name: string;
+  /** Icono del proveedor. */
   icon: string;
-  rdns: string; // Reverse DNS name (e.g., 'io.metamask', 'com.coinbase.wallet')
+  /** Identificador RDNS (por ejemplo, 'io.metamask'). */
+  rdns: string;
 }
 
+/** Detalle completo de un proveedor EIP-6963. */
 export interface EIP6963ProviderDetail {
+  /** Información del proveedor. */
   info: EIP6963ProviderInfo;
+  /** Instancia del proveedor Ethereum. */
   provider: unknown;
 }
 
+/** Evento personalizado de anuncio de proveedor EIP-6963. */
 export interface EIP6963AnnounceProviderEvent extends CustomEvent {
   type: 'eip6963:announceProvider';
   detail: EIP6963ProviderDetail;
 }
 
+/** Estado actual del proveedor blockchain. */
 export interface ProviderState {
+  /** Indica si hay una conexión activa. */
   isConnected: boolean;
+  /** Dirección de la cuenta conectada. */
   address: string | null;
+  /** Identificador de la cadena actual. */
   chainId: number | null;
+  /** Instancia del proveedor ethers.js. */
   provider: BrowserProvider | null;
+  /** Firmante actual. */
   signer: JsonRpcSigner | null;
 }
 
 type EventCallback<T = unknown> = (data: T) => void;
 
 /**
- * BlockchainProvider class for managing wallet connections
+ * Clase para gestionar la conexión y operaciones con wallets blockchain.
+ *
+ * Responsabilidades principales:
+ * - Detectar wallets disponibles (EIP-6963 y legacy).
+ * - Conectar y desconectar wallets.
+ * - Cambiar de red y validar la cadena activa.
+ * - Firmar mensajes y datos tipados (EIP-712).
+ * - Emitir eventos ante cambios de cuenta o red.
  */
 export class BlockchainProvider {
   private provider: BrowserProvider | null = null;
   private signer: JsonRpcSigner | null = null;
   private currentAddress: string | null = null;
   private currentChainId: number | null = null;
-  
+
   private eventListeners: Map<string, Set<EventCallback>> = new Map();
 
   /**
-   * Check if MetaMask is installed
+   * Verifica si MetaMask está instalada.
+   * @returns `true` si se detecta el objeto `window.ethereum`.
    */
   static isMetaMaskInstalled(): boolean {
-    return typeof window !== 'undefined' && 
+    return typeof window !== 'undefined' &&
            typeof (window as Window & { ethereum?: unknown }).ethereum !== 'undefined';
   }
 
   /**
-   * Detect wallets using EIP-6963 standard
-   * Modern approach that allows multiple wallets to coexist without conflicts
-   * @returns Promise that resolves with array of detected wallets via EIP-6963
+   * Detecta wallets mediante el estándar EIP-6963.
+   *
+   * Permite la coexistencia de múltiples wallets sin conflictos
+   * escuchando eventos de anuncio de proveedores.
+   *
+   * @returns Promesa que se resuelve con la lista de wallets detectadas.
    */
   static detectEIP6963Wallets(): Promise<DetectedWallet[]> {
     return new Promise((resolve) => {
@@ -91,12 +127,12 @@ export class BlockchainProvider {
 
       const walletsMap = new Map<string, DetectedWallet>();
 
-      // Listen for wallet announcements
+      // Escuchar anuncios de wallets
       const handleAnnouncement = (event: Event) => {
         const announceEvent = event as EIP6963AnnounceProviderEvent;
         const { info, provider } = announceEvent.detail;
 
-        // Map RDNS to wallet type
+        // Mapear RDNS a tipo de wallet
         let type: WalletType = 'other';
         if (info.rdns.includes('metamask')) {
           type = 'metamask';
@@ -120,13 +156,13 @@ export class BlockchainProvider {
         walletsMap.set(info.uuid, wallet);
       };
 
-      // Register listener
+      // Registrar listener
       window.addEventListener('eip6963:announceProvider', handleAnnouncement);
 
-      // Request providers to announce themselves
+      // Solicitar a los proveedores que se anuncien
       window.dispatchEvent(new Event('eip6963:requestProvider'));
 
-      // Wait for wallets to respond (100ms should be enough)
+      // Esperar respuesta de las wallets (100 ms debería ser suficiente)
       setTimeout(() => {
         window.removeEventListener('eip6963:announceProvider', handleAnnouncement);
         resolve(Array.from(walletsMap.values()));
@@ -135,8 +171,12 @@ export class BlockchainProvider {
   }
 
   /**
-   * Detect all available browser wallets
-   * Combines EIP-6963 (modern) and legacy window.ethereum detection
+   * Detecta todas las wallets disponibles en el navegador.
+   *
+   * Combina detección EIP-6963 (moderna) y detección legacy mediante
+   * `window.ethereum`.
+   *
+   * @returns Lista de wallets detectadas.
    */
   static async detectAvailableWallets(): Promise<DetectedWallet[]> {
     if (typeof window === 'undefined') {
@@ -145,7 +185,7 @@ export class BlockchainProvider {
 
     const walletsMap = new Map<string, DetectedWallet>();
 
-    // 1. Try EIP-6963 detection first (modern standard)
+    // 1. Intentar detección EIP-6963 primero (estándar moderno)
     try {
       const eip6963Wallets = await BlockchainProvider.detectEIP6963Wallets();
       eip6963Wallets.forEach(wallet => {
@@ -155,7 +195,7 @@ export class BlockchainProvider {
       console.warn('EIP-6963 detection failed:', error);
     }
 
-    // 2. Fallback to legacy window.ethereum detection
+    // 2. Fallback a detección legacy mediante window.ethereum
     const ethereum = (window as unknown as { ethereum?: unknown }).ethereum as {
       providers?: unknown[];
       isMetaMask?: boolean;
@@ -167,7 +207,7 @@ export class BlockchainProvider {
     } | undefined;
 
     if (ethereum) {
-      // Check if multiple providers exist (injected by different wallets)
+      // Comprobar si existen múltiples proveedores (inyectados por diferentes wallets)
       const providers = ethereum.providers || [ethereum];
 
       providers.forEach((provider: unknown) => {
@@ -201,7 +241,7 @@ export class BlockchainProvider {
             provider: p,
           };
         }
-        // Brave Wallet (has isMetaMask flag but also isBraveWallet)
+        // Brave Wallet (tiene isMetaMask pero también isBraveWallet)
         else if (p.isBraveWallet) {
           wallet = {
             name: 'Brave Wallet',
@@ -219,7 +259,7 @@ export class BlockchainProvider {
             provider: p,
           };
         }
-        // Other generic wallet
+        // Wallet genérica
         else {
           wallet = {
             name: 'Browser Wallet',
@@ -229,14 +269,14 @@ export class BlockchainProvider {
           };
         }
 
-        // Add to map (duplicates will be ignored)
+        // Añadir al mapa (se ignoran duplicados)
         if (wallet && !walletsMap.has(wallet.name)) {
           walletsMap.set(wallet.name, wallet);
         }
       });
     }
 
-    // 3. Always show WalletConnect as available (doesn't need browser extension)
+    // 3. Mostrar siempre WalletConnect como disponible (no requiere extensión)
     walletsMap.set('WalletConnect', {
       name: 'WalletConnect',
       type: 'walletconnect',
@@ -248,8 +288,9 @@ export class BlockchainProvider {
   }
 
   /**
-   * Add Hardhat local network to wallet
-   * Useful for development with local blockchain
+   * Añade la red local de Hardhat a la wallet.
+   *
+   * Útil durante el desarrollo con blockchain local.
    */
   static async addHardhatNetwork(): Promise<void> {
     const ethereum = (window as unknown as { ethereum?: {
@@ -277,10 +318,11 @@ export class BlockchainProvider {
   }
 
   /**
-   * Connect to a wallet
-   * @param type Wallet type to connect
-   * @param provider Optional specific provider (for multi-wallet scenarios)
-   * @returns Connection details
+   * Conecta una wallet.
+   *
+   * @param type - Tipo de wallet a conectar.
+   * @param provider - Proveedor específico (para escenarios multi-wallet).
+   * @returns Detalles de la conexión establecida.
    */
   async connectWallet(type: WalletType = 'metamask', provider?: unknown): Promise<WalletConnection> {
     switch (type) {
@@ -302,8 +344,14 @@ export class BlockchainProvider {
   }
 
   /**
-   * Connect to a browser wallet (MetaMask, Coinbase, Brave, etc.)
-   * Generic method that works with any wallet using window.ethereum
+   * Conecta una wallet de navegador (MetaMask, Coinbase, Brave, etc.).
+   *
+   * Método genérico que funciona con cualquier wallet que implemente
+   * `window.ethereum`.
+   *
+   * @param type - Tipo de wallet.
+   * @param specificProvider - Proveedor específico (opcional).
+   * @returns Detalles de la conexión.
    */
   private async connectBrowserWallet(type: WalletType, specificProvider?: unknown): Promise<WalletConnection> {
     const ethereum = specificProvider || (window as unknown as { ethereum?: unknown }).ethereum;
@@ -322,28 +370,28 @@ export class BlockchainProvider {
     };
 
     try {
-      // Request account access
-      const accounts = await provider.request({ 
-        method: 'eth_requestAccounts' 
+      // Solicitar acceso a las cuentas
+      const accounts = await provider.request({
+        method: 'eth_requestAccounts'
       }) as string[];
 
       if (!accounts || accounts.length === 0) {
         throw new Error('No accounts found. Please unlock your wallet.');
       }
 
-      // Create provider and signer
+      // Crear proveedor y firmante
       this.provider = new BrowserProvider(provider as ethers.Eip1193Provider);
       this.signer = await this.provider.getSigner();
       this.currentAddress = accounts[0];
 
-      // Get current chain ID
+      // Obtener chain ID actual
       const network = await this.provider.getNetwork();
       this.currentChainId = Number(network.chainId);
 
-      // Setup event listeners
+      // Configurar listeners de eventos
       this.setupWalletEvents(provider);
 
-      // Validate chain (will warn if not supported, but won't fail)
+      // Validar cadena (advertencia si no está soportada, pero no falla)
       await this.validateChain();
 
       return {
@@ -358,33 +406,34 @@ export class BlockchainProvider {
   }
 
   /**
-   * Connect to WalletConnect
+   * Conecta mediante WalletConnect.
+   * @returns Detalles de la conexión WalletConnect.
    */
   private async connectWalletConnect(): Promise<WalletConnection> {
     try {
-      // Get WalletConnect instance
+      // Obtener instancia de WalletConnect
       const wcHelper = getWalletConnectInstance();
-      
-      // Connect (shows QR modal)
+
+      // Conectar (muestra modal QR)
       const { address, provider } = await wcHelper.connect();
-      
-      // Set up provider and signer
+
+      // Configurar proveedor y firmante
       this.provider = provider;
       this.signer = await provider.getSigner();
       this.currentAddress = address;
-      
-      // Get current chain ID
+
+      // Obtener chain ID actual
       const network = await provider.getNetwork();
       this.currentChainId = Number(network.chainId);
-      
-      // Validate chain (will warn if not supported, but won't fail)
+
+      // Validar cadena
       await this.validateChain();
-      
-      // Ensure address is valid
+
+      // Asegurar que la dirección sea válida
       if (!this.currentAddress || !this.currentChainId) {
         throw new Error('No se pudo obtener la dirección o chainId de WalletConnect');
       }
-      
+
       return {
         address: this.currentAddress,
         chainId: this.currentChainId,
@@ -397,20 +446,23 @@ export class BlockchainProvider {
   }
 
   /**
-   * Setup wallet event listeners
-   * Works with any wallet that implements standard Ethereum events
+   * Configura los listeners de eventos de la wallet.
+   *
+   * Funciona con cualquier wallet que implemente los eventos Ethereum estándar.
+   *
+   * @param provider - Proveedor Ethereum con métodos `on` y `removeListener`.
    */
-  private setupWalletEvents(provider: { 
+  private setupWalletEvents(provider: {
     on?: (event: string, callback: EventCallback) => void;
     removeListener?: (event: string, callback: EventCallback) => void;
   }): void {
     if (!provider.on) return;
 
-    // Account changed
+    // Cambio de cuenta
     provider.on('accountsChanged', (accounts: unknown) => {
       const accountList = accounts as string[];
       if (accountList.length === 0) {
-        // User disconnected
+        // Usuario desconectado
         this.disconnect();
       } else {
         this.currentAddress = accountList[0];
@@ -418,20 +470,20 @@ export class BlockchainProvider {
       }
     });
 
-    // Chain changed
+    // Cambio de cadena
     provider.on('chainChanged', (chainId: unknown) => {
       const newChainId = parseInt(chainId as string, 16);
       this.currentChainId = newChainId;
       this.emit('chainChanged', newChainId);
-      
-      // Reload provider
+
+      // Recargar proveedor
       this.provider = new BrowserProvider(provider as ethers.Eip1193Provider);
       this.provider.getSigner().then(s => {
         this.signer = s;
       });
     });
 
-    // Disconnect
+    // Desconexión
     provider.on('disconnect', () => {
       this.disconnect();
       this.emit('disconnect', {});
@@ -439,7 +491,7 @@ export class BlockchainProvider {
   }
 
   /**
-   * Validate current chain matches expected chain
+   * Valida que la cadena actual esté soportada.
    */
   private async validateChain(): Promise<void> {
     if (!this.currentChainId) return;
@@ -451,11 +503,11 @@ export class BlockchainProvider {
   }
 
   /**
-   * Switch to a specific network
-   * @param chainId Target chain ID
+   * Cambia a una red específica.
+   * @param chainId - Identificador de la cadena destino.
    */
   async switchNetwork(chainId: number): Promise<void> {
-    const ethereum = (window as Window & { ethereum?: { 
+    const ethereum = (window as Window & { ethereum?: {
       request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
     } }).ethereum;
 
@@ -472,7 +524,7 @@ export class BlockchainProvider {
       });
     } catch (switchError: unknown) {
       const error = switchError as { code?: number };
-      // Chain not added to wallet
+      // Cadena no añadida a la wallet
       if (error.code === 4902) {
         await this.addNetwork(chainId);
       } else {
@@ -482,11 +534,11 @@ export class BlockchainProvider {
   }
 
   /**
-   * Add a network to the wallet
-   * @param chainId Chain ID to add
+   * Añade una red a la wallet.
+   * @param chainId - Identificador de la cadena a añadir.
    */
   private async addNetwork(chainId: number): Promise<void> {
-    const ethereum = (window as Window & { ethereum?: { 
+    const ethereum = (window as Window & { ethereum?: {
       request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
     } }).ethereum;
 
@@ -512,10 +564,10 @@ export class BlockchainProvider {
   }
 
   /**
-   * Disconnect wallet
+   * Desconecta la wallet actual.
    */
   disconnect(): void {
-    // Try to disconnect WalletConnect if it was the connection method
+    // Intentar desconectar WalletConnect si fue el método de conexión
     try {
       const wcHelper = getWalletConnectInstance();
       if (wcHelper.isConnected()) {
@@ -524,9 +576,9 @@ export class BlockchainProvider {
         });
       }
     } catch (err) {
-      // Ignore errors during WalletConnect disconnect attempt
+      // Ignorar errores durante el intento de desconexión de WalletConnect
     }
-    
+
     this.provider = null;
     this.signer = null;
     this.currentAddress = null;
@@ -535,35 +587,40 @@ export class BlockchainProvider {
   }
 
   /**
-   * Get current signer
+   * Obtiene el firmante actual.
+   * @returns Instancia de JsonRpcSigner o `null`.
    */
   getSigner(): JsonRpcSigner | null {
     return this.signer;
   }
 
   /**
-   * Get current provider
+   * Obtiene el proveedor actual.
+   * @returns Instancia de BrowserProvider o `null`.
    */
   getProvider(): BrowserProvider | null {
     return this.provider;
   }
 
   /**
-   * Get current address
+   * Obtiene la dirección de la cuenta conectada.
+   * @returns Dirección Ethereum o `null`.
    */
   getCurrentAddress(): string | null {
     return this.currentAddress;
   }
 
   /**
-   * Get current chain ID
+   * Obtiene el identificador de la cadena actual.
+   * @returns Chain ID o `null`.
    */
   getCurrentChainId(): number | null {
     return this.currentChainId;
   }
 
   /**
-   * Get connection state
+   * Obtiene el estado completo de la conexión.
+   * @returns Estado del proveedor.
    */
   getState(): ProviderState {
     return {
@@ -576,44 +633,50 @@ export class BlockchainProvider {
   }
 
   /**
-   * Check if connected
+   * Verifica si existe una conexión activa.
+   * @returns `true` si hay un proveedor, firmante y dirección válidos.
    */
   isConnected(): boolean {
     return this.provider !== null && this.signer !== null && this.currentAddress !== null;
   }
 
   /**
-   * Check if current chain matches expected
+   * Verifica si la cadena actual coincide con la esperada.
+   * @returns `true` si coincide con la configuración global.
    */
   isCorrectChain(): boolean {
     return this.currentChainId === CHAIN_CONFIG.chainId;
   }
 
   /**
-   * Get gas price
+   * Obtiene el precio actual del gas.
+   * @returns Precio del gas en wei.
    */
   async getGasPrice(): Promise<bigint> {
     if (!this.provider) {
       throw new Error('Provider not connected');
     }
-    
+
     const feeData = await this.provider.getFeeData();
     return feeData.gasPrice || 0n;
   }
 
   /**
-   * Estimate gas for a transaction
+   * Estima el gas necesario para una transacción.
+   * @param transaction - Solicitud de transacción.
+   * @returns Estimación de gas en unidades.
    */
   async estimateGas(transaction: ethers.TransactionRequest): Promise<bigint> {
     if (!this.provider) {
       throw new Error('Provider not connected');
     }
-    
+
     return await this.provider.estimateGas(transaction);
   }
 
   /**
-   * Check if gas price is acceptable
+   * Verifica si el precio del gas es aceptable según la configuración.
+   * @returns `true` si el precio está dentro del rango permitido.
    */
   async isGasPriceAcceptable(): Promise<boolean> {
     const gasPrice = await this.getGasPrice();
@@ -622,65 +685,79 @@ export class BlockchainProvider {
   }
 
   /**
-   * Get transaction receipt
+   * Obtiene el recibo de una transacción.
+   * @param txHash - Hash de la transacción.
+   * @returns Recibo de transacción o `null` si aún no se confirma.
    */
   async getTransactionReceipt(txHash: string): Promise<ethers.TransactionReceipt | null> {
     if (!this.provider) {
       throw new Error('Provider not connected');
     }
-    
+
     return await this.provider.getTransactionReceipt(txHash);
   }
 
   /**
-   * Wait for transaction confirmation
+   * Espera la confirmación de una transacción.
+   * @param txHash - Hash de la transacción.
+   * @param confirmations - Número de confirmaciones requeridas.
+   * @returns Recibo de transacción confirmada.
    */
   async waitForTransaction(
-    txHash: string, 
+    txHash: string,
     confirmations: number = GAS_CONFIG.confirmations
   ): Promise<ethers.TransactionReceipt | null> {
     if (!this.provider) {
       throw new Error('Provider not connected');
     }
-    
+
     return await this.provider.waitForTransaction(txHash, confirmations, GAS_CONFIG.timeoutMs);
   }
 
   /**
-   * Get current block number
+   * Obtiene el número de bloque actual.
+   * @returns Número de bloque.
    */
   async getBlockNumber(): Promise<number> {
     if (!this.provider) {
       throw new Error('Provider not connected');
     }
-    
+
     return await this.provider.getBlockNumber();
   }
 
   /**
-   * Sign a message
+   * Firma un mensaje con la wallet conectada.
+   * @param message - Mensaje a firmar.
+   * @returns Firma en formato hexadecimal.
    */
   async signMessage(message: string): Promise<string> {
     if (!this.signer) {
       throw new Error('Signer not available');
     }
-    
+
     return await this.signer.signMessage(message);
   }
 
   /**
-   * Sign typed data (EIP-712)
+   * Firma datos tipados según EIP-712.
+   * @param domain - Dominio tipado.
+   * @param types - Definición de tipos.
+   * @param value - Valor a firmar.
+   * @returns Firma en formato hexadecimal.
    */
   async signTypedData(domain: ethers.TypedDataDomain, types: Record<string, ethers.TypedDataField[]>, value: Record<string, unknown>): Promise<string> {
     if (!this.signer) {
       throw new Error('Signer not available');
     }
-    
+
     return await this.signer.signTypedData(domain, types, value);
   }
 
   /**
-   * Add event listener
+   * Registra un listener para un evento.
+   * @param event - Nombre del evento.
+   * @param callback - Función a ejecutar cuando se emita el evento.
    */
   on<T = unknown>(event: string, callback: EventCallback<T>): void {
     if (!this.eventListeners.has(event)) {
@@ -690,7 +767,9 @@ export class BlockchainProvider {
   }
 
   /**
-   * Remove event listener
+   * Elimina un listener de evento.
+   * @param event - Nombre del evento.
+   * @param callback - Función registrada previamente.
    */
   off<T = unknown>(event: string, callback: EventCallback<T>): void {
     const listeners = this.eventListeners.get(event);
@@ -700,7 +779,9 @@ export class BlockchainProvider {
   }
 
   /**
-   * Emit event
+   * Emite un evento a todos los listeners registrados.
+   * @param event - Nombre del evento.
+   * @param data - Datos del evento.
    */
   private emit<T = unknown>(event: string, data: T): void {
     const listeners = this.eventListeners.get(event);
@@ -710,7 +791,7 @@ export class BlockchainProvider {
   }
 }
 
-// Create singleton instance
+// Instancia singleton
 export const blockchainProvider = new BlockchainProvider();
 
 export default blockchainProvider;

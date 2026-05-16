@@ -6,12 +6,25 @@ import AlertMessage from '../ui/AlertMessage';
 import { Copy, ExternalLink, QrCode, Download } from 'lucide-react';
 import { copyToClipboard } from '../../lib/utils';
 
+/**
+ * Propiedades del componente PublicLinkActions.
+ */
 interface PublicLinkActionsProps {
+  /** URL pública del documento. */
   url: string;
+  /** Título del documento. */
   title: string;
+  /** Tamaño de los botones. */
   size?: 'sm' | 'default';
 }
 
+/**
+ * Componente que proporciona acciones sobre un enlace público:
+ * copiar enlace, mostrar código QR y abrir en nueva pestaña.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX de las acciones del enlace público.
+ */
 export const PublicLinkActions: React.FC<PublicLinkActionsProps> = ({
   url,
   title,

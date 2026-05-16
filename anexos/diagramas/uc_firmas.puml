@@ -1,23 +1,24 @@
 @startuml
 !include _structure-style.puml
 left to right direction
+title Casos de uso - Firmas
 
 actor "Usuario" as USER
 actor "Blockchain" as SC
 
-rectangle "Gestion de Firmas" {
-  usecase "UC-0030: Firmar Documento" as UC34
-  usecase "UC-0031: Ver Firmas de un Documento" as UC35
-  usecase "UC-0032: Verificar Firma en Blockchain" as UC36
+rectangle "Modulo de firmas" {
+  usecase "UC-0027: Firmar Documento" as UC27
+  usecase "UC-0028: Ver Firmas de un Documento" as UC28
+  usecase "UC-0029: Verificar Firma del Usuario" as UC29
 }
 
-UC34 -[hidden]down-> UC35
-UC35 -[hidden]down-> UC36
+UC27 -[hidden]down-> UC28
+UC28 -[hidden]down-> UC29
 
-USER --> UC34
-USER --> UC35
-USER --> UC36
+USER --> UC27
+USER --> UC28
+USER --> UC29
 
-SC --> UC34
-SC --> UC36
+SC --> UC27
+SC --> UC29
 @enduml

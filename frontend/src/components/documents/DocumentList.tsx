@@ -13,14 +13,27 @@ import {
   Tag,
 } from 'lucide-react';
 
+/**
+ * Props del componente DocumentList.
+ */
 interface DocumentListProps {
+  /** Lista de documentos a mostrar. */
   documents: Document[];
+  /** Información de paginación actual. */
   pagination: PaginationInfo;
+  /** Callback que se ejecuta al cambiar de página. */
   onPageChange: (page: number) => void;
+  /** Callback para refrescar la lista de documentos. */
   onRefresh: () => void;
+  /** Indica si se está cargando la lista de documentos. */
   isLoading?: boolean;
 }
 
+/**
+ * Lista de documentos en formato de cuadrícula con paginación.
+ * Renderiza tarjetas para cada documento, incluyendo estado de carga
+ * y controles de paginación.
+ */
 export const DocumentList: React.FC<DocumentListProps> = ({
   documents,
   pagination,
@@ -32,7 +45,6 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       {/* Documents Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          // Skeleton Loading State
           Array.from({ length: 6 }).map((_, idx) => (
             <Card key={idx}>
               <CardContent className="p-4">

@@ -39,6 +39,13 @@ const formatDate = (dateString: string): string => {
   });
 };
 
+/**
+ * Componente interno que renderiza una entrada individual de log.
+ *
+ * @param props - Propiedades del componente.
+ * @param props.log - Objeto de entrada de log a mostrar.
+ * @returns Elemento JSX de la entrada de log.
+ */
 const LogEntryComponent: React.FC<{ log: LogEntry }> = ({ log }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -120,6 +127,12 @@ const LogEntryComponent: React.FC<{ log: LogEntry }> = ({ log }) => {
   );
 };
 
+/**
+ * Componente para visualizar y gestionar los logs del sistema.
+ * Permite filtrar por tipo, ajustar líneas visibles, activar auto-refresh y limpiar logs.
+ *
+ * @returns Elemento JSX del visor de logs.
+ */
 export const LogsViewer: React.FC = () => {
   const [logType, setLogType] = useState<'combined' | 'error' | 'blockchain'>(
     'combined'
@@ -129,7 +142,7 @@ export const LogsViewer: React.FC = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch logs
+  // Consulta de logs
   const {
     data: logsData,
     isLoading: logsLoading,
@@ -138,17 +151,17 @@ export const LogsViewer: React.FC = () => {
   } = useQuery({
     queryKey: ['logs', logType, lines],
     queryFn: () => logsApi.getLogs(logType, lines),
-    refetchInterval: autoRefresh ? 10000 : false, // Auto-refresh every 10 seconds if enabled
+    refetchInterval: autoRefresh ? 10000 : false, // Auto-refresh cada 10 segundos si está activado
   });
 
-  // Fetch log stats
+  // Consulta de estadísticas de logs
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['logStats'],
     queryFn: () => logsApi.getLogStats(),
-    refetchInterval: autoRefresh ? 30000 : false, // Refresh stats every 30 seconds if enabled
+    refetchInterval: autoRefresh ? 30000 : false, // Actualiza estadísticas cada 30 segundos si está activado
   });
 
-  // Clear logs mutation
+  // Mutación para limpiar logs
   const clearLogsMutation = useMutation({
     mutationFn: async (type: string) => {
       return await logsApi.clearLogs(type);
@@ -194,7 +207,7 @@ export const LogsViewer: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Log Stats Cards */}
+      {/* Tarjetas de estadísticas de logs */}
       {!statsLoading && statsData && statsData.stats && statsData.stats.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {statsData.stats.map((stat: LogStats, index: number) => (
@@ -229,7 +242,7 @@ export const LogsViewer: React.FC = () => {
         </div>
       )}
 
-      {/* Controls */}
+      {/* Controles */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -257,7 +270,7 @@ export const LogsViewer: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            {/* Log Type Selector */}
+            {/* Selector de tipo de log */}
             <div className="flex-1">
               <label className="mb-2 block text-sm font-medium text-foreground">
                 Tipo de Log
@@ -278,7 +291,7 @@ export const LogsViewer: React.FC = () => {
               </div>
             </div>
 
-            {/* Lines Selector */}
+            {/* Selector de líneas */}
             <div className="w-full sm:w-48">
               <label className="mb-2 block text-sm font-medium text-foreground">
                 Número de Líneas
@@ -295,7 +308,7 @@ export const LogsViewer: React.FC = () => {
               </select>
             </div>
 
-            {/* Clear Logs Button */}
+            {/* Botón de limpiar logs */}
             <div className="flex items-end">
               <Button
                 variant="destructive"
@@ -309,7 +322,7 @@ export const LogsViewer: React.FC = () => {
             </div>
           </div>
 
-          {/* Logs Display */}
+          {/* Visualización de logs */}
           <div className="space-y-2">
             {logsLoading && (
               <div className="flex justify-center items-center py-12">

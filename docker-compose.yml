@@ -34,7 +34,6 @@ services:
       - RELAYHOST_PASSWORD=${SMTP_RELAYHOST_PASSWORD:-}
       - ALLOWED_SENDER_DOMAINS=${ALLOWED_SENDER_DOMAINS:-documentchain.local}
       - MASQUERADED_DOMAINS=${MASQUERADED_DOMAINS:-documentchain.local}
-      - POSTFIX_myhostname=${POSTFIX_HOSTNAME:-mail.documentchain.local}
       - POSTFIX_smtp_tls_security_level=${POSTFIX_SMTP_TLS_SECURITY_LEVEL:-may}
       - MY_NETWORKS=127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
       - DKIM_AUTOGENERATE=${POSTFIX_DKIM_AUTOGENERATE:-true}
@@ -74,31 +73,40 @@ services:
     depends_on:
       - postgres
 
-  # Self-hosted IPFS node - persistent content store for binary data.
-  ipfs-node:
-    profiles: ["ipfs"]
-    image: ipfs/kubo:latest
-    container_name: documentchain-ipfs
-    restart: unless-stopped
-    ports:
-      - "4001:4001"
-      - "5001:5001"
-      - "8080:8080"
-    volumes:
-      - type: bind
-        source: ${IPFS_DATA_ROOT:-./ipfs/runtime/node}
-        target: /data/ipfs
-    environment:
-      - IPFS_PROFILE=server
-    command: ["daemon", "--migrate=true"]
-    healthcheck:
-      test: ["CMD-SHELL", "ipfs id >/dev/null 2>&1"]
-      interval: 10s
-      timeout: 5s
-      start_period: 20s
-      retries: 12
-    networks:
-      - documentchain
+  # -------------------------------------------------------------------------
+  # Self-hosted IPFS node (opcional - desactivado por defecto)
+  # -------------------------------------------------------------------------
+  # Si quieres volver al nodo IPFS propio en lugar de Pinata:
+  # 1. Descomenta este bloque.
+  # 2. Cambia IPFS_PROVIDER=self-hosted en backend/.env
+  # 3. Vuelve a levantar: docker compose up -d ipfs-node backend
+  # 4. Para exponerlo públicamente sin abrir puertos del router, añade
+  #    el servicio cloudflared (ver docs/IPFS_SETUP.md).
+  # -------------------------------------------------------------------------
+  # ipfs-node:
+  #   image: ipfs/kubo:latest
+  #   container_name: documentchain-ipfs
+  #   restart: unless-stopped
+  #   profiles: ["ipfs"]
+  #   ports:
+  #     - "4001:4001"
+  #     - "127.0.0.1:5001:5001"
+  #     - "8080:8080"
+  #   volumes:
+  #     - type: bind
+  #       source: ${IPFS_DATA_ROOT:-./ipfs/runtime/node}
+  #       target: /data/ipfs
+  #   environment:
+  #     - IPFS_PROFILE=server
+  #   command: ["daemon", "--migrate=true"]
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "ipfs id >/dev/null 2>&1"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     start_period: 20s
+  #     retries: 12
+  #   networks:
+  #     - documentchain
 
   # Backend Node.js - Servidor API principal
   backend:
@@ -131,7 +139,10 @@ services:
       - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-DocumentChain}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,https://localhost:5173}
-      - IPFS_PROVIDER=${IPFS_PROVIDER:-self-hosted}
+      # IPFS Provider: "pinata" (por defecto) o "self-hosted"
+      # Las credenciales de Pinata se leen directamente del env_file (backend/.env)
+      - IPFS_PROVIDER=${IPFS_PROVIDER:-pinata}
+      # Self-hosted IPFS settings (solo si IPFS_PROVIDER=self-hosted)
       - IPFS_API_URL=${IPFS_API_URL:-http://ipfs-node:5001}
       - IPFS_GATEWAY_URL=${IPFS_GATEWAY_URL:-http://ipfs-node:8080}
       - UPLOAD_RATE_LIMIT_MAX=${UPLOAD_RATE_LIMIT_MAX:-500}

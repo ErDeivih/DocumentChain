@@ -1,0 +1,32 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0025: Restaurar versión (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Pestaña de versiones" as ui
+control "Gestor de versiones" as ctrl
+entity "Documento" as doc
+entity "Versión" as ver
+
+user -> ui: Seleccionar versión y "Restaurar"
+ui --> user: Solicitar confirmación
+user -> ui: Confirmar restauración
+ui -> ctrl: Solicitar restauración (idDocumento, idVersión)
+
+ctrl -> doc: Verificar propiedad
+doc --> ctrl: Propiedad verificada
+
+ctrl -> ver: Verificar versión existe y pertenece al documento
+ver --> ctrl: Versión válida
+
+ctrl -> doc: Restaurar contenido desde versión seleccionada
+doc --> ctrl: Documento restaurado
+
+ctrl -> ver: Marcar versión restaurada como nueva versión (copia)
+ver --> ctrl: Nueva versión creada (copia de la restaurada)
+
+ctrl --> ui: Versión restaurada
+ui --> user: Confirmación + historial actualizado
+
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0007: Renombrar Wallet (Analisis BCE)
+
+actor Actor
+boundary "VistaAjustes" as BF
+control "GestorWallets" as CW
+entity "Wallet" as EW
+
+database "Base de datos" as DB
+
+Actor -> BF : 1. Accede a la lista de wallets
+BF -> CW : 2. Solicita wallets del usuario
+CW -> EW : 3. Recupera wallets del usuario
+EW -> DB : consulta wallets
+DB --> EW : lista de wallets
+EW --> CW : wallets recuperadas
+CW --> BF : 4. Lista de wallets
+BF --> Actor : 5. Muestra wallets con etiquetas
+
+Actor -> BF : 6. Edita la etiqueta de una wallet
+BF -> BF : 7. Valida longitud maxima y formato
+note right : Boundary valida que la etiqueta no exceda la longitud permitida
+
+BF -> CW : 8. Envia nueva etiqueta
+CW -> EW : 9. Actualiza etiqueta de la wallet
+EW -> DB : UPDATE wallet.nickname
+DB --> EW : confirmacion
+EW --> CW : etiqueta actualizada
+
+CW --> BF : 10. Confirmacion de cambio
+BF --> Actor : 11. Muestra wallet con nueva etiqueta
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+!include ../_sequence-style.puml
+
+title UC-0006: Establecer wallet primaria (Análisis BCE)
+
+actor "Usuario propietario" as user
+boundary "Página de gestión de wallets" as ui
+control "Gestor de wallets" as ctrl
+entity "Wallet" as wallet
+
+user -> ui: Seleccionar "Establecer como primaria"
+ui -> ctrl: Solicitar cambio (idWallet)
+
+ctrl -> wallet: Verificar propiedad
+wallet --> ctrl: Propiedad verificada
+
+ctrl -> wallet: Obtener wallet primaria actual
+wallet --> ctrl: Wallet primaria actual
+
+ctrl -> wallet: Desmarcar primaria actual
+wallet --> ctrl: Desmarcada
+
+ctrl -> wallet: Marcar nueva wallet como primaria
+wallet --> ctrl: Marcada como primaria
+
+ctrl --> ui: Cambio realizado
+ui --> user: Wallet primaria actualizada
+
+@enduml

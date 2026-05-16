@@ -4,7 +4,7 @@ actor Visitante as visitor
 boundary "Pagina Verificar" as ui
 control "Endpoints de verificacion documental (/api/documents/verify)" as api
 control "VerificationService" as srv
-entity "IPFS" as ipfs
+entity "IPFSService" as ipfs
 entity "BlockchainQueries" as chain
 
 visitor -> ui: Elige archivo, CID o blockchainId

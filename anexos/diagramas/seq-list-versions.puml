@@ -4,7 +4,7 @@ actor Usuario as user
 boundary "Detalle / pestana Versiones" as ui
 control "Endpoints de versiones\n(/api/documents/:id/versions)" as versionApi
 control "Servicio de versiones" as srv
-database "PostgreSQL" as db
+database "Base de datos" as db
 
 user -> ui: Abre el historial de versiones
 ui -> versionApi: Solicitar versiones del documento
@@ -16,4 +16,5 @@ versionApi --> ui: Historial cargado
 ui --> user: Revisa numero, fecha, autor y estado
 
 @enduml
+
 

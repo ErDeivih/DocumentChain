@@ -6,6 +6,15 @@
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 
+/**
+ * Evento individual dentro de la línea temporal de un documento.
+ * @property id - Identificador del evento
+ * @property type - Tipo de evento (versión, firma, compartición, etc.)
+ * @property timestamp - Fecha y hora del evento
+ * @property actor - Usuario o sistema que ejecutó la acción
+ * @property details - Información adicional específica del evento
+ * @property blockchainTx - Hash de la transacción en blockchain (opcional)
+ */
 export interface TimelineEvent {
   id: string;
   type: 'version_created' | 'document_signed' | 'document_shared' | 'permission_revoked' | 'ownership_transferred' | 'operational_changed';
@@ -20,6 +29,12 @@ export interface TimelineEvent {
   blockchainTx?: string;
 }
 
+/**
+ * Línea temporal completa de un documento.
+ * @property documentId - ID interno del documento
+ * @property blockchainId - ID del documento en blockchain
+ * @property events - Lista cronológica de eventos
+ */
 export interface DocumentTimeline {
   documentId: string;
   blockchainId: string;
@@ -42,6 +57,10 @@ type TimelineSignatureActor = {
   signerWalletAddressSnapshot?: string | null;
 };
 
+/**
+ * Servicio de construcción de líneas temporales de documentos.
+ * Agrega eventos persistidos en la base de datos y los presenta en orden cronológico.
+ */
 export class DocumentTimelineService {
   /**
    * Obtener la línea temporal completa de un documento
@@ -73,11 +92,15 @@ export class DocumentTimelineService {
       throw new Error('Wallet primaria no encontrada');
     }
 
-    // Owner always has read access; for shared users check blockchain
+    // El propietario en base de datos siempre tiene acceso, independientemente del estado on-chain
     let canRead = document.ownerId === userId;
-    if (!canRead && document.blockchainId) {
-      canRead = await BlockchainQueries.canRead(document.blockchainId, wallet.walletAddress);
+
+    // Si no es propietario en BD, verificar permisos on-chain
+    if (!canRead && document.blockchainId && wallet) {
+      canRead = await BlockchainQueries.isOwner(document.blockchainId, wallet.walletAddress) ||
+                await BlockchainQueries.canRead(document.blockchainId, wallet.walletAddress);
     }
+
     if (!canRead) {
       throw new Error('No tienes permiso para ver este documento');
     }

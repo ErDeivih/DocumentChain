@@ -1,14 +1,25 @@
 /**
- * Blockchain Configuration for Frontend
- * Contains contract addresses and chain configuration
+ * @fileoverview Configuración blockchain para el frontend.
+ *
+ * Contiene direcciones de contratos, ABIs, configuración de cadenas
+ * soportadas, redes y parámetros de gas.
  */
 
 const DOCUMENT_REGISTRY_STORAGE_KEY = 'documentchain.contract.documentRegistry';
 
+/**
+ * Verifica si un valor es una dirección Ethereum válida.
+ * @param value - Valor a comprobar.
+ * @returns `true` si es una dirección Ethereum válida.
+ */
 function isEthereumAddress(value: string | null | undefined): value is string {
   return typeof value === 'string' && /^0x[a-fA-F0-9]{40}$/.test(value);
 }
 
+/**
+ * Obtiene la dirección del contrato DocumentRegistry persistida en localStorage.
+ * @returns Dirección Ethereum o `null`.
+ */
 function getPersistedDocumentRegistryAddress(): string | null {
   if (typeof window === 'undefined') {
     return null;
@@ -18,6 +29,10 @@ function getPersistedDocumentRegistryAddress(): string | null {
   return isEthereumAddress(value) ? value : null;
 }
 
+/**
+ * Persiste la dirección del contrato DocumentRegistry en localStorage.
+ * @param address - Dirección Ethereum del contrato.
+ */
 function persistDocumentRegistryAddress(address: string): void {
   if (typeof window === 'undefined') {
     return;
@@ -26,7 +41,8 @@ function persistDocumentRegistryAddress(address: string): void {
   window.localStorage.setItem(DOCUMENT_REGISTRY_STORAGE_KEY, address);
 }
 
-// Contract ABIs — single DocumentRegistry consolidates all functionality
+// ABIs del contrato — DocumentRegistry consolidado con toda la funcionalidad
+/** ABI del contrato DocumentRegistry. */
 export const DocumentRegistryABI = [
   // Events
   "event DocumentCreated(bytes32 indexed docId, address indexed owner, string ipfsCid, uint256 timestamp)",
@@ -39,8 +55,6 @@ export const DocumentRegistryABI = [
   "event DocumentArchived(bytes32 indexed docId, address indexed by, bool archived, uint256 timestamp)",
   "event DocumentDeleted(bytes32 indexed docId, address indexed by, uint256 timestamp)",
   "event OperationalVersionChanged(bytes32 indexed docId, uint256 oldVersion, uint256 newVersion, address indexed by, uint256 timestamp)",
-  "event SystemPaused(address indexed by, uint256 timestamp)",
-  "event SystemUnpaused(address indexed by, uint256 timestamp)",
   "event AdminRoleGranted(address indexed admin, address indexed by, uint256 timestamp)",
   "event AdminRoleRevoked(address indexed admin, address indexed by, uint256 timestamp)",
   // Write functions
@@ -54,10 +68,6 @@ export const DocumentRegistryABI = [
   "function deleteDocument(bytes32 _docId)",
   "function restoreVersion(bytes32 _docId, uint256 _versionToRestore)",
   "function setOperationalVersion(bytes32 _docId, uint256 _versionNumber)",
-  "function pause()",
-  "function unpause()",
-  "function suspendMyself()",
-  "function unsuspendMyself()",
   "function grantRole(bytes32 role, address account)",
   "function revokeRole(bytes32 role, address account)",
   // Read functions
@@ -72,19 +82,19 @@ export const DocumentRegistryABI = [
   "function canEdit(bytes32 _docId, address _user) view returns (bool)",
   "function isOwner(bytes32 _docId, address _user) view returns (bool)",
   "function totalDocuments() view returns (uint256)",
-  "function isPaused() view returns (bool)",
-  "function isUserSuspended(address user) view returns (bool)",
   "function hasRole(bytes32 role, address account) view returns (bool)",
   "function ADMIN_ROLE() view returns (bytes32)",
-  "function OPERATOR_ROLE() view returns (bytes32)",
 ];
 
-// Contract configuration
+/** Configuración de un contrato desplegado. */
 export interface ContractConfig {
+  /** Dirección del contrato. */
   address: string;
+  /** ABI del contrato. */
   abi: string[];
 }
 
+/** Mapa de contratos configurados. */
 export const CONTRACTS: Record<string, ContractConfig> = {
   DocumentRegistry: {
     address: getPersistedDocumentRegistryAddress() || import.meta.env.VITE_CONTRACT_REGISTRY || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
@@ -92,6 +102,14 @@ export const CONTRACTS: Record<string, ContractConfig> = {
   },
 };
 
+/**
+ * Establece la dirección de un contrato en la configuración.
+ *
+ * Persiste la dirección en localStorage si el contrato es DocumentRegistry.
+ *
+ * @param name - Nombre del contrato.
+ * @param address - Nueva dirección Ethereum.
+ */
 export function setContractAddress(name: string, address: string): void {
   const contract = CONTRACTS[name];
   if (!contract) {
@@ -109,13 +127,19 @@ export function setContractAddress(name: string, address: string): void {
   }
 }
 
-// Chain configuration
+/** Configuración de una cadena blockchain. */
 export interface ChainConfig {
+  /** Identificador numérico de la cadena. */
   chainId: number;
+  /** Identificador en hexadecimal. */
   chainIdHex: string;
+  /** Nombre descriptivo de la red. */
   name: string;
+  /** URL del nodo RPC. */
   rpcUrl: string;
+  /** URL del explorador de bloques (opcional). */
   blockExplorer?: string;
+  /** Información de la moneda nativa. */
   nativeCurrency?: {
     name: string;
     symbol: string;
@@ -126,6 +150,7 @@ export interface ChainConfig {
 const HARDHAT_RPC_URL = import.meta.env.VITE_BLOCKCHAIN_RPC_URL || 'http://localhost:8545';
 const HARDHAT_CHAIN_NAME = import.meta.env.VITE_CHAIN_NAME || 'Hardhat Localhost';
 
+/** Configuración de la cadena activa. */
 export const CHAIN_CONFIG: ChainConfig = {
   chainId: parseInt(import.meta.env.VITE_CHAIN_ID || '31337'),
   chainIdHex: `0x${(parseInt(import.meta.env.VITE_CHAIN_ID || '31337')).toString(16)}`,
@@ -139,7 +164,7 @@ export const CHAIN_CONFIG: ChainConfig = {
   },
 };
 
-// Supported networks for wallet switching
+/** Redes soportadas para cambio de red desde la wallet. */
 export const SUPPORTED_NETWORKS: Record<number, ChainConfig> = {
   31337: {
     chainId: 31337,
@@ -213,15 +238,23 @@ export const SUPPORTED_NETWORKS: Record<number, ChainConfig> = {
   },
 };
 
-// Gas configuration
+/** Configuración de gas para transacciones. */
 export const GAS_CONFIG = {
-  maxGasPriceGwei: 100, // Maximum gas price to accept
-  defaultGasLimit: 500000, // Default gas limit for transactions
-  confirmations: 1, // Number of confirmations to wait for
-  timeoutMs: 5 * 60 * 1000, // 5 minutes timeout for transactions
+  /** Precio máximo de gas aceptable en Gwei. */
+  maxGasPriceGwei: 100,
+  /** Límite de gas predeterminado para transacciones. */
+  defaultGasLimit: 500000,
+  /** Número de confirmaciones a esperar. */
+  confirmations: 1,
+  /** Tiempo máximo de espera para confirmación (ms). */
+  timeoutMs: 5 * 60 * 1000,
 };
 
-// Get contract address by name
+/**
+ * Obtiene la dirección de un contrato por su nombre.
+ * @param name - Nombre del contrato.
+ * @returns Dirección Ethereum del contrato.
+ */
 export function getContractAddress(name: string): string {
   const contract = CONTRACTS[name];
   if (!contract) {
@@ -230,7 +263,11 @@ export function getContractAddress(name: string): string {
   return contract.address;
 }
 
-// Get contract ABI by name
+/**
+ * Obtiene el ABI de un contrato por su nombre.
+ * @param name - Nombre del contrato.
+ * @returns Array de fragmentos ABI.
+ */
 export function getContractABI(name: string): string[] {
   const contract = CONTRACTS[name];
   if (!contract) {
@@ -239,12 +276,20 @@ export function getContractABI(name: string): string[] {
   return contract.abi;
 }
 
-// Check if chain ID is supported
+/**
+ * Verifica si un chain ID está soportado.
+ * @param chainId - Identificador de cadena.
+ * @returns `true` si la cadena está en la lista de redes soportadas.
+ */
 export function isChainSupported(chainId: number): boolean {
   return chainId in SUPPORTED_NETWORKS;
 }
 
-// Get network config by chain ID
+/**
+ * Obtiene la configuración de red para un chain ID.
+ * @param chainId - Identificador de cadena.
+ * @returns Configuración de la red o `undefined`.
+ */
 export function getNetworkConfig(chainId: number): ChainConfig | undefined {
   return SUPPORTED_NETWORKS[chainId];
 }

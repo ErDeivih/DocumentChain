@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 
+/**
+ * Propiedades del componente PublicDocumentPreview.
+ */
+/**
+ * Props del componente PublicDocumentPreview.
+ */
 interface PublicDocumentPreviewProps {
+  /** URL del contenido del documento. */
   contentUrl: string;
+  /** Tipo MIME del archivo. */
   mimeType: string;
+  /** Nombre del archivo. */
   fileName: string;
 }
 
+/**
+ * Determina si un tipo MIME soporta previsualización inline.
+ * @param mimeType - Tipo MIME del archivo.
+ * @returns Verdadero si el tipo puede previsualizarse inline.
+ */
 function supportsInlinePreview(mimeType: string): boolean {
   return (
     mimeType.startsWith('image/') ||
@@ -18,6 +32,16 @@ function supportsInlinePreview(mimeType: string): boolean {
   );
 }
 
+/**
+ * Componente para previsualizar documentos públicos según su tipo MIME.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX de la previsualización del documento.
+ */
+/**
+ * Previsualización inline de documentos públicos.
+ * Renderiza el contenido según su tipo MIME (imagen, PDF, audio, video, texto).
+ */
 export const PublicDocumentPreview: React.FC<PublicDocumentPreviewProps> = ({
   contentUrl,
   mimeType,

@@ -1,6 +1,6 @@
 /**
- * Componente de Subida de Avatar
- * Permite al usuario subir y gestionar su foto de perfil
+ * Componente de subida de avatar.
+ * Permite al usuario subir y gestionar su foto de perfil.
  */
 
 import React, { useState, useRef } from 'react';
@@ -11,12 +11,24 @@ import { usersApi } from '../../api/users';
 import { getErrorMessage } from '../../lib/api';
 import { Camera, Upload, Trash2, Loader2 } from 'lucide-react';
 
+/**
+ * Propiedades del componente AvatarUpload.
+ */
 interface AvatarUploadProps {
+  /** URL actual del avatar del usuario; puede ser `null` si no tiene avatar. */
   currentAvatarUrl?: string | null;
+  /** Nombre de usuario utilizado para generar las iniciales de fallback. */
   username: string;
+  /** Función opcional invocada cuando cambia el avatar. */
   onAvatarChange?: (newAvatarUrl: string | null) => void;
 }
 
+/**
+ * Componente para subir, previsualizar y eliminar el avatar del usuario.
+ *
+ * @param props - Propiedades del componente.
+ * @returns Elemento JSX del componente de subida de avatar.
+ */
 export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   currentAvatarUrl,
   username,
@@ -113,7 +125,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center gap-4">
-          {/* Avatar Preview */}
+          {/* Previsualización del avatar */}
           <div className="relative">
             <Avatar className="h-24 w-24">
               <AvatarImage src={previewUrl || undefined} alt={username} />

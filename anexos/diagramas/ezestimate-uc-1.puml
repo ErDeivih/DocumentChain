@@ -1,38 +1,58 @@
 @startsalt
 {
-  <b><size:14>EZEstimate — Clasificación de Casos de Uso (UUCW)</size></b>
+  <b><size:14>EZEstimate — Clasificacion de Casos de Uso (UUCW)</size></b>
   ==
   {T
    + <b>Paquete / Caso de Uso</b>                    | <b>Complejidad</b> | <b>Tx</b> | <b>Peso</b>
-   + <b>Autenticación y Perfil</b>                   | ──────────── | ─── | ─────
+   + <b>Acceso y Cuenta</b>                          | ──────────── | ─── | ─────
    +   UC-0001 Registrar Usuario                 | Simple        |  3  |   5
-   +   UC-0002 Iniciar Sesión                    | Simple        |  3  |   5
-   +   UC-0003 Cerrar Sesión                     | Simple        |  1  |   5
-  +   UC-0004 Conectar Wallet                   | Complejo      | 10  |  15
-   +   UC-0005 Gestionar Perfil                  | Medio         |  5  |  10
-   +   UC-0006 Cambiar Contraseña                | Medio         |  4  |  10
-   +   UC-0007 Recuperar Contraseña              | Medio         |  5  |  10
-   +   UC-0008 Verificar Email                   | Simple        |  2  |   5
-   +   UC-0009 Configurar 2FA                    | Complejo      |  8  |  15
-   + <b>Gestión de Documentos</b>                    | ──────────── | ─── | ─────
-   +   UC-0010 Subir Documento                   | Complejo      | 12  |  15
-   +   UC-0011 Listar Documentos                 | Simple        |  3  |   5
-   +   UC-0012 Ver Detalle de Documento          | Medio         |  5  |  10
-   +   UC-0013 Descargar Documento               | Complejo      |  8  |  15
-   +   UC-0014 Archivar Documento                | Medio         |  4  |  10
-   +   UC-0015 Eliminar Documento                | Medio         |  5  |  10
-   +   UC-0016 Editar Metadatos                  | Medio         |  4  |  10
-   +   UC-0017 Buscar Documentos                 | Medio         |  5  |  10
+   +   UC-0002 Iniciar Sesion                    | Simple        |  3  |   5
+   +   UC-0003 Cerrar Sesion                     | Simple        |  1  |   5
+   +   UC-0004 Conectar Wallet                   | Complejo      | 10  |  15
+   +   UC-0005 Eliminar Wallet                   | Simple        |  2  |   5
+   +   UC-0006 Establecer Wallet Principal       | Simple        |  2  |   5
+   +   UC-0007 Renombrar Wallet                  | Simple        |  2  |   5
+   +   UC-0008 Gestionar Perfil y Notificaciones | Medio         |  6  |  10
+   +   UC-0009 Eliminar Cuenta                   | Medio         |  5  |  10
+   +   UC-0010 Cambiar Contrasena                | Medio         |  4  |  10
+   +   UC-0011 Verificar Email                   | Simple        |  2  |   5
+   +   UC-0012 Reenviar Verificacion             | Simple        |  2  |   5
+   + <b>Gestion de Documentos</b>                    | ──────────── | ─── | ─────
+   +   UC-0013 Subir Documento                   | Complejo      | 12  |  15
+   +   UC-0014 Listar Documentos                 | Simple        |  3  |   5
+   +   UC-0015 Ver Detalle de Documento          | Medio         |  5  |  10
+   +   UC-0016 Descargar Documento               | Complejo      |  8  |  15
+   +   UC-0017 Archivar Documento                | Medio         |  4  |  10
+   +   UC-0018 Desarchivar Documento             | Medio         |  4  |  10
+   +   UC-0019 Eliminar Documento                | Medio         |  5  |  10
+   +   UC-0020 Transferir Documento              | Complejo      | 10  |  15
+   +   UC-0021 Buscar Documentos                 | Medio         |  5  |  10
    + <b>Control de Versiones</b>                     | ──────────── | ─── | ─────
-   +   UC-0018 Crear Nueva Versión               | Complejo      | 11  |  15
-   +   UC-0019 Listar Versiones                  | Simple        |  3  |   5
-   +   UC-0020 Establecer Versión Operativa      | Medio         |  4  |  10
-   +   UC-0021 Restaurar Versión Anterior        | Complejo      |  8  |  15
-   +   UC-0022 Descargar Versión Específica      | Complejo      |  8  |  15
+   +   UC-0022 Crear Nueva Version               | Complejo      | 11  |  15
+   +   UC-0023 Listar Versiones                  | Simple        |  3  |   5
+   +   UC-0024 Establecer Version Operativa      | Medio         |  4  |  10
+   +   UC-0025 Restaurar Version Anterior        | Complejo      |  8  |  15
+   +   UC-0026 Descargar Version Especifica      | Complejo      |  8  |  15
+   + <b>Firmas Digitales</b>                          | ──────────── | ─── | ─────
+   +   UC-0027 Firmar Documento                  | Complejo      |  8  |  15
+   +   UC-0028 Ver Firmas de un Documento        | Medio         |  4  |  10
+   +   UC-0029 Verificar Firma del Usuario       | Medio         |  5  |  10
+   + <b>Comparticion de Documentos</b>               | ──────────── | ─── | ─────
+   +   UC-0030 Compartir Documento               | Complejo      | 10  |  15
+   +   UC-0031 Revocar Acceso                    | Medio         |  5  |  10
+   +   UC-0032 Ver Compartidos Conmigo           | Simple        |  3  |   5
+   + <b>Auditoria y Verificacion</b>                 | ──────────── | ─── | ─────
+   +   UC-0033 Ver Timeline                      | Medio         |  5  |  10
+   +   UC-0034 Ver Estadisticas Personales       | Medio         |  4  |  10
+   +   UC-0035 Ver Estadisticas Globales         | Medio         |  5  |  10
+   +   UC-0036 Verificar Autenticidad            | Complejo      |  8  |  15
+   +   UC-0037 Auditoria Blockchain              | Complejo      |  9  |  15
+   + <b>Administracion</b>                            | ──────────── | ─── | ─────
+   +   UC-0038 Listar Usuarios                   | Medio         |  4  |  10
+   +   UC-0039 Gestionar Roles                   | Medio         |  5  |  10
    + ─────────────────────────────────────────── | ──────────── | ─── | ─────
-   + <sub>(continúa en siguiente tabla...)</sub>  |              |     |
+   + <b>TOTALES (39 casos de uso)</b>                |              |     |
+   +   Simples: 13 | Medios: 15 | Complejos: 11   |              |     |
   }
-  ==
-  [  Anterior  ] | [  <b>Siguiente →</b>  ]
 }
 @endsalt
