@@ -5,15 +5,13 @@ import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
 import { copyToClipboard, truncateAddress } from '../../lib/utils';
+import { ConnectedWalletBanner, SavedWalletItem } from './WalletModalComponents';
 import { 
   Wallet, 
   Plus, 
-  Trash2, 
   Star, 
-  CheckCircle2, 
   AlertCircle, 
   Loader2,
-  Copy,
   LogOut
 } from 'lucide-react';
 
@@ -239,35 +237,11 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
 
           {/* Wallet conectada actualmente */}
           {connectedWallet && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium text-green-800">Wallet Conectada</p>
-                    <p className="text-xs font-mono text-green-600">
-                      {truncateAddress(connectedWallet.address)}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={handleUseConnected}
-                  disabled={isLoading}
-                >
-                  Usar esta wallet
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleDisconnectAndChooseAnother}
-                  disabled={isLoading}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Cambiar wallet
-                </Button>
-              </div>
-            </div>
+            <ConnectedWalletBanner
+              address={connectedWallet.address}
+              onUseThisWallet={handleUseConnected}
+              onChangeWallet={handleDisconnectAndChooseAnother}
+            />
           )}
 
           {/* Wallets guardadas */}
@@ -278,62 +252,15 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
               </h4>
               <div className="space-y-2">
                 {orderedWallets.map((wallet) => (
-                  <div
+                  <SavedWalletItem
                     key={wallet.id}
-                    data-testid={`saved-wallet-${wallet.id}`}
-                    onClick={() => handleSelectSaved(wallet)}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-accent ${
-                      connectedWallet?.address.toLowerCase() === wallet.walletAddress.toLowerCase()
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-border'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <Wallet className="w-5 h-5" />
-                          {wallet.isPrimary && (
-                            <Star className="w-3 h-3 text-yellow-500 absolute -top-1 -right-1 fill-yellow-500" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {wallet.label || 'Sin etiqueta'}
-                          </p>
-                          <div className="flex items-center gap-1">
-                            <p className="text-xs font-mono text-muted-foreground">
-                              {truncateAddress(wallet.walletAddress)}
-                            </p>
-                            <button
-                              onClick={(e) => copyAddress(wallet.walletAddress, e)}
-                              className="p-1 hover:bg-muted rounded"
-                              title="Copiar dirección"
-                            >
-                              <Copy className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {!wallet.isPrimary && (
-                          <button
-                            onClick={(e) => handleSetPrimary(wallet.id, e)}
-                            className="p-2 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                            title="Establecer como principal"
-                          >
-                            <Star className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => handleRemoveWallet(wallet.id, e)}
-                          className="p-2 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
-                          title="Eliminar wallet"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    wallet={wallet}
+                    isConnected={connectedWallet?.address.toLowerCase() === wallet.walletAddress.toLowerCase()}
+                    onSelect={handleSelectSaved}
+                    onSetPrimary={handleSetPrimary}
+                    onRemove={handleRemoveWallet}
+                    onCopyAddress={copyAddress}
+                  />
                 ))}
               </div>
             </div>
