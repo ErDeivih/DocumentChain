@@ -7,7 +7,7 @@ import { listVersions, versionsApi } from '../api/versions';
 import { getMyRole, listShares } from '../api/shares';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
+import { UserAvatar } from '../components/ui/UserAvatar';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Loading } from '../components/ui/Loading';
@@ -333,14 +333,7 @@ export const DocumentDetails: React.FC = () => {
                 </p>
                 {document.owner && (
                   <div className="mt-2 flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      {document.owner.avatarUrl ? (
-                        <AvatarImage src={document.owner.avatarUrl} alt={document.owner.username} />
-                      ) : null}
-                      <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-[10px] text-slate-950">
-                        {(document.owner.fullName || document.owner.username).slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                      <UserAvatar size="xs" name={document.owner.fullName || document.owner.username} avatarUrl={document.owner.avatarUrl} />
                     <span className="text-sm text-muted-foreground">
                       {document.owner.fullName || document.owner.username}
                     </span>

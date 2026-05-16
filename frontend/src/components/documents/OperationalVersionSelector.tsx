@@ -30,7 +30,7 @@ import {
   Wallet,
   Download
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
+import { UserAvatar } from '../ui/UserAvatar';
 
 /**
  * Versión extendida con información de restauración.
@@ -431,14 +431,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          {signature.signer?.avatarUrl ? (
-                            <AvatarImage src={signature.signer.avatarUrl} alt={signerName} />
-                          ) : null}
-                          <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-[10px] text-slate-950">
-                            {signerName.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <UserAvatar size="sm" name={signerName} avatarUrl={signature.signer?.avatarUrl} />
                         <div>
                           <p className="font-medium text-foreground">{signerName}</p>
                           {signerUsername ? (
@@ -459,14 +452,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
             {selectedSignature ? (
               <div className="rounded-xl border border-white/10 bg-secondary/35 p-5" data-testid="signer-profile-panel">
                 <div className="flex flex-wrap items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    {selectedSignature.signer?.avatarUrl ? (
-                      <AvatarImage src={selectedSignature.signer.avatarUrl} alt={getSignerDisplayName(selectedSignature)} />
-                    ) : null}
-                    <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-sm text-slate-950">
-                      {getSignerDisplayName(selectedSignature).slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                    <UserAvatar name={getSignerDisplayName(selectedSignature)} avatarUrl={selectedSignature.signer?.avatarUrl} />
                   <h3 className="text-lg font-semibold text-foreground">Perfil del firmante</h3>
                 </div>
 

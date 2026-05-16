@@ -36,6 +36,7 @@ export { Separator } from './Separator';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 
 export { Avatar, AvatarImage, AvatarFallback } from './Avatar';
+export { UserAvatar } from './UserAvatar';
 
 export { Toast, ToastProvider, useToast, toastVariants } from './Toast';
 

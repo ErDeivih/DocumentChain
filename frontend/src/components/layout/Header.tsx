@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
+import { UserAvatar } from '../ui/UserAvatar';
 import { Separator } from '../ui/Separator';
 import {
   Menu,
@@ -59,14 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
             {isAuthenticated ? (
               <>
                 <div className="hidden md:flex items-center gap-3">
-                  <Avatar>
-                    {user?.avatarUrl && (
-                      <AvatarImage src={user.avatarUrl} alt={user.username} />
-                    )}
-                    <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-slate-950">
-                      {user?.username?.slice(0, 2).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar name={user?.username} avatarUrl={user?.avatarUrl} />
                   <div className="text-right">
                     <p className="text-sm font-semibold text-foreground">{user?.username}</p>
                     <p className="text-xs text-muted-foreground">{user?.email}</p>
@@ -145,13 +138,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
               {isAuthenticated ? (
                 <>
                   <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white/82 px-3 py-2 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.16)]">
-                    <Avatar>
-                      {user?.avatarUrl && (
-                        <AvatarImage src={user.avatarUrl} alt={user.username} />
-                      )}
-                      <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-slate-950">
-                        {user?.username?.slice(0, 2).toUpperCase() || 'U'}
-                      </AvatarFallback>
+                    <UserAvatar name={user?.username} avatarUrl={user?.avatarUrl} />
                     </Avatar>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-foreground">{user?.username}</p>

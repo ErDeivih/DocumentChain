@@ -10,7 +10,7 @@ import { formatRelativeTime } from '../../lib/utils';
 import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { SavedWallet } from '../../contexts/WalletManagerContext';
 import { Trash2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
+import { UserAvatar } from '../ui/UserAvatar';
 
 /**
  * Props del componente ShareList.
@@ -125,14 +125,7 @@ export const ShareList: React.FC<ShareListProps> = ({
             <div className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Avatar className="h-10 w-10">
-                  {share.user?.avatarUrl ? (
-                    <AvatarImage src={share.user.avatarUrl} alt={share.user.username} />
-                  ) : null}
-                  <AvatarFallback className="bg-[linear-gradient(135deg,#2dd4bf_0%,#0ea5e9_100%)] text-sm text-slate-950">
-                    {(share.user?.fullName || share.user?.username || 'U').slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar name={share.user?.fullName || share.user?.username} avatarUrl={share.user?.avatarUrl} />
                 <div>
                   <h4 className="font-semibold text-foreground">
                     {share.user?.fullName || share.user?.username || 'Usuario Desconocido'}
