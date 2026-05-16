@@ -12,6 +12,10 @@ const mockPrisma = {
   document: {
     findFirst: jest.fn().mockResolvedValue(null),
   },
+  $extends: jest.fn().mockReturnThis(),
+  wallet: {
+    findFirst: jest.fn(),
+  },
 };
 
 jest.mock('@prisma/client', () => ({

@@ -162,8 +162,8 @@ export class IPFSService {
 
       return {
         cid,
-        isPinned: status.status === 'pinned' || status.peer_map,
-        peerMap: status.peer_map || {}
+        isPinned: status.pinned || status.status === 'pinned' || Boolean(status.peer_map),
+        peerMap: (status.peer_map || {}) as Record<string, any>
       };
 
     } catch (error) {

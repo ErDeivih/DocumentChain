@@ -32,6 +32,7 @@ jest.mock('../../src/services/documentPermissionService', () => ({
   DocumentPermissionService: {
     getDocumentUsersWithRoles: jest.fn(),
     isOwner: jest.fn(),
+    validateOwnership: jest.fn(),
   },
   DocumentRole: {
     NONE: 0,

@@ -11,6 +11,7 @@ jest.mock('@prisma/client', () => {
     user: {
       findUnique: jest.fn(),
     },
+    $extends: jest.fn().mockReturnThis(),
   };
 
   return {

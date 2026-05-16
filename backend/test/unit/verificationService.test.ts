@@ -3,14 +3,6 @@
  * Covers: verifyFileByHash, verifyByIPFSHash, verifyByBlockchainId.
  */
 
-const mockFileCrypto = {
-  hashFile: jest.fn().mockReturnValue('hash-abcd'),
-};
-
-jest.mock('../../src/lib/crypto/FileCrypto', () => ({
-  FileCrypto: mockFileCrypto,
-}));
-
 jest.mock('../../src/config/database', () => ({
   __esModule: true,
   default: {
@@ -46,6 +38,12 @@ jest.mock('../../src/utils/ethereum', () => ({
   normalizeEthereumAddress: jest.fn((addr: string) => addr.toLowerCase()),
 }));
 
+const mockCalculateHash = jest.fn().mockReturnValue('hash-abcd');
+jest.mock('../../src/lib/encryption', () => ({
+  __esModule: true,
+  calculateHash: mockCalculateHash,
+}));
+
 import { VerificationService } from '../../src/services/verificationService';
 import prisma from '../../src/config/database';
 import { getContracts } from '../../src/config/blockchain';
@@ -67,7 +65,7 @@ describe('VerificationService', () => {
       );
 
       expect(result.exists).toBe(false);
-      expect(mockFileCrypto.hashFile).toHaveBeenCalled();
+      expect(mockCalculateHash).toHaveBeenCalled();
     });
 
     it('should return exists=true with document info when found', async () => {

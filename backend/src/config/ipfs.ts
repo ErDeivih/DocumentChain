@@ -40,6 +40,8 @@ export interface PinStatus {
   pinned: boolean;
   size?: number;
   timestamp?: string;
+  status?: string;
+  peer_map?: Record<string, any>;
 }
 
 const IPFS_PROVIDER = process.env.IPFS_PROVIDER?.trim() || 'self-hosted';

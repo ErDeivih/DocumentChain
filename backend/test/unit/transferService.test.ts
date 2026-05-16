@@ -32,6 +32,7 @@ jest.mock('../../src/lib/encryption', () => ({
 jest.mock('../../src/services/documentPermissionService', () => ({
   DocumentPermissionService: {
     isOwner: jest.fn(),
+    validateOwnership: jest.fn(),
   },
 }));
 
