@@ -351,14 +351,16 @@ Wait-ForContainerHealth -ContainerName 'documentchain-hardhat'
 Wait-ForHttpRpc -Url 'http://127.0.0.1:8545'
 
 Write-Host '[4/8] Desplegando contrato consolidado...' -ForegroundColor Yellow
-Push-Location smart-contracts
-try {
-    & npx hardhat run scripts/deploy.js --network localhost
-    if ($LASTEXITCODE -ne 0) {
-        throw 'El despliegue Hardhat fallo'
-    }
-} finally {
-    Pop-Location
+$contractsPath = Join-Path $PSScriptRoot 'smart-contracts'
+& docker run --rm `
+    --network container:documentchain-hardhat `
+    -v "${contractsPath}:/work" `
+    -v 'documentchain-smart-contracts-node-modules:/work/node_modules' `
+    -w /work `
+    node:20-alpine `
+    sh -c 'npm ci --no-audit --prefer-offline && npx hardhat run scripts/deploy.js --network localhost'
+if ($LASTEXITCODE -ne 0) {
+    throw 'El despliegue Hardhat fallo'
 }
 
 $deploymentEnvPath = Join-Path $PSScriptRoot 'smart-contracts\deployments\localhost.env'

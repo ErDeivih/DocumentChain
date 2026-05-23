@@ -44,6 +44,7 @@ cache/
 typechain/
 typechain-types/
 smart-contracts/artifacts/build-info/
+smart-contracts/deployments/localhost.*
 smart-contracts/coverage/
 smart-contracts/coverage.json
 smart-contracts/coverage/lcov.info
@@ -90,3 +91,6 @@ backend/query_event.js
 /get_last_share.ts
 frontend/api-repro.txt
 /test_upload_v2.txt
+
+# Local handoff and non-delivery material
+_local_no_entrega/

@@ -1,20 +1,85 @@
 # DocumentChain
 
-DocumentChain es un sistema de gestion documental con trazabilidad blockchain, versionado, comparticion, firma digital con wallet y soporte para documentos privados y publicos.
+DocumentChain es un sistema de gestion documental segura con trazabilidad blockchain, versionado, comparticion, firma digital con wallet y soporte para documentos privados y publicos.
 
 ## Stack
 
-- Frontend: React + Vite + TypeScript
-- Backend: Express + TypeScript + Prisma
-- Base de datos: PostgreSQL
-- Blockchain local: Hardhat
-- Persistencia de binarios: IPFS self-hosted con nodo propio
-- Correo saliente: Postfix en Docker
-- Documentacion academica: anexos LaTeX
+- Frontend: React + Vite + TypeScript.
+- Backend: Node.js + Express 4.21 + TypeScript + Prisma.
+- Base de datos: PostgreSQL.
+- Blockchain de demostracion: Hardhat local.
+- Persistencia documental: IPFS mediante Pinata o nodo Kubo autoalojado.
+- Correo saliente: Postfix en Docker o relay SMTP externo.
+- Documentacion academica: memoria y anexos LaTeX en `anexos/`.
 
-## Arranque recomendado
+## Estado de entrega
 
-La forma recomendada para probar el proyecto en otro equipo es levantar todo con Docker Compose:
+- La entrega Git contiene el codigo fuente necesario, contratos, configuracion de despliegue local, anexos activos y diagramas.
+- Las suites de prueba, reportes, coberturas, documentacion API generada y artefactos temporales se conservan solo localmente en `_local_no_entrega/`, carpeta ignorada por Git.
+- La documentacion API de backend/frontend/smart-contracts es regenerable con los scripts `docs`, pero no forma parte del arbol final de entrega.
+- El backend importa el ABI desde `smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json`; por eso, tras una instalacion limpia, debe ejecutarse `npm run compile` en `smart-contracts` antes de compilar el backend.
+
+## Demo local para defensa
+
+La demo recomendada usa Hardhat local, PostgreSQL, backend, frontend, Postfix e IPFS configurado en `backend/.env`.
+
+Versiones verificadas en el cierre local de entrega:
+
+- Docker Desktop con Docker Compose v2.
+- Imagen Docker `node:20-alpine` para builds y despliegue Hardhat reproducible.
+- Node local usado para herramientas auxiliares: `v22.12.0`; npm local: `11.2.0`.
+- PowerShell en Windows.
+- MiKTeX/LuaLaTeX para compilar los anexos.
+
+Para regenerar un entorno demostrativo reproducible:
+
+```powershell
+.\reseed-dev.ps1
+```
+
+El script realiza estas acciones:
+
+- levanta PostgreSQL y Postfix;
+- levanta `ipfs-node` si `IPFS_PROVIDER=self-hosted`;
+- recompila backend y Hardhat;
+- recrea el nodo Hardhat local;
+- despliega `DocumentRegistry`;
+- sincroniza `CONTRACT_DOCUMENT_REGISTRY` en `backend/.env` y `VITE_CONTRACT_REGISTRY` en `frontend/.env`;
+- limpia los pins existentes del proveedor IPFS configurado;
+- genera usuarios, wallets, documentos, versiones, comparticiones, firmas y eventos;
+- sube payloads demo a IPFS y usa CIDs reales cuando el proveedor IPFS esta disponible;
+- arranca el backend con la direccion actual del contrato.
+
+Perfil rapido por defecto:
+
+```powershell
+.\reseed-dev.ps1 -SeedProfile qa-fast
+```
+
+Perfil amplio:
+
+```powershell
+.\reseed-dev.ps1 -SeedProfile qa-max
+```
+
+Credenciales habituales tras la seed:
+
+- `admin` / `Admin123!`
+- usuarios demo impresos por consola con clave `Demo123!`
+
+Cada ejecucion de `reseed-dev.ps1` resetea la base de datos de demostracion y redespliega el contrato local, por lo que las direcciones y CIDs pueden cambiar.
+
+El perfil `qa-fast` queda validado como dataset limpio de defensa: el resumen debe terminar con `Documentos en FAILED: 0`. Los ficheros `smart-contracts/deployments/localhost.json` y `smart-contracts/deployments/localhost.env` son artefactos locales efimeros del despliegue Hardhat y no forman parte de la entrega versionada.
+
+Comprobacion rapida de integridad tras el reseed:
+
+```powershell
+docker exec documentchain-postgres psql -U documentchain -d documentchain -c "SELECT \"blockchainStatus\", count(*) FROM \"Document\" GROUP BY \"blockchainStatus\";"
+```
+
+## Arranque basico
+
+La forma directa de levantar el proyecto con Docker Compose es:
 
 ```powershell
 docker compose up -d --build
@@ -26,8 +91,8 @@ Servicios expuestos:
 - Backend API: http://localhost:3000
 - PostgreSQL: localhost:5433
 - Hardhat RPC: http://localhost:8545
-- Nodo IPFS propio: opcional con perfil `ipfs`
 - SMTP Postfix: localhost:1587
+- Nodo IPFS propio: opcional con perfil `ipfs` y servicio `ipfs-node`
 
 Comprobaciones rapidas:
 
@@ -36,19 +101,9 @@ docker compose ps
 Invoke-WebRequest -UseBasicParsing http://localhost:3000/health
 ```
 
-Para dejar el entorno local en un estado QA reproducible, con Hardhat redeployado y datos coherentes para Playwright, el flujo canonico es:
-
-```powershell
-.\reseed-dev.ps1
-```
-
-Ese flujo sincroniza automaticamente la direccion desplegada del contrato en backend y frontend antes de regenerar la seed QA.
-
-Los scripts PowerShell del repositorio ya fijan internamente la raiz del proyecto, por lo que no dependen del directorio activo desde el que se invoquen.
-
 ## Variables de entorno
 
-Si no existen, crea los ficheros `.env` a partir de los ejemplos disponibles:
+Si no existen, crea los ficheros `.env` desde sus ejemplos:
 
 ```powershell
 Copy-Item backend\.env.example backend\.env
@@ -62,26 +117,54 @@ Para trabajo local fuera de Docker, `backend/.env` debe apuntar a PostgreSQL en 
 DATABASE_URL="postgresql://documentchain:documentchain@localhost:5433/documentchain?schema=public"
 ```
 
-## IPFS self-hosted
+Variables blockchain locales principales:
 
-El runtime principal queda alineado con un unico nodo IPFS propio. Si quieres levantarlo con el compose principal, activa el perfil `ipfs` y fuerza el proveedor self-hosted en el entorno de Docker:
+```dotenv
+BLOCKCHAIN_RPC_URL="http://localhost:8545"
+CONTRACT_DOCUMENT_REGISTRY="0x..."
+BLOCKCHAIN_PRIVATE_KEY="0x..."
+```
+
+Variables frontend relacionadas:
+
+```dotenv
+VITE_CHAIN_ID="31337"
+VITE_CHAIN_NAME="Hardhat Localhost"
+VITE_BLOCKCHAIN_RPC_URL="http://localhost:8545"
+VITE_CONTRACT_REGISTRY="0x..."
+```
+
+## IPFS
+
+DocumentChain soporta dos proveedores:
+
+- `IPFS_PROVIDER=pinata`: usa Pinata mediante `PINATA_JWT`.
+- `IPFS_PROVIDER=self-hosted`: usa un nodo Kubo local con el servicio `ipfs-node`.
+
+Configuracion Pinata en `backend/.env`:
+
+```dotenv
+IPFS_PROVIDER="pinata"
+PINATA_JWT="..."
+PINATA_GATEWAY_URL="https://gateway.pinata.cloud"
+```
+
+Configuracion self-hosted:
 
 ```powershell
 $env:IPFS_PROVIDER = "self-hosted"
 $env:IPFS_API_URL = "http://ipfs-node:5001"
 $env:IPFS_GATEWAY_URL = "http://ipfs-node:8080"
-$env:IPFS_DATA_ROOT = "/opt/documentchain/ipfs"
+$env:IPFS_DATA_ROOT = "E:\Universidad\tfg\ipfs\runtime\node"
 
 docker compose --profile ipfs up -d postgres hardhat postfix ipfs-node backend frontend
 ```
 
-Ese modo levanta un nodo Kubo persistente accesible por el backend y deja los datos fuera del checkout si defines `IPFS_DATA_ROOT`.
+La seed de demostracion limpia los pins existentes antes de cargar datos nuevos. Esto evita agotar almacenamiento en Pinata o en el nodo local durante iteraciones repetidas de defensa.
 
-## Correo con Postfix del proyecto
+## Correo con Postfix
 
-El backend ya esta preparado para entregar al Postfix del propio stack. Si quieres evitar proveedores externos, el modo mas directo es `app -> postfix local -> internet`, sin relay SMTP adicional.
-
-Configuracion para desarrollo local en `backend/.env`:
+El backend puede entregar correo al Postfix del propio stack. Configuracion local minima en `backend/.env`:
 
 ```dotenv
 SMTP_HOST="localhost"
@@ -94,100 +177,11 @@ EMAIL_FROM_NAME="DocumentChain"
 FRONTEND_URL="http://localhost:5173"
 ```
 
-Configuracion equivalente para `docker compose` en el `.env` de la raiz del proyecto para salida directa con Postfix:
-
-```dotenv
-SMTP_RELAYHOST=
-SMTP_RELAYHOST_USERNAME=
-SMTP_RELAYHOST_PASSWORD=
-POSTFIX_SMTP_TLS_SECURITY_LEVEL=may
-POSTFIX_HOSTNAME=mail.documentchain.local
-ALLOWED_SENDER_DOMAINS=documentchain.local
-MASQUERADED_DOMAINS=documentchain.local
-EMAIL_FROM=noreply@documentchain.local
-EMAIL_FROM_NAME=DocumentChain
-```
-
-Con esa configuracion, la app entrega al Postfix del proyecto y Postfix intenta la entrega directa a los servidores destino.
-
-Limitacion importante: esto funciona como arquitectura y sirve para demostrar que el correo sale desde tu servidor, pero no garantiza que Gmail, Outlook u otros receptores acepten siempre el mensaje. Si cae en spam o se rechaza, el problema ya no es la app sino la falta de reputacion, dominio y DNS del emisor.
-
-Si en algun momento quieres un modo mas estable sin cambiar el backend, puedes añadir un relay SMTP despues, pero no es obligatorio para probar el flujo tecnico del TFG.
-
-Arranque minimo para este modo:
-
-```powershell
-Set-Location E:\Universidad\tfg
-docker compose up -d postfix
-
-Set-Location E:\Universidad\tfg\backend
-npm run dev
-```
-
-Prueba rapida de envio:
-
-```powershell
-Set-Location E:\Universidad\tfg\backend
-node test-smtp-quick.js destinatario@ejemplo.com
-```
-
-Si prefieres que el flujo siga pasando por tu servidor local pero que la salida final la haga un tercero, usa Postfix como relay. En ese escenario la app entrega al Postfix del proyecto, y Postfix reenvia el mensaje al relay configurado.
-
-Configuracion para el `.env` de la raiz del proyecto cuando quieres `app -> postfix local -> gmail -> internet`:
-
-```dotenv
-SMTP_RELAYHOST=[smtp.gmail.com]:587
-SMTP_RELAYHOST_USERNAME=tu_cuenta@gmail.com
-SMTP_RELAYHOST_PASSWORD=tu_contrasena_de_aplicacion
-POSTFIX_SMTP_TLS_SECURITY_LEVEL=encrypt
-POSTFIX_HOSTNAME=mail.documentchain.local
-ALLOWED_SENDER_DOMAINS=gmail.com
-MASQUERADED_DOMAINS=gmail.com
-EMAIL_FROM=tu_cuenta@gmail.com
-EMAIL_FROM_NAME=DocumentChain
-```
-
-Si ejecutas el backend fuera de Docker, en `backend/.env` debes mantener el envio hacia el Postfix local:
-
-```dotenv
-SMTP_HOST="localhost"
-SMTP_PORT="1587"
-SMTP_SECURE="false"
-SMTP_USER=""
-SMTP_PASS=""
-EMAIL_FROM="tu_cuenta@gmail.com"
-EMAIL_FROM_NAME="DocumentChain"
-```
-
-Con esa variante sigues usando tu servidor SMTP local dentro del proyecto, pero la salida real a Internet la resuelve Gmail. Solo usala si la entrega directa de Postfix no te basta.
-
-Limitaciones practicas:
-
-- La salida directa con Postfix es valida para demostracion tecnica del flujo.
-- La aceptacion por receptores externos no esta garantizada sin dominio, PTR, SPF, DKIM y reputacion.
-- Si el objetivo es solo validar plantillas y logica, este modo es suficiente aunque parte del correo externo falle.
-
-Configuracion alternativa con Brevo SMTP:
-
-```dotenv
-SMTP_HOST="smtp-relay.brevo.com"
-SMTP_PORT="587"
-SMTP_SECURE="false"
-SMTP_USER="tu_login_smtp_de_brevo"
-SMTP_PASS="tu_clave_smtp_de_brevo"
-EMAIL_FROM="tu_remitente_verificado@example.com"
-EMAIL_FROM_NAME="DocumentChain"
-```
-
-Para este caso concreto, Brevo suele ser mejor opcion que un buzon personal porque:
-
-- esta pensado para correo transaccional;
-- no dependes de crear otra cuenta de Google;
-- el flujo de pruebas se parece mas a un entorno real de aplicacion.
+La salida directa con Postfix sirve como demostracion tecnica, pero la aceptacion por Gmail/Outlook no esta garantizada sin dominio, PTR, SPF, DKIM y reputacion. Para un envio mas estable puede configurarse un relay SMTP externo.
 
 ## Desarrollo hibrido
 
-Si prefieres ejecutar frontend y backend en caliente, manteniendo PostgreSQL, Hardhat y Postfix en Docker:
+Para ejecutar frontend y backend en caliente, manteniendo PostgreSQL, Hardhat y Postfix en Docker:
 
 ```powershell
 docker compose up -d postgres hardhat postfix
@@ -201,69 +195,54 @@ Set-Location ..\frontend
 npm run dev
 ```
 
-## Pruebas
+## Validacion de entrega
 
-Backend unit tests:
+Backend:
 
 ```powershell
 Set-Location backend
-npm run test:unit
+npm run build
+npm run lint
 ```
 
-Frontend unit tests:
+Frontend:
 
 ```powershell
 Set-Location frontend
-npm test -- --run
+npm run build
+npm run lint
 ```
 
-E2E principales:
+Smart contracts:
 
 ```powershell
-.\scripts\run-playwright.ps1 -Project chromium -Arguments @('e2e/shared-routes.spec.ts','--reporter=line')
+Set-Location smart-contracts
+npm run compile
 ```
 
-Validacion multi-navegador disponible:
-
-```powershell
-.\scripts\run-playwright.ps1 -Project firefox
-.\scripts\run-playwright.ps1 -Project webkit
-```
-
-Anexos:
+Anexos activos:
 
 ```powershell
 Set-Location anexos
-.\build.ps1
+.\build_nuevo.ps1 -OnlyLatex
 ```
-
-## Autodespliegue en Ubuntu
-
-Si quieres que un servidor Ubuntu local actualice el stack automaticamente tras cada push en GitHub, el repositorio ya incluye:
-
-- [/.github/workflows/deploy-local-server.yml](.github/workflows/deploy-local-server.yml) para runner self-hosted.
-- [/scripts/deploy-ubuntu-server.sh](scripts/deploy-ubuntu-server.sh) para reconstruir y relanzar el stack Docker.
-- [/.env.server.example](.env.server.example) como plantilla de configuracion del servidor.
-- [/docs/UBUNTU_SELF_HOSTED_DEPLOY.md](docs/UBUNTU_SELF_HOSTED_DEPLOY.md) con la puesta en marcha completa.
-
-Ese flujo esta pensado para entorno de pruebas sobre Ubuntu + Docker, no para produccion publica.
 
 ## Contenedores
 
 - `documentchain-frontend`: sirve la SPA y proxifica `/api` al backend.
 - `documentchain-backend`: API REST, servicios y sincronizacion blockchain.
 - `documentchain-postgres`: persistencia relacional.
-- `documentchain-hardhat`: nodo EVM local con despliegue automatico.
-- `documentchain-postfix`: SMTP de salida para pruebas reales.
-
-Para salida real a Internet, el Postfix del compose debe actuar preferiblemente como relay contra un proveedor SMTP o un dominio bien configurado. La entrega directa puede funcionar en entornos controlados, pero suele degradarse por bloqueo de puerto 25, falta de PTR o mala reputación del emisor.
+- `documentchain-hardhat`: nodo EVM local para demostracion.
+- `documentchain-postfix`: SMTP de salida.
+- `documentchain-ipfs`: nodo Kubo opcional cuando se activa el perfil `ipfs`.
 
 ## Notas importantes
 
 - El sistema de permisos documental real usa `OWNER`, `EDITOR`, `VIEWER` y `NONE` en blockchain.
 - La firma usa patron prepare/confirm; la wallet firma siempre en cliente.
+- La autenticacion principal es email/contraseña + JWT; la wallet se usa para challenge de vinculacion y firma de operaciones/documentos.
 - Las migraciones Prisma deben versionarse en Git.
-- Las capturas del anexo V viven en `anexos/capturas-ui/`.
+- Las capturas del manual de usuario viven en `anexos/capturas-ui/`.
 
 ## Estructura
 

@@ -17,7 +17,7 @@ WORKDIR /app
 # Copiar dependencias primero para maximizar caché de build
 COPY smart-contracts/package*.json ./
 
-# Instalar dependencias
+# Instalar dependencias de forma reproducible usando el lockfile sincronizado.
 RUN npm ci --no-audit --prefer-offline
 
 # Copiar smart contracts y resto del código

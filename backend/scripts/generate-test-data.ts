@@ -7,6 +7,7 @@ import { ethers } from 'ethers';
 import { Argon2Service } from '../src/services/argon2Service';
 import { KeyManager } from '../src/lib/crypto/KeyManager';
 import { resolveDocumentRegistryAddressOrDefault } from '../src/config/contractAddress';
+import { ipfsClient, uploadToIPFS } from '../src/config/ipfs';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env'), override: true });
 
@@ -46,6 +47,8 @@ interface DemoIdentity {
 }
 
 const QA_SEED_LOCK_ID = 90421421;
+let seedIpfsAvailable = false;
+let seedIpfsWarningShown = false;
 
 interface SeedWalletRecord {
   id: string;
@@ -71,6 +74,35 @@ interface BlockchainContext {
   getWallet: (i: number) => ethers.HDNodeWallet;
   /** Return a nonce-managed signer for index `i` to avoid nonce race conditions. */
   getSigner: (i: number) => ethers.NonceManager;
+}
+
+function isNonceError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return /nonce (too high|too low)|nonce has already been used|replacement fee too low/i.test(message);
+}
+
+async function waitForBlockchainTx(
+  label: string,
+  signer: ethers.NonceManager,
+  send: () => Promise<ethers.ContractTransactionResponse>,
+): Promise<ethers.TransactionReceipt> {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const tx = await send();
+      return await tx.wait(1) as ethers.TransactionReceipt;
+    } catch (err) {
+      if (!isNonceError(err) || attempt === maxAttempts) {
+        throw err;
+      }
+
+      signer.reset();
+      console.warn(`    [bc] ${label}: nonce desincronizado, reintento ${attempt + 1}/${maxAttempts}`);
+    }
+  }
+
+  throw new Error(`${label}: reintentos agotados`);
 }
 
 async function setupBlockchain(): Promise<BlockchainContext | null> {
@@ -259,6 +291,67 @@ function randomHash(prefix: string, n: number): string {
 
 function txHash(n: number): string {
   return ethers.keccak256(ethers.toUtf8Bytes(`tx-${n}-${Date.now()}-${Math.random()}`));
+}
+
+function syntheticCid(seed: string): string {
+  return `Qm${ethers.keccak256(ethers.toUtf8Bytes(seed)).slice(2, 34)}`;
+}
+
+async function cleanupConfiguredIPFS(): Promise<boolean> {
+  try {
+    console.log('[ipfs] Limpiando pins existentes del proveedor configurado...');
+    const pins = await ipfsClient.listPins();
+    let removed = 0;
+
+    for (const pin of pins) {
+      const cid = typeof pin?.cid === 'string' ? pin.cid : null;
+      if (!cid) continue;
+
+      try {
+        await ipfsClient.unpin(cid);
+        removed++;
+      } catch (error) {
+        console.warn(`[ipfs] No se pudo desanclar ${cid}: ${error instanceof Error ? error.message : error}`);
+      }
+    }
+
+    console.log(`[ipfs] Limpieza completada: ${removed}/${pins.length} CIDs desanclados`);
+    return true;
+  } catch (error) {
+    console.warn(`[ipfs] Proveedor no disponible para seed real (${error instanceof Error ? error.message : error}). Se usaran CIDs sinteticos.`);
+    return false;
+  }
+}
+
+function buildSeedPayload(kind: { ext: string; mime: string; name: string }, owner: GeneratedUser, docIndex: number, versionIndex: number): Buffer {
+  const payload = {
+    generatedBy: 'DocumentChain QA seed',
+    owner: owner.username,
+    document: buildDocumentName(owner, docIndex, kind.ext),
+    version: versionIndex + 1,
+    mimeType: kind.mime,
+    createdAt: new Date().toISOString(),
+    note: 'Contenido ficticio para demostracion local; el flujo de usuario real cifra y sube archivos desde la aplicacion.',
+  };
+
+  return Buffer.from(JSON.stringify(payload, null, 2), 'utf8');
+}
+
+async function createSeedIpfsCid(seed: string, payload: Buffer): Promise<string> {
+  if (!seedIpfsAvailable) {
+    return syntheticCid(seed);
+  }
+
+  try {
+    return await uploadToIPFS(payload);
+  } catch (error) {
+    if (!seedIpfsWarningShown) {
+      console.warn(`[ipfs] Fallo la subida de datos demo (${error instanceof Error ? error.message : error}). Se continuara con CIDs sinteticos.`);
+      seedIpfsWarningShown = true;
+    }
+    seedIpfsAvailable = false;
+    return syntheticCid(seed);
+  }
 }
 
 function getWalletCountForUser(index: number, config: ProfileConfig): number {
@@ -720,7 +813,10 @@ async function createDocumentsAndEvents(
       // Build a deterministic docId bytes32 so the seed is repeatable
       const docSeedKey = `doc-user${u}-doc${d}-${Date.now()}`;
       const docBytes32 = ethers.id(docSeedKey);
-      const ipfsCid = `Qm${ethers.keccak256(ethers.toUtf8Bytes(`cid-${docSeedKey}`)).slice(2, 34)}`;
+      const ipfsCid = await createSeedIpfsCid(
+        `cid-${docSeedKey}`,
+        buildSeedPayload(docKind, owner, d, 0),
+      );
       const encKeyHash = ethers.keccak256(ethers.toUtf8Bytes(`enckey-${docSeedKey}`)) as `0x${string}`;
 
       // ── Send real createDocument transaction ────────────────────────────
@@ -732,15 +828,18 @@ async function createDocumentsAndEvents(
       if (bc) {
         try {
           const ownerSigner = bc.getSigner(owner.ethWalletIndex);
-          const tx = await (bc.contract.connect(ownerSigner) as ethers.Contract).createDocument(
-            docBytes32,
-            ipfsCid,
-            encKeyHash,
+          const receipt = await waitForBlockchainTx(
+            `createDocument u=${u} d=${d}`,
+            ownerSigner,
+            () => (bc.contract.connect(ownerSigner) as ethers.Contract).createDocument(
+              docBytes32,
+              ipfsCid,
+              encKeyHash,
+            ) as Promise<ethers.ContractTransactionResponse>,
           );
-            const receipt = await tx.wait(1) as ethers.TransactionReceipt;
-            docTxHash = receipt.hash;
-            docBlockNumber = receipt.blockNumber;
-            docStatus = BlockchainStatus.SYNCED;
+          docTxHash = receipt.hash;
+          docBlockNumber = receipt.blockNumber;
+          docStatus = BlockchainStatus.SYNCED;
         } catch (err) {
           const reason = err instanceof Error ? err.message : String(err);
           console.warn(`    [bc] createDocument u=${u} d=${d} falló: ${reason}`);
@@ -797,7 +896,12 @@ async function createDocumentsAndEvents(
       let latestOnchainVersionNum = 1;
 
       for (let v = 0; v < versionCount; v += 1) {
-        const versionIpfsCid = `Qm${ethers.keccak256(ethers.toUtf8Bytes(`cid-v${v}-${docSeedKey}`)).slice(2, 34)}`;
+        const versionIpfsCid = v === 0
+          ? ipfsCid
+          : await createSeedIpfsCid(
+            `cid-v${v}-${docSeedKey}`,
+            buildSeedPayload(docKind, owner, d, v),
+          );
         const versionEncKeyHash = ethers.keccak256(ethers.toUtf8Bytes(`enckey-v${v}-${docSeedKey}`)) as `0x${string}`;
 
         let verTxHash = txHash(blockchainCounter + v);
@@ -807,12 +911,15 @@ async function createDocumentsAndEvents(
         if (v > 0 && bc && docStatus === BlockchainStatus.SYNCED) {
           try {
             const ownerSigner = bc.getSigner(owner.ethWalletIndex);
-            const tx = await (bc.contract.connect(ownerSigner) as ethers.Contract).createVersion(
-              docBytes32,
-              versionIpfsCid,
-              versionEncKeyHash,
+            const receipt = await waitForBlockchainTx(
+              `createVersion u=${u} d=${d} v=${v}`,
+              ownerSigner,
+              () => (bc.contract.connect(ownerSigner) as ethers.Contract).createVersion(
+                docBytes32,
+                versionIpfsCid,
+                versionEncKeyHash,
+              ) as Promise<ethers.ContractTransactionResponse>,
             );
-            const receipt = await tx.wait(1) as ethers.TransactionReceipt;
             verTxHash = receipt.hash;
             verBlockNumber = receipt.blockNumber;
             latestOnchainVersionNum = v + 1;
@@ -875,9 +982,15 @@ async function createDocumentsAndEvents(
             const signerAddress = await signerSigner.getAddress();
             // First share the document with the signer so they can sign
             const shareRole = s % 2 === 0 ? 1 : 2; // 1=VIEWER, 2=EDITOR
-            await (bc.contract.connect(ownerSigner) as ethers.Contract)
-              .shareDocument(docBytes32, signerAddress, shareRole)
-              .then((tx: ethers.ContractTransactionResponse) => tx.wait(1));
+            await waitForBlockchainTx(
+              `shareDocument u=${u} d=${d} s=${s}`,
+              ownerSigner,
+              () => (bc.contract.connect(ownerSigner) as ethers.Contract).shareDocument(
+                docBytes32,
+                signerAddress,
+                shareRole,
+              ) as Promise<ethers.ContractTransactionResponse>,
+            );
 
             const onchainDoc = await (bc.contract.connect(ownerSigner) as ethers.Contract).getDocument(docBytes32);
             const versionToSign = Math.min(Number(onchainDoc.latestVersion ?? 0n), versionNumberToSign);
@@ -885,17 +998,24 @@ async function createDocumentsAndEvents(
               throw new Error('No valid on-chain version to sign');
             }
 
-            // Build a real ECDSA signature over the document id
-            const msgHash = ethers.keccak256(ethers.toUtf8Bytes(`sign-${docBytes32}`));
-            const ethSig = await signerSigner.signMessage(ethers.getBytes(msgHash));
-            const tx = await (bc.contract.connect(signerSigner) as ethers.Contract).signDocument(
+            const signatureMessage = `Firmado documento ${document.name}`;
+            const payloadHash = await (bc.contract.connect(signerSigner) as ethers.Contract).getSignaturePayloadHash(
               docBytes32,
               versionToSign,
-              ethSig,
-              `Firmado documento ${document.name}`,
-              '',
+              signatureMessage,
             );
-            const receipt = await tx.wait(1) as ethers.TransactionReceipt;
+            const ethSig = await signerSigner.signMessage(ethers.getBytes(payloadHash));
+            const receipt = await waitForBlockchainTx(
+              `signDocument u=${u} d=${d} s=${s}`,
+              signerSigner,
+              () => (bc.contract.connect(signerSigner) as ethers.Contract).signDocument(
+                docBytes32,
+                versionToSign,
+                ethSig,
+                signatureMessage,
+                '',
+              ) as Promise<ethers.ContractTransactionResponse>,
+            );
             sigTxHash = receipt.hash;
             sigBlockNumber = receipt.blockNumber;
           } catch (err) {
@@ -1123,6 +1243,8 @@ async function main(): Promise<void> {
   if (options.reset) {
     await runReset(options.includeSeed);
   }
+
+  seedIpfsAvailable = await cleanupConfiguredIPFS();
 
   await acquireSeedLock();
 
