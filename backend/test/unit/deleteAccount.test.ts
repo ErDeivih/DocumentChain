@@ -16,10 +16,8 @@ jest.mock('../../src/config/database', () => ({
   },
 }));
 
-jest.mock('../../src/services/ipfsService', () => ({
-  ipfsService: {
-    unpinFile: jest.fn(),
-  },
+jest.mock('../../src/config/ipfs', () => ({
+  unpinFromIPFS: jest.fn(),
 }));
 
 import { Request, Response } from 'express';

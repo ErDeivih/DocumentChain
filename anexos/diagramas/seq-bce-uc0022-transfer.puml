@@ -1,0 +1,33 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0022: Transferir Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Detalle Documento" as BT
+control "Controlador Documento" as CT
+entity "Documento" as ED
+
+
+Actor -> BT : 1. Introduce nuevo propietario
+BT -> CT : 2. Prepara transferencia con wallet origen y nuevo propietario
+CT -> ED : 3. Valida propiedad actual
+ED --> CT : propiedad confirmada
+
+CT --> BT : 4. Devuelve datos para firmar transaccion
+BT -> Actor : 5. Solicita firma en wallet
+Actor -> BT : 6. Devuelve txHash
+
+BT -> CT : 7. Confirma transferencia con txHash
+CT -> CT : 8. Valida receipt y evento OwnershipTransferred
+CT -> ED : 9. Actualiza propietario y clave recifrada
+ED --> CT : propietario actualizado
+
+CT -> CT : 10. Revoca permisos antiguos
+note right : Control elimina o restringe permisos del antiguo propietario
+
+CT --> BT : 11. Confirmacion de transferencia
+BT --> Actor : 12. Muestra confirmacion
+
+@enduml
+

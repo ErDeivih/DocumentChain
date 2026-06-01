@@ -8,12 +8,19 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
-import { uploadToIPFS, deleteFromIPFS } from '../config/ipfs';
+import { uploadToIPFS, deleteFromIPFS, downloadFromIPFS } from '../config/ipfs';
 import { BlockchainStatus } from '@prisma/client';
 import logger from '../utils/logger';
 import * as Encryption from '../lib/encryption';
 import { DocumentPermissionService } from './documentPermissionService';
 import { provider, getContracts } from '../config/blockchain';
+import { userHasAccess } from '../utils/accessControl';
+import { validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
+import {
+  assertOperationalVersionChangedReceipt,
+  assertVersionCreatedReceipt,
+  assertVersionRestoredReceipt,
+} from './blockchainReceiptService';
 
 // ============================================
 // Types
@@ -87,6 +94,7 @@ export interface ConfirmVersionInput {
   versionId: string;
   txHash: string;
   blockchainVersionNumber: number;
+  confirmerUserId: string;
 }
 
 /**
@@ -133,53 +141,6 @@ export interface ConfirmSetOperationalInput {
  * incluyendo cifrado backend y almacenamiento descentralizado en IPFS.
  */
 export class VersionService {
-  private static async userHasAccessToDocument(
-    document: {
-      id: string;
-      ownerId: string;
-      blockchainId: string | null;
-      visibility?: string | null;
-      isDeleted?: boolean | null;
-    },
-    userId: string
-  ): Promise<boolean> {
-    if (document.isDeleted) {
-      return false;
-    }
-
-    // Validate ownership ON-CHAIN if blockchainId exists
-    if (document.blockchainId) {
-      const wallet = await prisma.wallet.findFirst({ where: { userId } });
-      if (!wallet) return false;
-      const isOwnerOnChain = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
-      if (isOwnerOnChain) {
-        return true;
-      }
-    } else if (document.ownerId === userId) {
-      return true;
-    }
-
-    if (document.visibility === 'PUBLIC') {
-      return true;
-    }
-
-    // Verify access exclusively against the smart contract (single source of truth).
-    if (document.blockchainId) {
-      const wallets = await prisma.wallet.findMany({
-        where: { userId },
-        select: { walletAddress: true },
-      });
-
-      for (const wallet of wallets) {
-        if (await DocumentPermissionService.canView(document.blockchainId, wallet.walletAddress)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
   /**
    * Prepare a version for creation
    * - Validates file (size, MIME type)
@@ -201,16 +162,7 @@ export class VersionService {
 
     try {
       // 1. Validate wallet belongs to user
-      const wallet = await prisma.wallet.findFirst({
-        where: {
-          id: walletId,
-          userId,
-        },
-      });
-
-      if (!wallet) {
-        throw new Error('Wallet no encontrada o no pertenece al usuario');
-      }
+      const wallet = await validateWalletBelongsToUser(walletId, userId);
 
       // 2. Check document access
       const document = await prisma.document.findUnique({
@@ -255,14 +207,7 @@ export class VersionService {
       }
 
       // 3. Get user's public key for encryption
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { publicKey: true },
-      });
-
-      if (!user || !user.publicKey) {
-        throw new Error('Usuario no tiene clave pública configurada');
-      }
+      const { publicKey: userPublicKey } = await getUserWithPublicKey(userId);
 
       const isPublicDocument = document.visibility === 'PUBLIC';
 
@@ -271,7 +216,7 @@ export class VersionService {
 
       const encryptionResult = isPublicDocument ? null : Encryption.encryptFile(fileBuffer);
       const encryptedSymmetricKey = encryptionResult
-        ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, user.publicKey)
+        ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, userPublicKey)
         : 'UNENCRYPTED';
 
       ipfsCid = await uploadToIPFS(encryptionResult ? encryptionResult.encryptedData : fileBuffer);
@@ -280,45 +225,49 @@ export class VersionService {
       // 7. Generate blockchain ID
       const blockchainId = `version-${documentId}-${Date.now()}`;
 
-      // 8. Compute next version number based on existing versions
-      const existingVersionCount = await prisma.version.count({
-        where: { documentId },
-      });
-      const nextVersionNumber = existingVersionCount + 1;
+      // 8. Compute and create the next version in one transaction. The unique
+      // constraint on (documentId, versionNumber) remains the final safeguard.
+      const version = await prisma.$transaction(async (tx) => {
+        const latestVersion = await tx.version.aggregate({
+          where: { documentId },
+          _max: { versionNumber: true },
+        });
+        const nextVersionNumber = (latestVersion._max.versionNumber ?? 0) + 1;
 
-      // 9. Create version in DB with PREPARING status and encryption metadata
-      const version = await prisma.version.create({
-        data: {
-          id: uuidv4(),
-          documentId,
-          userId,
-          versionNumber: nextVersionNumber,
-          encryptedSymmetricKey,
-          ipfsCid,
-          comment: comment || null,
-          blockchainStatus: BlockchainStatus.PREPARING,
-          encryptionIV: encryptionResult?.iv ?? null,
-          encryptionAuthTag: encryptionResult?.authTag ?? null,
-        },
+        const createdVersion = await tx.version.create({
+          data: {
+            id: uuidv4(),
+            documentId,
+            userId,
+            versionNumber: nextVersionNumber,
+            encryptedSymmetricKey,
+            ipfsCid,
+            comment: comment || null,
+            blockchainStatus: BlockchainStatus.PREPARING,
+            encryptionIV: encryptionResult?.iv ?? null,
+            encryptionAuthTag: encryptionResult?.authTag ?? null,
+          },
+        });
+
+        await tx.event.create({
+          data: {
+            id: uuidv4(),
+            eventType: 'VERSION_PREPARED',
+            userId,
+            documentId: document.id,
+            metadata: {
+              versionId: createdVersion.id,
+              blockchainId,
+              ipfsCid,
+              walletId,
+            },
+          },
+        });
+
+        return createdVersion;
       });
 
       logger.info(`[PREPARE] Versión creada en DB: ${version.id}, estado: PREPARING`);
-
-      // 9. Log the preparation
-      await prisma.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'VERSION_PREPARED',
-          userId,
-          documentId: document.id,
-          metadata: {
-            versionId: version.id,
-            blockchainId,
-            ipfsCid,
-            walletId,
-          },
-        },
-      });
 
       return {
         versionId: version.id,
@@ -350,21 +299,54 @@ export class VersionService {
    * - Event listener will update to SYNCED when confirmed
    */
   static async confirmVersion(input: ConfirmVersionInput): Promise<VersionInfo> {
-    const { versionId, txHash, blockchainVersionNumber } = input;
+    const { versionId, txHash, blockchainVersionNumber, confirmerUserId } = input;
 
     // 1. Find the version
     const version = await prisma.version.findUnique({
       where: { id: versionId },
+      include: { document: true },
     });
 
     if (!version) {
       throw new Error('Versión no encontrada');
     }
 
-    // 2. Validate current status
     if (version.blockchainStatus !== BlockchainStatus.PREPARING) {
-      logger.warn(`[CONFIRM] Versión ${versionId} no está en estado PREPARING (actual: ${version.blockchainStatus})`);
+      throw new Error(`La versión no puede confirmarse en estado ${version.blockchainStatus}`);
     }
+
+    const hasAccess = await userHasAccess(version.documentId, confirmerUserId);
+    if (!hasAccess) {
+      throw new Error('No tienes permisos para confirmar esta versión');
+    }
+
+    if (!version.document.blockchainId) {
+      throw new Error('El documento no tiene ID de blockchain');
+    }
+
+    if (!version.ipfsCid) {
+      throw new Error('La versión no tiene CID de IPFS');
+    }
+
+    const preparedEvent = await prisma.event.findFirst({
+      where: { eventType: 'VERSION_PREPARED', documentId: version.documentId },
+      orderBy: { createdAt: 'desc' },
+    });
+    const metadata = preparedEvent?.metadata as { versionId?: unknown; walletId?: unknown } | null;
+    const walletId = metadata?.versionId === versionId && typeof metadata.walletId === 'string'
+      ? metadata.walletId
+      : null;
+    const wallet = walletId
+      ? await prisma.wallet.findFirst({ where: { id: walletId, userId: confirmerUserId } })
+      : null;
+
+    await assertVersionCreatedReceipt({
+      txHash,
+      docId: version.document.blockchainId,
+      versionNumber: blockchainVersionNumber || version.versionNumber,
+      ipfsCid: version.ipfsCid,
+      createdByAddress: wallet?.walletAddress,
+    });
 
     // 3. Update version with transaction info
     let updated = await prisma.version.update({
@@ -436,8 +418,7 @@ export class VersionService {
       throw new Error('Documento no encontrado');
     }
 
-    const { DocumentService } = await import('./documentService');
-    const hasAccess = await DocumentService.userHasAccess(documentId, userId);
+    const hasAccess = await userHasAccess(documentId, userId);
 
     if (!hasAccess) {
       throw new Error('No tienes acceso a este documento');
@@ -481,8 +462,7 @@ export class VersionService {
 
     if (!version) return null;
 
-    const { DocumentService } = await import('./documentService');
-    const hasAccess = await DocumentService.userHasAccess(version.document.id, userId);
+    const hasAccess = await userHasAccess(version.document.id, userId);
 
     if (!hasAccess) return null;
 
@@ -684,6 +664,21 @@ export class VersionService {
       throw new Error(`Versión ${versionNumber} no encontrada`);
     }
 
+    if (!document.blockchainId) {
+      throw new Error('El documento no está registrado en blockchain');
+    }
+
+    const ownership = await DocumentPermissionService.validateOwnership(document, userId, {
+      errorMessage: 'Solo el propietario puede cambiar la versión operacional',
+    });
+
+    await assertOperationalVersionChangedReceipt({
+      txHash,
+      docId: document.blockchainId,
+      newVersion: versionNumber,
+      actorAddress: ownership.wallet.walletAddress,
+    });
+
     await prisma.event.create({
       data: {
         id: uuidv4(),
@@ -736,7 +731,7 @@ export class VersionService {
       throw new Error('Versión no encontrada');
     }
 
-    const hasAccess = await this.userHasAccessToDocument(version.document, userId);
+    const hasAccess = await userHasAccess(version.document.id, userId);
 
     if (!hasAccess) {
       throw new Error('No tienes acceso a esta versión');
@@ -747,7 +742,6 @@ export class VersionService {
     }
 
     // Download from IPFS
-    const { downloadFromIPFS } = await import('../config/ipfs');
     const encryptedFile = await downloadFromIPFS(version.ipfsCid);
 
     return {
@@ -829,7 +823,7 @@ export class VersionService {
       });
 
       if (!version) {
-        throw new Error('Version not found');
+        throw new Error('Versión no encontrada');
       }
 
       // Verify ownership (on-chain or DB fallback)
@@ -895,7 +889,7 @@ export class VersionService {
       });
 
       if (!version) {
-        throw new Error('Version not found');
+        throw new Error('Versión no encontrada');
       }
 
       // Verify ownership (on-chain or DB fallback)
@@ -982,40 +976,45 @@ export class VersionService {
     }
 
     // 4. Count existing versions to assign the next version number
-    const existingCount = await prisma.version.count({ where: { documentId } });
-    const nextVersionNumber = existingCount + 1;
-
-    // 5. Create a new version record reusing the old IPFS CID and encryption metadata
     const blockchainId = `version-restore-${documentId}-${Date.now()}`;
-    const restoredVersion = await prisma.version.create({
-      data: {
-        id: uuidv4(),
-        documentId,
-        userId,
-        versionNumber: nextVersionNumber,
-        ipfsCid: sourceVersion.ipfsCid,
-        encryptedSymmetricKey: sourceVersion.encryptedSymmetricKey,
-        encryptionIV: sourceVersion.encryptionIV,
-        encryptionAuthTag: sourceVersion.encryptionAuthTag,
-        comment: `Restaurada desde versión ${versionNumber}`,
-        blockchainStatus: BlockchainStatus.PREPARING,
-      },
-    });
+    const restoredVersion = await prisma.$transaction(async (tx) => {
+      const latestVersion = await tx.version.aggregate({
+        where: { documentId },
+        _max: { versionNumber: true },
+      });
+      const nextVersionNumber = (latestVersion._max.versionNumber ?? 0) + 1;
 
-    // 6. Log event
-    await prisma.event.create({
-      data: {
-        id: uuidv4(),
-        eventType: 'VERSION_RESTORE_PREPARED',
-        userId,
-        documentId,
-        metadata: {
-          newVersionId: restoredVersion.id,
-          sourceVersionId: sourceVersion.id,
-          sourceVersionNumber: versionNumber,
-          blockchainId,
+      const created = await tx.version.create({
+        data: {
+          id: uuidv4(),
+          documentId,
+          userId,
+          versionNumber: nextVersionNumber,
+          ipfsCid: sourceVersion.ipfsCid,
+          encryptedSymmetricKey: sourceVersion.encryptedSymmetricKey,
+          encryptionIV: sourceVersion.encryptionIV,
+          encryptionAuthTag: sourceVersion.encryptionAuthTag,
+          comment: `Restaurada desde versión ${versionNumber}`,
+          blockchainStatus: BlockchainStatus.PREPARING,
         },
-      },
+      });
+
+      await tx.event.create({
+        data: {
+          id: uuidv4(),
+          eventType: 'VERSION_RESTORE_PREPARED',
+          userId,
+          documentId,
+          metadata: {
+            newVersionId: created.id,
+            sourceVersionId: sourceVersion.id,
+            sourceVersionNumber: versionNumber,
+            blockchainId,
+          },
+        },
+      });
+
+      return created;
     });
 
     logger.info(`[RESTORE PREPARE] Version restore prepared: ${restoredVersion.id} (from v${versionNumber})`);
@@ -1029,9 +1028,11 @@ export class VersionService {
   static async confirmRestoreVersion(
     versionId: string,
     txHash: string,
+    confirmerUserId: string,
   ): Promise<VersionInfo> {
     const version = await prisma.version.findUnique({
       where: { id: versionId },
+      include: { document: true },
     });
     if (!version) {
       throw new Error('Versión no encontrada');
@@ -1039,6 +1040,38 @@ export class VersionService {
     if (version.blockchainStatus !== BlockchainStatus.PREPARING) {
       throw new Error('La versión no está en estado PREPARING');
     }
+
+    if (version.userId !== confirmerUserId) {
+      throw new Error('No puedes confirmar una restauración preparada por otro usuario');
+    }
+
+    if (!version.document.blockchainId) {
+      throw new Error('El documento no está registrado en blockchain');
+    }
+
+    const preparedEvent = await prisma.event.findFirst({
+      where: {
+        eventType: 'VERSION_RESTORE_PREPARED',
+        documentId: version.documentId,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const metadata = preparedEvent?.metadata as { newVersionId?: unknown; sourceVersionNumber?: unknown } | null;
+    if (metadata?.newVersionId !== versionId) {
+      throw new Error('No se encontró la preparación de restauración de esta versión');
+    }
+
+    const sourceVersionNumber = Number(metadata.sourceVersionNumber);
+    if (!Number.isInteger(sourceVersionNumber) || sourceVersionNumber <= 0) {
+      throw new Error('La preparación de restauración no contiene la versión origen');
+    }
+
+    await assertVersionRestoredReceipt({
+      txHash,
+      docId: version.document.blockchainId,
+      newVersionNumber: version.versionNumber,
+      restoredFromVersion: sourceVersionNumber,
+    });
 
     const updated = await prisma.version.update({
       where: { id: versionId },

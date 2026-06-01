@@ -47,8 +47,6 @@ export interface User {
 
   /** Fecha de creación de la cuenta en formato ISO. */
   createdAt: string;
-  /** Fecha del último inicio de sesión, o `null`. */
-  lastLogin: string | null;
 }
 
 /**
@@ -120,8 +118,8 @@ export interface Document {
   description: string | null;
   /** Tipo MIME del archivo. */
   mimeType: string;
-  /** Tamaño en bytes (serializado como string por BigInt). */
-  size: string;
+  /** Tamaño en bytes. */
+  size: number;
   /** Extensión del archivo. */
   fileExtension: string;
   /** Identificador del propietario. */

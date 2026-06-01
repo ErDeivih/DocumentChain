@@ -1,0 +1,22 @@
+@startuml
+!include _sequence-style.puml
+title UC-0024: Gestionar carpetas
+
+actor Usuario as user
+boundary "DocumentsPage.tsx / FolderTree" as ui
+control "DocumentController (/api/documents/folders)" as api
+control "FolderService" as srv
+database "Base de datos" as db
+
+user -> ui: Crea, renombra o elimina una carpeta
+ui -> api: POST/PATCH/DELETE /api/documents/folders
+api -> srv: validateAndApplyFolderOperation(userId, payload)
+srv -> db: Comprobar propiedad y conflictos de nombre
+db --> srv: Operacion valida
+srv -> db: Persistir cambio de carpeta
+db --> srv: Arbol actualizado
+srv --> api: Carpeta actualizada
+api --> ui: 200 OK
+ui --> user: Muestra arbol de carpetas actualizado
+
+@enduml

@@ -156,42 +156,4 @@ describe('AuthService - login()', () => {
   });
 });
 
-describe('AuthService - loginWithWallet()', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Default: verifyMessage returns the test wallet address
-    (ethers.verifyMessage as jest.Mock).mockReturnValue(TEST_WALLET_ADDRESS);
-  });
-
-  it('rejects wallet login for unknown wallet', async () => {
-    (mockPrisma.wallet.findFirst as jest.Mock).mockResolvedValue(null);
-
-    await expect(
-      AuthService.loginWithWallet({
-        walletAddress: TEST_WALLET_ADDRESS,
-        signature: '0xsig',
-        message: 'challenge',
-      })
-    ).rejects.toThrow('Wallet no registrada');
-  });
-
-  it('allows wallet login for active user', async () => {
-    const user = makeUser();
-    (mockPrisma.wallet.findFirst as jest.Mock).mockResolvedValue({
-      walletAddress: TEST_WALLET_ADDRESS,
-      user,
-    });
-    (TokenService.generateTokenPair as jest.Mock).mockResolvedValue(makeSession());
-    (mockPrisma.user.update as jest.Mock).mockResolvedValue(user);
-
-    const validChallenge = `Sign this message to authenticate: user-123:${Date.now()}:aabbccddeeff`;
-    const result = await AuthService.loginWithWallet({
-      walletAddress: TEST_WALLET_ADDRESS,
-      signature: '0xsig',
-      message: validChallenge,
-    });
-
-    expect(result.accessToken).toBeTruthy();
-  });
-});
 

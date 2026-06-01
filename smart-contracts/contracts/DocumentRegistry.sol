@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
@@ -24,6 +26,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract DocumentRegistry is AccessControl, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    bytes32 private constant SIGNATURE_DOMAIN = keccak256("DocumentChain.Signature");
 
     // ============================================
     // ROLES
@@ -304,6 +308,7 @@ contract DocumentRegistry is AccessControl, ReentrancyGuard {
         nonReentrant
         notDeleted(_docId)
     {
+        require(_documents[_docId].owner != address(0), "Document does not exist");
         require(_canEdit(_docId, _msgSender()), "No write permission");
         require(bytes(_ipfsCid).length > 0, "Invalid IPFS CID");
         require(!_documents[_docId].isArchived, "Document is archived");
@@ -379,8 +384,9 @@ contract DocumentRegistry is AccessControl, ReentrancyGuard {
         address sender = _msgSender();
         require(_canView(_docId, sender), "No read permission");
         require(_versionNumber > 0 && _versionNumber <= _documents[_docId].latestVersion, "Invalid version");
-        require(_signature.length > 0, "Invalid signature");
+        require(_signature.length == 65, "Invalid signature");
         require(!_hasSigned[_docId][_versionNumber][sender], "Already signed");
+        _validateDocumentSignature(_docId, _versionNumber, _message, _signature, sender);
 
         _signatures[_docId][_versionNumber].push(Signature({
             signer: sender,
@@ -393,6 +399,42 @@ contract DocumentRegistry is AccessControl, ReentrancyGuard {
         _hasSigned[_docId][_versionNumber][sender] = true;
 
         emit DocumentSigned(_docId, _versionNumber, sender, _message, block.timestamp);
+    }
+
+    /**
+     * @notice Calcula el hash de contexto que debe firmar la wallet para registrar una firma documental.
+     * @dev Incluye contrato y chainId para evitar replay entre despliegues o redes.
+     * @param _docId Identificador del documento.
+     * @param _versionNumber Número de versión a firmar.
+     * @param _message Mensaje legible asociado a la firma.
+     * @return Hash de payload que se firma con EIP-191 mediante signMessage.
+     */
+    function getSignaturePayloadHash(
+        bytes32 _docId,
+        uint256 _versionNumber,
+        string memory _message
+    ) public view returns (bytes32) {
+        return keccak256(abi.encode(
+            SIGNATURE_DOMAIN,
+            _docId,
+            _versionNumber,
+            keccak256(bytes(_message)),
+            address(this),
+            block.chainid
+        ));
+    }
+
+    function _validateDocumentSignature(
+        bytes32 _docId,
+        uint256 _versionNumber,
+        string memory _message,
+        bytes calldata _signature,
+        address _expectedSigner
+    ) internal view {
+        bytes32 signedHash = MessageHashUtils.toEthSignedMessageHash(
+            getSignaturePayloadHash(_docId, _versionNumber, _message)
+        );
+        require(ECDSA.recover(signedHash, _signature) == _expectedSigner, "Signature does not match signer");
     }
 
     /**

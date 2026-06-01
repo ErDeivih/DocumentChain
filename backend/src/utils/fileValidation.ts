@@ -55,14 +55,13 @@ export const PRESENTATION_TYPES: FileTypeConfig = {
 
 // Imágenes
 export const IMAGE_TYPES: FileTypeConfig = {
-  extensions: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'],
+  extensions: ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'],
   mimeTypes: [
     'image/jpeg',
     'image/png',
     'image/gif',
     'image/bmp',
     'image/webp',
-    'image/svg+xml',
   ],
   maxSize: 25 * 1024 * 1024, // 25MB
   description: 'Imágenes (JPG, PNG, GIF, BMP, WebP, SVG)',
@@ -141,7 +140,6 @@ export const ALLOWED_FILE_TYPES = [
   AUDIO_TYPES,
   VIDEO_TYPES,
   ARCHIVE_TYPES,
-  CODE_TYPES,
 ];
 
 // Lista plana de todas las extensiones permitidas

@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import prisma from '../config/database';
 import { UserService } from '../services/userService';
-import { logger } from '../utils/logger';
-import { ipfsService } from '../services/ipfsService';
+import logger from '../utils/logger';
+import { unpinFromIPFS } from '../config/ipfs';
 
 /**
  * Controlador de usuarios.
@@ -321,7 +321,7 @@ export class UserController {
 
         for (const cid of cidsToUnpin) {
           try {
-            await ipfsService.unpinFile(cid);
+            await unpinFromIPFS(cid);
             logger.info(`Despineado CID ${cid} para usuario ${userId}`);
           } catch (ipfsError) {
             logger.warn(`No se pudo despinear CID ${cid}:`, ipfsError);

@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import prisma from '../config/database';
 import { getContracts } from '../config/blockchain';
 import { calculateHash } from '../lib/encryption';
@@ -132,14 +131,19 @@ export class VerificationService {
         const contracts = getContracts();
         const docData = await contracts.documentRegistry.getDocument(document.blockchainId);
         
+        const currentVersion = Number(docData.currentVersion || 0);
+        const versionData = currentVersion > 0
+          ? await contracts.documentRegistry.getVersion(document.blockchainId, currentVersion)
+          : null;
+
         blockchainInfo = {
           documentId: document.blockchainId,
-          ipfsHash: docData.ipfsHash,
-          metadataHash: docData.metadataHash,
+          ipfsHash: versionData?.ipfsCid || '',
+          metadataHash: versionData?.encryptedKeyHash || '',
           owner: docData.owner,
-          isDeleted: docData.isDeleted,
-          blockNumber: docData.createdBlock.toNumber(),
-          transactionHash: docData.txHash || '',
+          isDeleted: Boolean(docData.isDeleted),
+          blockNumber: 0,
+          transactionHash: document.blockchainTxHash || '',
         };
       }
     } catch (error) {
@@ -264,14 +268,14 @@ export class VerificationService {
         
         return {
           exists: true,
-          blockchain: {
+        blockchain: {
             documentId: blockchainId,
-            ipfsHash: docData.ipfsHash,
-            metadataHash: docData.metadataHash,
+            ipfsHash: '',
+            metadataHash: '',
             owner: docData.owner,
-            isDeleted: docData.isDeleted,
-            blockNumber: docData.createdBlock.toNumber(),
-            transactionHash: docData.txHash || '',
+            isDeleted: Boolean(docData.isDeleted),
+            blockNumber: 0,
+            transactionHash: '',
           },
         };
       } catch (error) {
@@ -287,14 +291,19 @@ export class VerificationService {
       const contracts = getContracts();
       const docData = await contracts.documentRegistry.getDocument(blockchainId);
       
+      const currentVersion = Number(docData.currentVersion || 0);
+      const versionData = currentVersion > 0
+        ? await contracts.documentRegistry.getVersion(blockchainId, currentVersion)
+        : null;
+
       blockchainInfo = {
         documentId: blockchainId,
-        ipfsHash: docData.ipfsHash,
-        metadataHash: docData.metadataHash,
+        ipfsHash: versionData?.ipfsCid || '',
+        metadataHash: versionData?.encryptedKeyHash || '',
         owner: docData.owner,
-        isDeleted: docData.isDeleted,
-        blockNumber: docData.createdBlock.toNumber(),
-        transactionHash: docData.txHash || '',
+        isDeleted: Boolean(docData.isDeleted),
+        blockNumber: 0,
+        transactionHash: document.blockchainTxHash || '',
       };
     } catch (error) {
       logBlockchainError('Fetch blockchain data', error as Error);

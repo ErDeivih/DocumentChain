@@ -62,7 +62,7 @@ export const signer = normalizedPrivateKey
   : null;
 
 /** Hash del rol ADMIN_ROLE (debe coincidir con el definido en el smart contract). */
-export const ADMIN_ROLE_HASH = process.env.ADMIN_ROLE || ethers.keccak256(ethers.toUtf8Bytes("ADMIN_ROLE"));
+export const ADMIN_ROLE_HASH = ethers.keccak256(ethers.toUtf8Bytes("ADMIN_ROLE"));
 
 /**
  * Obtiene una instancia del contrato DocumentRegistry con el firmante del backend.
@@ -122,33 +122,25 @@ export function getDocumentRegistryContractWithSigner(userSigner: ethers.Wallet)
 }
 
 /**
- * Obtiene todas las instancias de contratos.
- * Dado que toda la funcionalidad reside ahora en DocumentRegistry,
- * devuelve la misma instancia del registro para cada clave a fin de no romper consumidores anteriores.
- * @returns Objeto con instancias del registro bajo distintas claves de compatibilidad.
+ * Obtiene la instancia consolidada del contrato DocumentRegistry con el firmante del backend.
+ * @returns Objeto con la instancia del registro.
+ * @throws Error si no está configurada la dirección del contrato o la clave privada.
  */
 export function getContracts() {
-  const registry = getDocumentRegistryContract();
   return {
-    documentRegistry: registry,
-    documentVersioning: registry,
-    documentSigning: registry,
-    documentAccessControl: registry,
+    documentRegistry: getDocumentRegistryContract(),
   };
 }
 
 /**
- * Obtiene las instancias de contratos utilizando un firmante específico de usuario.
+ * Obtiene la instancia consolidada del contrato DocumentRegistry con un firmante específico.
  * @param userSigner - Wallet de ethers del usuario.
- * @returns Objeto con instancias del registro vinculadas al firmante proporcionado.
+ * @returns Objeto con la instancia del registro vinculada al firmante proporcionado.
+ * @throws Error si no está configurada la dirección del contrato.
  */
 export function getContractsWithSigner(userSigner: ethers.Wallet) {
-  const registry = getDocumentRegistryContractWithSigner(userSigner);
   return {
-    documentRegistry: registry,
-    documentVersioning: registry,
-    documentSigning: registry,
-    documentAccessControl: registry,
+    documentRegistry: getDocumentRegistryContractWithSigner(userSigner),
   };
 }
 

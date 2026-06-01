@@ -16,7 +16,7 @@ export interface WalletInfo {
   address: string;
   label: string | null;
   isPrimary: boolean;
-  // createdAt: Date; // Removed from Prisma schema
+   
 }
 
 /**
@@ -37,7 +37,7 @@ export class WalletService {
         walletAddress: true,
         nickname: true,
         isPrimary: true,
-        // createdAt removed from schema
+         
       },
       orderBy: [
         { isPrimary: 'desc' },
@@ -51,7 +51,7 @@ export class WalletService {
       address: wallet.walletAddress,
       label: wallet.nickname,
       isPrimary: wallet.isPrimary,
-      // createdAt removed from Wallet model
+       
     }));
   }
 
@@ -124,7 +124,7 @@ export class WalletService {
         walletAddress: true,
         nickname: true,
         isPrimary: true,
-        // createdAt removed from schema
+         
       }
     });
 
@@ -134,7 +134,7 @@ export class WalletService {
       address: wallet.walletAddress,
       label: wallet.nickname,
       isPrimary: wallet.isPrimary,
-      // createdAt removed from Wallet model
+       
     };
   }
 
@@ -207,7 +207,7 @@ export class WalletService {
         walletAddress: true,
         nickname: true,
         isPrimary: true,
-        // createdAt removed from schema
+         
       }
     });
 
@@ -217,7 +217,7 @@ export class WalletService {
       address: updatedWallet.walletAddress,
       label: updatedWallet.nickname,
       isPrimary: updatedWallet.isPrimary,
-      // createdAt removed from Wallet model
+       
     };
   }
 
@@ -253,7 +253,7 @@ export class WalletService {
         walletAddress: true,
         nickname: true,
         isPrimary: true,
-        // createdAt removed from schema
+         
       }
     });
 
@@ -263,7 +263,7 @@ export class WalletService {
       address: updatedWallet.walletAddress,
       label: updatedWallet.nickname,
       isPrimary: updatedWallet.isPrimary,
-      // createdAt removed from Wallet model
+       
     };
   }
 
@@ -283,7 +283,7 @@ export class WalletService {
         walletAddress: true,
         nickname: true,
         isPrimary: true,
-        // createdAt removed from schema
+         
       }
     });
 
@@ -297,7 +297,7 @@ export class WalletService {
       address: wallet.walletAddress,
       label: wallet.nickname,
       isPrimary: wallet.isPrimary,
-      // createdAt removed from Wallet model
+       
     };
   }
 

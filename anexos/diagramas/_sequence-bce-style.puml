@@ -1,5 +1,4 @@
 skinparam backgroundColor white
-skinparam monochrome true
 skinparam shadowing false
 skinparam roundcorner 6
 skinparam sequenceArrowThickness 1.2
@@ -15,27 +14,40 @@ skinparam wrapWidth 200
 skinparam maxMessageSize 150
 autonumber 1
 
+skinparam titleBorderRoundCorner 4
+skinparam titleBorderThickness 1.5
+skinparam titleBorderColor #F9A825
+skinparam titleBackgroundColor #FFF9C4
+skinparam titleFontColor #3E2723
+skinparam titleFontStyle bold
+skinparam titleFontSize 14
+
 skinparam actor {
     BackgroundColor #E3F2FD
     BorderColor #1565C0
+    FontColor #0D47A1
 }
 
 skinparam boundary {
     BackgroundColor #FFF3E0
     BorderColor #EF6C00
+    FontColor #BF360C
 }
 
 skinparam control {
     BackgroundColor #E8F5E9
     BorderColor #2E7D32
+    FontColor #1B5E20
 }
 
 skinparam entity {
     BackgroundColor #F3E5F5
     BorderColor #6A1B9A
+    FontColor #4A148C
 }
 
 skinparam database {
     BackgroundColor #E0F7FA
     BorderColor #00838F
+    FontColor #004D40
 }

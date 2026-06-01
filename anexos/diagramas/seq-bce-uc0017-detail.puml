@@ -1,0 +1,28 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0017: Ver Detalle de Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Detalle Documento" as VD
+control "Controlador Documento" as CD
+entity "Documento" as ED
+entity "Version" as EV
+entity "Firma" as EF
+
+Actor -> VD : 1. Selecciona documento
+VD -> CD : 2. Solicita detalle
+CD -> ED : 3. Recupera documento
+ED --> CD : documento recuperado
+
+CD -> EV : 4. Consulta versiones del documento
+EV --> CD : versiones del documento
+
+CD -> EF : 5. Consulta firmas del documento
+EF --> CD : firmas del documento
+
+CD --> VD : 6. Retorna detalle completo
+VD --> Actor : 7. Renderiza detalle completo
+
+@enduml
+

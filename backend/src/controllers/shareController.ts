@@ -1,8 +1,10 @@
+import { Request, Response } from 'express';
+import { ShareService } from '../services/shareService';
 import { normalizeFileExtensionFilter } from '../utils/fileValidation';
 import { DocumentRole, DocumentPermissionService } from '../services/documentPermissionService';
 import logger from '../utils/logger';
 import prisma from '../config/database';
-import { BlockchainQueries } from '../lib/blockchain/queries';
+import { isNonEmptyString, isValidTxHash } from '../utils/validation';
 
 const VALID_SHARE_ROLES = ['SHARED_READ', 'SHARED_WRITE'] as const;
 
@@ -113,13 +115,13 @@ export class ShareController {
       const documentId = req.params.documentId as string;
       const { shareId, txHash } = req.body;
 
-      if (!shareId) {
+      if (!isNonEmptyString(shareId)) {
         res.status(400).json({ error: 'El ID del share es obligatorio' });
         return;
       }
 
-      if (!txHash) {
-        res.status(400).json({ error: 'El hash de la transacción es obligatorio' });
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
@@ -213,8 +215,8 @@ export class ShareController {
       const userId = req.params.userId as string;
       const { txHash, shareId } = req.body;
 
-      if (!txHash) {
-        res.status(400).json({ error: 'El hash de la transacción es obligatorio' });
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 

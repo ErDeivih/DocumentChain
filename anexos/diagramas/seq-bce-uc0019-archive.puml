@@ -1,0 +1,25 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0019: Archivar Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Detalle Documento" as BB
+control "Controlador Documento" as CD
+entity "Documento" as ED
+
+Actor -> BB : 1. Selecciona archivar documento
+BB -> CD : 2. Solicita preparacion de archivado
+CD -> ED : 3. Verifica propiedad
+ED --> CD : propiedad confirmada
+CD --> BB : 4. Devuelve datos para firma blockchain
+BB -> Actor : 5. Solicita firma en wallet
+Actor -> BB : 6. Devuelve txHash
+BB -> CD : 7. Confirma archivado con txHash
+CD -> CD : 8. Valida receipt y evento DocumentArchived(true)
+CD -> ED : 9. Actualiza archivado = true
+ED --> CD : estado actualizado
+CD --> BB : 10. Estado archivado actualizado
+BB --> Actor : 11. Muestra estado archivado
+
+@enduml

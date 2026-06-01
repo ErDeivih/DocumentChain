@@ -19,7 +19,7 @@ Se ha completado con éxito la **Fase 8**: Migración del frontend para usar la 
 1. Frontend lee archivo sin cifrar (ArrayBuffer)
 2. Frontend envía a backend via HTTPS (FormData)
 3. Backend cifra con AES-256-GCM (genera key + IV)
-4. Backend encripta symmetric key con ECDH P-256 (curva prime256v1) public key del usuario
+4. Backend encripta symmetric key con RSA-OAEP 4096 public key del usuario
 5. Backend sube archivo cifrado a IPFS
 6. Frontend firma transacción blockchain
 7. Backend confirma y marca como SYNCED
@@ -220,7 +220,7 @@ Frontend: Envía a backend via HTTPS (FormData)
   ↓
 Backend: Genera AES-256 key + IV
 Backend: Cifra archivo con AES-GCM
-Backend: Encripta symmetric key con ECDH P-256 (curva prime256v1) (user's public key)
+Backend: Encripta symmetric key con RSA-OAEP 4096 (user's public key)
 Backend: Sube a IPFS → obtiene CID
 Backend: Guarda en DB (status: PREPARING)
   ↓
@@ -243,7 +243,7 @@ Frontend: Descifra symmetric key con clave privada
 Frontend: Envía symmetric key descifrada al backend (base64)
   ↓
 Backend: Obtiene public key del destinatario
-Backend: Re-encripta symmetric key con ECDH P-256 (curva prime256v1) (recipient's public key)
+Backend: Re-encripta symmetric key con RSA-OAEP 4096 (recipient's public key)
 Backend: Guarda AccessPermission en DB
   ↓
 Frontend: Firma transacción blockchain:
@@ -261,7 +261,7 @@ Frontend: Envía a backend
   ↓
 Backend: Genera NUEVA AES-256 key (independiente del documento)
 Backend: Cifra archivo con nueva key
-Backend: Encripta nueva key con ECDH P-256 (curva prime256v1) (user's public key)
+Backend: Encripta nueva key con RSA-OAEP 4096 (user's public key)
 Backend: Sube a IPFS → nuevo CID
 Backend: Crea DocumentVersion en DB
   ↓
@@ -281,7 +281,7 @@ Frontend: Busca nuevo propietario (obtiene public key)
   ↓
 Frontend: Envía symmetric key descifrada + newOwnerId al backend
   ↓
-Backend: Re-encripta symmetric key con ECDH P-256 (curva prime256v1) (new owner's public key)
+Backend: Re-encripta symmetric key con RSA-OAEP 4096 (new owner's public key)
 Backend: Crea DocumentTransfer en DB
   ↓
 Frontend: Firma transacción blockchain:
@@ -388,7 +388,7 @@ describe('UploadModal', () => {
 
 ### ✅ Mejoras de Seguridad
 
-1. **Centralización de Cifrado**: Backend cifra con configuración consistente (AES-256-GCM + ECDH P-256 (curva prime256v1))
+1. **Centralización de Cifrado**: Backend cifra con configuración consistente (AES-256-GCM + RSA-OAEP 4096)
 2. **Sin Variabilidad Cliente**: Elimina riesgo de implementación incorrecta en navegador
 3. **HTTPS Obligatorio**: Archivo viaja sin cifrar solo sobre TLS 1.3
 4. **Password Nunca en Backend**: Backend nunca recibe contraseña del usuario

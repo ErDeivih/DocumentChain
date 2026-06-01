@@ -25,6 +25,7 @@ jest.mock('../../src/config/database', () => ({
     },
     event: {
       create: jest.fn(),
+      findFirst: jest.fn(),
     },
     notification: {
       findFirst: jest.fn(),
@@ -44,6 +45,15 @@ jest.mock('../../src/services/documentPermissionService', () => ({
   },
 }));
 
+jest.mock('../../src/services/blockchainReceiptService', () => ({
+  assertDocumentSignedReceipt: jest.fn().mockResolvedValue({ blockNumber: 1 }),
+}));
+
+jest.mock('../../src/utils/accessControl', () => ({
+  userHasAccess: jest.fn(),
+  resolveUserRole: jest.fn(),
+}));
+
 jest.mock('../../src/lib/blockchain/queries', () => ({
   BlockchainQueries: {
     getUserDocuments: jest.fn(),
@@ -60,30 +70,38 @@ jest.mock('../../src/services/notificationService', () => ({
   },
 }));
 
-jest.mock('../../src/services/documentService', () => ({
-  DocumentService: {
-    userHasAccess: jest.fn(),
-  },
-}));
-
 import prisma from '../../src/config/database';
 import { provider } from '../../src/config/blockchain';
 import { BlockchainQueries } from '../../src/lib/blockchain/queries';
 import { DocumentPermissionService } from '../../src/services/documentPermissionService';
-import { DocumentService } from '../../src/services/documentService';
 import { SignatureService } from '../../src/services/signatureService';
 import notificationService from '../../src/services/notificationService';
+import * as accessControl from '../../src/utils/accessControl';
+import { assertDocumentSignedReceipt } from '../../src/services/blockchainReceiptService';
 
 const mockPrisma = prisma as any;
 const mockProvider = provider as any;
 const mockBlockchainQueries = BlockchainQueries as jest.Mocked<typeof BlockchainQueries>;
 const mockPermissionService = DocumentPermissionService as jest.Mocked<typeof DocumentPermissionService>;
-const mockDocumentService = DocumentService as jest.Mocked<typeof DocumentService>;
+const mockAccessControl = accessControl as jest.Mocked<typeof accessControl>;
 const mockNotifications = notificationService as jest.Mocked<typeof notificationService>;
+const mockAssertDocumentSignedReceipt = assertDocumentSignedReceipt as jest.MockedFunction<typeof assertDocumentSignedReceipt>;
+
+const signedDocumentFields = {
+  blockchainId: '0x' + 'a'.repeat(64),
+};
+
+const signatureBlockchainFields = {
+  version: { versionNumber: 1 },
+  signerWallet: { walletAddress: '0x1234567890abcdef1234567890abcdef12345678' },
+};
 
 describe('SignatureService signer profile support', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrisma.wallet.findMany.mockResolvedValue([]);
+    mockAssertDocumentSignedReceipt.mockResolvedValue({ blockNumber: 1 } as any);
+    mockPrisma.event.findFirst.mockResolvedValue({ metadata: { signatureId: 'signature-1', contentHash: 'hash' } });
   });
 
   it('stores signer snapshots when preparing a signature', async () => {
@@ -143,7 +161,7 @@ describe('SignatureService signer profile support', () => {
       id: 'version-1',
       documentId: 'doc-1',
     });
-    mockDocumentService.userHasAccess.mockResolvedValue(true);
+    mockAccessControl.userHasAccess.mockResolvedValue(true);
     mockPrisma.documentSignature.findMany.mockResolvedValue([
       {
         id: 'signature-1',
@@ -167,7 +185,7 @@ describe('SignatureService signer profile support', () => {
 
     const signatures = await SignatureService.getVersionSignatures('version-1', 'viewer-1');
 
-    expect(mockDocumentService.userHasAccess).toHaveBeenCalledWith('doc-1', 'viewer-1');
+    expect(mockAccessControl.userHasAccess).toHaveBeenCalledWith('doc-1', 'viewer-1');
     expect(signatures).toEqual([
       expect.objectContaining({
         id: 'signature-1',
@@ -197,7 +215,9 @@ describe('SignatureService signer profile support', () => {
         id: 'doc-1',
         name: 'Contrato.pdf',
         ownerId: 'owner-1',
+        ...signedDocumentFields,
       },
+      ...signatureBlockchainFields,
       user: {
         username: 'mprieto',
       },
@@ -220,6 +240,8 @@ describe('SignatureService signer profile support', () => {
 describe('SignatureService confirmSignature', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAssertDocumentSignedReceipt.mockResolvedValue({ blockNumber: 1 } as any);
+    mockPrisma.event.findFirst.mockResolvedValue({ metadata: { signatureId: 'signature-1', contentHash: 'hash' } });
   });
 
   it('confirms a signature successfully when receipt is valid', async () => {
@@ -235,7 +257,9 @@ describe('SignatureService confirmSignature', () => {
         id: 'doc-1',
         name: 'Contrato.pdf',
         ownerId: 'owner-1',
+        ...signedDocumentFields,
       },
+      ...signatureBlockchainFields,
       user: {
         username: 'mprieto',
       },
@@ -285,7 +309,7 @@ describe('SignatureService confirmSignature', () => {
         ecdsaSignature: '0xsig',
         confirmerUserId: 'user-1',
       })
-    ).rejects.toThrow('Signature no encontrada');
+    ).rejects.toThrow('Firma no encontrada');
   });
 
   it('throws if confirmer is not the signer', async () => {
@@ -295,7 +319,8 @@ describe('SignatureService confirmSignature', () => {
       versionId: 'version-1',
       userId: 'user-1',
       blockchainStatus: BlockchainStatus.PREPARING,
-      document: { id: 'doc-1', name: 'Contrato.pdf', ownerId: 'owner-1' },
+      document: { id: 'doc-1', name: 'Contrato.pdf', ownerId: 'owner-1', ...signedDocumentFields },
+      ...signatureBlockchainFields,
       user: { username: 'mprieto' },
     });
     mockProvider.getTransactionReceipt.mockResolvedValue({ status: 1 });
@@ -317,10 +342,11 @@ describe('SignatureService confirmSignature', () => {
       versionId: 'version-1',
       userId: 'user-1',
       blockchainStatus: BlockchainStatus.PREPARING,
-      document: { id: 'doc-1', name: 'Contrato.pdf', ownerId: 'owner-1' },
+      document: { id: 'doc-1', name: 'Contrato.pdf', ownerId: 'owner-1', ...signedDocumentFields },
+      ...signatureBlockchainFields,
       user: { username: 'mprieto' },
     });
-    mockProvider.getTransactionReceipt.mockResolvedValue(null);
+    mockAssertDocumentSignedReceipt.mockRejectedValue(new Error('No se encontró la transacción de firma en blockchain'));
 
     await expect(
       SignatureService.confirmSignature({
@@ -339,10 +365,11 @@ describe('SignatureService confirmSignature', () => {
       versionId: 'version-1',
       userId: 'user-1',
       blockchainStatus: BlockchainStatus.PREPARING,
-      document: { id: 'doc-1', name: 'Contrato.pdf', ownerId: 'owner-1' },
+      document: { id: 'doc-1', name: 'Contrato.pdf', ownerId: 'owner-1', ...signedDocumentFields },
+      ...signatureBlockchainFields,
       user: { username: 'mprieto' },
     });
-    mockProvider.getTransactionReceipt.mockResolvedValue({ status: 0 });
+    mockAssertDocumentSignedReceipt.mockRejectedValue(new Error('La transacción de firma revirtió en blockchain'));
 
     await expect(
       SignatureService.confirmSignature({

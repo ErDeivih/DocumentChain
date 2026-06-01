@@ -1,33 +1,24 @@
-﻿@startuml
+@startuml
 !include _sequence-bce-style.puml
 
-title UC-0008: Gestionar Perfil y Notificaciones (Analisis BCE)
+title UC-0008: Gestionar Perfil (Analisis BCE)
 
-actor Actor
-boundary "VistaPerfil" as BF
-control "GestorUsuarios" as CU
+actor "Usuario logueado" as Actor
+boundary "Interfaz Perfil" as BU
+control "Controlador Usuario" as CO
 entity "Usuario" as EU
 
-database "Base de datos" as DB
-
-Actor -> BF : 1. Accede al perfil
-BF -> CU : 2. Solicita datos del perfil
-CU -> EU : 3. Recupera datos del usuario
-EU -> DB : consulta usuario + wallets
-DB --> EU : datos perfil
-EU --> CU : perfil recuperado
-CU --> BF : 4. Datos del perfil
-BF --> Actor : 5. Muestra formulario de perfil
-
-Actor -> BF : 6. Modifica datos (nombre, avatar, preferencias)
-BF -> CU : 7. Envia datos actualizados
-CU -> EU : 8. Actualiza perfil
-EU -> DB : UPDATE usuario
-DB --> EU : confirmacion
-EU --> CU : perfil actualizado
-CU --> BF : 9. Confirmacion
-BF --> Actor : 10. Muestra perfil actualizado
+Actor -> BU : Accede a pagina de perfil
+BU -> CO : ObtenerPerfil(userId)
+CO -> EU : Recupera datos del usuario
+EU --> CO : Datos del perfil
+CO --> BU : Datos de perfil
+BU --> Actor : Muestra datos y opciones
+Actor -> BU : Modifica datos (avatar, nombre, biografia)
+BU -> CO : ActualizarPerfil(datos)
+CO -> EU : Actualiza datos del usuario
+EU --> CO : Confirmacion
+CO --> BU : Perfil actualizado
+BU --> Actor : Muestra perfil actualizado
 
 @enduml
-
-

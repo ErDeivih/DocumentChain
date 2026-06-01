@@ -1,0 +1,30 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0031: Firmar Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Firma" as BF
+control "Controlador Firma" as CF
+entity "Documento" as ED
+entity "Firma" as EF
+
+Actor -> BF : Solicita firmar el documento
+BF -> CF : Solicita preparacion de firma
+CF -> CF : Comprueba que la firma es admisible
+CF -> ED : Recupera el contexto del documento
+ED --> CF : Documento listo para firma
+CF -> EF : Crea firma en PREPARING
+EF --> CF : Firma preparada
+CF --> BF : Devuelve mensaje y datos para wallet
+BF -> Actor : Solicita firma de mensaje y transaccion
+Actor -> BF : Devuelve firma y txHash
+BF -> CF : Confirma firma con txHash
+CF -> CF : Valida receipt y evento DocumentSigned
+CF -> EF : Actualiza firma a TX_SUBMITTED
+EF --> CF : Historial actualizado
+CF --> BF : Confirma la operacion
+BF --> Actor : Muestra firma registrada
+
+@enduml
+

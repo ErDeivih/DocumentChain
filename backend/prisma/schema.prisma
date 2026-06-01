@@ -122,8 +122,8 @@ model Document {
   isDeleted             Boolean             @default(false)
   publicId              String?             @unique
   visibility            DocumentVisibility  @default(PRIVATE)
-  creatorWallet         Wallet?             @relation("DocumentCreator", fields: [creatorWalletId], references: [id])
-  folder                Folder?             @relation(fields: [folderId], references: [id])
+  creatorWallet         Wallet?             @relation("DocumentCreator", fields: [creatorWalletId], references: [id], onDelete: SetNull)
+  folder                Folder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
   owner                 User                @relation("UserDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
   signatures            DocumentSignature[]
   stats                 DocumentStats?
@@ -185,8 +185,8 @@ model DocumentSignature {
   signerFullNameSnapshot      String?
   signerWalletAddressSnapshot String?
   document                    Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  signerWallet                Wallet?          @relation("SignatureWallet", fields: [signerWalletId], references: [id])
-  user                        User?            @relation(fields: [userId], references: [id])
+  signerWallet                Wallet?          @relation("SignatureWallet", fields: [signerWalletId], references: [id], onDelete: SetNull)
+  user                        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   version                     Version          @relation(fields: [versionId], references: [id], onDelete: Cascade)
 
   @@unique([versionId, userId])
@@ -206,7 +206,7 @@ model Event {
   blockNumber     Int?
   blockTimestamp  DateTime?
   createdAt       DateTime  @default(now())
-  document        Document? @relation(fields: [documentId], references: [id])
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
   user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])

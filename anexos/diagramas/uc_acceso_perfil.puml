@@ -17,9 +17,4 @@ USER --> UC8
 USER --> UC9
 
 SC --> UC9
-
-note right of UC8
-  Agrupa configuracion de perfil de usuario
-  y preferencias de notificacion.
-end note
 @enduml

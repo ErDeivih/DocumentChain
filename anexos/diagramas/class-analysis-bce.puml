@@ -1,82 +1,63 @@
 @startuml
 !include _structure-style.puml
-title Analisis BCE de interfaz y control
+title Analisis BCE por paquetes funcionales
+top to bottom direction
 
 package "Boundary (Interfaz de Usuario)" <<Boundary>> {
-  class "LoginPage" <<boundary>>
-  class "RegisterPage" <<boundary>>
-  class "DashboardPage" <<boundary>>
-  class "DocumentListPage" <<boundary>>
-  class "DocumentDetailPage" <<boundary>>
-  class "UploadModal" <<boundary>>
-  class "ShareModal" <<boundary>>
-  class "SignModal" <<boundary>>
-  class "WalletSelectorModal" <<boundary>>
-  class "TransferModal" <<boundary>>
-  class "VerifyPage" <<boundary>>
-  class "BlockchainAuditorPage" <<boundary>>
-  class "AdminDashboardPage" <<boundary>>
-  class "ProfilePage" <<boundary>>
-  class "NotificationsPage" <<boundary>>
+  class "CuentaUI" <<boundary>>
+  class "DocumentosUI" <<boundary>>
+  class "VersionesUI" <<boundary>>
+  class "FirmasUI" <<boundary>>
+  class "ComparticionUI" <<boundary>>
+  class "AuditoriaUI" <<boundary>>
+  class "AdministracionUI" <<boundary>>
 }
 
 package "Control (Gestores de Operaciones)" <<Control>> {
-  class "AuthManager" <<control>>
-  class "DocumentManager" <<control>>
-  class "VersionManager" <<control>>
-  class "ShareManager" <<control>>
-  class "SignatureManager" <<control>>
-  class "WalletManager" <<control>>
-  class "TransferManager" <<control>>
-  class "AuditManager" <<control>>
-  class "AdminManager" <<control>>
-  class "NotificationManager" <<control>>
+  class "CuentaControl" <<control>>
+  class "DocumentosControl" <<control>>
+  class "VersionesControl" <<control>>
+  class "FirmasControl" <<control>>
+  class "ComparticionControl" <<control>>
+  class "AuditoriaControl" <<control>>
+  class "AdministracionControl" <<control>>
 }
 
 package "Entity (Entidades de Dominio)" <<Entity>> {
-  class "User" <<entity>>
+  class "Usuario" <<entity>>
   class "Wallet" <<entity>>
-  class "Document" <<entity>>
+  class "Documento" <<entity>>
   class "Version" <<entity>>
-  class "Signature" <<entity>>
-  class "Share" <<entity>>
-  class "Event" <<entity>>
-  class "Notification" <<entity>>
-  class "Folder" <<entity>>
-  class "Category" <<entity>>
+  class "Firma" <<entity>>
+  class "Permiso" <<entity>>
+  class "Evento" <<entity>>
+  class "Notificacion" <<entity>>
+  class "Carpeta" <<entity>>
 }
 
 ' Relaciones Boundary -> Control
-LoginPage --> AuthManager
-RegisterPage --> AuthManager
-DashboardPage --> DocumentManager
-DocumentListPage --> DocumentManager
-DocumentDetailPage --> DocumentManager
-UploadModal --> DocumentManager
-ShareModal --> ShareManager
-SignModal --> SignatureManager
-WalletSelectorModal --> WalletManager
-TransferModal --> TransferManager
-VerifyPage --> AuditManager
-BlockchainAuditorPage --> AuditManager
-AdminDashboardPage --> AdminManager
-ProfilePage --> AuthManager
-NotificationsPage --> NotificationManager
+CuentaUI --> CuentaControl
+DocumentosUI --> DocumentosControl
+VersionesUI --> VersionesControl
+FirmasUI --> FirmasControl
+ComparticionUI --> ComparticionControl
+AuditoriaUI --> AuditoriaControl
+AdministracionUI --> AdministracionControl
 
 ' Relaciones Control -> Entity
-AuthManager --> User
-AuthManager --> Wallet
-DocumentManager --> Document
-DocumentManager --> Version
-DocumentManager --> Folder
-DocumentManager --> Category
-VersionManager --> Version
-ShareManager --> Share
-SignatureManager --> Signature
-WalletManager --> Wallet
-TransferManager --> Document
-AuditManager --> Event
-NotificationManager --> Notification
-AdminManager --> User
+CuentaControl --> Usuario
+CuentaControl --> Wallet
+CuentaControl --> Notificacion
+DocumentosControl --> Documento
+DocumentosControl --> Carpeta
+VersionesControl --> Version
+VersionesControl --> Documento
+FirmasControl --> Firma
+FirmasControl --> Version
+ComparticionControl --> Permiso
+ComparticionControl --> Documento
+AuditoriaControl --> Evento
+AuditoriaControl --> Notificacion
+AdministracionControl --> Usuario
 
 @enduml

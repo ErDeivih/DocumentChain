@@ -12,9 +12,11 @@
 import { ethers } from 'ethers';
 import { blockchainProvider } from '../../lib/blockchain/provider';
 import { DocumentRegistryContract } from '../../lib/blockchain/contracts';
+import { CONTRACTS } from '../../lib/blockchain/config';
 import { signaturesApi } from '../../api/signatures';
 import type { Signature } from '../../types';
 import type { SignDocumentInput } from './types';
+import { buildDocumentSignaturePayloadHash } from './signaturePayload';
 
 /**
  * Servicio para firmar versiones de documentos en blockchain.
@@ -52,14 +54,21 @@ export class SigningService {
         comment: input.comment || '',
       });
 
-      // Paso 2: Firmar mensaje con la wallet
-      const messageSignature = await signer.signMessage(preparedSignature.messageToSign);
-
-      // Paso 3: Firmar transacción blockchain
+      // Paso 2: construir y firmar el payload que valida el contrato on-chain
       const docIdBytes32 = ethers.isHexString(preparedSignature.blockchainId)
         ? preparedSignature.blockchainId
         : ethers.id(preparedSignature.blockchainId);
+      const network = await signer.provider.getNetwork();
+      const payloadHash = buildDocumentSignaturePayloadHash(
+        docIdBytes32,
+        input.versionNumber,
+        preparedSignature.messageToSign,
+        CONTRACTS.DocumentRegistry.address,
+        network.chainId,
+      );
+      const messageSignature = await signer.signMessage(ethers.getBytes(payloadHash));
 
+      // Paso 3: registrar firma en blockchain
       const registryContract = new DocumentRegistryContract(signer);
       const tx = await registryContract.signDocument(
         docIdBytes32,

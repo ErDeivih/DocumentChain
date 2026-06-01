@@ -11,7 +11,8 @@ const prismaBase = new PrismaClient();
 
 /**
  * Extensión del cliente Prisma que transforma el campo `size` del modelo `document`
- * de `BigInt` a `string` para facilitar su serialización.
+ * de `BigInt` a `number` para facilitar su serialización.
+ * El límite de subida es 100 MB, por lo que no hay riesgo de pérdida de precisión.
  */
 export const prisma = prismaBase.$extends({
   result: {
@@ -19,7 +20,7 @@ export const prisma = prismaBase.$extends({
       size: {
         needs: { size: true },
         compute(document) {
-          return document.size ? document.size.toString() : '0';
+          return document.size ? Number(document.size) : 0;
         }
       }
     }

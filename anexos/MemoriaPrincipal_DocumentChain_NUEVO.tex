@@ -188,7 +188,7 @@ The system implements a layered security scheme (JWT-based authentication with e
     \item[CID (Content Identifier)] Identificador unico de contenido en IPFS basado en hashing criptografico.
     \item[ECDH (Elliptic Curve Diffie-Hellman)] Protocolo de intercambio de claves basado en curvas elipticas.
     \item[EIP-6963] Propuesta de mejora de Ethereum para la deteccion de wallets mediante eventos de ventana.
-    \item[EIP-712] Propuesta de mejora de Ethereum para la firma tipada de datos estructurados.
+    \item[personal\_sign] Metodo de firma de mensajes arbitrarios mediante una wallet Ethereum, empleado para acreditar la posesion de la direccion que firma una operacion.
     \item[IPFS (InterPlanetary File System)] Protocolo descentralizado de almacenamiento y distribucion de archivos.
     \item[JWT (JSON Web Token)] Token firmado digitalmente utilizado para la autenticacion entre partes.
     \item[SPA (Single Page Application)] Aplicacion web que carga una unica pagina HTML y actualiza el contenido dinamicamente.
@@ -306,7 +306,7 @@ Cifrado de extremo a extremo & AES-256-GCM con ECDH P-256 en el cliente & Confid
 \hline
 Almacenamiento distribuido & IPFS con CID & Resistencia a la censura y punto unico de fallo \\
 \hline
-Registro inmutable & Smart contracts con hashes SHA-256 y firmas EIP-712 & Trazabilidad verificable sin intermediarios \\
+Registro inmutable & Smart contracts con hashes SHA-256 y firmas mediante wallet & Trazabilidad verificable sin intermediarios \\
 \hline
 Verificacion publica & Endpoint abierto por hash o txHash & Transparencia universal sin registro previo \\
 \hline
@@ -333,7 +333,7 @@ El objetivo principal del proyecto es disenar e implementar un sistema de gestio
 \begin{itemize}
     \item \textbf{Gestion documental completa}: permitir el ciclo de vida completo de los documentos digitales (crear, versionar, compartir, firmar, archivar y eliminar).
     \item \textbf{Registro inmutable en blockchain}: integrar una capa blockchain para el registro de hashes de documentos y firmas digitales, garantizando trazabilidad verificable.
-    \item Que el sistema permita firmar documentos mediante wallets compatibles con EIP-6963, generando mensajes estructurados segun EIP-712 y registrando la firma en blockchain.
+    \item Que el sistema permita firmar documentos mediante wallets compatibles con EIP-6963, generando mensajes de firma mediante wallet y registrando la firma en blockchain.
     \item Se necesita un modulo de cifrado AES-256-GCM en el cliente, con intercambio de claves ECDH P-256, para que el contenido de los documentos privados resulte inaccesible incluso para el servidor.
     \item \textbf{Verificacion publica}: proporcionar un mecanismo de verificacion de autenticidad accesible sin necesidad de registro previo.
     \item \textbf{Panel de administracion}: disenar un panel para la gestion de usuarios, roles y supervision del sistema.
@@ -389,7 +389,7 @@ En este apartado se presentan las herramientas y tecnologias que se han utilizad
 
 \noindent \textbf{React 19 y Vite 7} forman el frontend. React permite construir la interfaz con componentes reutilizables y Vite ofrece un entorno de desarrollo con recarga rapida.
 
-\noindent \textbf{Node.js y Express 5} proporcionan el backend. La naturaleza asincrona de Node.js se adapta bien a las operaciones con IPFS y blockchain, mientras que Express facilita el enrutamiento y la gestion de middlewares.
+\noindent \textbf{Node.js y Express 4} proporcionan el backend. La naturaleza asincrona de Node.js se adapta bien a las operaciones con IPFS y blockchain, mientras que Express facilita el enrutamiento y la gestion de middlewares.
 
 \noindent \textbf{PostgreSQL 16 y Prisma} gestionan la persistencia. PostgreSQL se eligio por su soporte para transacciones ACID y Prisma genera automaticamente los tipos TypeScript desde el esquema de base de datos, por lo que se evitan errores de inconsistencia entre el modelo de datos y el codigo.
 
@@ -401,7 +401,7 @@ En este apartado se presentan las herramientas y tecnologias que se han utilizad
 
 \noindent \textbf{ethers.js v6} es la biblioteca de interaccion con la blockchain, usada tanto en el frontend para firmar transacciones como en el backend para verificar eventos. \textbf{OpenZeppelin} proporciona patrones de seguridad ya auditados que se integran en los contratos.
 
-\noindent \textbf{IPFS} gestiona el almacenamiento de archivos mediante Kubo como nodo local y Pinata como servicio de anclaje remoto. Al identificar los archivos por su hash en lugar de por su ubicacion, cualquier modificacion produce un identificador diferente, por lo que la integridad se verifica automaticamente.
+\noindent \textbf{IPFS} gestiona el almacenamiento de archivos mediante un proveedor compatible con IPFS. En la configuracion local se utiliza Pinata por defecto, manteniendo la posibilidad de activar un nodo Kubo autoalojado si se configura el proveedor correspondiente. Al identificar los archivos por su hash en lugar de por su ubicacion, cualquier modificacion produce un identificador diferente, por lo que la integridad se verifica automaticamente.
 
 \subsection{Herramientas de control de versiones}
 
@@ -488,9 +488,9 @@ Para obtener mas informacion sobre este apartado, consultar el Anexo II (Planifi
 
 Una vez finalizada la fase inicial de planificacion temporal, se paso a la fase de elicitacion de requisitos software, donde se recogieron todos los requisitos que debe satisfacer el sistema. La especificacion detallada de cada caso de uso, incluyendo precondiciones, secuencia normal, postcondiciones y excepciones, se encuentra en el Anexo I.
 
-A modo de ejemplo, la Tabla \ref{tab:obj-func} muestra los objetivos funcionales del sistema, la Tabla \ref{tab:actores} identifica los actores que interactuan con DocumentChain, y la Figura \ref{fig:usecase-general-mem} presenta el diagrama general de casos de uso con la distribucion de los 39 casos de uso en siete paquetes funcionales (Tabla \ref{tab:uc-paquetes}).
+A modo de ejemplo, la Tabla \ref{tab:obj-func} muestra los objetivos funcionales del sistema, la Tabla \ref{tab:actores} identifica los actores que interactuan con DocumentChain, y la Figura \ref{fig:usecase-general-mem} presenta el diagrama general de casos de uso con la distribucion de los 43 casos de uso en siete paquetes funcionales (Tabla \ref{tab:uc-paquetes}).
 
-A titulo ilustrativo, la Tabla \ref{tab:uc-ejemplo} muestra la especificacion completa de un caso de uso representativo del sistema: UC-0013 Subir Documento, que constituye la operacion principal del modulo de gestion documental e involucra las tres capas de persistencia (PostgreSQL, IPFS y blockchain). El Anexo I contiene las 39 especificaciones completas con este mismo nivel de detalle.
+A titulo ilustrativo, la Tabla \ref{tab:uc-ejemplo} muestra la especificacion completa de un caso de uso representativo del sistema: UC-0015 Subir Documento, que constituye la operacion principal del modulo de gestion documental e involucra las tres capas de persistencia (PostgreSQL, IPFS y blockchain). El Anexo I contiene las 39 especificaciones completas con este mismo nivel de detalle.
 
 \begin{table}[H]
 \centering
@@ -528,7 +528,7 @@ A titulo ilustrativo, la Tabla \ref{tab:uc-ejemplo} muestra la especificacion co
 \textbf{Excepciones} & Archivo no soportado (400 Bad Request), tamano excede el limite (400), usuario sin wallet conectada (400), transaccion revertida en blockchain (estado FAILED), error de conexion con IPFS (503). \\
 \hline
 \end{tabular}
-\caption{Ejemplo de especificacion de caso de uso: UC-0013 Subir Documento}
+\caption{Ejemplo de especificacion de caso de uso: UC-0015 Subir Documento}
 \label{tab:uc-ejemplo}
 \end{table}
 
@@ -565,7 +565,7 @@ Para obtener mas informacion sobre este apartado, consultar el Anexo I (Especifi
 
 Finalizada la fase de elicitacion de requisitos, se paso a la fase de analisis, que se llevo a cabo siguiendo la metodologia BCE (Boundary-Control-Entity). Este patron organiza las clases del sistema en tres categorias: clases de frontera (Boundary), que gestionan la interaccion con los actores; clases de control (Control), que implementan la logica de negocio; y clases de entidad (Entity), que representan los objetos persistentes del dominio.
 
-El analisis BCE se aplico a cada uno de los 39 casos de uso, generando los correspondientes diagramas de secuencia de analisis que muestran la interaccion entre las clases de frontera, control y entidad para cada flujo funcional. La Figura \ref{fig:arquitectura-mem} (ver Seccion 6.6) muestra como esta organizacion se materializa en la arquitectura del sistema.
+El analisis BCE se aplico a cada uno de los 43 casos de uso, generando los correspondientes diagramas de secuencia de analisis que muestran la interaccion entre las clases de frontera, control y entidad para cada flujo funcional. La Figura \ref{fig:arquitectura-mem} (ver Seccion 6.6) muestra como esta organizacion se materializa en la arquitectura del sistema.
 
 \begin{figure}[H]
     \centering
@@ -574,19 +574,19 @@ El analisis BCE se aplico a cada uno de los 39 casos de uso, generando los corre
     \label{fig:arquitectura-mem}
 \end{figure}
 
-A modo de ejemplo, la Figura \ref{fig:seq-bce-ejemplo} muestra el diagrama de secuencia de analisis BCE correspondiente al caso de uso UC-0013 (Subir Documento), que ilustra la aplicacion del patron Boundary-Control-Entity. La Figura \ref{fig:seq-design-ejemplo} presenta el diagrama de secuencia de diseno para el mismo caso de uso, reflejando la implementacion real con React (frontend), Express (backend), IPFS y el smart contract.
+A modo de ejemplo, la Figura \ref{fig:seq-bce-ejemplo} muestra el diagrama de secuencia de analisis BCE correspondiente al caso de uso UC-0015 (Subir Documento), que ilustra la aplicacion del patron Boundary-Control-Entity. La Figura \ref{fig:seq-design-ejemplo} presenta el diagrama de secuencia de diseno para el mismo caso de uso, reflejando la implementacion real con React (frontend), Express (backend), IPFS y el smart contract.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\linewidth]{diagramas/seq-bce-uc0013-upload.png}
-    \caption{Diagrama de secuencia de analisis BCE: UC-0013 Subir Documento}
+    \includegraphics[width=0.92\linewidth]{diagramas/seq-bce-uc0015-upload.png}
+    \caption{Diagrama de secuencia de analisis BCE: UC-0015 Subir Documento}
     \label{fig:seq-bce-ejemplo}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\linewidth]{diagramas/seq-upload.png}
-    \caption{Diagrama de secuencia de diseno: UC-0013 Subir Documento}
+    \caption{Diagrama de secuencia de diseno: UC-0015 Subir Documento}
     \label{fig:seq-design-ejemplo}
 \end{figure}
 

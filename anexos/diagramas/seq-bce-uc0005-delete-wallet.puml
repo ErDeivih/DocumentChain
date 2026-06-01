@@ -1,25 +1,20 @@
-﻿@startuml
+@startuml
 !include _sequence-bce-style.puml
 
 title UC-0005: Eliminar Wallet (Analisis BCE)
 
-actor Actor
-boundary "SelectorWallet" as BF
-control "GestorWallets" as CW
+actor "Usuario logueado" as Actor
+boundary "Interfaz Perfil" as BF
+control "Controlador Wallet" as CW
 entity "Wallet" as EW
 
-database "Base de datos" as DB
 
 Actor -> BF : 1. Selecciona wallet a eliminar
 BF -> CW : 2. Peticion de eliminacion
 CW -> EW : 3. Verifica que no es wallet primaria
-EW -> DB : consulta wallets del usuario
-DB --> EW : listado wallets
 EW --> CW : verificacion OK
 
-CW -> EW : 4. Elimina wallet de BD
-EW -> DB : DELETE wallet
-DB --> EW : confirmacion
+CW -> EW : 4. Elimina wallet
 EW --> CW : wallet eliminada
 
 CW --> BF : 5. Confirmacion

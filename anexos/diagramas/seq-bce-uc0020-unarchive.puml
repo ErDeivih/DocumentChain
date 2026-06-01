@@ -1,0 +1,29 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0020: Desarchivar Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Detalle Documento" as BF
+control "Controlador Documento" as CG
+entity "Documento" as ED
+
+
+Actor -> BF : 1. Solicita desarchivar documento
+BF -> CG : 2. Peticion de desarchivado con txHash
+CG -> ED : 3. Verifica que el documento esta archivado
+ED --> CG : documento archivado confirmado
+
+CG -> ED : 4. Verifica propiedad
+ED --> CG : permiso verificado
+
+CG -> CG : 5. Valida receipt y evento DocumentArchived(false)
+CG -> ED : 6. Cambia estado a activo y archivedAt = null
+ED --> CG : documento desarchivado
+
+CG --> BF : 7. Confirmacion
+BF --> Actor : 8. Muestra documento en lista activa
+
+@enduml
+
+

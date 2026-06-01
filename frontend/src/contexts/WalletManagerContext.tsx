@@ -204,7 +204,6 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
       setSavedWallets([]);
       setConnectedWallet(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user?.id]);
 
   /**
@@ -329,6 +328,9 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     try {
       const challengeResponse = await walletsApi.getChallenge(connectedWallet.address);
       const signature = await blockchainProvider.signMessage(challengeResponse.message);
+      if (!signature) {
+        throw new Error('No se pudo firmar el desafío de la wallet');
+      }
 
       const response = await walletsApi.add(
         connectedWallet.address,
@@ -349,7 +351,7 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [connectedWallet, savedWallets]);
+  }, [connectedWallet, savedWallets, syncUserWallets]);
 
   /**
    * Elimina una wallet guardada del usuario.

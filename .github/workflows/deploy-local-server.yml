@@ -40,17 +40,17 @@ jobs:
           RESET_DOCKER_STATE: "1"
           AUTO_RESEED_QA: "1"
           SEED_PROFILE: "qa-fast"
-          EMAIL_FROM: "davidpeve01@gmail.com"
+          EMAIL_FROM: ${{ secrets.DOCUMENTCHAIN_EMAIL_FROM }}
           EMAIL_FROM_NAME: "DocumentChain"
           SMTP_HOST: "postfix"
           SMTP_PORT: "587"
           SMTP_SECURE: "false"
-          SMTP_RELAYHOST: "[smtp-relay.brevo.com]:587"
-          SMTP_RELAYHOST_USERNAME: "a791e9001@smtp-brevo.com"
-          SMTP_RELAYHOST_PASSWORD: "xsmtpsib-809dabaa5a340f35db3767877202b9891fc2ba27009334b4e2bd877cb6611098-P93oF2P0v5sSyMuh"
+          SMTP_RELAYHOST: ${{ secrets.DOCUMENTCHAIN_SMTP_RELAYHOST }}
+          SMTP_RELAYHOST_USERNAME: ${{ secrets.DOCUMENTCHAIN_SMTP_RELAYHOST_USERNAME }}
+          SMTP_RELAYHOST_PASSWORD: ${{ secrets.DOCUMENTCHAIN_SMTP_RELAYHOST_PASSWORD }}
           POSTFIX_SMTP_TLS_SECURITY_LEVEL: "encrypt"
           POSTFIX_HOSTNAME: "mail.documentchain.local"
-          ALLOWED_SENDER_DOMAINS: "gmail.com"
-          MASQUERADED_DOMAINS: "gmail.com"
+          ALLOWED_SENDER_DOMAINS: ${{ secrets.DOCUMENTCHAIN_ALLOWED_SENDER_DOMAINS }}
+          MASQUERADED_DOMAINS: ${{ secrets.DOCUMENTCHAIN_MASQUERADED_DOMAINS }}
           REQUIRE_SMTP_RELAY: "1"
         run: bash scripts/deploy-ubuntu-server.sh

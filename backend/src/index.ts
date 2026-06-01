@@ -1,19 +1,19 @@
+import './config/loadEnv';
 import express, { Express, Request, Response } from 'express';
 import https from 'https';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import logger from './utils/logger';
 import { swaggerSpec } from './config/swagger';
 import { disconnectDatabase } from './config/database';
-import './workers/blockchainSync'; // Start blockchain sync worker
+import { stopBlockchainSyncWorker } from './workers/blockchainSync'; // Start blockchain sync worker
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-import { generalLimiter, authLimiter, uploadLimiter, auditLimiter } from './middleware/rateLimiter';
+import { generalLimiter, authLimiter, auditLimiter } from './middleware/rateLimiter';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -40,9 +40,6 @@ import notificationRoutes from './routes/notifications';
 // Import services
 import webSocketService from './services/webSocketService';
 import eventListenerService from './services/eventListenerService';
-
-// Cargar variables de entorno
-dotenv.config();
 
 /**
  * Instancia principal de la aplicación Express.
@@ -197,6 +194,7 @@ const shutdown = async (signal: string): Promise<void> => {
 
   try {
     webSocketService.close();
+    stopBlockchainSyncWorker();
 
     await Promise.allSettled([
       eventListenerService.shutdown(),

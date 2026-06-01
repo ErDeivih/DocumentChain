@@ -14,6 +14,7 @@ import { WalletSelectorModal } from '../wallets/WalletSelectorModal';
 import { signingService } from '../../services/blockchain/SigningService';
 import { signaturesApi } from '../../api/signatures';
 import { useSigner } from '../../hooks/useSigner';
+import { useAuth } from '../../contexts/AuthContext';
 import { FileSignature, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import type { Document } from '../../types';
 import type { SavedWallet } from '../../contexts/WalletManagerContext';
@@ -56,6 +57,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
   const [hasAlreadySigned, setHasAlreadySigned] = useState(false);
   const [checkingSignature, setCheckingSignature] = useState(true);
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const { user } = useAuth();
   const { getVerifiedSigner } = useSigner();
 
   // Verifica si el usuario ya ha firmado esta versión
@@ -65,11 +67,8 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
 
       try {
         setCheckingSignature(true);
-        const currentUser = localStorage.getItem('user');
-        if (!currentUser) return;
+        if (!user?.id) return;
 
-        const { id: userId } = JSON.parse(currentUser);
-        
         // Obtiene todas las firmas de esta versión
         const { signatures } = await signaturesApi.listByVersion(
           document.id,
@@ -77,7 +76,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
         );
 
         // Verifica si el usuario actual ya ha firmado
-        const hasSigned = signatures.some(sig => sig.userId === userId);
+        const hasSigned = signatures.some(sig => sig.userId === user.id);
         setHasAlreadySigned(hasSigned);
       } catch (err) {
         console.error('Error checking signature:', err);
@@ -89,7 +88,7 @@ export const SignDocumentModal: React.FC<SignDocumentModalProps> = ({
     };
 
     checkIfSigned();
-  }, [isOpen, document.id, operationalVersionNumber]);
+  }, [isOpen, document.id, operationalVersionNumber, user?.id]);
 
   const handleSign = async () => {
     if (hasAlreadySigned) {

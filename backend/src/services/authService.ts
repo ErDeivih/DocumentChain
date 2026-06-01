@@ -1,7 +1,6 @@
 ﻿import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
-import { getAddress, isAddress, verifyMessage as ethersVerifyMessage } from 'ethers';
 import prisma from '../config/database';
 import { TokenService } from './tokenService';
 import { KeyManager } from '../lib/crypto/KeyManager';
@@ -10,56 +9,24 @@ import { validatePassword } from '../validators/passwordPolicy';
 import { emailService } from './emailService';
 import logger from '../utils/logger';
 
-/**
- * Datos de entrada para el registro tradicional con contraseña.
- */
 export interface RegisterInput {
   username: string;
   email: string;
   password: string;
   fullName?: string;
-  adminSecret?: string; // Secreto opcional para crear usuario administrador
-}
-
-/**
- * Datos de entrada para el registro basado en wallet.
- */
-export interface PrepareRegisterInput {
-  username: string;
-  email: string;
-  publicKey: string;              // Generada en el frontend
-  encryptedPrivateKey: string;     // Cifrada en el frontend con la contraseña del usuario
-  recoveryKeyHash?: string;       // Opcional: hash de la clave de recuperación
-  encryptedPrivateKeyRecovery?: string; // Opcional: clave privada cifrada con la clave de recuperación
-  fullName?: string;
   adminSecret?: string;
 }
 
-/**
- * Datos de entrada para el inicio de sesión tradicional.
- */
 export interface LoginInput {
-  identifier: string; // nombre de usuario o email
+  identifier: string;
   password: string;
 }
 
-/**
- * Datos de entrada para el inicio de sesión con wallet.
- */
-export interface WalletLoginInput {
-  walletAddress: string;
-  signature: string;              // Firma del mensaje de reto
-  message: string;                // Mensaje de reto firmado
-}
-
-/**
- * Respuesta de autenticación con tokens y datos del usuario.
- */
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
-  recoveryKey?: string; // Solo incluida en la respuesta de registro
+  recoveryKey?: string;
   user: {
     id: string;
     username: string;
@@ -71,233 +38,13 @@ export interface AuthResponse {
     emailVerified: boolean;
     avatarUrl: string | null;
     createdAt: Date;
-    lastLogin: null;
   };
 }
 
 /**
  * Servicio de autenticación y gestión de sesiones.
- * Soporta registro/inicio de sesión tradicional con contraseña y autenticación basada en wallet.
  */
 export class AuthService {
-  // ==================== AUTENTICACIÓN BASADA EN WALLET ====================
-
-  /**
-   * Prepara el registro de un usuario con cifrado basado en wallet.
-   * El frontend genera el par de claves y cifra la clave privada con la contraseña del usuario;
-   * el backend únicamente almacena los datos cifrados.
-   * @param input - Datos de entrada para el registro con wallet.
-   * @returns Respuesta de autenticación con tokens y datos del usuario.
-   * @throws Error si las validaciones de entrada fallan o el usuario/email ya existen.
-   */
-  static async prepareRegister(input: PrepareRegisterInput): Promise<AuthResponse> {
-    const { 
-      username, 
-      email, 
-      publicKey, 
-      encryptedPrivateKey, 
-      recoveryKeyHash,
-      encryptedPrivateKeyRecovery,
-      fullName, 
-      adminSecret 
-    } = input;
-
-    // Validar entrada
-    if (!username || username.length < 3) {
-      throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
-    }
-
-    if (!email || !email.includes('@')) {
-      throw new Error('Se requiere un email válido');
-    }
-
-    if (!publicKey) {
-      throw new Error('Se requiere la clave pública');
-    }
-
-    if (!encryptedPrivateKey) {
-      throw new Error('Se requiere la clave privada cifrada');
-    }
-
-    // Verificar si el nombre de usuario ya existe
-    const existingUser = await prisma.user.findUnique({
-      where: { username }
-    });
-
-    if (existingUser) {
-      throw new Error('El nombre de usuario ya existe');
-    }
-
-    // Verificar si el email ya existe
-    const existingEmail = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (existingEmail) {
-      throw new Error('El email ya existe');
-    }
-
-    logger.debug(`[prepare-register][service] creating username=${username} email=${email} publicKeyLen=${publicKey.length} encryptedPrivateKeyLen=${encryptedPrivateKey.length}`);
-
-    // Determinar rol de usuario (admin si se proporciona secreto válido)
-    let userRole: 'USER' | 'ADMIN' = 'USER';
-    const adminRegistrationSecret = process.env.ADMIN_REGISTRATION_SECRET;
-    
-    if (adminSecret && adminRegistrationSecret && adminSecret === adminRegistrationSecret) {
-      userRole = 'ADMIN';
-      logger.info(`Creando usuario ADMIN: ${username}`);
-    }
-
-    // Crear usuario - NO se almacena hash de contraseña, solo la clave privada cifrada
-    const user = await prisma.user.create({
-      data: {
-        id: uuidv4(),
-        username,
-        email,
-        passwordHash: '', // Vacío - las contraseñas se gestionan únicamente en el frontend
-        fullName: fullName || null,
-        role: userRole,
-        publicKey,
-        encryptedPrivateKey,
-        recoveryKeyHash: recoveryKeyHash || null,
-        encryptedPrivateKeyRecovery: encryptedPrivateKeyRecovery || null
-      }
-    });
-
-    logger.debug(`[prepare-register][service] created userId=${user.id} publicKeyLen=${user.publicKey?.length ?? 0} encryptedPrivateKeyLen=${user.encryptedPrivateKey?.length ?? 0}`);
-
-    // Crear token de verificación de email
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
-
-    await prisma.emailVerification.create({
-      data: {
-        userId: user.id,
-        token: verificationToken,
-        expiresAt
-      }
-    });
-
-    // Enviar email de verificación (sin bloquear)
-    emailService.sendVerificationEmail(user.email, user.username, verificationToken)
-      .catch((error: any) => {
-        logger.error('Error al enviar email de verificación:', error);
-      });
-
-    // Enviar email de bienvenida (opcional, sin bloquear)
-    emailService.sendWelcomeEmail(user.email, user.username)
-      .catch((error: any) => {
-        logger.error('Error al enviar email de bienvenida:', error);
-      });
-
-    logger.info(`Usuario registrado correctamente: ${username} (${userRole})`);
-
-    // Generar par de tokens
-    const tokens = await TokenService.generateTokenPair(
-      user.id,
-      user.username,
-      user.role
-    );
-
-    return {
-      ...tokens,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        publicKey: user.publicKey,
-        emailVerified: user.emailVerified,
-        avatarUrl: user.avatarUrl,
-        createdAt: user.createdAt,
-        lastLogin: null
-      }
-    };
-  }
-
-  /**
-   * Inicia sesión con firma de wallet.
-   * El usuario firma un mensaje de reto con su wallet; el backend verifica la firma.
-   * @param input - Datos de entrada para el login con wallet.
-   * @returns Respuesta de autenticación con tokens y datos del usuario.
-   * @throws Error si la dirección es inválida, la wallet no está registrada, el reto expiró o la firma no coincide.
-   */
-  static async loginWithWallet(input: WalletLoginInput): Promise<AuthResponse> {
-    const { walletAddress, signature, message } = input;
-
-    if (!isAddress(walletAddress)) {
-      throw new Error('Dirección Ethereum inválida');
-    }
-
-    const normalizedWalletAddress = getAddress(walletAddress);
-
-    // Buscar usuario por dirección de wallet
-    const wallet = await prisma.wallet.findFirst({
-      where: { walletAddress: normalizedWalletAddress },
-      include: { user: true }
-    });
-
-    if (!wallet) {
-      throw new Error('Wallet no registrada');
-    }
-
-    const user = wallet.user;
-
-    // Validar formato del mensaje de reto: "Sign this message to authenticate: <userId>:<timestamp>:<nonce>"
-    const CHALLENGE_PATTERN = /^Sign this message to authenticate: .+:\d+:[0-9a-f]+$/;
-    if (!CHALLENGE_PATTERN.test(message)) {
-      throw new Error('Formato de mensaje de reto inválido');
-    }
-
-    // Validar que el reto no haya expirado (ventana de 5 minutos)
-    const parts = message.split(':');
-    const nonce = parts[parts.length - 1];
-    const timestamp = parseInt(parts[parts.length - 2], 10);
-    const MAX_CHALLENGE_AGE_MS = 5 * 60 * 1000; // 5 minutos
-    if (isNaN(timestamp) || Date.now() - timestamp > MAX_CHALLENGE_AGE_MS) {
-      throw new Error('Challenge expirado o inválido');
-    }
-
-    // Verificar la firma ECDSA: recuperar la dirección del firmante y comparar
-    let recoveredAddress: string;
-    try {
-      recoveredAddress = ethersVerifyMessage(message, signature);
-    } catch {
-      throw new Error('Firma inválida');
-    }
-    if (recoveredAddress.toLowerCase() !== normalizedWalletAddress.toLowerCase()) {
-      throw new Error('La firma no coincide con la dirección de wallet proporcionada');
-    }
-
-    logger.info(`Wallet login verified for user ${user.id} with wallet ${normalizedWalletAddress}`);
-
-    // Generar par de tokens
-    const tokens = await TokenService.generateTokenPair(
-      user.id,
-      user.username,
-      user.role
-    );
-
-    return {
-      ...tokens,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        publicKey: user.publicKey,
-        emailVerified: user.emailVerified,
-        avatarUrl: user.avatarUrl,
-        createdAt: user.createdAt,
-        lastLogin: null
-      }
-    };
-  }
-
-  // ==================== MÉTODOS LEGADOS ====================
-
   /**
    * Registra un usuario con nombre de usuario/contraseña.
    * Genera un par de claves RSA, cifra la clave privada con la contraseña,
@@ -435,7 +182,6 @@ export class AuthService {
         emailVerified: user.emailVerified,
         avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
-        lastLogin: null
       }
     };
   }
@@ -537,44 +283,14 @@ export class AuthService {
         emailVerified: finalUser.emailVerified,
         avatarUrl: finalUser.avatarUrl,
         createdAt: finalUser.createdAt,
-        lastLogin: null
       }
     };
-  }
-
-  /**
-   * Obtiene la clave privada descifrada de un usuario.
-   * @deprecated El descifrado de clave privada debe realizarse únicamente en el frontend.
-   * @param userId - UUID del usuario.
-   * @param password - Contraseña del usuario.
-   * @returns Clave privada descifrada en formato PEM.
-   * @throws Error si el usuario no existe o la contraseña es inválida.
-   */
-  static async getPrivateKey(userId: string, password: string): Promise<string> {
-    logger.warn('AuthService.getPrivateKey is deprecated. Private key decryption should happen in frontend only.');
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        encryptedPrivateKey: true,
-      }
-    });
-
-    if (!user || !user.encryptedPrivateKey) {
-      throw new Error('Usuario no encontrado');
-    }
-
-    try {
-      return KeyManager.decryptPrivateKey(user.encryptedPrivateKey, password);
-    } catch (error) {
-      throw new Error('Contraseña inválida');
-    }
   }
 
   /**
    * Cambia la contraseña de un usuario.
    * Descifra la clave privada con la contraseña actual, la recifra con la nueva
    * y actualiza el hash de contraseña en BD.
-   * @deprecated La gestión de contraseñas debe realizarse en el frontend.
    * @param userId - UUID del usuario.
    * @param currentPassword - Contraseña actual.
    * @param newPassword - Nueva contraseña.
@@ -585,7 +301,6 @@ export class AuthService {
     currentPassword: string,
     newPassword: string
   ): Promise<void> {
-    logger.warn('AuthService.changePassword is deprecated. Password changes should be handled in frontend.');
     // Validar nueva contraseña con política robusta
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.valid) {

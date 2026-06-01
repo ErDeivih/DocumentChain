@@ -7,8 +7,8 @@
  */
 
 import logger from '../utils/logger';
+import { normalizeEnvValue } from '../utils/env';
 import { PinataIPFSClient } from './pinataClient';
-import { env } from './env';
 
 /**
  * Interfaz común para adaptadores de IPFS.
@@ -19,38 +19,17 @@ export interface IPFSAdapter {
   cat(cid: string): Promise<Buffer>;
   pin(cid: string): Promise<void>;
   unpin(cid: string): Promise<void>;
-  getPinStatus(cid: string): Promise<PinStatus>;
-  listPins(): Promise<PinResult[]>;
+  getPinStatus(cid: string): Promise<any>;
+  listPins(): Promise<any[]>;
 }
 
-/**
- * Resultado de una operación de pin en IPFS.
- */
-export interface PinResult {
-  cid: string;
-  status: string;
-  size?: number;
-}
-
-/**
- * Estado de un pin en IPFS.
- */
-export interface PinStatus {
-  cid: string;
-  pinned: boolean;
-  size?: number;
-  timestamp?: string;
-  status?: string;
-  peer_map?: Record<string, any>;
-}
-
-const IPFS_PROVIDER = process.env.IPFS_PROVIDER?.trim() || 'self-hosted';
-const IPFS_API_URL: string = env.IPFS_API_URL;
-const IPFS_GATEWAY_URL: string = env.IPFS_GATEWAY_URL;
-const PINATA_JWT = process.env.PINATA_JWT?.trim() || '';
-const PINATA_API_KEY = process.env.PINATA_API_KEY?.trim() || '';
-const PINATA_API_SECRET = process.env.PINATA_API_SECRET?.trim() || '';
-const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL?.trim() || '';
+const IPFS_PROVIDER = normalizeEnvValue(process.env.IPFS_PROVIDER, 'self-hosted');
+const IPFS_API_URL = normalizeEnvValue(process.env.IPFS_API_URL, 'http://localhost:5001');
+const IPFS_GATEWAY_URL = normalizeEnvValue(process.env.IPFS_GATEWAY_URL, 'http://localhost:8080');
+const PINATA_JWT = normalizeEnvValue(process.env.PINATA_JWT, '');
+const PINATA_API_KEY = normalizeEnvValue(process.env.PINATA_API_KEY, '');
+const PINATA_API_SECRET = normalizeEnvValue(process.env.PINATA_API_SECRET, '');
+const PINATA_GATEWAY_URL = normalizeEnvValue(process.env.PINATA_GATEWAY_URL, '');
 
 type SupportedProvider = 'self-hosted' | 'pinata';
 

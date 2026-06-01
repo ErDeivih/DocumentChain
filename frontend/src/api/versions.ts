@@ -139,40 +139,6 @@ export const versionsApi = {
   },
 
   /**
-   * @deprecated Utilice prepareCreate + confirmCreate en su lugar.
-   * @param documentId - Identificador del documento.
-   * @param file - Archivo de la nueva versión.
-   * @param password - Contraseña del usuario.
-   * @param comment - Comentario descriptivo.
-   * @returns Versión creada.
-   */
-  create: async (
-    documentId: string,
-    file: File,
-    password: string,
-    comment?: string
-  ): Promise<{ version: Version }> => {
-    console.warn('versionsApi.create is deprecated. Use prepareCreate + confirmCreate instead.');
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('password', password);
-    if (comment) {
-      formData.append('comment', comment);
-    }
-
-    const response = await api.post<{ version: Version }>(
-      `/documents/${documentId}/versions`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      }
-    );
-    return response.data;
-  },
-
-  /**
    * Prepara el cambio de versión operativa.
    * @param documentId - Identificador del documento.
    * @param versionNumber - Número de versión a establecer como operativa.

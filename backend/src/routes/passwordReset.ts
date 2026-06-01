@@ -1,25 +1,15 @@
 import { Router } from 'express';
-import { AuthController } from '../controllers/authController';
+import { EmailController } from '../controllers/EmailController';
 import { authLimiter } from '../middleware/rateLimiter';
 import { validateBody } from '../middleware/validator';
 import { z } from 'zod';
 
-/**
- * Router de restablecimiento de contraseña.
- * Expone endpoints para solicitar y confirmar el cambio de contraseña mediante token de recuperación.
- */
 const router = Router();
 
-/**
- * Schema de validación para la solicitud de restablecimiento de contraseña.
- */
 const forgotPasswordSchema = z.object({
   email: z.string().email('Se requiere un email válido')
 });
 
-/**
- * Schema de validación para la confirmación de restablecimiento de contraseña.
- */
 const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Se requiere el token de restablecimiento'),
   recoveryKey: z.string().min(1, 'Se requiere la clave de recuperación'),
@@ -31,8 +21,7 @@ const resetPasswordSchema = z.object({
     .regex(/[0-9]/, 'La contraseña debe contener al menos un número')
 });
 
-// Rutas de restablecimiento de contraseña (públicas pero con límite de tasa)
-router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), AuthController.forgotPassword);
-router.post('/reset-password', authLimiter, validateBody(resetPasswordSchema), AuthController.resetPassword);
+router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), EmailController.forgotPassword);
+router.post('/reset-password', authLimiter, validateBody(resetPasswordSchema), EmailController.resetPassword);
 
 export default router;

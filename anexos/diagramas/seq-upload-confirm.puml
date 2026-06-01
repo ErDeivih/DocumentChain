@@ -1,0 +1,28 @@
+@startuml
+!include _sequence-style.puml
+title UC-0015: Subir documento (fase de confirmacion)
+
+actor Usuario as user
+boundary "UploadModal.tsx" as ui
+participant "Wallet (EIP-6963 / WalletConnect)" as wallet
+entity "DocumentRegistry" as sc
+control "DocumentService" as srv
+database "Base de datos" as db
+control "EventListenerService" as listener
+
+ui -> wallet: Solicita firma de transaccion createDocument
+wallet -> sc: createDocument(blockchainId, cid, metadataHash)
+sc --> wallet: txHash
+wallet --> ui: txHash
+
+ui -> srv: POST /api/documents/confirm {documentId, txHash, blockchainId}
+srv -> db: Actualizar documento y version a TX_SUBMITTED
+db --> srv: OK
+srv --> ui: 200 OK confirmacion registrada
+
+sc -> listener: Evento DocumentCreated(docId, cid, owner, timestamp)
+listener -> db: Actualizar documento a SYNCED, registrar evento
+listener -> ui: WebSocket / notificacion de sincronizacion
+ui --> user: Documento visible en biblioteca
+
+@enduml

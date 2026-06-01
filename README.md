@@ -34,7 +34,7 @@ Versiones verificadas en el cierre local de entrega:
 Para regenerar un entorno demostrativo reproducible:
 
 ```powershell
-.\reseed-dev.ps1
+.\scripts\reseed-dev.ps1
 ```
 
 El script realiza estas acciones:
@@ -53,13 +53,13 @@ El script realiza estas acciones:
 Perfil rapido por defecto:
 
 ```powershell
-.\reseed-dev.ps1 -SeedProfile qa-fast
+.\scripts\reseed-dev.ps1 -SeedProfile qa-fast
 ```
 
 Perfil amplio:
 
 ```powershell
-.\reseed-dev.ps1 -SeedProfile qa-max
+.\scripts\reseed-dev.ps1 -SeedProfile qa-max
 ```
 
 Credenciales habituales tras la seed:

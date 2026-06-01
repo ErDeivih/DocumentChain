@@ -1,0 +1,33 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0015: Subir Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Biblioteca" as BU
+control "Controlador Documento" as CD
+entity "Documento" as ED
+entity "Version" as EV
+entity "Permiso" as EA
+entity "EventoAuditoria" as ER
+
+Actor -> BU : Aporta documento y metadatos
+BU -> BU : Cifra contenido y prepara hash
+BU -> CD : Solicita preparacion de alta documental
+CD -> CD : Valida fichero, metadatos y wallet
+CD -> ED : Crea documento en PREPARING
+CD -> EV : Crea version inicial en PREPARING
+CD -> EA : Asigna propiedad inicial
+CD --> BU : Devuelve datos para firma blockchain
+BU -> Actor : Solicita firma de transaccion en wallet
+Actor -> BU : Devuelve txHash
+BU -> CD : Confirma alta documental con txHash
+CD -> CD : Valida receipt y evento DocumentCreated
+CD -> ED : Actualiza estado a TX_SUBMITTED
+CD -> EV : Actualiza version a TX_SUBMITTED
+CD -> ER : Registra evidencia de alta
+CD --> BU : Devuelve confirmacion
+BU --> Actor : Muestra documento incorporado
+
+@enduml
+

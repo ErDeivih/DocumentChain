@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { env } from './env';
 
 const JWT_SECRET = env.JWT_SECRET;
+const JWT_REFRESH_SECRET = env.JWT_REFRESH_SECRET || env.JWT_SECRET;
 const JWT_EXPIRES_IN = env.JWT_EXPIRES_IN;
 
 /**
@@ -55,4 +56,4 @@ export function decodeToken(token: string): JWTPayload | null {
   }
 }
 
-export { JWT_SECRET };
+export { JWT_SECRET, JWT_REFRESH_SECRET };

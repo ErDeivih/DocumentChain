@@ -6,7 +6,6 @@
  */
 
 import prisma from '../config/database';
-import logger from '../utils/logger';
 import { DocumentPermissionService } from './documentPermissionService';
 
 // ============================================

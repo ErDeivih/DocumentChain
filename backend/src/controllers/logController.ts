@@ -162,7 +162,7 @@ export async function clearLogs(req: Request, res: Response): Promise<void> {
         fs.writeFileSync(path.join(logsDir, file), '');
       });
       
-      logger.info('Todos los logs limpiados', { userId: (req as any).user?.id });
+      logger.info('Todos los logs limpiados', { userId: req.user?.userId });
       res.json({ message: 'Todos los logs limpiados' });
     } else {
       // Limpiar log específico
@@ -170,7 +170,7 @@ export async function clearLogs(req: Request, res: Response): Promise<void> {
       
       if (fs.existsSync(logFile)) {
         fs.writeFileSync(logFile, '');
-        logger.info(`Logs de ${type} limpiados`, { userId: (req as any).user?.id });
+        logger.info(`Logs de ${type} limpiados`, { userId: req.user?.userId });
         res.json({ message: `Logs de ${type} limpiados` });
       } else {
         res.status(404).json({ error: 'Archivo de log no encontrado' });
@@ -198,7 +198,7 @@ export async function logClientError(req: Request, res: Response): Promise<void>
       error: error || message,
       stack,
       context,
-      userId: (req as any).user?.id,
+      userId: req.user?.userId,
       userAgent: req.headers['user-agent'],
       category: 'client-error'
     });

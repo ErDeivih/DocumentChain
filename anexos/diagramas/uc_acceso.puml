@@ -51,14 +51,4 @@ EMAIL --> UC1
 EMAIL --> UC11
 EMAIL --> UC12
 SC --> UC9
-
-note right of UC8
-  Agrupa configuracion de perfil de usuario
-  y preferencias de notificacion.
-end note
-
-note right of UC1
-  El registro con wallet es la opcion primaria.
-  Soporta autenticacion wallet-based.
-end note
 @enduml

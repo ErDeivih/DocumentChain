@@ -10,11 +10,11 @@ DRAFT --> PREPARING : POST /prepare\n(cifrado local + carga a IPFS)
 
 state PREPARING : Contenido cifrado en IPFS\nEsperando firma del usuario
 
-PREPARING --> TX_PENDING : Usuario firma transaccion
+PREPARING --> TX_SUBMITTED : Usuario firma transaccion
 
-state TX_PENDING : Transaccion enviada a blockchain\nEsperando confirmacion
+state TX_SUBMITTED : Transaccion enviada a blockchain\nEsperando confirmacion
 
-TX_PENDING --> SYNCED : Evento DocumentRegistered emitido\nEventListenerService sincroniza BD
+TX_SUBMITTED --> SYNCED : Evento DocumentCreated emitido\nEventListenerService sincroniza BD
 
 state SYNCED : Documento activo y sincronizado\nEstado operativo normal
 

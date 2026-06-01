@@ -61,6 +61,7 @@ export const DocumentRegistryABI = [
   "function createDocument(bytes32 _docId, string _ipfsCid, bytes32 _encryptedKeyHash)",
   "function createVersion(bytes32 _docId, string _ipfsCid, bytes32 _encryptedKeyHash)",
   "function signDocument(bytes32 _docId, uint256 _versionNumber, bytes _signature, string _message, string _comment)",
+  "function getSignaturePayloadHash(bytes32 _docId, uint256 _versionNumber, string _message) view returns (bytes32)",
   "function shareDocument(bytes32 _docId, address _user, uint8 _role)",
   "function revokePermission(bytes32 _docId, address _user)",
   "function transferOwnership(bytes32 _docId, address _newOwner)",
@@ -224,12 +225,12 @@ export const SUPPORTED_NETWORKS: Record<number, ChainConfig> = {
       decimals: 18,
     },
   },
-  80001: {
-    chainId: 80001,
-    chainIdHex: '0x13881',
-    name: 'Mumbai Testnet',
-    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
-    blockExplorer: 'https://mumbai.polygonscan.com',
+  80002: {
+    chainId: 80002,
+    chainIdHex: '0x13882',
+    name: 'Polygon Amoy Testnet',
+    rpcUrl: 'https://rpc-amoy.polygon.technology',
+    blockExplorer: 'https://amoy.polygonscan.com',
     nativeCurrency: {
       name: 'MATIC',
       symbol: 'MATIC',

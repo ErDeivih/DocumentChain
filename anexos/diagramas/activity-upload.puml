@@ -7,31 +7,39 @@ start
 
 :Usuario selecciona archivo y metadatos;
 
-:Frontend cifra contenido con AES-256-GCM\n(genera clave simetrica unica);
+:Frontend envia archivo en bruto y metadatos al backend;
 
-:POST /documents/prepare\n(envia metadatos cifrados);
+:POST /api/documents/prepare\n(multipart/form-data);
 
-:Backend valida permisos y metadatos;
+:Backend valida archivo, wallet y metadatos;
 
-:Backend almacena contenido cifrado en IPFS\n(obtiene CID);
+if (Documento privado?) then (si)
+  :Backend cifra el contenido con AES-256-GCM\ny protege la clave simetrica para el propietario;
+else (no)
+  :Backend conserva el contenido en claro\ny genera publicId para acceso publico;
+endif
 
-:Backend crea registro en Base de datos\n(estado: PREPARING);
+:Backend almacena el contenido en IPFS\n(obtiene CID);
 
-:Backend construye datos de transaccion\n(messageToSign EIP-712);
+:Backend crea documento y version inicial\nen Base de datos (estado PREPARING);
+
+:Backend construye datos de transaccion\n(messageToSign / payload para wallet);
 
 :Backend devuelve transactionData al frontend;
 
 :Frontend presenta mensaje legible al usuario;
 
 if (Usuario firma?) then (si)
-  :POST /documents/confirm\n(envia transaccion firmada);
+  :Wallet del usuario firma y envia\nla transaccion al contrato;
   
-  :Backend envia transaccion a Hardhat;
+  :POST /api/documents/confirm\n(envia documentId, txHash y blockchainId);
   
-  :EventListenerService espera evento\nDocumentRegistered;
+  :Backend marca el documento como TX_SUBMITTED;
+
+  :EventListenerService detecta\nDocumentCreated en blockchain;
   
   if (Evento confirmado?) then (si)
-    :Backend actualiza Base de datos\n(estado: SYNCED, blockchainId);
+    :Backend actualiza Base de datos\n(estado: SYNCED);
     :Backend notifica al frontend via WebSocket;
     :Frontend actualiza lista de documentos;
   else (no / revertido)
@@ -40,8 +48,8 @@ if (Usuario firma?) then (si)
   endif
   
 else (no)
-  :Backend elimina registro PREPARING;
-  :Operacion cancelada sin coste;
+  :El registro PREPARING queda sin confirmar\ny expira por timeout de sincronizacion;
+  :Operacion cancelada sin efectos on-chain;
 endif
 
 stop

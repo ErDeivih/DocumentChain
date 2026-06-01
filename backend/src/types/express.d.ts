@@ -4,16 +4,19 @@
  * en lugar de `string | string[]`.
  */
 
-declare namespace Express {
-  export interface Request {
-    params: Record<string, string>;
-    user?: {
-      userId: string;
-      username: string;
-      email: string;
-      role: string;
-      isAdmin?: boolean;
-    };
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+declare global {
+  namespace Express {
+    export interface Request {
+      params: Record<string, string>;
+      user?: import('../config/jwt').JWTPayload;
+      pagination?: {
+        page: number;
+        limit: number;
+        skip: number;
+      };
+    }
   }
 }
 

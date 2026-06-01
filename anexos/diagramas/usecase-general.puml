@@ -1,13 +1,10 @@
 @startuml
 !include _structure-style.puml
 left to right direction
-title Mapa global de casos de uso
+title Mapa global de casos de uso por paquetes
 
 actor "Usuario" as USER
 actor "Administrador" as ADMIN
-actor "Blockchain" as SC
-actor "IPFS" as IPFS
-actor "Sistema de email" as EMAIL
 
 rectangle "DocumentChain" {
   package "Acceso y cuenta" {
@@ -55,19 +52,4 @@ UC_C -[hidden]down-> UC_D
 UC_D -[hidden]down-> UC_E
 UC_E -[hidden]down-> UC_F
 UC_F -[hidden]down-> UC_G
-
-UC_A ..> EMAIL : verificaciones y avisos
-UC_B ..> IPFS : almacenamiento de contenido
-UC_B ..> SC : registro documental
-UC_C ..> IPFS : nuevas versiones
-UC_C ..> SC : trazabilidad de versiones
-UC_D ..> SC : firmas
-UC_E ..> SC : permisos
-UC_F ..> SC : verificacion y auditoria
-
-note right of UC_F
-  Subflujos integrados en el catalogo consolidado:
-  notificaciones, preferencias de usuario,
-  verificacion de integridad y estadisticas.
-end note
 @enduml

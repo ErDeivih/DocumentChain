@@ -1,0 +1,32 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0034: Compartir Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Comparticion" as BM
+control "Controlador Comparticion" as CC
+entity "Documento" as ED
+entity "Usuario" as EU
+entity "Permiso" as EP
+
+Actor -> BM : Indica destinatario y nivel de acceso
+BM -> CC : Solicita preparacion de comparticion
+CC -> CC : Verifica que la operacion es viable
+CC -> EU : Identifica al usuario destinatario
+EU --> CC : Destinatario valido
+CC -> ED : Recupera el contexto del documento
+ED --> CC : Documento listo para compartirse
+CC -> EP : Prepara clave y permiso de acceso
+EP --> CC : Acceso concedido
+CC --> BM : Devuelve datos para firma blockchain
+BM -> Actor : Solicita firma en wallet
+Actor -> BM : Devuelve txHash
+BM -> CC : Confirma comparticion con txHash
+CC -> CC : Valida receipt y evento DocumentShared
+CC -> EP : Marca permiso como sincronizado
+CC --> BM : Devuelve confirmacion
+BM --> Actor : Muestra comparticion realizada
+
+@enduml
+

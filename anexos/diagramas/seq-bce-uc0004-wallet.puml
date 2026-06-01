@@ -1,29 +1,26 @@
-﻿@startuml
+@startuml
 !include _sequence-bce-style.puml
 
 title UC-0004: Conectar Wallet (Analisis BCE)
 
-actor Actor
-boundary "ConfiguracionWallet" as BCW
-control "GestorWallets" as CW
+actor "Usuario logueado" as Actor
+boundary "Interfaz Perfil" as BCW
+control "Controlador Wallet" as CW
 entity "Wallet" as EW
 
-database "Base de datos" as DB
 
 Actor -> BCW : 1. Selecciona tipo de wallet
 BCW -> BCW : 2. Detecta wallets disponibles
-note right : Boundary escanea wallets del navegador (EIP-6963, WalletConnect)
+note right : La interfaz solicita elegir una wallet disponible
 
 BCW -> CW : 3. Solicita conexion
 CW -> Actor : 4. Solicita autorizacion en wallet externa
 Actor -> CW : 5. Autoriza conexion
 CW -> CW : 6. Verifica firma (challenge)
-note right : Control comprueba la firma de un mensaje desafio para validar posesion
+note right : El control valida la posesion de la wallet mediante desafio firmado
 
-CW -> EW : 7. Crea Entity Wallet
-EW -> DB : INSERT wallet
-DB --> EW : confirmacion
-EW --> CW : wallet creada
+CW -> EW : 7. Registra wallet vinculada
+EW --> CW : Wallet creada
 
 CW --> BCW : 8. Wallet conectada
 BCW --> Actor : 9. Muestra wallet conectada

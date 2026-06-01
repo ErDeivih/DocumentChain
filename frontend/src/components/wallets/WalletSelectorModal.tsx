@@ -4,6 +4,7 @@ import { WalletType, DetectedWallet, BlockchainProvider } from '../../lib/blockc
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/Card';
 import { Alert, AlertDescription } from '../ui/Alert';
+import { useToast } from '../ui/Toast';
 import { copyToClipboard, truncateAddress } from '../../lib/utils';
 import { ConnectedWalletBanner, SavedWalletItem } from './WalletModalComponents';
 import { 
@@ -60,6 +61,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
     removeWallet,
     setPrimaryWallet
   } = useWalletManager();
+  const { toast } = useToast();
 
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [newWalletLabel, setNewWalletLabel] = useState('');
@@ -124,8 +126,7 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
       const newWallet = await addWallet(newWalletLabel || undefined);
       setShowAddWallet(false);
       setNewWalletLabel('');
-      // Muestra retroalimentación de éxito
-      alert('Wallet guardada correctamente');
+      toast({ title: 'Wallet guardada correctamente', variant: 'success' });
       // Selecciona automáticamente la wallet recién añadida
       if (connectedWallet) {
         onSelect(newWallet, connectedWallet.address);
@@ -175,12 +176,23 @@ export const WalletSelectorModal: React.FC<WalletSelectorModalProps> = ({
     }
   };
 
-  const handleUseConnected = () => {
+  const handleUseConnected = async () => {
     if (connectedWallet) {
-      const savedWallet = savedWallets.find(
+      let savedWallet = savedWallets.find(
         w => w.walletAddress.toLowerCase() === connectedWallet.address.toLowerCase()
       );
-      onSelect(savedWallet || null, connectedWallet.address);
+
+      if (!savedWallet) {
+        try {
+          savedWallet = await addWallet(newWalletLabel || undefined);
+          toast({ title: 'Wallet guardada correctamente', variant: 'success' });
+        } catch (err: any) {
+          setLocalError(err.message || 'Error al guardar wallet');
+          return;
+        }
+      }
+
+      onSelect(savedWallet, connectedWallet.address);
       onClose();
     }
   };

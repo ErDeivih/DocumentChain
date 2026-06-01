@@ -1,0 +1,32 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0033: Verificar Firma del Usuario (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Firma" as BF
+control "Controlador Firma" as CV
+entity "Firma" as EF
+entity "Version" as EV
+
+
+Actor -> BF : 1. Solicita verificar firma
+BF -> CV : 2. Peticion de verificacion
+CV -> EV : 3. Obtiene version firmada
+EV --> CV : version recuperada
+
+CV -> EF : 4. Busca firma del usuario
+EF --> CV : firma encontrada
+
+CV -> CV : 5. Verifica integridad de la firma
+note right : Control contrasta direccion del firmante y hash registrado en la entidad
+
+CV -> CV : 6. Comprueba evidencia de firma
+note right : Control verifica que la evidencia de firma es valida y no ha sido alterada
+
+CV --> BF : 7. Resultado de verificacion
+BF --> Actor : 8. Muestra estado de la firma (valida/revocada/no encontrada)
+
+@enduml
+
+

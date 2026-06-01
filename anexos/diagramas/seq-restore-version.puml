@@ -29,12 +29,14 @@ wallet --> ui: txHash
 
 ui -> api: Confirmar restauracion
 api -> srv: Registrar TX_SUBMITTED
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + VersionRestored
 srv -> db: Actualizar nueva version restaurada
 db --> srv: OK
 srv --> api: Pendiente de sincronizacion
 api --> ui: Confirmacion registrada
 
-sc -> listener: Evento de restauracion confirmado
+sc -> listener: Evento VersionRestored(docId, versionNumber, timestamp)
 listener -> db: Marcar version restaurada como SYNCED y operativa
 listener -> ui: Refrescar historial de versiones
 ui --> user: Version restaurada correctamente

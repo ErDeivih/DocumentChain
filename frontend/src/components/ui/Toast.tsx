@@ -45,6 +45,9 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
     return (
       <div
         ref={ref}
+        role="status"
+        aria-live={variant === 'destructive' ? 'assertive' : 'polite'}
+        aria-label={title || description || 'Notificación'}
         className={cn(toastVariants({ variant }), className)}
         {...props}
       >
@@ -55,6 +58,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         {onClose && (
           <button
             onClick={onClose}
+            aria-label="Cerrar notificación"
             className="absolute right-2 top-2 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100"
           >
             <X className="h-4 w-4" />
@@ -126,7 +130,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ toasts, toast, dismiss }}>
       {children}
-      <div className="fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:flex-col md:max-w-[420px]">
+      <div aria-live="polite" aria-relevant="additions text" className="fixed top-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:flex-col md:max-w-[420px]">
         {toasts.map((t) => (
           <Toast
             key={t.id}

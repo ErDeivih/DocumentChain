@@ -21,24 +21,3 @@ export function paginationMiddleware(req: Request, res: Response, next: NextFunc
   
   next();
 }
-
-/**
- * Extensión del tipo `Request` de Express para incluir los parámetros de paginación.
- */
-declare global {
-  namespace Express {
-    interface Request {
-      /**
-       * Parámetros de paginación calculados por el middleware.
-       */
-      pagination?: {
-        /** Número de página actual (empieza en 1). */
-        page: number;
-        /** Cantidad máxima de elementos por página. */
-        limit: number;
-        /** Número de elementos a omitir desde el inicio del conjunto de resultados. */
-        skip: number;
-      };
-    }
-  }
-}

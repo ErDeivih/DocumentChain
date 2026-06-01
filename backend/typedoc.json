@@ -12,7 +12,9 @@
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/test/**",
-    "**/__tests__/**"
+    "**/__tests__/**",
+    "**/eventListenerService.ts",
+    "**/webSocketService.ts"
   ],
   "excludePrivate": true,
   "excludeProtected": false,

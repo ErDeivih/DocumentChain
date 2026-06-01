@@ -12,7 +12,7 @@ type ServiceStatus = 'healthy' | 'degraded' | 'unhealthy';
  * Expone endpoints para el monitoreo del estado de los servicios críticos:
  * base de datos, blockchain, email, WebSocket y recursos del sistema.
  */
-class HealthController {
+export class HealthController {
   /**
    * Realiza una comprobación básica de salud del sistema.
    * Endpoint: GET /health
@@ -246,7 +246,6 @@ class HealthController {
       cores: number;
     };
   } {
-    const memUsage = process.memoryUsage();
     const totalMemory = require('os').totalmem();
     const freeMemory = require('os').freemem();
     const usedMemory = totalMemory - freeMemory;

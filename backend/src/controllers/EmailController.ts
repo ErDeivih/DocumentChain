@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import { emailService } from '../services/emailService';
 import { Argon2Service } from '../services/argon2Service';
 import { logger } from '../utils/logger';
+import prisma from '../config/database';
+import { KeyManager } from '../lib/crypto/KeyManager';
+import { validatePassword } from '../validators/passwordPolicy';
 
-const prisma = new PrismaClient();
 
 /**
  * Controlador de correo electrónico.
@@ -173,18 +174,16 @@ export class EmailController {
    */
   static async resetPassword(req: Request, res: Response): Promise<void> {
     try {
-      const { token, newPassword } = req.body;
+      const { token, newPassword, recoveryKey } = req.body;
 
-      if (!token || !newPassword) {
-        res.status(400).json({ error: 'El token y la nueva contraseña son obligatorios' });
+      if (!token || !newPassword || !recoveryKey) {
+        res.status(400).json({ error: 'El token, la nueva contraseña y la clave de recuperación son obligatorios' });
         return;
       }
 
-      // Validar contraseña
-      if (newPassword.length < 8) {
-        res.status(400).json({ 
-          error: 'La contraseña debe tener al menos 8 caracteres' 
-        });
+      const passwordValidation = validatePassword(newPassword);
+      if (!passwordValidation.valid) {
+        res.status(400).json({ error: `Validación de contraseña fallida: ${passwordValidation.errors.join(', ')}` });
         return;
       }
 
@@ -217,27 +216,52 @@ export class EmailController {
         return;
       }
 
-      // Hashear nueva contraseña
+      const recoveryKeyHash = KeyManager.hashRecoveryKey(recoveryKey);
+      if (!resetRequest.user.recoveryKeyHash || resetRequest.user.recoveryKeyHash !== recoveryKeyHash) {
+        res.status(400).json({ error: 'Clave de recuperación inválida' });
+        return;
+      }
+
+      if (!resetRequest.user.encryptedPrivateKeyRecovery) {
+        res.status(400).json({ error: 'La cuenta no tiene clave de recuperación configurada' });
+        return;
+      }
+
+      const privateKey = KeyManager.decryptPrivateKeyWithRecovery(
+        resetRequest.user.encryptedPrivateKeyRecovery,
+        recoveryKey,
+      );
+      const encryptedPrivateKey = KeyManager.encryptPrivateKey(privateKey, newPassword);
       const passwordHash = await Argon2Service.hash(newPassword);
 
-      // Actualizar contraseña
-      await prisma.user.update({
-        where: { id: resetRequest.userId },
-        data: { passwordHash }
-      });
+      await prisma.$transaction(async (tx) => {
+        const marked = await tx.passwordReset.updateMany({
+          where: {
+            id: resetRequest.id,
+            used: false,
+            expiresAt: { gt: new Date() },
+          },
+          data: {
+            used: true,
+            usedAt: new Date(),
+          },
+        });
 
-      // Marcar reset como usado
-      await prisma.passwordReset.update({
-        where: { id: resetRequest.id },
-        data: {
-          used: true,
-          usedAt: new Date()
+        if (marked.count !== 1) {
+          throw new Error('Token de restablecimiento inválido o ya utilizado');
         }
-      });
 
-      // Invalidar todas las sesiones activas (opcional pero recomendado)
-      await prisma.session.deleteMany({
-        where: { userId: resetRequest.userId }
+        await tx.user.update({
+          where: { id: resetRequest.userId },
+          data: {
+            passwordHash,
+            encryptedPrivateKey,
+          },
+        });
+
+        await tx.session.deleteMany({
+          where: { userId: resetRequest.userId },
+        });
       });
 
       // Obtener IP y User-Agent

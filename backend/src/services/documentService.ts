@@ -20,11 +20,12 @@ import { provider } from '../config/blockchain';
 import { uploadToIPFS, downloadFromIPFS, deleteFromIPFS } from '../config/ipfs';
 import logger from '../utils/logger';
 import { ethers } from 'ethers';
-import { BlockchainStatus, Document, DocumentVisibility } from '@prisma/client';
+import { BlockchainStatus, DocumentVisibility } from '@prisma/client';
 import * as Encryption from '../lib/encryption';
-import { BlockchainQueries } from '../lib/blockchain/queries';
-import { DocumentPermissionService, DocumentRole as PermissionRole } from './documentPermissionService';
 import { normalizeFileExtensionFilter } from '../utils/fileValidation';
+import { validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
+import { userHasAccess, resolveUserRole } from '../utils/accessControl';
+import { assertDocumentCreatedReceipt } from './blockchainReceiptService';
 
 function deriveFileExtension(fileName: string, explicitExtension?: string): string | null {
   const normalizedExplicit = normalizeFileExtensionFilter(explicitExtension);
@@ -180,6 +181,7 @@ export interface ConfirmDocumentInput {
   documentId: string;
   txHash: string;
   blockchainId: string;
+  confirmerUserId: string;
 }
 
 // ============================================
@@ -222,26 +224,10 @@ export class DocumentService {
 
     try {
       // 1. Validar que la wallet pertenece al usuario
-      const wallet = await prisma.wallet.findFirst({
-        where: {
-          id: walletId,
-          userId: ownerId,
-        },
-      });
-
-      if (!wallet) {
-        throw new Error('Wallet no encontrada o no pertenece al usuario');
-      }
+      const wallet = await validateWalletBelongsToUser(walletId, ownerId);
 
       // 2. Obtener clave pública del usuario para cifrar
-      const user = await prisma.user.findUnique({
-        where: { id: ownerId },
-        select: { publicKey: true },
-      });
-
-      if (!user || !user.publicKey) {
-        throw new Error('Usuario no tiene clave pública configurada');
-      }
+      const { publicKey: userPublicKey } = await getUserWithPublicKey(ownerId);
 
       // 3. Validar archivo
       Encryption.validateFileSize(fileBuffer.length, 100); // Máx. 100 MB
@@ -263,7 +249,7 @@ export class DocumentService {
       }
 
       const encryptedSymmetricKey = encryptionResult
-        ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, user.publicKey)
+        ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, userPublicKey)
         : 'UNENCRYPTED';
 
       ipfsCid = await uploadToIPFS(encryptionResult ? encryptionResult.encryptedData : fileBuffer);
@@ -363,7 +349,7 @@ export class DocumentService {
    * @throws Error si el documento no se encuentra o falta el CID de IPFS preparado.
    */
   static async confirmDocument(input: ConfirmDocumentInput): Promise<DocumentInfo> {
-    const { documentId, txHash, blockchainId } = input;
+    const { documentId, txHash, blockchainId, confirmerUserId } = input;
 
     // 1. Buscar el documento
     const document = await prisma.document.findUnique({
@@ -372,6 +358,10 @@ export class DocumentService {
 
     if (!document) {
       throw new Error('Documento no encontrado');
+    }
+
+    if (document.ownerId !== confirmerUserId) {
+      throw new Error('No tienes permisos para confirmar este documento');
     }
 
     const preparedEvent = await prisma.event.findFirst({
@@ -389,11 +379,41 @@ export class DocumentService {
       return typeof metadata?.ipfsCid === 'string' ? metadata.ipfsCid : null;
     })();
 
-    // 2. Validar estado actual
     if (document.blockchainStatus !== BlockchainStatus.PREPARING) {
-      logger.warn(`[CONFIRM] Documento ${documentId} no está en estado PREPARING (actual: ${document.blockchainStatus})`);
-      // Se continúa de todos modos pero se registra la advertencia
+      throw new Error(`El documento no puede confirmarse en estado ${document.blockchainStatus}`);
     }
+
+    const preparedDocId = (() => {
+      const metadata = preparedEvent?.metadata as { docId?: unknown } | null;
+      return typeof metadata?.docId === 'string' ? metadata.docId : null;
+    })();
+
+    if (!preparedDocId) {
+      throw new Error('No se encontró el ID blockchain preparado del documento');
+    }
+
+    if (!preparedIpfsCid) {
+      throw new Error('No se encontró el CID de IPFS del documento preparado');
+    }
+
+    if (preparedDocId.toLowerCase() !== blockchainId.toLowerCase()) {
+      throw new Error('El ID blockchain confirmado no coincide con la preparación');
+    }
+
+    const creatorWallet = document.creatorWalletId
+      ? await prisma.wallet.findFirst({ where: { id: document.creatorWalletId, userId: document.ownerId } })
+      : null;
+
+    if (!creatorWallet) {
+      throw new Error('No se encontró la wallet creadora del documento');
+    }
+
+    await assertDocumentCreatedReceipt({
+      txHash,
+      docId: blockchainId,
+      ownerAddress: creatorWallet.walletAddress,
+      ipfsCid: preparedIpfsCid,
+    });
 
     // 3. Actualizar documento con información de la transacción
     const updated = await prisma.$transaction(async (tx) => {
@@ -587,7 +607,7 @@ export class DocumentService {
    */
   static async getDocumentById(documentId: string, userId: string): Promise<DocumentInfo | null> {
     // Verificar acceso del usuario
-    const hasAccess = await this.userHasAccess(documentId, userId);
+    const hasAccess = await userHasAccess(documentId, userId);
     if (!hasAccess) {
       return null;
     }
@@ -608,7 +628,7 @@ export class DocumentService {
 
     if (!document || document.isDeleted) return null;
 
-    const role = await this.resolveUserRole(document, userId);
+    const role = await resolveUserRole(document.id, document.ownerId, document.blockchainId, userId);
 
     return this.toDocumentInfo(document, role);
   }
@@ -728,7 +748,7 @@ export class DocumentService {
     mimeType: string;
   }> {
     // Verificar acceso
-    const hasAccess = await this.userHasAccess(documentId, userId);
+    const hasAccess = await userHasAccess(documentId, userId);
     if (!hasAccess) {
       throw new Error('Acceso denegado');
     }
@@ -806,49 +826,6 @@ export class DocumentService {
       name: document.name,
       mimeType: document.mimeType,
     };
-  }
-
-  /**
-   * Verifica si un usuario tiene acceso a un documento.
-   * @param documentId - UUID del documento.
-   * @param userId - UUID del usuario.
-   * @returns `true` si tiene acceso, `false` en caso contrario.
-   */
-  static async userHasAccess(documentId: string, userId: string): Promise<boolean> {
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
-      select: { ownerId: true, blockchainId: true, visibility: true, isDeleted: true },
-    });
-
-    if (!document) return false;
-
-    if (document.isDeleted) return false;
-
-    // El propietario siempre tiene acceso
-    if (document.ownerId === userId) return true;
-
-    if (document.visibility === DocumentVisibility.PUBLIC) {
-      return true;
-    }
-
-    // Los permisos se verifican exclusivamente on-chain; la blockchain es la única fuente de verdad.
-    if (document.blockchainId) {
-      const wallets = await prisma.wallet.findMany({
-        where: { userId },
-        select: { walletAddress: true },
-      });
-
-      if (wallets.length > 0) {
-        const { DocumentPermissionService } = await import('./documentPermissionService');
-        for (const wallet of wallets) {
-          if (await DocumentPermissionService.canView(document.blockchainId, wallet.walletAddress)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
   }
 
   /**
@@ -1104,7 +1081,7 @@ export class DocumentService {
       name: document.name,
       description: document.description,
       mimeType: document.mimeType,
-      size: typeof document.size === 'string' ? Number(document.size) : Number(document.size),
+      size: Number(document.size),
       fileExtension: document.fileExtension ?? null,
       folderId: document.folderId ?? null,
       tags: document.tags ?? [],
@@ -1135,40 +1112,6 @@ export class DocumentService {
     };
   }
 
-  private static async resolveUserRole(document: Pick<Document, 'id' | 'ownerId' | 'blockchainId'>, userId: string): Promise<DocumentInfo['role']> {
-    // Cuando existe blockchainId, se verifican propiedad y roles on-chain (única fuente de verdad)
-    if (document.blockchainId) {
-      const wallets = await prisma.wallet.findMany({
-        where: { userId },
-        select: { walletAddress: true },
-      });
-
-      for (const wallet of wallets) {
-        const isOwner = await DocumentPermissionService.isOwner(document.blockchainId, wallet.walletAddress);
-        if (isOwner) {
-          return 'OWNER';
-        }
-
-        const role = await DocumentPermissionService.getUserRole(document.blockchainId, wallet.walletAddress);
-        if (role === PermissionRole.EDITOR) {
-          return 'SHARED_WRITE';
-        }
-        if (role === PermissionRole.VIEWER) {
-          return 'SHARED_READ';
-        }
-      }
-
-      return null;
-    }
-
-    // Fallback para documentos aún no registrados en blockchain
-    if (document.ownerId === userId) {
-      return 'OWNER';
-    }
-
-    return null;
-  }
-
   /**
    * Revierte la creación de un documento.
    * Elimina el documento y sus versiones de la BD, desancla los CIDs de IPFS
@@ -1186,7 +1129,7 @@ export class DocumentService {
       });
 
       if (!document) {
-        throw new Error('Document not found');
+        throw new Error('Documento no encontrado');
       }
 
       // Verificar propiedad

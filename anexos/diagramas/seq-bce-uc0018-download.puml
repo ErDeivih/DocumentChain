@@ -1,0 +1,29 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0018: Descargar Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Detalle Documento" as BV
+control "Controlador Documento" as CD
+entity "Documento" as ED
+entity "Permiso" as PA
+
+Actor -> BV : 1. Solicita descarga
+BV -> CD : 2. Peticion de descarga
+
+CD -> PA : 3. Verifica permisos de acceso
+PA --> CD : permiso concedido
+
+CD -> CD : 4. Recupera clave de descifrado
+note right : Control obtiene la clave simetrica protegida del usuario
+CD -> ED : 5. Recupera contenido del documento
+ED --> CD : contenido cifrado
+
+CD -> CD : 6. Descifra contenido
+note right : Control descifra el archivo con la clave recuperada
+
+CD --> BV : 7. Archivo descifrado
+BV --> Actor : 8. Entrega archivo al actor
+
+@enduml

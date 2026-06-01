@@ -1,0 +1,22 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0016: Listar Documentos (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Biblioteca" as BB
+control "Controlador Documento" as CD
+entity "Documento" as ED
+
+
+Actor -> BB : 1. Accede a biblioteca
+BB -> CD : 2. Solicita listado de documentos
+CD -> ED : 3. Consulta documentos del usuario
+ED --> CD : retorna lista
+
+
+CD --> BB : 4. Retorna lista enriquecida
+BB --> Actor : 5. Renderiza lista con paginacion
+
+@enduml
+

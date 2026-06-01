@@ -1,0 +1,29 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0032: Ver Firmas de un Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Firma" as BF
+control "Controlador Firma" as CS
+entity "Firma" as EF
+entity "Version" as EV
+
+
+Actor -> BF : 1. Solicita ver firmas
+BF -> CS : 2. Peticion de listado de firmas
+CS -> EF : 3. Recupera firmas del documento
+EF --> CS : firmas recuperadas
+
+CS -> EV : 4. Obtiene version asociada a cada firma
+EV --> CS : versiones asociadas
+
+CS -> CS : 5. Verifica estado on-chain de cada firma
+note right : Control contrasta el estado y vigencia de cada firma
+
+CS --> BF : 6. Listado de firmas con estado
+BF --> Actor : 7. Muestra tabla de firmas (firmante, fecha, estado)
+
+@enduml
+
+

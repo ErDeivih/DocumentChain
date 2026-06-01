@@ -3,37 +3,24 @@
 
 title UC-0001: Registrar Usuario (Analisis BCE)
 
-actor Actor
-boundary "Pagina Registro" as BR
-control "GestorRegistro" as CR
+actor "Usuario no logueado" as Actor
+boundary "Interfaz Registro" as BR
+control "Controlador Autenticacion" as CR
 entity "Usuario" as EU
+entity "Sesion" as ES
 
-database "Base de datos" as DB
-
-Actor -> BR : 1. Introduce datos de registro
-note right : Actor rellena formulario con email, contrasena, etc.
-
-BR -> BR : 2. Valida formulario
-note right : Boundary verifica formato, campos obligatorios y fortaleza de contrasena
-
-BR -> CR : 3. Envia datos validados
-CR -> EU : 4. Verifica unicidad
-note right : Control consulta si el email o usuario ya existe
-EU -> DB : consulta existencia
-DB --> EU : resultado
-EU --> CR : usuario unico
-
-CR -> EU : 5. Crea Entity Usuario
-note right : Control instancia y persiste la nueva entidad
-EU -> DB : INSERT usuario
-DB --> EU : confirmacion
-EU --> CR : usuario creado
-
-CR -> CR : 6. Genera recovery key
-note right : Control genera clave de recuperacion cifrada para el usuario
-
-CR --> BR : 7. Retorna confirmacion
-BR --> Actor : 8. Muestra confirmacion y recovery key
+Actor -> BR : Solicita alta con sus datos basicos
+BR -> BR : Comprueba formato y completitud
+BR -> CR : Comunica la solicitud de registro
+CR -> EU : Verifica disponibilidad de la identidad
+EU --> CR : Identidad disponible
+CR -> CR : Genera par de claves y Recovery Key
+CR -> EU : Crea cuenta, clave publica y clave privada cifrada
+CR -> ES : Registra token de verificacion de email
+ES --> CR : Token preparado
+CR -> EU : Inicializa perfil y hash de Recovery Key
+EU --> CR : Usuario preparado
+CR --> BR : Confirma alta y solicita verificacion de email
+BR --> Actor : Muestra Recovery Key y aviso de verificacion
 
 @enduml
-

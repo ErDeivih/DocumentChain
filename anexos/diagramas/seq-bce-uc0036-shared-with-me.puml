@@ -1,0 +1,27 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0036: Ver Documentos Compartidos Conmigo (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Comparticion" as BF
+control "Controlador Comparticion" as CS
+entity "Permiso" as EC
+entity "Documento" as ED
+
+
+Actor -> BF : 1. Accede a "Compartidos conmigo"
+BF -> CS : 2. Solicita listado
+CS -> EC : 3. Busca documentos compartidos con el usuario
+EC --> CS : permisos encontrados
+
+CS -> ED : 4. Recupera metadatos de cada documento
+ED --> CS : documentos recuperados
+
+CS -> CS : 5. Ordena por fecha de comparticion
+CS --> BF : 6. Listado de documentos compartidos
+BF --> Actor : 7. Muestra lista con rol (Lector/Editor)
+
+@enduml
+
+

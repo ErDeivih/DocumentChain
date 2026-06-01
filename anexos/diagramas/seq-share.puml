@@ -3,14 +3,13 @@
 actor Usuario as owner
 boundary "ShareModal.tsx" as ui
 control "UserController (/api/users)" as usersApi
-control "ShareController (/api/documents/:id/share)" as api
+control "ShareController (/api/documents/:id/share + /api/shares)" as api
 control "KeyManager" as crypto
 control "ShareService" as srv
 database "Base de datos" as db
 participant "Wallet (EIP-6963 / WalletConnect)" as wallet
 entity "DocumentRegistry" as sc
 control "EventListenerService" as listener
-control "EmailService" as email
 
 owner -> ui: Busca destinatario por username/email y elige permiso (VIEWER/EDITOR)
 ui -> usersApi: GET /api/users/search?q=username
@@ -24,34 +23,36 @@ crypto --> ui: privateKey en memoria
 ui -> crypto: decryptWithPrivateKey(encryptedSymmetricKey, privateKey)
 crypto --> ui: symmetricKey descifrada
 
-ui -> api: POST /api/documents/:documentId/share/prepare {recipientUserId, role, encryptedSymmetricKey}
-api -> srv: prepareShare(documentId, recipientUserId, role, ownerId, walletId, encryptedSymmetricKey)
-srv -> db: Verificar que el destinatario tiene wallet vinculada
-db --> srv: Wallet destino con publicKey
-srv -> crypto: encryptWithPublicKey(symmetricKey, recipientPublicKey) [en backend via KeyManager]
+ui -> api: POST /api/documents/:documentId/share/prepare {sharedWithUserId, role, walletId, decryptedSymmetricKey}
+api -> srv: prepareShare(documentId, sharedWithUserId, role, ownerId, walletId, decryptedSymmetricKey)
+srv -> db: Verificar documento, wallet del propietario y destinatario
+db --> srv: blockchainId + recipientWalletAddress + recipientPublicKey
+srv -> crypto: encryptWithPublicKey(symmetricKey, recipientPublicKey)
 crypto --> srv: reEncryptedSymmetricKey
-srv -> db: Crear registro de comparticion en SHARE_PREPARED
+srv -> db: Guardar DocumentShareKey y evento SHARE_PREPARED
 db --> srv: shareId, blockchainId, recipientWalletAddress
-srv --> api: {shareId, messageToSign}
+srv --> api: {shareId, blockchainId, sharedWithAddress}
 api --> ui: 200 OK comparticion preparada
 
-ui -> wallet: eth_signTypedData_v4(messageToSign)
-wallet -> sc: shareDocument(docId, recipientAddress, role)
+ui -> wallet: Firmar y enviar shareDocument(blockchainId, recipientAddress, role)
+wallet -> sc: shareDocument(blockchainId, recipientAddress, role)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: POST /api/documents/:documentId/share/confirm {shareId, txHash}
+ui -> api: POST /api/shares/confirm {shareId, txHash}
 api -> srv: confirmShare(shareId, txHash)
-srv -> db: Actualizar share a TX_SUBMITTED
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + DocumentShared
+srv -> sc: getUserPermission(blockchainId, recipientAddress)
+sc --> srv: Rol on-chain asignado
+srv -> db: Registrar evento SHARE_CONFIRMED y notificacion al destinatario
 db --> srv: OK
-srv --> api: {status: "TX_SUBMITTED"}
+srv --> api: {share}
 api --> ui: 200 OK confirmacion registrada
 
 sc -> listener: Evento DocumentShared(docId, recipient, role, timestamp)
-listener -> db: Actualizar share a SHARE_CONFIRMED, crear notificacion
-listener -> email: Enviar email de documento compartido al destinatario
+listener -> db: Registrar auditoria on-chain complementaria si no existe
 listener -> ui: WebSocket / refrescar lista de accesos
 ui --> owner: Destinatario anadido con permiso asignado
 
 @enduml
-

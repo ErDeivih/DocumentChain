@@ -79,6 +79,10 @@ describe('WalletService', () => {
       );
     });
 
+    it('verify wallet signature challenge helper works', () => {
+      expect(WalletService.generateChallengeMessage('0x1234567890abcdef1234567890abcdef12345678')).toContain('0x1234567890abcdef1234567890abcdef12345678');
+    });
+
     it('throws for invalid ethereum address', async () => {
       ((ethers as any).isAddress as jest.Mock).mockReturnValue(false);
 

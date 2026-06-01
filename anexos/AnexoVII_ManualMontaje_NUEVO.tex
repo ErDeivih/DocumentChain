@@ -850,7 +850,7 @@ const contract = new ethers.Contract(
   provider
 );
 
-contract.on('DocumentRegistered', async (docId, owner, timestamp, event) => {
+contract.on('DocumentCreated', async (docId, owner, timestamp, event) => {
   // L\'{o}gica de sincronizaci\'{o}n: actualizar estado en PostgreSQL
   console.log(`Documento ${docId} registrado por ${owner} en ${timestamp}`);
 });

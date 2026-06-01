@@ -1,0 +1,30 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0035: Revocar Acceso a Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Comparticion" as BF
+control "Controlador Comparticion" as CS
+entity "Permiso" as EC
+entity "Documento" as ED
+
+
+Actor -> BF : 1. Selecciona usuario a revocar
+BF -> CS : 2. Peticion de revocacion
+CS -> ED : 3. Verifica propiedad del documento
+ED --> CS : propiedad confirmada
+
+CS -> EC : 4. Busca permiso compartido
+EC --> CS : datos del permiso
+
+
+CS -> EC : 5. Elimina acceso compartido
+EC --> CS : acceso revocado
+
+CS --> BF : 6. Confirmacion de revocacion
+BF --> Actor : 7. Muestra lista actualizada de permisos
+
+@enduml
+
+

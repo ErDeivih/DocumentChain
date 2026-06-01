@@ -59,10 +59,8 @@ export const DocumentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const storedUserRaw = localStorage.getItem('user');
-  const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
-  const currentUserId = user?.id || storedUser?.id || storedUser?.userId || null;
-  const currentUsername = user?.username || storedUser?.username || null;
+  const currentUserId = user?.id || null;
+  const currentUsername = user?.username || null;
   const [downloadPassword, setDownloadPassword] = useState('');
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);

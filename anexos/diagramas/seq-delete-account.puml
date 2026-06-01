@@ -1,0 +1,39 @@
+@startuml
+!include _sequence-style.puml
+actor Usuario as user
+boundary "Settings.tsx / DeleteAccountModal" as ui
+control "UserController (/api/users/me)" as api
+control "UserService" as srv
+database "Base de datos" as db
+control "IPFSService" as ipfs
+collections "Sistema de ficheros" as fs
+
+user -> ui: Confirma la eliminacion permanente de su cuenta
+ui -> api: DELETE /api/users/me
+api -> srv: getUserById(userId)
+srv -> db: Buscar usuario autenticado
+db --> srv: Datos de usuario
+srv --> api: Usuario cargado
+
+api -> db: Buscar documentos y versiones del propietario
+db --> api: Lista de CIDs asociados
+loop Por cada CID del usuario
+    api -> ipfs: unpinFile(cid)
+    alt Error al despinear
+        ipfs --> api: Warning registrado
+    else CID despineado
+        ipfs --> api: OK
+    end
+end
+
+alt El usuario tiene avatar local
+    api -> fs: Eliminar archivo de avatar
+    fs --> api: OK
+end
+
+api -> db: delete user(id) con borrado en cascada
+db --> api: Usuario y datos relacionados eliminados
+api --> ui: 200 Cuenta eliminada permanentemente
+ui -> ui: Limpiar sesion local y redirigir
+ui --> user: Vuelta a la portada publica
+@enduml

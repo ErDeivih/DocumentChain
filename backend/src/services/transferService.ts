@@ -15,6 +15,8 @@ import logger from '../utils/logger';
 import { ethers } from 'ethers';
 import * as Encryption from '../lib/encryption';
 import { DocumentPermissionService } from './documentPermissionService';
+import { validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
+import { assertOwnershipTransferredReceipt } from './blockchainReceiptService';
 
 // ============================================
 // Interfaces
@@ -72,6 +74,7 @@ export interface ConfirmTransferInput {
   signature: string;
   documentId?: string;
   newOwnerId?: string;
+  confirmerUserId: string;
 }
 
 /**
@@ -115,16 +118,7 @@ export class TransferService {
     }
 
     // 2. Validate current owner's wallet
-    const currentWallet = await prisma.wallet.findFirst({
-      where: {
-        id: currentOwnerWalletId,
-        userId: currentOwnerId,
-      },
-    });
-
-    if (!currentWallet) {
-      throw new Error('Wallet del propietario actual no encontrada');
-    }
+    const currentWallet = await validateWalletBelongsToUser(currentOwnerWalletId, currentOwnerId);
 
     // Validate ownership (on-chain or DB fallback)
     await DocumentPermissionService.validateOwnership(document, currentOwnerId, {
@@ -142,22 +136,7 @@ export class TransferService {
     }
 
     // 3. Validate new owner exists and get their public key
-    const newOwner = await prisma.user.findUnique({
-      where: { id: newOwnerId },
-      select: {
-        id: true,
-        username: true,
-        publicKey: true,
-      },
-    });
-
-    if (!newOwner) {
-      throw new Error('Usuario destino no encontrado');
-    }
-
-    if (!newOwner.publicKey) {
-      throw new Error('El nuevo propietario no tiene clave pública configurada');
-    }
+    const { publicKey: newOwnerPublicKey } = await getUserWithPublicKey(newOwnerId);
 
     const isPublicDocument = document.visibility === 'PUBLIC' || document.encryptedSymmetricKey === 'UNENCRYPTED';
 
@@ -169,25 +148,21 @@ export class TransferService {
           }
 
           logger.info(`[PREPARE] Clave simétrica re-encriptada para nuevo propietario ${newOwnerId}`);
-          return Encryption.encryptSymmetricKey(decryptedSymmetricKey, newOwner.publicKey);
+          return Encryption.encryptSymmetricKey(decryptedSymmetricKey, newOwnerPublicKey);
         })();
 
     // 5. Generate blockchain docId (bytes32)
     const docId = document.blockchainId || ethers.id(`${documentId}-${Date.now()}`);
 
-    // 6. Update document with new encrypted key (ownership will be updated after blockchain confirmation)
-    // Also clear all previous share keys since ownership transfer invalidates existing shares
+    // 6. Mark the document as preparing, but keep the current encrypted key until
+    // blockchain confirmation. Otherwise a failed transaction could lock out the
+    // current owner from a private document.
     await prisma.document.update({
       where: { id: documentId },
       data: {
         blockchainId: docId,
         blockchainStatus: BlockchainStatus.PREPARING,
-        encryptedSymmetricKey: reEncryptedKey, // Store re-encrypted key for new owner
-        // Note: ownerId will be updated in confirmTransfer after blockchain confirmation
       },
-    });
-    await prisma.documentShareKey.deleteMany({
-      where: { documentId },
     });
 
     // 7. Generate message to sign
@@ -211,6 +186,7 @@ export class TransferService {
           newOwner: newOwnerId,
           newOwnerAddress: newOwnerWalletAddress,
           currentWalletId: currentOwnerWalletId,
+          pendingEncryptedSymmetricKey: reEncryptedKey,
           message,
           nonce,
         },
@@ -237,7 +213,7 @@ export class TransferService {
    * - Logs the transfer event
    */
   static async confirmTransfer(input: ConfirmTransferInput): Promise<void> {
-    const { transferId, txHash, signature, documentId: inputDocumentId, newOwnerId: inputNewOwnerId } = input;
+    const { transferId, txHash, signature, documentId: inputDocumentId, newOwnerId: inputNewOwnerId, confirmerUserId } = input;
 
     logger.info(`[CONFIRM] Confirmando transferencia ${transferId} con tx ${txHash}`);
 
@@ -245,7 +221,7 @@ export class TransferService {
     //    but do NOT depend on it for authorization.
     let documentId = inputDocumentId || null;
     let newOwnerId = inputNewOwnerId || null;
-    let metadata: any = {};
+    let metadata: Record<string, any> = {};
 
     if (!documentId || !newOwnerId) {
       const transferEvent = await prisma.event.findFirst({
@@ -260,13 +236,24 @@ export class TransferService {
 
       if (transferEvent) {
         documentId = documentId || transferEvent.documentId;
-        metadata = transferEvent.metadata as any;
+        metadata = (transferEvent.metadata || {}) as Record<string, any>;
         newOwnerId = newOwnerId || metadata.newOwner;
       }
     }
 
     if (!documentId) {
-      throw new Error('Document ID not found in transfer event');
+      throw new Error('No se encontró el ID del documento en el evento de transferencia');
+    }
+
+    const confirmedNewOwnerId = newOwnerId || metadata.newOwner;
+    const pendingEncryptedSymmetricKey = metadata.pendingEncryptedSymmetricKey;
+
+    if (!confirmedNewOwnerId) {
+      throw new Error('No se encontró el nuevo propietario de la transferencia');
+    }
+
+    if (!pendingEncryptedSymmetricKey) {
+      throw new Error('No se encontró la clave re-cifrada pendiente de la transferencia');
     }
 
     // 2. Validate the transaction on-chain when possible
@@ -274,51 +261,68 @@ export class TransferService {
       where: { id: documentId },
     });
 
-    if (document?.blockchainId) {
-      try {
-        const { provider } = await import('../config/blockchain');
-        const receipt = await provider.getTransactionReceipt(txHash);
-        if (!receipt || receipt.status !== 1) {
-          throw new Error('La transacción no fue confirmada en la blockchain');
-        }
-      } catch (err: any) {
-        logger.warn(`[CONFIRM] No se pudo validar receipt on-chain para ${txHash}: ${err.message}`);
-        // Continue: we still update DB because the frontend already signed,
-        // but log a warning for manual review.
-      }
+    if (!document) {
+      throw new Error('Documento no encontrado para confirmar la transferencia');
     }
 
-    // 3. Update document ownership and status
-    await prisma.document.update({
-      where: { id: documentId },
-      data: {
-        ownerId: newOwnerId || metadata.newOwner,
-        blockchainStatus: BlockchainStatus.TX_SUBMITTED,
-        blockchainTxHash: txHash,
-      },
+    if (document.ownerId !== confirmerUserId) {
+      throw new Error('Solo el propietario actual puede confirmar la transferencia');
+    }
+
+    if (!document.blockchainId) {
+      throw new Error('El documento no está registrado en blockchain');
+    }
+
+    const currentWallet = metadata.currentWalletId
+      ? await prisma.wallet.findFirst({ where: { id: metadata.currentWalletId, userId: document.ownerId } })
+      : null;
+
+    if (!currentWallet) {
+      throw new Error('No se encontró la wallet del propietario actual para validar la transferencia');
+    }
+
+    await assertOwnershipTransferredReceipt({
+      txHash,
+      docId: document.blockchainId,
+      fromAddress: currentWallet.walletAddress,
+      toAddress: metadata.newOwnerAddress,
     });
 
-    // Los shares están en blockchain - se revocan automáticamente mediante eventos
-
-    // 4. Log the confirmed transfer
-    await prisma.event.create({
-      data: {
-        id: uuidv4(),
-        eventType: 'TRANSFER_CONFIRMED',
-        userId: newOwnerId || metadata.newOwner,
-        documentId,
-        transactionHash: txHash,
-        metadata: {
-          docId: metadata.docId,
-          previousOwner: metadata.currentOwner,
-          newOwner: newOwnerId || metadata.newOwner,
-          newOwnerAddress: metadata.newOwnerAddress,
-          signature,
+    // 3. Apply ownership, re-encrypted key and share-key cleanup atomically.
+    await prisma.$transaction(async (tx) => {
+      await tx.document.update({
+        where: { id: documentId },
+        data: {
+          ownerId: confirmedNewOwnerId,
+          encryptedSymmetricKey: pendingEncryptedSymmetricKey,
+          blockchainStatus: BlockchainStatus.TX_SUBMITTED,
+          blockchainTxHash: txHash,
         },
-      },
+      });
+
+      await tx.documentShareKey.deleteMany({
+        where: { documentId },
+      });
+
+      await tx.event.create({
+        data: {
+          id: uuidv4(),
+          eventType: 'TRANSFER_CONFIRMED',
+          userId: confirmedNewOwnerId,
+          documentId,
+          transactionHash: txHash,
+          metadata: {
+            docId: metadata.docId,
+            previousOwner: metadata.currentOwner,
+            newOwner: confirmedNewOwnerId,
+            newOwnerAddress: metadata.newOwnerAddress,
+            signature,
+          },
+        },
+      });
     });
 
-    logger.info(`[CONFIRM] Transferencia confirmada: ${documentId} -> ${newOwnerId || metadata.newOwner}`);
+    logger.info(`[CONFIRM] Transferencia confirmada: ${documentId} -> ${confirmedNewOwnerId}`);
   }
 
   /**

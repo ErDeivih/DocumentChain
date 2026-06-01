@@ -28,6 +28,11 @@ import logger from '../utils/logger';
 import * as Encryption from '../lib/encryption';
 import notificationService, { NotificationType } from './notificationService';
 import { normalizeEthereumAddress } from '../utils/ethereum';
+import { buildInsensitiveWalletFilter, validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
+import {
+  assertDocumentSharedReceipt,
+  assertPermissionRevokedReceipt,
+} from './blockchainReceiptService';
 
 // ============================================
 // Types
@@ -130,17 +135,6 @@ export interface PrepareRevokeShareResult {
  * La autorización es responsabilidad exclusiva del contrato inteligente.
  */
 export class ShareService {
-  private static buildInsensitiveWalletWhere(addresses: string[]) {
-    return {
-      OR: addresses.map((address) => ({
-        walletAddress: {
-          equals: address,
-          mode: 'insensitive' as const,
-        },
-      })),
-    };
-  }
-
   /**
    * Prepare a share for creation
    * - Validates ownership ON-CHAIN (sole source of truth)
@@ -172,24 +166,20 @@ export class ShareService {
     }
 
     // 2. Validate sharer's wallet
-    const sharerWallet = await prisma.wallet.findFirst({
-      where: {
-        id: sharerWalletId,
-        userId: sharerUserId,
-      },
-    });
-
-    if (!sharerWallet) {
-      throw new Error('Wallet no encontrada o no pertenece al usuario');
-    }
+    const sharerWallet = await validateWalletBelongsToUser(sharerWalletId, sharerUserId);
 
     // 3. Validate ownership ON-CHAIN (sole source of truth)
-    await DocumentPermissionService.validateOwnership(document, sharerUserId, {
-      existingWallet: sharerWallet,
-      errorMessage: 'No eres el propietario del documento',
-    });
+    const isOwnerOnChain = await DocumentPermissionService.isOwner(
+      document.blockchainId,
+      sharerWallet.walletAddress
+    );
+
+    if (!isOwnerOnChain) {
+      throw new Error('No eres el propietario del documento');
+    }
 
     // 4. Get recipient's info including public key
+    const { publicKey: recipientPublicKey } = await getUserWithPublicKey(sharedWithUserId);
     const recipient = await prisma.user.findUnique({
       where: { id: sharedWithUserId },
       select: {
@@ -197,17 +187,12 @@ export class ShareService {
         username: true,
         fullName: true,
         email: true,
-        publicKey: true,
         wallets: true,
       },
     });
 
     if (!recipient) {
       throw new Error('Usuario destinatario no encontrado');
-    }
-
-    if (!recipient.publicKey) {
-      throw new Error('El destinatario no tiene clave pública configurada');
     }
 
     // 5. Get recipient's wallet address (use provided or first wallet)
@@ -221,7 +206,7 @@ export class ShareService {
     // 6. Re-encrypt symmetric key with recipient's public key
     const reEncryptedKey = Encryption.encryptSymmetricKey(
       decryptedSymmetricKey,
-      recipient.publicKey
+      recipientPublicKey
     );
     logger.info(`[PREPARE] Clave simétrica re-encriptada para usuario ${sharedWithUserId}`);
 
@@ -262,6 +247,7 @@ export class ShareService {
           blockchainId,
           recipientId: sharedWithUserId,
           recipientWalletAddress,
+          sharerWalletAddress: sharerWallet.walletAddress,
           role,
         },
       },
@@ -286,29 +272,37 @@ export class ShareService {
     let resolvedDocumentId = inputDocumentId || null;
     let resolvedRecipientId = inputRecipientId || null;
     let resolvedRole: 'SHARED_READ' | 'SHARED_WRITE' = inputRole || 'SHARED_READ';
+    let preparedEventMetadata: {
+      recipientId?: unknown;
+      recipientWalletAddress?: unknown;
+      role?: unknown;
+      sharerWalletAddress?: unknown;
+    } | null = null;
+
+    const preparedEvents = await prisma.event.findMany({
+      where: { eventType: 'SHARE_PREPARED' },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    const preparedEvent = preparedEvents.find((event) => {
+      const metadata = event.metadata as { shareId?: unknown } | null;
+      return metadata?.shareId === shareId;
+    });
+
+    if (preparedEvent?.metadata) {
+      preparedEventMetadata = preparedEvent.metadata as unknown as typeof preparedEventMetadata;
+    }
 
     if (!resolvedDocumentId || !resolvedRecipientId) {
-      const preparedEvents = await prisma.event.findMany({
-        where: {
-          eventType: 'SHARE_PREPARED',
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 100,
-      });
-
-      const preparedEvent = preparedEvents.find((event) => {
-        const metadata = event.metadata as { shareId?: unknown } | null;
-        return metadata?.shareId === shareId;
-      });
-
       if (preparedEvent?.documentId) {
         resolvedDocumentId = resolvedDocumentId || preparedEvent.documentId;
         const metadata = (preparedEvent.metadata as {
           recipientId?: unknown;
+          recipientWalletAddress?: unknown;
           role?: unknown;
+          sharerWalletAddress?: unknown;
         } | null) ?? null;
+        preparedEventMetadata = metadata;
         resolvedRecipientId = resolvedRecipientId || (typeof metadata?.recipientId === 'string' ? metadata.recipientId : null);
         resolvedRole = inputRole || (metadata?.role === 'SHARED_WRITE' ? 'SHARED_WRITE' : 'SHARED_READ');
       }
@@ -338,17 +332,36 @@ export class ShareService {
 
     // Validate on-chain that the share actually exists (recipient has access)
     if (document.blockchainId && resolvedRecipientId) {
-      const recipient = await prisma.user.findUnique({
-        where: { id: resolvedRecipientId },
-        select: { wallets: { select: { walletAddress: true } } },
-      });
+        const recipient = await prisma.user.findUnique({
+          where: { id: resolvedRecipientId },
+          select: { wallets: { select: { walletAddress: true } } },
+        });
       if (recipient?.wallets[0]) {
+        const ownerWalletAddress = typeof preparedEventMetadata?.sharerWalletAddress === 'string'
+          ? preparedEventMetadata.sharerWalletAddress
+          : null;
+        const recipientWalletAddress = typeof preparedEventMetadata?.recipientWalletAddress === 'string'
+          ? preparedEventMetadata.recipientWalletAddress
+          : recipient.wallets[0].walletAddress;
+
+        if (!ownerWalletAddress) {
+          throw new Error('No se encontró la wallet del propietario para validar el share');
+        }
+
+        await assertDocumentSharedReceipt({
+          txHash,
+          docId: document.blockchainId,
+          fromAddress: ownerWalletAddress,
+          toAddress: recipientWalletAddress,
+          role: resolvedRole === 'SHARED_WRITE' ? DocumentRole.EDITOR : DocumentRole.VIEWER,
+        });
+
         const onChainRole = await DocumentPermissionService.getUserRole(
           document.blockchainId,
-          recipient.wallets[0].walletAddress
+          recipientWalletAddress
         );
         if (onChainRole === DocumentRole.NONE || onChainRole === DocumentRole.OWNER) {
-          logger.warn(`[CONFIRM] Share ${shareId} no encontrado on-chain para el destinatario`);
+          throw new Error('La compartición no existe on-chain para el destinatario');
         } else {
           resolvedRole = onChainRole === DocumentRole.EDITOR ? 'SHARED_WRITE' : 'SHARED_READ';
         }
@@ -456,7 +469,7 @@ export class ShareService {
       .filter((address): address is string => Boolean(address));
 
     const wallets = await prisma.wallet.findMany({
-      where: this.buildInsensitiveWalletWhere(walletAddresses),
+      where: buildInsensitiveWalletFilter(walletAddresses),
       include: {
         user: {
           select: {
@@ -622,10 +635,14 @@ export class ShareService {
     }
 
     // Validate ownership ON-CHAIN
-    await DocumentPermissionService.validateOwnership(document, ownerId, {
-      existingWallet: sharerWallet,
-      errorMessage: 'No eres el propietario del documento',
-    });
+    const isOwnerOnChain = await DocumentPermissionService.isOwner(
+      document.blockchainId,
+      sharerWallet.walletAddress
+    );
+
+    if (!isOwnerOnChain) {
+      throw new Error('No eres el propietario del documento');
+    }
 
     const normalizedRecipientAddress = normalizeEthereumAddress(recipientIdentifier);
 
@@ -753,6 +770,26 @@ export class ShareService {
     if (!document) {
       throw new Error('Documento no encontrado para confirmar la revocación');
     }
+
+    const recipientWalletAddress = typeof (preparedEvent.metadata as { recipientWalletAddress?: unknown } | null)?.recipientWalletAddress === 'string'
+      ? String((preparedEvent.metadata as { recipientWalletAddress: string }).recipientWalletAddress)
+      : null;
+
+    if (!document.blockchainId || !recipientWalletAddress) {
+      throw new Error('No se encontró la información blockchain de la revocación');
+    }
+
+    const ownerWallet = await prisma.wallet.findFirst({
+      where: { userId: document.ownerId },
+      orderBy: [{ isPrimary: 'desc' }, { addedAt: 'asc' }],
+    });
+
+    await assertPermissionRevokedReceipt({
+      txHash,
+      docId: document.blockchainId,
+      userAddress: recipientWalletAddress,
+      byAddress: ownerWallet?.walletAddress,
+    });
 
     if (recipientId) {
       await notificationService.createNotification({

@@ -45,10 +45,12 @@ typechain/
 typechain-types/
 smart-contracts/artifacts/build-info/
 smart-contracts/deployments/localhost.*
+smart-contracts/deployments/hardhat.*
 smart-contracts/coverage/
 smart-contracts/coverage.json
 smart-contracts/coverage/lcov.info
 anexos/plantuml.jar
+smart-contracts/docs/
 
 # Prisma
 # Las migraciones deben versionarse para permitir despliegues reproducibles.
@@ -69,7 +71,8 @@ frontend/coverage/
 backend/build-output.txt
 backend/test-results.txt
 backend/logs/
-anexos/*.pdf
+backend/docs/
+frontend/docs/
 anexos/*.aux
 anexos/*.out
 anexos/*.toc
@@ -94,3 +97,7 @@ frontend/api-repro.txt
 
 # Local handoff and non-delivery material
 _local_no_entrega/
+anexos/capt/pdf_pages/
+anexos/obsoletos/
+frontend/e2e/
+frontend/playwright.config.ts

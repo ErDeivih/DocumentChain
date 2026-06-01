@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { DocumentService } from '../services/documentService';
 import logger from '../utils/logger';
+import { buildAttachmentDisposition } from '../utils/httpHeaders';
 
 /**
  * Router de acceso público a documentos.
@@ -16,8 +17,7 @@ const router = Router();
  * @returns Cadena formateada para el encabezado `Content-Disposition`.
  */
 function buildContentDisposition(name: string, inline: boolean): string {
-  const safeName = name.replace(/"/g, '');
-  return `${inline ? 'inline' : 'attachment'}; filename="${safeName}"`;
+  return buildAttachmentDisposition(name, inline);
 }
 
 /**

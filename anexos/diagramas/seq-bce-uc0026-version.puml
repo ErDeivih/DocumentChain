@@ -1,0 +1,23 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0026: Crear Nueva Version (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Versiones" as BS
+control "Controlador Version" as CV
+entity "Version" as EV
+entity "Documento" as ED
+
+Actor -> BS : Selecciona nuevo contenido
+BS -> CV : Solicita crear una nueva version
+CV -> CV : Comprueba elegibilidad del cambio
+CV -> EV : Genera la nueva version
+EV --> CV : Version disponible
+CV -> ED : Vincula la version al documento
+ED --> CV : Documento actualizado
+CV --> BS : Confirma version creada
+BS --> Actor : Muestra resultado del versionado
+
+@enduml
+

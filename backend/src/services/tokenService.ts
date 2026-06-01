@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger';
-import { JWT_SECRET } from '../config/jwt';
+import { JWT_SECRET, JWT_REFRESH_SECRET } from '../config/jwt';
 
 const ACCESS_TOKEN_EXPIRY = '15m';  // 15 minutos
 const REFRESH_TOKEN_EXPIRY = '7d';  // 7 días
@@ -56,7 +56,7 @@ export class TokenService {
     // Generar refresh token (larga duración)
     const refreshToken = jwt.sign(
       { userId, sessionId },
-      JWT_SECRET,
+      JWT_REFRESH_SECRET,
       { expiresIn: REFRESH_TOKEN_EXPIRY }
     );
 
@@ -91,7 +91,7 @@ export class TokenService {
   static async refreshAccessToken(refreshToken: string): Promise<Omit<TokenPair, 'refreshToken'>> {
     try {
       // Verificar refresh token
-      const decoded = jwt.verify(refreshToken, JWT_SECRET) as any;
+      const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as any;
 
       // Buscar sesión válida
       const session = await prisma.session.findFirst({
@@ -151,6 +151,31 @@ export class TokenService {
     });
 
     logger.info('Refresh token revocado', { count: result.count });
+  }
+
+  /**
+   * Revocar access token (logout alternativo)
+   */
+  static async revokeAccessToken(accessToken: string): Promise<void> {
+    const result = await prisma.session.deleteMany({
+      where: { accessToken }
+    });
+
+    logger.info('Token de acceso revocado', { count: result.count });
+  }
+
+  /**
+   * Limpiar tokens expirados (cron job)
+   */
+  static async cleanupExpiredTokens(): Promise<number> {
+    const result = await prisma.session.deleteMany({
+      where: {
+        refreshTokenExpiresAt: { lt: new Date() }
+      }
+    });
+
+    logger.info('Tokens expirados limpiados', { count: result.count });
+    return result.count;
   }
 
   /**

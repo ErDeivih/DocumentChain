@@ -4,10 +4,8 @@
  */
 
 import { DocumentService } from '../documentService';
-import * as Encryption from '../../lib/encryption';
 import prisma from '../../config/database';
 import { uploadToIPFS } from '../../config/ipfs';
-import { ethers } from 'ethers';
 import crypto from 'crypto';
 
 // Mock dependencies
@@ -51,6 +49,10 @@ jest.mock('../../config/ipfs', () => ({
 
 jest.mock('../../config/blockchain', () => ({
   provider: {},
+}));
+
+jest.mock('../blockchainReceiptService', () => ({
+  assertDocumentCreatedReceipt: jest.fn().mockResolvedValue({ blockNumber: 1 }),
 }));
 
 // Unmock encryption to test real encryption
@@ -147,7 +149,7 @@ describe('DocumentService - Backend Encryption', () => {
       // Verify user public key was retrieved
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: mockUserId },
-        select: { publicKey: true },
+        select: { id: true, publicKey: true },
       });
 
       // Verify uploadToIPFS was called with encrypted data
@@ -249,12 +251,25 @@ describe('DocumentService - Backend Encryption', () => {
         documentId: 'doc-uuid-123',
         txHash: '0xabcdef1234567890',
         blockchainId: '0x' + 'a'.repeat(64),
+        confirmerUserId: mockUserId,
       };
 
       (prisma.document.findUnique as jest.Mock).mockResolvedValue({
         id: input.documentId,
         blockchainStatus: 'PREPARING',
         ownerId: mockUserId,
+        creatorWalletId: mockWalletId,
+        ipfsCid: 'QmTestCID',
+      });
+
+      (prisma.version.findFirst as jest.Mock).mockResolvedValue({ ipfsCid: 'QmTestCID' });
+      (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
+        id: mockWalletId,
+        userId: mockUserId,
+        walletAddress: mockWalletAddress,
+      });
+      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
+        metadata: { docId: input.blockchainId, ipfsCid: 'QmTestCID' },
       });
 
       (prisma.document.update as jest.Mock).mockResolvedValue({
@@ -287,12 +302,32 @@ describe('DocumentService - Backend Encryption', () => {
         documentId: 'non-existent-doc',
         txHash: '0xabc',
         blockchainId: '0x123',
+        confirmerUserId: mockUserId,
       };
 
       (prisma.document.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(DocumentService.confirmDocument(input)).rejects.toThrow(
         'Documento no encontrado'
+      );
+    });
+
+    it('should reject confirmation if user is not owner', async () => {
+      const input = {
+        documentId: 'foreign-doc',
+        txHash: '0xabc',
+        blockchainId: '0x123',
+        confirmerUserId: mockUserId,
+      };
+
+      (prisma.document.findUnique as jest.Mock).mockResolvedValue({
+        id: input.documentId,
+        ownerId: 'other-user',
+        blockchainStatus: 'PREPARING',
+      });
+
+      await expect(DocumentService.confirmDocument(input)).rejects.toThrow(
+        'No tienes permisos para confirmar este documento'
       );
     });
   });
@@ -456,17 +491,23 @@ describe('DocumentService - Backend Encryption', () => {
       expect(prepareResult.ipfsCid).toBe('QmFlowTestCID');
 
       // Step 2: Confirm (simulating frontend blockchain transaction)
+      const blockchainId = '0x' + 'b'.repeat(64);
       (prisma.document.findUnique as jest.Mock).mockResolvedValue(createdDocument);
+      (prisma.version.findFirst as jest.Mock).mockResolvedValue({ ipfsCid: 'QmFlowTestCID' });
+      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
+        metadata: { docId: blockchainId, ipfsCid: 'QmFlowTestCID' },
+      });
       (prisma.document.update as jest.Mock).mockResolvedValue({
         ...createdDocument,
-        blockchainId: '0xblockchainid',
+        blockchainId,
         blockchainStatus: 'SYNCED',
       });
 
       await DocumentService.confirmDocument({
         documentId: prepareResult.documentId,
-        txHash: '0xtxhash',
-        blockchainId: '0xblockchainid',
+        txHash: '0x' + 'c'.repeat(64),
+        blockchainId,
+        confirmerUserId: mockUserId,
       });
 
       // Verify document is now TX_SUBMITTED (SYNCED set by event listener)

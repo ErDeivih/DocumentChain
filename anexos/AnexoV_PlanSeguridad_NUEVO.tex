@@ -682,7 +682,7 @@ T-01 & Acceso no autorizado & 15 & Verificacion de email, hash de contrasenas co
 \hline
 T-02 & Perdida de claves & 15 & Restablecimiento seguro de contrasena, copias de seguridad cifradas de claves simetricas e instrucciones de custodia de wallet. \\
 \hline
-T-04 & Phishing & 16 & Challenge-firma EIP-712, educacion de usuarios, verificacion de dominio en emails, headers anti-phishing. \\
+T-04 & Phishing & 16 & Firma de mensaje con wallet, educacion de usuarios, verificacion de dominio en emails, headers anti-phishing. \\
 \hline
 T-08 & Malware & 15 & Aislamiento Docker, antivirus en endpoints, restriccion de ejecucion de scripts, firmas de imagenes de contenedor. \\
 \hline
@@ -775,7 +775,7 @@ M-03 & Autenticacion JWT & Tokens de corta duracion (15 min) con refresh token &
 \hline
 M-04 & Verificacion de email & Confirmacion previa de la cuenta antes del acceso ordinario & T-01 & Prevencion \\
 \hline
-M-05 & Challenge-firma & EIP-712 para prueba de posesion de wallet & T-04 & Prevencion \\
+M-05 & Challenge-firma & Firma de mensaje para prueba de posesion de wallet & T-04 & Prevencion \\
 \hline
 M-06 & HTTPS/TLS 1.3 & Certificado SSL en todas las comunicaciones & T-07 & Proteccion de datos \\
 \hline
@@ -1099,7 +1099,7 @@ Las pruebas de penetracion se han estructurado siguiendo el \textbf{OWASP Testin
     \item \textbf{Validacion de entradas}: Inyecciones SQL, NoSQL, XSS, command injection, path traversal y deserializacion insegura.
     \item \textbf{Logica de negocio}: Manipulacion de flujos de firma, intento de doble gasto en evidencias blockchain y evasion de controles de permisos on-chain.
     \item \textbf{Seguridad en el cliente}: Analisis del almacenamiento local, deteccion de secretos en el bundle de React y validacion de la configuracion CSP.
-    \item \textbf{Criptografia}: Verificacion de la longitud de claves, aleatoriedad de nonces, almacenamiento seguro de claves privadas y resistencia a replay attacks en los challenges EIP-712.
+    \item \textbf{Criptografia}: Verificacion de la longitud de claves, aleatoriedad de nonces, almacenamiento seguro de claves privadas y resistencia a replay attacks en los mensajes de firma con wallet.
 \end{enumerate}
 
 Los resultados de cada fase se documentan en un informe de pentesting interno que incluye la descripcion de la vulnerabilidad, su criticidad, evidencias (capturas de pantalla, peticiones HTTP) y la recomendacion de remedio. Las vulnerabilidades criticas y altas deben corregirse antes de cualquier despliegue en produccion.

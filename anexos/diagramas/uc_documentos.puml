@@ -19,15 +19,6 @@ rectangle "Modulo de gestion documental" {
   usecase "UC-0021: Buscar Documentos" as UC21
 }
 
-UC13 -[hidden]down-> UC14
-UC14 -[hidden]down-> UC15
-UC15 -[hidden]down-> UC16
-UC16 -[hidden]down-> UC17
-UC17 -[hidden]down-> UC18
-UC18 -[hidden]down-> UC19
-UC19 -[hidden]down-> UC20
-UC20 -[hidden]down-> UC21
-
 USER --> UC13
 USER --> UC14
 USER --> UC15
@@ -43,16 +34,4 @@ IPFS --> UC16
 IPFS --> UC19
 SC --> UC13
 SC --> UC20
-
-note right of UC15
-  Integra como subflujo:
-  edicion de metadatos
-  (nombre, descripcion).
-end note
-
-note right of UC14
-  Integra la organizacion documental
-  mediante busqueda, filtrado
-  y navegacion por carpetas.
-end note
 @enduml

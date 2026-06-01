@@ -63,10 +63,20 @@ jest.mock('../../src/services/documentPermissionService', () => ({
     isOwner: jest.fn().mockResolvedValue(false),
     getUserRole: jest.fn().mockResolvedValue(0),
   },
+  DocumentRole: { NONE: 0, VIEWER: 1, EDITOR: 2, OWNER: 3 },
+}));
+
+jest.mock('../../src/services/documentPermissionService', () => ({
+  DocumentPermissionService: {
+    canView: jest.fn().mockResolvedValue(false),
+    isOwner: jest.fn().mockResolvedValue(false),
+    getUserRole: jest.fn().mockResolvedValue(0),
+  },
   DocumentRole: { VIEWER: 1, EDITOR: 2, OWNER: 3 },
 }));
 
 import { DocumentService } from '../../src/services/documentService';
+import { userHasAccess } from '../../src/utils/accessControl';
 import prisma from '../../src/config/database';
 import { uploadToIPFS, downloadFromIPFS, deleteFromIPFS } from '../../src/config/ipfs';
 import { BlockchainStatus, DocumentVisibility } from '@prisma/client';
@@ -498,7 +508,7 @@ describe('DocumentService - Additional Methods', () => {
 
       await expect(
         DocumentService.rollbackDocument(mockDocId, mockUserId)
-      ).rejects.toThrow('Document not found');
+      ).rejects.toThrow('Documento no encontrado');
     });
 
     it('should throw if user is not owner', async () => {
@@ -555,7 +565,7 @@ describe('DocumentService - Additional Methods', () => {
         isDeleted: false,
       });
 
-      const result = await DocumentService['userHasAccess'](mockDocId, mockUserId);
+      const result = await userHasAccess(mockDocId, mockUserId);
       expect(result).toBe(true);
     });
 
@@ -567,7 +577,7 @@ describe('DocumentService - Additional Methods', () => {
         isDeleted: false,
       });
 
-      const result = await DocumentService['userHasAccess'](mockDocId, mockUserId);
+      const result = await userHasAccess(mockDocId, mockUserId);
       expect(result).toBe(true);
     });
 
@@ -579,14 +589,14 @@ describe('DocumentService - Additional Methods', () => {
         isDeleted: false,
       });
 
-      const result = await DocumentService['userHasAccess'](mockDocId, mockUserId);
+      const result = await userHasAccess(mockDocId, mockUserId);
       expect(result).toBe(false);
     });
 
     it('should return false when document not found', async () => {
       (prisma.document.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const result = await DocumentService['userHasAccess'](mockDocId, mockUserId);
+      const result = await userHasAccess(mockDocId, mockUserId);
       expect(result).toBe(false);
     });
   });

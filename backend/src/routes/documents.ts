@@ -22,9 +22,7 @@ import { uploadLimiter, generalLimiter, shareLimiter, blockchainLimiter } from '
 import { validateBody, validateParams } from '../middleware/validator';
 import { 
   documentIdSchema,
-  documentOperationalVersionSchema,
   documentUserParamsSchema,
-  documentVersionParamsSchema,
   documentVersionNumberParamsSchema,
   prepareSetOperationalSchema,
   confirmSetOperationalSchema,
@@ -186,7 +184,6 @@ router.post('/:documentId/versions/prepare', authenticate, uploadLimiter, upload
 router.post('/:documentId/versions/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), VersionController.confirmVersion);
 // NEW: restore prepare/confirm
 router.post('/:documentId/versions/restore/prepare', authenticate, generalLimiter, validateParams(documentIdSchema), VersionController.prepareRestoreVersion);
-router.post('/:documentId/versions/restore/confirm', authenticate, generalLimiter, validateParams(documentIdSchema), VersionController.confirmRestoreVersion);
 // Signatures for a specific version number (for frontend listByVersion)
 router.get('/:documentId/versions/:versionNumber/signatures', authenticate, validateParams(documentVersionNumberParamsSchema), SignatureController.getVersionSignaturesByNumber);
 

@@ -16,6 +16,13 @@ import { DocumentService } from '../services/documentService';
 import { TransferService } from '../services/transferService';
 import { DocumentPermissionService } from '../services/documentPermissionService';
 import logger from '../utils/logger';
+import { isNonEmptyString, isValidTxHash } from '../utils/validation';
+import { validateFile } from '../utils/fileValidation';
+import { buildAttachmentDisposition } from '../utils/httpHeaders';
+import {
+  assertDocumentArchivedReceipt,
+  assertDocumentDeletedReceipt,
+} from '../services/blockchainReceiptService';
 
 /**
  * Controlador de gestión de documentos.
@@ -23,7 +30,7 @@ import logger from '../utils/logger';
  * descarga, archivado, eliminación, transferencia y restauración.
  */
 export class DocumentController {
-  private static async softDeleteDocument(documentId: string, userId: string, txHash?: string | null) {
+  private static async softDeleteDocument(documentId: string, userId: string, txHash: string) {
     const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
@@ -44,8 +51,18 @@ export class DocumentController {
     }
 
     // Validate ownership (on-chain or DB fallback)
-    await DocumentPermissionService.validateOwnership(document, userId, {
+    const ownership = await DocumentPermissionService.validateOwnership(document, userId, {
       errorMessage: 'No tienes permisos para eliminar este documento',
+    });
+
+    if (!document.blockchainId) {
+      throw new Error('El documento no tiene ID de blockchain aún');
+    }
+
+    await assertDocumentDeletedReceipt({
+      txHash,
+      docId: document.blockchainId,
+      actorAddress: ownership.wallet.walletAddress,
     });
 
     const deletedAt = new Date();
@@ -70,7 +87,7 @@ export class DocumentController {
           eventType: 'DOCUMENT_DELETED',
           userId,
           documentId: document.id,
-          transactionHash: txHash || null,
+          transactionHash: txHash,
           metadata: {
             cidsScheduledForUnpin: cidsToUnpin,
           },
@@ -134,6 +151,12 @@ export class DocumentController {
         return;
       }
 
+      const validation = validateFile(req.file.originalname || name, req.file.mimetype, req.file.size);
+      if (!validation.valid) {
+        res.status(400).json({ error: validation.errors.join(', ') });
+        return;
+      }
+
       const result = await DocumentService.prepareDocument({
         name,
         description,
@@ -179,17 +202,17 @@ export class DocumentController {
 
       const { documentId, txHash, blockchainId } = req.body;
 
-      if (!documentId) {
+      if (!isNonEmptyString(documentId)) {
         res.status(400).json({ error: 'El ID del documento es obligatorio' });
         return;
       }
 
-      if (!txHash) {
-        res.status(400).json({ error: 'El hash de la transacción es obligatorio' });
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
-      if (!blockchainId) {
+      if (!isNonEmptyString(blockchainId)) {
         res.status(400).json({ error: 'El ID de blockchain es obligatorio' });
         return;
       }
@@ -198,6 +221,7 @@ export class DocumentController {
         documentId,
         txHash,
         blockchainId,
+        confirmerUserId: req.user.userId,
       });
 
       logger.info('[CONFIRM] Documento confirmado', { 
@@ -276,9 +300,7 @@ export class DocumentController {
 
       // Set headers for file download
       res.setHeader('Content-Type', isUnencrypted ? result.mimeType : 'application/octet-stream');
-      res.setHeader('Content-Disposition', 
-        `attachment; filename="${result.name}${isUnencrypted ? '' : '.encrypted'}"`
-      );
+      res.setHeader('Content-Disposition', buildAttachmentDisposition(`${result.name}${isUnencrypted ? '' : '.encrypted'}`));
       
       // Only send encryption key header if file is actually encrypted
       if (!isUnencrypted) {
@@ -446,9 +468,25 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership (on-chain or DB fallback)
-      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+      const ownership = await DocumentPermissionService.validateOwnership(document, req.user.userId, {
         errorMessage: 'No tienes permisos para archivar este documento',
+      });
+
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
+        return;
+      }
+
+      if (!document.blockchainId) {
+        res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
+        return;
+      }
+
+      await assertDocumentArchivedReceipt({
+        txHash,
+        docId: document.blockchainId,
+        actorAddress: ownership.wallet.walletAddress,
+        archived: true,
       });
 
       const updated = await prisma.document.update({
@@ -465,7 +503,7 @@ export class DocumentController {
           eventType: 'DOCUMENT_ARCHIVED',
           userId: req.user.userId,
           documentId: document.id,
-          transactionHash: txHash || null,
+          transactionHash: txHash,
         },
       });
 
@@ -547,7 +585,12 @@ export class DocumentController {
       const documentId = req.params.documentId as string;
       const { txHash } = req.body;
 
-      await DocumentController.softDeleteDocument(documentId, req.user.userId, txHash || null);
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
+        return;
+      }
+
+      await DocumentController.softDeleteDocument(documentId, req.user.userId, txHash);
 
       res.status(200).json({ message: 'Documento eliminado correctamente' });
     } catch (error: any) {
@@ -632,24 +675,52 @@ export class DocumentController {
         return;
       }
 
-      // Validate ownership (on-chain or DB fallback)
-      await DocumentPermissionService.validateOwnership(document, req.user.userId, {
+      const ownership = await DocumentPermissionService.validateOwnership(document, req.user.userId, {
         errorMessage: 'No tienes permisos para desarchivar este documento',
       });
 
-      await prisma.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'DOCUMENT_UNARCHIVED',
-          userId: req.user.userId,
-          documentId: document.id,
-          transactionHash: txHash || null,
-        },
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
+        return;
+      }
+
+      if (!document.blockchainId) {
+        res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
+        return;
+      }
+
+      await assertDocumentArchivedReceipt({
+        txHash,
+        docId: document.blockchainId,
+        actorAddress: ownership.wallet.walletAddress,
+        archived: false,
+      });
+
+      const updated = await prisma.$transaction(async (tx) => {
+        const unarchived = await tx.document.update({
+          where: { id: documentId },
+          data: {
+            isArchived: false,
+            archivedAt: null,
+          },
+        });
+
+        await tx.event.create({
+          data: {
+            id: uuidv4(),
+            eventType: 'DOCUMENT_UNARCHIVED',
+            userId: req.user!.userId,
+            documentId: document.id,
+            transactionHash: txHash,
+          },
+        });
+
+        return unarchived;
       });
 
       res.status(200).json({
         message: 'Documento desarchivado correctamente',
-        document,
+        document: updated,
       });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -783,6 +854,11 @@ export class DocumentController {
         return;
       }
 
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
+        return;
+      }
+
       if (!transferId) {
         res.status(400).json({ error: 'El ID de transferencia es obligatorio' });
         return;
@@ -794,6 +870,7 @@ export class DocumentController {
         txHash,
         signature: signature || '',
         documentId,
+        confirmerUserId: req.user.userId,
       });
 
       res.status(200).json({ message: 'Transferencia confirmada correctamente' });

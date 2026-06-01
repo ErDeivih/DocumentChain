@@ -1,0 +1,22 @@
+@startuml
+!include _sequence-style.puml
+title UC-0025: Mover documentos a carpeta
+
+actor Usuario as user
+boundary "DocumentsPage.tsx" as ui
+control "DocumentController (/api/documents)" as api
+control "DocumentService" as srv
+database "Base de datos" as db
+
+user -> ui: Selecciona documentos y carpeta destino
+ui -> api: PATCH /api/documents/move {documentIds, folderId}
+api -> srv: moveDocuments(userId, documentIds, folderId)
+srv -> db: Validar propiedad/permisos y carpeta destino
+db --> srv: Documentos movibles
+srv -> db: Actualizar folderId de los documentos
+db --> srv: Documentos actualizados
+srv --> api: Resultado de movimiento
+api --> ui: 200 OK
+ui --> user: Documentos visibles en la carpeta destino
+
+@enduml

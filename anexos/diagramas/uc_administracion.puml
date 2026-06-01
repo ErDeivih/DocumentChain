@@ -14,10 +14,4 @@ UC38 -[hidden]down-> UC39
 
 ADMIN --> UC38
 ADMIN --> UC39
-
-note right of UC39
-  La gestion de roles incluye la
-  asignacion y revocacion de permisos
-  de administrador sobre la blockchain.
-end note
 @enduml

@@ -12,6 +12,7 @@ import { Request, Response } from 'express';
 import { SignatureService } from '../services/signatureService';
 import logger from '../utils/logger';
 import prisma from '../config/database';
+import { isNonEmptyString, isValidTxHash, toPositiveInteger } from '../utils/validation';
 
 /**
  * Controlador de firmas digitales.
@@ -45,21 +46,27 @@ export class SignatureController {
       const effectiveWalletId = walletId || signerWalletId;
 
       // Validate required fields
-      if (!documentId) {
+      if (!isNonEmptyString(documentId)) {
         res.status(400).json({ error: 'El ID del documento es obligatorio' });
         return;
       }
 
       // walletId is REQUIRED — the user must explicitly choose the wallet they sign with.
       // We do NOT fall back to the primary wallet: the signer is a deliberate identity choice.
-      if (!effectiveWalletId) {
+      if (!isNonEmptyString(effectiveWalletId)) {
         res.status(400).json({ error: 'El ID de la wallet es obligatorio (walletId o signerWalletId)' });
+        return;
+      }
+
+      const parsedVersionNumber = toPositiveInteger(versionNumber || 1);
+      if (!parsedVersionNumber) {
+        res.status(400).json({ error: 'Número de versión inválido' });
         return;
       }
 
       const result = await SignatureService.prepareSignature({
         documentId,
-        versionNumber: versionNumber || 1,
+        versionNumber: parsedVersionNumber,
         signerUserId: req.user.userId,
         signerWalletId: effectiveWalletId,
       });
@@ -97,17 +104,17 @@ export class SignatureController {
 
       const { signatureId, txHash, ecdsaSignature } = req.body;
 
-      if (!signatureId) {
+      if (!isNonEmptyString(signatureId)) {
         res.status(400).json({ error: 'El ID de la firma es obligatorio' });
         return;
       }
 
-      if (!txHash) {
-        res.status(400).json({ error: 'El hash de la transacción es obligatorio' });
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
-      if (!ecdsaSignature) {
+      if (!isNonEmptyString(ecdsaSignature)) {
         res.status(400).json({ error: 'La firma ECDSA es obligatoria' });
         return;
       }

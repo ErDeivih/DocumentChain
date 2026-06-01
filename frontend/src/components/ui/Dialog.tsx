@@ -125,6 +125,41 @@ const DialogContent = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & { showCloseButton?: boolean }
 >(({ className, children, showCloseButton = true, ...props }, ref) => {
   const { open, onOpenChange } = React.useContext(DialogContext);
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useImperativeHandle(ref, () => contentRef.current as HTMLDivElement);
+
+  React.useEffect(() => {
+    if (!open) return;
+
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    contentRef.current?.focus();
+
+    return () => {
+      previousFocus?.focus();
+    };
+  }, [open]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    props.onKeyDown?.(event);
+    if (event.defaultPrevented || event.key !== 'Tab') return;
+
+    const focusableElements = contentRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusableElements || focusableElements.length === 0) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  };
 
   if (!open) return null;
 
@@ -132,17 +167,22 @@ const DialogContent = React.forwardRef<
     <DialogPortal>
       <DialogOverlay onClick={() => onOpenChange(false)} data-testid="modal-backdrop" />
       <div
-        ref={ref}
+        ref={contentRef}
+        {...props}
         className={cn(
           'fixed left-[50%] top-[50%] z-50 grid max-h-[90vh] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-2xl border border-white/10 bg-card/96 p-6 text-card-foreground shadow-[0_32px_80px_-30px_rgba(2,6,23,0.5)] backdrop-blur-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
           className
         )}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
         data-testid="modal-content"
-        {...props}
+        onKeyDown={handleKeyDown}
       >
         {showCloseButton && (
           <button
             onClick={() => onOpenChange(false)}
+            aria-label="Cerrar diálogo"
             className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             data-testid="modal-close-btn"
           >

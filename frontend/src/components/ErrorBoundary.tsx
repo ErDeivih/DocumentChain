@@ -47,9 +47,6 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-
-    // TODO: Integrar con Sentry u otro servicio de monitoreo.
-    // Sentry.captureException(error, { contexts: { react: errorInfo } });
   }
 
   handleReset = () => {

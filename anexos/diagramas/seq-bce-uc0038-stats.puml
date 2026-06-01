@@ -1,0 +1,22 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0038: Ver Estadisticas Personales (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Auditoria" as PE
+control "Controlador Auditoria" as CE
+entity "Estadistica" as EM
+
+
+Actor -> PE : 1. Accede a estadisticas
+PE -> CE : 2. Solicita metricas del usuario
+CE -> EM : 3. Consulta metricas del usuario
+EM --> CE : retorna metricas
+
+
+CE --> PE : 4. Retorna datos combinados
+PE --> Actor : 5. Renderiza graficos y resumen
+
+@enduml
+

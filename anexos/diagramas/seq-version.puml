@@ -12,6 +12,7 @@ entity "DocumentVersion" as ver
 database "Base de datos" as db
 participant "Wallet (EIP-6963 / WalletConnect)" as wallet
 control "EventListenerService" as listener
+title UC-0026: Crear nueva version
 
 user -> ui: Selecciona archivo y comentario para nueva version
 ui -> api: POST /api/documents/:documentId/versions/prepare (multipart/form-data)
@@ -36,16 +37,18 @@ srv -> ver: Crear version en estado PREPARING
 ver -> db: Persistir CID, comentario y metadatos de cifrado
 db --> ver: {versionId, versionNumber, blockchainId}
 ver --> srv: Version preparada
-srv --> api: {versionId, versionNumber, blockchainId, messageToSign}
+srv --> api: {versionId, versionNumber, blockchainId, cid, metadataHash}
 api --> ui: 200 OK version preparada
 
-ui -> wallet: eth_signTypedData_v4(messageToSign)
+ui -> wallet: Solicita firma de transaccion createVersion
 wallet -> sc: createVersion(docId, cid, metadataHash)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: POST /api/documents/:documentId/versions/confirm {versionId, txHash, walletAddress}
-api -> srv: confirmVersion(versionId, txHash, walletAddress)
+ui -> api: POST /api/documents/:documentId/versions/confirm {versionId, txHash, blockchainId}
+api -> srv: confirmVersion(versionId, txHash, blockchainId)
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + VersionCreated
 srv -> ver: Marcar transaccion enviada
 ver -> db: Actualizar estado a TX_SUBMITTED y guardar txHash
 db --> ver: OK
@@ -62,4 +65,3 @@ listener -> ui: WebSocket / refrescar pestana Versiones
 ui --> user: Nueva version disponible en el historial
 
 @enduml
-

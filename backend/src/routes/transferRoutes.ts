@@ -78,6 +78,7 @@ router.post('/confirm', authenticate, async (req: Request, res: Response) => {
       transferId,
       txHash,
       signature,
+      confirmerUserId: req.user!.userId,
     });
 
     logger.info(`Transfer confirmada: ${transferId}`, {

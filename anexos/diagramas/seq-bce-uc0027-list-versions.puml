@@ -1,0 +1,27 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0027: Listar Versiones (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Versiones" as BF
+control "Controlador Version" as CV
+entity "Version" as EV
+entity "Documento" as ED
+
+
+Actor -> BF : 1. Accede al historial de versiones
+BF -> CV : 2. Solicita listado de versiones
+CV -> ED : 3. Verifica acceso al documento
+ED --> CV : permiso verificado
+
+CV -> EV : 4. Recupera listado de versiones
+EV --> CV : versiones recuperadas
+
+CV -> CV : 5. Marca version operativa actual
+CV --> BF : 6. Listado de versiones
+BF --> Actor : 7. Muestra historial con fechas, autores y version activa
+
+@enduml
+
+

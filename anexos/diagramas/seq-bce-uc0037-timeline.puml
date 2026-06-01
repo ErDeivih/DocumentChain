@@ -1,0 +1,25 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0037: Ver Timeline de Documento (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Auditoria" as VT
+control "Controlador Auditoria" as CA
+entity "EventoAuditoria" as EE
+
+
+Actor -> VT : 1. Solicita timeline
+VT -> CA : 2. Peticion de historial
+CA -> EE : 3. Consulta eventos del documento
+EE --> CA : retorna eventos
+
+
+CA -> CA : 4. Ordena cronologicamente
+note right : Control ordena cronologicamente todos los eventos recuperados
+
+CA --> VT : 5. Retorna historia completa
+VT --> Actor : 6. Renderiza timeline
+
+@enduml
+

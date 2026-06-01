@@ -8,10 +8,9 @@ import { BrowserProvider } from 'ethers';
 
 /**
  * Identificador de proyecto de WalletConnect.
- * Se obtiene preferentemente desde la variable de entorno `VITE_WALLETCONNECT_PROJECT_ID`;
- * de lo contrario, se utiliza un valor de respaldo.
+ * Debe configurarse con `VITE_WALLETCONNECT_PROJECT_ID` si se usa este proveedor.
  */
-const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '4c4e4a0e8c5c6e8e2a4c8e4a0e8c5c6e';
+const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
 
 /**
  * Clase helper para gestionar conexiones WalletConnect v2.
@@ -31,6 +30,10 @@ export class WalletConnectHelper {
    */
   async connect(): Promise<{ address: string; provider: BrowserProvider }> {
     try {
+      if (!WALLETCONNECT_PROJECT_ID) {
+        throw new Error('VITE_WALLETCONNECT_PROJECT_ID no configurado');
+      }
+
       this.provider = await EthereumProvider.init({
         projectId: WALLETCONNECT_PROJECT_ID,
         chains: [1], // Ethereum mainnet requerido por WalletConnect v2

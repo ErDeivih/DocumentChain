@@ -7,6 +7,7 @@ import AlertMessage from '../components/ui/AlertMessage';
 import { copyToClipboard, formatDate } from '../lib/utils';
 import { TransactionDetailModal } from '../components/audit/TransactionDetailModal';
 import { auditApi } from '../api/audit';
+import { api } from '../lib/api';
 import {
   Search,
   Filter,
@@ -133,41 +134,6 @@ export const BlockchainAuditor: React.FC = () => {
     fetchEvents();
   }, [selectedTypes, offset]);
 
-  const fetchEvents = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const filters: Record<string, string> = {
-        limit: String(limit),
-        offset: String(offset),
-      };
-
-      if (selectedTypes.length > 0) filters.eventTypes = selectedTypes.join(',');
-      if (walletAddress.trim()) filters.walletAddress = walletAddress.trim();
-      if (txHash.trim()) filters.txHash = txHash.trim();
-      if (fromBlock.trim()) filters.fromBlock = fromBlock.trim();
-      if (toBlock.trim()) filters.toBlock = toBlock.trim();
-      if (startDate) filters.startDate = new Date(startDate).toISOString();
-      if (endDate) filters.endDate = new Date(endDate).toISOString();
-
-      const response = await fetch(`/api/audit/events?${new URLSearchParams(filters)}`);
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error('No se pudieron cargar los eventos de auditoría.');
-      }
-
-      setEvents(data.events || []);
-      setTotal(data.total || 0);
-      setHasMore(Boolean(data.hasMore));
-    } catch (err: any) {
-      setError(err.message || 'No se pudieron cargar los eventos de auditoría.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSearch = () => {
     setOffset(0);
     fetchEvents();
@@ -216,6 +182,38 @@ export const BlockchainAuditor: React.FC = () => {
       setError(err.message || 'Error al cargar detalles de la transacción');
     } finally {
       setTxModalLoading(false);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const filters: Record<string, string> = {};
+
+      if (selectedTypes.length > 0) filters.eventTypes = selectedTypes.join(',');
+      if (walletAddress.trim()) filters.walletAddress = walletAddress.trim();
+      if (txHash.trim()) filters.txHash = txHash.trim();
+      if (fromBlock.trim()) filters.fromBlock = fromBlock.trim();
+      if (toBlock.trim()) filters.toBlock = toBlock.trim();
+      if (startDate) filters.startDate = new Date(startDate).toISOString();
+      if (endDate) filters.endDate = new Date(endDate).toISOString();
+
+      const response = await api.get('/audit/events', { params: { ...filters, offset, limit } });
+      const data = response.data;
+
+      if (!data.success) {
+        throw new Error('No se pudieron cargar los eventos de auditoría.');
+      }
+
+      setEvents(data.events || []);
+      setTotal(data.total || 0);
+      setHasMore(Boolean(data.hasMore));
+    } catch (err: any) {
+      setError(err.message || 'No se pudieron cargar los eventos de auditoría.');
+    } finally {
+      setIsLoading(false);
     }
   };
 

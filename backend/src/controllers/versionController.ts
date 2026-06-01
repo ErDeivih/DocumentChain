@@ -11,6 +11,9 @@
 import { Request, Response } from 'express';
 import { VersionService } from '../services/versionService';
 import logger from '../utils/logger';
+import { isNonEmptyString, isValidTxHash, toPositiveInteger } from '../utils/validation';
+import { validateFile } from '../utils/fileValidation';
+import { buildAttachmentDisposition } from '../utils/httpHeaders';
 
 /**
  * Controlador de versiones de documentos.
@@ -53,6 +56,12 @@ export class VersionController {
         return;
       }
 
+      const validation = validateFile(req.file.originalname, req.file.mimetype, req.file.size);
+      if (!validation.valid) {
+        res.status(400).json({ error: validation.errors.join(', ') });
+        return;
+      }
+
       // Call service to prepare version (backend encrypts the file)
       const result = await VersionService.prepareVersion({
         documentId,
@@ -87,16 +96,15 @@ export class VersionController {
         return;
       }
 
-      const documentId = req.params.documentId as string;
       const { versionId, txHash, blockchainId } = req.body;
 
-      if (!versionId) {
+      if (!isNonEmptyString(versionId)) {
         res.status(400).json({ error: 'El ID de la versión es obligatorio' });
         return;
       }
 
-      if (!txHash) {
-        res.status(400).json({ error: 'El hash de la transacción es obligatorio' });
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
@@ -104,6 +112,7 @@ export class VersionController {
         versionId,
         txHash,
         blockchainVersionNumber: typeof blockchainId === 'number' ? blockchainId : parseInt(blockchainId as string) || 0,
+        confirmerUserId: req.user.userId,
       });
 
       logger.info('[CONFIRM] Versión confirmada', {
@@ -187,12 +196,12 @@ export class VersionController {
       const versionId = req.params.versionId as string;
       const { txHash } = req.body;
 
-      if (!txHash) {
-        res.status(400).json({ error: 'El hash de la transacción es obligatorio' });
+      if (!isValidTxHash(txHash)) {
+        res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
-      const version = await VersionService.confirmRestoreVersion(versionId, txHash);
+      const version = await VersionService.confirmRestoreVersion(versionId, txHash, req.user.userId);
 
       logger.info('[RESTORE CONFIRM] Restauración confirmada', {
         versionId,
@@ -262,9 +271,9 @@ export class VersionController {
       }
 
       const documentId = req.params.documentId as string;
-      const versionNumber = Number(req.body?.versionNumber);
+      const versionNumber = toPositiveInteger(req.body?.versionNumber);
 
-      if (!Number.isInteger(versionNumber) || versionNumber <= 0) {
+      if (!versionNumber) {
         res.status(400).json({ error: 'Número de versión inválido' });
         return;
       }
@@ -301,15 +310,15 @@ export class VersionController {
       }
 
       const documentId = req.params.documentId as string;
-      const versionNumber = Number(req.body?.versionNumber);
+      const versionNumber = toPositiveInteger(req.body?.versionNumber);
       const txHash = req.body?.txHash as string;
 
-      if (!Number.isInteger(versionNumber) || versionNumber <= 0) {
+      if (!versionNumber) {
         res.status(400).json({ error: 'Número de versión inválido' });
         return;
       }
 
-      if (!txHash || typeof txHash !== 'string') {
+      if (!isValidTxHash(txHash)) {
         res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
@@ -384,7 +393,7 @@ export class VersionController {
       const isUnencrypted = result.encryptedSymmetricKey === 'UNENCRYPTED';
 
       const filename = `${result.documentName}-v${result.versionNumber}${isUnencrypted ? '' : '.encrypted'}`;
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Disposition', buildAttachmentDisposition(filename));
       res.setHeader('X-Mime-Type', result.mimeType);
       res.setHeader('X-IPFS-CID', result.ipfsCid);
       if (!isUnencrypted) {

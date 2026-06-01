@@ -27,12 +27,14 @@ wallet --> ui: txHash
 
 ui -> api: Confirmar eliminacion
 api -> srv: Registrar TX_SUBMITTED
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + DocumentDeleted
 srv -> db: Actualizar estado transaccional
 db --> srv: OK
 srv --> api: Pendiente de sincronizacion
 api --> ui: Confirmacion registrada
 
-sc -> listener: Evento de eliminacion confirmado
+sc -> listener: Evento DocumentDeleted(docId, timestamp)
 listener -> ipfs: Unpin de CIDs asociados
 listener -> db: Marcar documento eliminado y registrar auditoria
 listener -> ui: Refrescar biblioteca

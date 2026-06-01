@@ -57,6 +57,11 @@ jest.mock('../../src/lib/encryption', () => ({
   encryptSymmetricKey: jest.fn(),
 }));
 
+jest.mock('../../src/services/blockchainReceiptService', () => ({
+  assertDocumentSharedReceipt: jest.fn().mockResolvedValue({ blockNumber: 1 }),
+  assertPermissionRevokedReceipt: jest.fn().mockResolvedValue({ blockNumber: 1 }),
+}));
+
 import prisma from '../../src/config/database';
 import { DocumentPermissionService } from '../../src/services/documentPermissionService';
 import notificationService from '../../src/services/notificationService';
@@ -215,7 +220,7 @@ describe('ShareService prepareShare', () => {
         sharerWalletId: 'wallet-1',
         decryptedSymmetricKey: 'key',
       })
-    ).rejects.toThrow('El destinatario no tiene clave pública configurada');
+    ).rejects.toThrow('Usuario no tiene clave pública configurada');
   });
 
   it('throws if recipient has no wallet', async () => {
@@ -385,6 +390,7 @@ describe('ShareService revocation flow', () => {
         metadata: {
           shareId: 'share-1',
           recipientId: 'recipient-1',
+          recipientWalletAddress: '0x1234567890abcdef1234567890abcdef12345678',
         },
       },
     ]);
@@ -392,9 +398,13 @@ describe('ShareService revocation flow', () => {
       id: 'doc-1',
       ownerId: 'owner-1',
       name: 'Contrato.pdf',
+      blockchainId: '0x' + 'a'.repeat(64),
       owner: {
         username: 'owner-user',
       },
+    });
+    mockPrisma.wallet.findFirst.mockResolvedValue({
+      walletAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
     });
 
     await ShareService.confirmRevokeShare('share-1', '0xtxhash');

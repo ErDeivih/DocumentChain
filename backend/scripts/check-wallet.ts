@@ -54,8 +54,8 @@ async function checkWallet() {
       console.log('   → NO se pueden ejecutar transacciones');
       console.log('   → Fondea la cuenta inmediatamente\n');
       
-      if (network.chainId === 80001n) {
-        console.log('💡 Para testnet Mumbai, usa el faucet:');
+      if (network.chainId === 80002n) {
+        console.log('💡 Para testnet Polygon Amoy, usa el faucet:');
         console.log('   https://faucet.polygon.technology/\n');
       } else if (network.chainId === 137n) {
         console.log('💡 Para Polygon Mainnet, compra MATIC en un exchange\n');

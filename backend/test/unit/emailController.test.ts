@@ -15,10 +15,12 @@ jest.mock('@prisma/client', () => {
       create: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
     session: {
       deleteMany: jest.fn(),
     },
+    $transaction: jest.fn((callback: any) => callback(prismaMock)),
   };
 
   return {
@@ -34,9 +36,22 @@ jest.mock('../../src/services/emailService', () => ({
   },
 }));
 
+jest.mock('../../src/config/database', () => ({
+  __esModule: true,
+  default: new (require('@prisma/client').PrismaClient)(),
+}));
+
 jest.mock('../../src/services/argon2Service', () => ({
   Argon2Service: {
     hash: jest.fn(),
+  },
+}));
+
+jest.mock('../../src/lib/crypto/KeyManager', () => ({
+  KeyManager: {
+    hashRecoveryKey: jest.fn(() => 'recovery-hash'),
+    decryptPrivateKeyWithRecovery: jest.fn(() => 'private-key'),
+    encryptPrivateKey: jest.fn(() => 'encrypted-private-key-new-password'),
   },
 }));
 
@@ -175,7 +190,7 @@ describe('EmailController', () => {
 
   it('resets the password, invalidates sessions, and sends a notification email', async () => {
     const req = createRequest({
-      body: { token: 'reset-token', newPassword: 'NuevaPass123!' },
+      body: { token: 'reset-token', newPassword: 'NuevaPass123!', recoveryKey: 'recovery-key' },
       headers: { 'user-agent': 'jest-agent' },
       socket: { remoteAddress: '10.0.0.8' },
     });
@@ -190,18 +205,24 @@ describe('EmailController', () => {
       user: {
         email: 'demo@example.com',
         username: 'demo_user',
+        recoveryKeyHash: 'recovery-hash',
+        encryptedPrivateKeyRecovery: 'encrypted-with-recovery',
       },
     });
+    prisma.passwordReset.updateMany.mockResolvedValue({ count: 1 });
     (Argon2Service.hash as jest.Mock).mockResolvedValue('argon2-hash');
 
     await EmailController.resetPassword(req, res as any);
 
     expect(prisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-1' },
-      data: { passwordHash: 'argon2-hash' },
+      data: {
+        passwordHash: 'argon2-hash',
+        encryptedPrivateKey: 'encrypted-private-key-new-password',
+      },
     });
-    expect(prisma.passwordReset.update).toHaveBeenCalledWith({
-      where: { id: 'reset-1' },
+    expect(prisma.passwordReset.updateMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({ id: 'reset-1', used: false }),
       data: expect.objectContaining({ used: true }),
     });
     expect(prisma.session.deleteMany).toHaveBeenCalledWith({

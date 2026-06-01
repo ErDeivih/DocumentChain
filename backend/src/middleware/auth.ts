@@ -1,17 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, JWTPayload } from '../config/jwt';
+import { verifyToken } from '../config/jwt';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 import logger from '../utils/logger';
-
-// Extender Express Request para incluir usuario
-declare global {
-  namespace Express {
-    interface Request {
-      user?: JWTPayload;
-    }
-  }
-}
+import { isAdmin } from './isAdmin';
 
 /**
  * Middleware para verificar token JWT y adjuntar usuario a la petición
@@ -67,12 +59,9 @@ export function requireAdmin(
     return;
   }
 
-  if (req.user.role !== 'ADMIN') {
-    res.status(403).json({ error: 'Se requiere acceso de administrador' });
-    return;
-  }
-
-  next();
+  isAdmin(req, res, next).catch(() => {
+    res.status(500).json({ error: 'Error al verificar estado de administrador' });
+  });
 }
 
 /**

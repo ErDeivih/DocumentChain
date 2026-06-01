@@ -278,7 +278,7 @@ nodemailer & -- & Envio de correos electronicos transaccionales mediante SMTP o 
 winston & -- & Registro estructurado de logs con niveles (debug, info, warn, error) y rotacion de ficheros. \\
 node-cron & -- & Ejecucion periodica del worker de sincronizacion blockchain cada cinco minutos. \\
 socket.io & -- & Emision de eventos en tiempo real a salas (rooms) organizadas por identificador de usuario. \\
-ethers & v6 & Lectura de eventos on-chain, preparacion de transacciones y verificacion de firmas EIP-712. \\
+ethers & v6 & Lectura de eventos on-chain, preparacion de transacciones y verificacion de firmas de mensajes mediante wallet. \\
 \bottomrule
 \end{tabular}
 \caption{Bibliotecas principales del backend}
@@ -511,7 +511,7 @@ Este patron desacopla la logica de negocio del backend de la interaccion directa
 
 La consistencia entre la base de datos relacional y la blockchain se mantiene mediante dos mecanismos complementarios: un listener de eventos en tiempo real y un worker de reconciliacion periodica.
 
-\textbf{Event Listener.} Al iniciarse, el backend suscribe una instancia del contrato a los eventos \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{DocumentSigned} y \texttt{PermissionChanged}. Cuando se emite un evento, el callback actualiza el estado correspondiente en PostgreSQL y emite un mensaje WebSocket a los clientes conectados.
+\textbf{Event Listener.} Al iniciarse, el backend suscribe una instancia del contrato a los eventos reales del contrato \texttt{DocumentRegistry}: \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{VersionRestored}, \texttt{DocumentSigned}, \texttt{DocumentShared}, \texttt{PermissionRevoked}, \texttt{OwnershipTransferred}, \texttt{DocumentArchived}, \texttt{DocumentDeleted} y \texttt{OperationalVersionChanged}. Cuando se emite un evento, el callback actualiza el estado correspondiente en PostgreSQL y emite un mensaje WebSocket a los clientes conectados.
 
 \textbf{Worker de sincronizacion.} Ejecutado cada cinco minutos mediante \texttt{node-cron}, este worker consulta los registros en estado \texttt{TX\_SUBMITTED} y solicita su \textit{receipt} al proveedor Ethereum. Si detecta una discrepancia (por ejemplo, una transaccion minada que no disparo el event listener por un reinicio del servidor), ejecuta una reconciliacion manual sobre el bloque afectado.
 
@@ -883,6 +883,10 @@ A continuacion se detalla el proposito de cada operacion:
 Cada operacion emite eventos que constituyen la interfaz de auditoria natural del sistema. \texttt{DocumentCreated} y \texttt{VersionCreated} registran altas y versionados; \texttt{DocumentShared} y \texttt{PermissionRevoked} reflejan cambios de permisos; \texttt{DocumentSigned} deja constancia de la firma emitida por una direccion concreta.
 
 Las restricciones de seguridad se expresan mediante modificadores y controles internos. \texttt{nonReentrant} reduce la superficie de ataques por reentrada; \texttt{notDeleted} bloquea acciones incompatibles con el borrado logico; y \texttt{notArchived} impide modificar el estado de documentos archivados. El contrato conserva ademas salvaguardas defensivas adicionales a nivel interno, pero no se documentan como funcionalidades visibles del sistema final.
+
+\subsection{Verificacion funcional del contrato inteligente}
+
+Se implemento una bateria de 102 tests funcionales sobre el contrato \texttt{DocumentRegistry} que verifican la correcta emision de los diez eventos definidos, el control de acceso basado en roles mediante \texttt{AccessControl} de OpenZeppelin, la proteccion contra reentrancia (\texttt{ReentrancyGuard}), y los casos limite aritmeticos (direccion cero, valores maximos de \texttt{uint256}). Los tests cubren el despliegue, la creacion de documentos, la gestion completa de versiones (crear, restaurar y establecer version operativa), la firma digital, la comparticion y revocacion de permisos, la transferencia de propiedad, el archivado y borrado de documentos, y las funciones de solo lectura que recuperan el estado on-chain. Esta bateria constituye una verificacion funcional exhaustiva del componente on-chain del sistema y se ejecuta mediante el entorno Hardhat con una red local de pruebas.
 
 \section{Patron prepare/confirm y sincronizacion}
 

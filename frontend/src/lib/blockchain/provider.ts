@@ -81,7 +81,7 @@ export interface ProviderState {
   signer: JsonRpcSigner | null;
 }
 
-type EventCallback<T = unknown> = (data: T) => void;
+export type EventCallback<T = unknown> = (data: T) => void;
 
 /**
  * Clase para gestionar la conexión y operaciones con wallets blockchain.
@@ -98,6 +98,9 @@ export class BlockchainProvider {
   private signer: JsonRpcSigner | null = null;
   private currentAddress: string | null = null;
   private currentChainId: number | null = null;
+  private walletEventProvider: {
+    removeListener?: (event: string, callback: EventCallback) => void;
+  } | null = null;
 
   private eventListeners: Map<string, Set<EventCallback>> = new Map();
 
@@ -458,8 +461,16 @@ export class BlockchainProvider {
   }): void {
     if (!provider.on) return;
 
+    this.removeWalletEvents();
+
     // Cambio de cuenta
-    provider.on('accountsChanged', (accounts: unknown) => {
+    provider.on('accountsChanged', this.handleAccountsChanged);
+    provider.on('chainChanged', this.handleChainChanged);
+    provider.on('disconnect', this.handleProviderDisconnect);
+    this.walletEventProvider = provider;
+  }
+
+  private handleAccountsChanged = (accounts: unknown) => {
       const accountList = accounts as string[];
       if (accountList.length === 0) {
         // Usuario desconectado
@@ -468,26 +479,35 @@ export class BlockchainProvider {
         this.currentAddress = accountList[0];
         this.emit('accountsChanged', accountList);
       }
-    });
+    };
 
-    // Cambio de cadena
-    provider.on('chainChanged', (chainId: unknown) => {
+  private handleChainChanged = (chainId: unknown) => {
       const newChainId = parseInt(chainId as string, 16);
       this.currentChainId = newChainId;
       this.emit('chainChanged', newChainId);
 
       // Recargar proveedor
-      this.provider = new BrowserProvider(provider as ethers.Eip1193Provider);
-      this.provider.getSigner().then(s => {
+      if (this.walletEventProvider) {
+        this.provider = new BrowserProvider(this.walletEventProvider as ethers.Eip1193Provider);
+      }
+      this.provider?.getSigner().then(s => {
         this.signer = s;
       });
-    });
+    };
 
-    // Desconexión
-    provider.on('disconnect', () => {
+  private handleProviderDisconnect = () => {
       this.disconnect();
-      this.emit('disconnect', {});
-    });
+    };
+
+  private removeWalletEvents(): void {
+    if (!this.walletEventProvider?.removeListener) {
+      return;
+    }
+
+    this.walletEventProvider.removeListener('accountsChanged', this.handleAccountsChanged);
+    this.walletEventProvider.removeListener('chainChanged', this.handleChainChanged);
+    this.walletEventProvider.removeListener('disconnect', this.handleProviderDisconnect);
+    this.walletEventProvider = null;
   }
 
   /**
@@ -497,8 +517,13 @@ export class BlockchainProvider {
     if (!this.currentChainId) return;
 
     if (!isChainSupported(this.currentChainId)) {
-      console.warn(`Chain ID ${this.currentChainId} is not supported. Expected: ${CHAIN_CONFIG.chainId}`);
       this.emit('chainUnsupported', this.currentChainId);
+      throw new Error(`Red blockchain no soportada. Cambia a ${CHAIN_CONFIG.name}.`);
+    }
+
+    if (!this.isCorrectChain()) {
+      this.emit('chainUnsupported', this.currentChainId);
+      throw new Error(`Red blockchain incorrecta. Cambia a ${CHAIN_CONFIG.name}.`);
     }
   }
 
@@ -583,6 +608,7 @@ export class BlockchainProvider {
     this.signer = null;
     this.currentAddress = null;
     this.currentChainId = null;
+    this.removeWalletEvents();
     this.emit('disconnect', {});
   }
 

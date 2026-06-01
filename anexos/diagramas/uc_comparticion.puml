@@ -21,10 +21,4 @@ USER --> UC32
 
 SC --> UC30
 SC --> UC31
-
-note right of UC30
-  Los ajustes de permisos se integran
-  como pasos dentro del ciclo de
-  comparticion y revocacion.
-end note
 @enduml

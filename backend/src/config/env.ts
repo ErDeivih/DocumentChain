@@ -1,24 +1,10 @@
 import { cleanEnv, str, port, url, num } from 'envalid';
-
-function stripWrappedQuotes(value: string): string {
-  let normalized = value.trim();
-
-  // Some Docker/env_file combinations can pass values wrapped once or more.
-  while (
-    normalized.length >= 2 &&
-    ((normalized.startsWith('"') && normalized.endsWith('"')) ||
-      (normalized.startsWith("'") && normalized.endsWith("'")))
-  ) {
-    normalized = normalized.slice(1, -1).trim();
-  }
-
-  return normalized;
-}
+import { normalizeEnvValue } from '../utils/env';
 
 const normalizedProcessEnv = Object.fromEntries(
   Object.entries(process.env).map(([key, value]) => [
     key,
-    typeof value === 'string' ? stripWrappedQuotes(value) : value,
+    typeof value === 'string' ? normalizeEnvValue(value) : value,
   ]),
 ) as NodeJS.ProcessEnv;
 

@@ -8,34 +8,37 @@ node "Cliente" as cliente {
 }
 
 node "Servidor de aplicacion" as backend_node {
+    component "Frontend Nginx" as web
     component "API backend" as backend
     component "Sincronizador blockchain" as listeners
     component "Canal tiempo real" as ws
+    component "Nodo Hardhat local" as hardhat
+    component "Postfix SMTP" as postfix
 }
 
 node "Capa de persistencia" as db_node {
     database "Base de datos" as db
 }
 
-node "Almacenamiento distribuido" as ipfs_node {
-    component "Nodo Kubo autoalojado" as ipfs
+cloud "Proveedor IPFS-compatible" as ipfs_node {
+    component "Pinata por defecto" as pinata
+    component "Kubo opcional" as kubo
 }
 
 cloud "Red blockchain" as ethereum {
     component "DocumentRegistry" as contract
 }
 
-cloud "Proveedor de correo" as email_cloud {
-    component "Servicio SMTP" as email
-}
-
-frontend --> backend : HTTPS
+frontend --> web : HTTPS
+web --> backend : /api
 frontend --> wallet : firma de operaciones
-wallet --> contract : JSON-RPC
+wallet --> hardhat : JSON-RPC local
+hardhat --> contract
 backend --> db
-backend --> ipfs
-backend --> email
-listeners --> contract
+backend --> pinata
+backend ..> kubo : si IPFS_PROVIDER=self-hosted
+backend --> postfix
+listeners --> hardhat
 listeners --> db
 ws --> frontend : notificaciones
 

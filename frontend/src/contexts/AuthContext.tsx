@@ -46,6 +46,16 @@ function enrichUser(user: User): User {
   };
 }
 
+function toPersistedUser(user: User): User {
+  const persistedUser: User = {
+    ...user,
+    encryptedPrivateKey: undefined,
+    keySalt: undefined,
+  };
+
+  return persistedUser;
+}
+
 /**
  * Proveedor de autenticación tradicional (usuario/contraseña).
  *
@@ -81,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const persistAuthenticatedUser = (nextUser: User) => {
     const enrichedUser = enrichUser(nextUser);
     setUser(enrichedUser);
-    localStorage.setItem('user', JSON.stringify(enrichedUser));
+    localStorage.setItem('user', JSON.stringify(toPersistedUser(enrichedUser)));
     return enrichedUser;
   };
 
@@ -237,7 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         : { ...currentUser, ...patch };
 
       const enrichedUser = enrichUser(nextUser);
-      localStorage.setItem('user', JSON.stringify(enrichedUser));
+      localStorage.setItem('user', JSON.stringify(toPersistedUser(enrichedUser)));
       return enrichedUser;
     });
   };

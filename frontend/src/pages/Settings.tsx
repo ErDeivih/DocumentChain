@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '../components/ui/Card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/Tabs';
@@ -45,6 +45,7 @@ export const Settings: React.FC = () => {
     fileShared: true,
     newVersion: true,
   });
+  const notificationPrefsRef = useRef(notificationPrefs);
 
   useEffect(() => {
     if (user?.fullName) {
@@ -61,12 +62,14 @@ export const Settings: React.FC = () => {
         const response = await notificationsApi.getPreferences();
         const prefs = response.data;
         const typePrefs = prefs.typePreferences || {};
-        setNotificationPrefs({
+        const loadedPrefs = {
           emailEnabled: Boolean(prefs.emailEnabled),
           pushEnabled: Boolean(prefs.pushEnabled),
           fileShared: typePrefs.FILE_SHARED !== false,
           newVersion: typePrefs.NEW_VERSION !== false,
-        });
+        };
+        notificationPrefsRef.current = loadedPrefs;
+        setNotificationPrefs(loadedPrefs);
       } catch {
         // Keep defaults when preferences endpoint is unavailable.
       }
@@ -153,7 +156,9 @@ export const Settings: React.FC = () => {
   };
 
   const updateNotificationPreferences = async (updates: Partial<typeof notificationPrefs>) => {
-    const next = { ...notificationPrefs, ...updates };
+    const previous = notificationPrefsRef.current;
+    const next = { ...notificationPrefsRef.current, ...updates };
+    notificationPrefsRef.current = next;
     setNotificationPrefs(next);
 
     try {
@@ -168,6 +173,10 @@ export const Settings: React.FC = () => {
       setSuccessMessage('Preferencias de notificación actualizadas.');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: unknown) {
+      if (notificationPrefsRef.current === next) {
+        notificationPrefsRef.current = previous;
+        setNotificationPrefs(previous);
+      }
       setShowError(getErrorMessage(error));
       setTimeout(() => setShowError(null), 5000);
     }

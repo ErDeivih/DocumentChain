@@ -20,10 +20,10 @@ state FAILED {
     FAILED : La operacion no se completa
 }
 
-PREPARING --> TX_SUBMITTED : La wallet del usuario firma y devuelve txHash
+PREPARING --> TX_SUBMITTED : La wallet firma y el backend valida receipt + evento esperado
 PREPARING --> FAILED : El usuario cancela o la preparacion falla
-TX_SUBMITTED --> SYNCED : El sincronizador confirma el evento on-chain
-TX_SUBMITTED --> FAILED : La transaccion revierte o expira
+TX_SUBMITTED --> SYNCED : El listener reconcilia estado BD-blockchain
+TX_SUBMITTED --> FAILED : La transaccion revierte, expira o no contiene el evento esperado
 FAILED --> PREPARING : Se reintenta la operacion
 FAILED --> [*] : Se cancela definitivamente
 SYNCED --> [*]

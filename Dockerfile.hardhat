@@ -24,7 +24,7 @@ RUN npm ci --no-audit --prefer-offline
 COPY smart-contracts/ .
 
 # Pre-compilar contratos
-RUN npm run compile || true
+RUN npm run compile
 
 # Expose puertos
 # 8545: JSON-RPC HTTP

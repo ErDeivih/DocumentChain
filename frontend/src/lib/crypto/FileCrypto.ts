@@ -164,11 +164,15 @@ export class FileCrypto {
         })()
       : encryptedFile;
 
+    if (!iv) {
+      throw new Error('No se puede descifrar el archivo: falta el vector de inicialización');
+    }
+
     // Descifrar archivo
     const decryptedData = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
-        iv: iv ? base64ToUint8Array(iv) as BufferSource : new Uint8Array(12) as BufferSource,
+        iv: base64ToUint8Array(iv) as BufferSource,
         tagLength: this.TAG_LENGTH,
       },
       symmetricKey,

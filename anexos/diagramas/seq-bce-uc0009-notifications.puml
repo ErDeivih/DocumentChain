@@ -1,0 +1,24 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0009: Gestionar Notificaciones (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Perfil" as BU
+control "Controlador Usuario" as CO
+entity "Notificacion" as EN
+
+Actor -> BU : Accede al centro de notificaciones
+BU -> CO : ObtenerNotificaciones(userId)
+CO -> EN : Recupera notificaciones del usuario
+EN --> CO : Lista de notificaciones
+CO --> BU : Notificaciones
+BU --> Actor : Muestra lista de notificaciones
+Actor -> BU : Marca notificacion como leida
+BU -> CO : MarcarLeida(notifId)
+CO -> EN : Actualiza estado de notificacion
+EN --> CO : Confirmacion
+CO --> BU : Notificacion actualizada
+BU --> Actor : Refleja cambio visual
+
+@enduml

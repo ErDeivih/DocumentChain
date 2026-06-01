@@ -81,23 +81,23 @@ describe("DocumentRegistry - Complete Test Suite", function () {
     return fixture;
   }
 
+  async function signDocumentPayload(registry, signer, docId, versionNumber, message) {
+    const payloadHash = await registry.getSignaturePayloadHash(docId, versionNumber, message);
+    return signer.signMessage(ethers.getBytes(payloadHash));
+  }
+
   // ============================================
   // 1. DEPLOYMENT & INITIALIZATION (3 tests)
   // ============================================
 
   describe("1. Deployment & Initialization", function () {
-    it("1.1 Should deploy with correct owner", async function () {
-      const { registry, owner } = await loadFixture(deployDocumentRegistryFixture);
-      expect(await registry.owner()).to.equal(owner.address);
-    });
-
-    it("1.2 Should grant DEFAULT_ADMIN_ROLE to deployer", async function () {
+    it("1.1 Should deploy and grant DEFAULT_ADMIN_ROLE to deployer", async function () {
       const { registry, owner } = await loadFixture(deployDocumentRegistryFixture);
       const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
       expect(await registry.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.true;
     });
 
-    it("1.3 Should initialize with zero documents", async function () {
+    it("1.2 Should initialize with zero documents", async function () {
       const { registry } = await loadFixture(deployDocumentRegistryFixture);
       expect(await registry.totalDocuments()).to.equal(0);
     });
@@ -369,9 +369,9 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       
       await registry.connect(owner).shareDocument(docId, user1.address, 1); // VIEWER
       
-      const signature = ethers.hexlify(ethers.randomBytes(65));
       const message = "I approve this document";
       const comment = "Looks good";
+      const signature = await signDocumentPayload(registry, user1, docId, 1, message);
       
       await expect(registry.connect(user1).signDocument(docId, 1, signature, message, comment))
         .to.emit(registry, "DocumentSigned");
@@ -382,9 +382,9 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       
       await registry.connect(owner).shareDocument(docId, user1.address, 1);
       
-      const signature = ethers.hexlify(ethers.randomBytes(65));
       const message = "I approve this document";
       const comment = "Looks good";
+      const signature = await signDocumentPayload(registry, user1, docId, 1, message);
       
       await registry.connect(user1).signDocument(docId, 1, signature, message, comment);
       
@@ -402,8 +402,10 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       await registry.connect(owner).shareDocument(docId, user1.address, 1);
       await registry.connect(owner).shareDocument(docId, user2.address, 1);
       
-      await registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg1", "");
-      await registry.connect(user2).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg2", "");
+      const sig1 = await signDocumentPayload(registry, user1, docId, 1, "msg1");
+      const sig2 = await signDocumentPayload(registry, user2, docId, 1, "msg2");
+      await registry.connect(user1).signDocument(docId, 1, sig1, "msg1", "");
+      await registry.connect(user2).signDocument(docId, 1, sig2, "msg2", "");
       
       const signatures = await registry.getVersionSignatures(docId, 1);
       expect(signatures.length).to.equal(2);
@@ -415,8 +417,10 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       await registry.connect(owner).shareDocument(docId, user1.address, 1);
       await registry.connect(owner).createVersion(docId, "QmV2", ethers.id("key2"));
       
-      await registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg1", "");
-      await registry.connect(user1).signDocument(docId, 2, ethers.hexlify(ethers.randomBytes(65)), "msg2", "");
+      const sig1 = await signDocumentPayload(registry, user1, docId, 1, "msg1");
+      const sig2 = await signDocumentPayload(registry, user1, docId, 2, "msg2");
+      await registry.connect(user1).signDocument(docId, 1, sig1, "msg1", "");
+      await registry.connect(user1).signDocument(docId, 2, sig2, "msg2", "");
       
       const sigs1 = await registry.getVersionSignatures(docId, 1);
       const sigs2 = await registry.getVersionSignatures(docId, 2);
@@ -428,15 +432,16 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       const { registry, user1, docId } = await loadFixture(deployWithDocumentFixture);
       
       await expect(
-        registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "")
+        registry.connect(user1).signDocument(docId, 1, "0x1234", "msg", "")
       ).to.be.revertedWith("No read permission");
     });
 
     it("4.6 Should revert if version doesn't exist", async function () {
       const { registry, owner, docId } = await loadFixture(deployWithDocumentFixture);
       
+      const signature = await signDocumentPayload(registry, owner, docId, 99, "msg");
       await expect(
-        registry.connect(owner).signDocument(docId, 99, ethers.hexlify(ethers.randomBytes(65)), "msg", "")
+        registry.connect(owner).signDocument(docId, 99, signature, "msg", "")
       ).to.be.revertedWith("Invalid version");
     });
 
@@ -444,10 +449,11 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       const { registry, owner, user1, docId } = await loadFixture(deployWithDocumentFixture);
       
       await registry.connect(owner).shareDocument(docId, user1.address, 1);
-      await registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "");
+      const signature = await signDocumentPayload(registry, user1, docId, 1, "msg");
+      await registry.connect(user1).signDocument(docId, 1, signature, "msg", "");
       
       await expect(
-        registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "")
+        registry.connect(user1).signDocument(docId, 1, signature, "msg", "")
       ).to.be.revertedWith("Already signed");
     });
 
@@ -464,13 +470,50 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       
       await registry.connect(owner).shareDocument(docId, user1.address, 1);
       await registry.connect(owner).setArchiveStatus(docId, true);
+      const signature = await signDocumentPayload(registry, user1, docId, 1, "msg");
       
       await expect(
-        registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "")
+        registry.connect(user1).signDocument(docId, 1, signature, "msg", "")
       ).to.be.revertedWith("Document is archived");
     });
 
-    // Test removed: Contract does not validate message field
+    it("4.10 Should reject signature from another wallet", async function () {
+      const { registry, owner, user1, user2, docId } = await loadFixture(deployWithDocumentFixture);
+
+      await registry.connect(owner).shareDocument(docId, user1.address, 1);
+      const signature = await signDocumentPayload(registry, user2, docId, 1, "msg");
+
+      await expect(
+        registry.connect(user1).signDocument(docId, 1, signature, "msg", "")
+      ).to.be.revertedWith("Signature does not match signer");
+    });
+
+    it("4.11 Should reject replay on another document", async function () {
+      const { registry, owner, user1, docId, encryptedKeyHash } = await loadFixture(deployWithDocumentFixture);
+      const otherDocId = ethers.id("other-document");
+
+      await registry.connect(owner).shareDocument(docId, user1.address, 1);
+      await registry.connect(owner).createDocument(otherDocId, "QmOther", encryptedKeyHash);
+      await registry.connect(owner).shareDocument(otherDocId, user1.address, 1);
+
+      const signature = await signDocumentPayload(registry, user1, docId, 1, "msg");
+
+      await expect(
+        registry.connect(user1).signDocument(otherDocId, 1, signature, "msg", "")
+      ).to.be.revertedWith("Signature does not match signer");
+    });
+
+    it("4.12 Should reject replay on another version", async function () {
+      const { registry, owner, user1, docId } = await loadFixture(deployWithDocumentFixture);
+
+      await registry.connect(owner).shareDocument(docId, user1.address, 1);
+      await registry.connect(owner).createVersion(docId, "QmV2", ethers.id("key2"));
+      const signature = await signDocumentPayload(registry, user1, docId, 1, "msg");
+
+      await expect(
+        registry.connect(user1).signDocument(docId, 2, signature, "msg", "")
+      ).to.be.revertedWith("Signature does not match signer");
+    });
   });
 
   // ============================================
@@ -830,7 +873,6 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       ).to.be.revertedWith("Already deleted");
     });
   });
-  });
 
   // ============================================
   // 9. ROLE MANAGEMENT (5 tests)
@@ -905,7 +947,8 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       const { registry, owner, user1, docId } = await loadFixture(deployWithDocumentFixture);
       
       await registry.connect(owner).shareDocument(docId, user1.address, 1);
-      await registry.connect(user1).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "");
+      const signature = await signDocumentPayload(registry, user1, docId, 1, "msg");
+      await registry.connect(user1).signDocument(docId, 1, signature, "msg", "");
       
       const signatures = await registry.getVersionSignatures(docId, 1);
       expect(signatures.length).to.equal(1);
@@ -1020,7 +1063,8 @@ describe("DocumentRegistry - Complete Test Suite", function () {
       for (const user of users) {
         if (user.address !== owner.address) {
           await registry.connect(owner).shareDocument(docId, user.address, 1);
-          await registry.connect(user).signDocument(docId, 1, ethers.hexlify(ethers.randomBytes(65)), "msg", "");
+          const signature = await signDocumentPayload(registry, user, docId, 1, "msg");
+          await registry.connect(user).signDocument(docId, 1, signature, "msg", "");
         }
       }
       
@@ -1084,7 +1128,13 @@ describe("DocumentRegistry - Complete Test Suite", function () {
   // - createVersion: ~200k gas (within original estimate)
   // - shareDocument: ~171k gas
   // - signDocument: ~241k gas
+  // ============================================
+  // 12. LEGACY — features removed from contract
+  // suspendMyself, unsuspendMyself, isUserSuspended, pause(), OPERATOR_ROLE
+  // These tests were removed from the active suite.
+  // This describe block preserves file structural integrity.
+  // ============================================
+  describe("12: Removed Features (placeholder)", function () {
+    it("formerly tested suspended user operations", function () {});
+  });
 });
-
-// ============================================
-// 12. USER SUSPENSION (Self-signed only)

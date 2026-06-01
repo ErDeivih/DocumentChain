@@ -26,6 +26,7 @@ function resolveRateLimitMax(envVarName: string, productionDefault: number, nonP
 
 const uploadRateLimitMax = resolveRateLimitMax('UPLOAD_RATE_LIMIT_MAX', 50, 500);
 const generalRateLimitMax = resolveRateLimitMax('GENERAL_RATE_LIMIT_MAX', 100, 2000);
+const authRateLimitMax = resolveRateLimitMax('AUTH_RATE_LIMIT_MAX', 10, 100);
 const prepareRateLimitMax = resolveRateLimitMax('PREPARE_RATE_LIMIT_MAX', 10, 100);
 const confirmRateLimitMax = resolveRateLimitMax('CONFIRM_RATE_LIMIT_MAX', 15, 150);
 
@@ -35,7 +36,7 @@ const confirmRateLimitMax = resolveRateLimitMax('CONFIRM_RATE_LIMIT_MAX', 15, 15
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 1000, // 1000 intentos por ventana (testing)
+  max: authRateLimitMax,
   message: {
     error: 'Demasiados intentos de autenticación. Por favor, inténtelo de nuevo en 15 minutos.'
   },

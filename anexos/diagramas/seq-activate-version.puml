@@ -26,12 +26,14 @@ wallet --> ui: txHash
 
 ui -> versionApi: Confirmar cambio
 versionApi -> srv: Registrar TX_SUBMITTED
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + OperationalVersionChanged
 srv -> db: Actualizar estado transaccional
 db --> srv: OK
 srv --> versionApi: Pendiente de sincronizacion
 versionApi --> ui: Confirmacion registrada
 
-sc -> listener: Evento de version operativa cambiada
+sc -> listener: Evento OperationalVersionChanged(docId, versionNumber, timestamp)
 listener -> db: Marcar version operativa y SYNCED
 listener -> ui: Refrescar historial de versiones
 ui --> user: La version queda marcada como operativa

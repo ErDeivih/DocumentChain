@@ -1,0 +1,32 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0040: Verificar Autenticidad de Documento (Analisis BCE)
+
+actor "Usuario no logueado" as Actor
+boundary "Interfaz Auditoria" as BF
+control "Controlador Auditoria" as CV
+entity "Documento" as ED
+entity "EventoAuditoria" as EE
+
+
+Actor -> BF : 1. Introduce hash o identificador de transaccion del documento
+BF -> CV : 2. Peticion de verificacion
+
+alt Verificacion por hash de contenido
+  CV -> ED : 3a. Busca documento por hash
+  ED --> CV : documento encontrado
+else Verificacion por hash de transaccion
+  CV -> EE : 3b. Busca evento asociado
+  EE --> CV : evento encontrado
+end
+
+CV -> CV : 4. Verifica integridad
+note right : Control contrasta hash del contenido proporcionado con la evidencia registrada
+
+CV --> BF : 5. Resultado de verificacion
+BF --> Actor : 6. Muestra autenticidad (valido/no encontrado/invalido)
+
+@enduml
+
+

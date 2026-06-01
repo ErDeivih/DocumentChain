@@ -216,7 +216,7 @@ La especificacion se organiza en tres bloques: requisitos de informacion, requis
 
 \subsection*{Criterio de consolidación funcional del catálogo UC}
 
-El catalogo funcional del proyecto se ha fijado en \textbf{39 casos de uso principales} (Tabla~\ref{tab:consolidacion-uc}). Durante el desarrollo se observo que muchas operaciones eran realmente pasos de otras mas grandes, asi que en vez de mantenerlas como casos de uso independientes se decidio agruparlas dentro de las que ya habia. La funcionalidad no se ha perdido: simplemente se ha reorganizado para que el catalogo sea mas manejable.
+El catalogo funcional del proyecto se ha fijado en \textbf{43 casos de uso principales} (Tabla~\ref{tab:consolidacion-uc}). Durante el desarrollo se observo que muchas operaciones eran realmente pasos de otras mas grandes, asi que en vez de mantenerlas como casos de uso independientes se decidio agruparlas dentro de las que ya habia. La funcionalidad no se ha perdido: simplemente se ha reorganizado para que el catalogo sea mas manejable.
 
 Por ejemplo, cosas como editar los metadatos de un documento o moverlo entre carpetas se consideran ahora parte de los casos de uso de Ver Detalle y Listar Documentos. Algunas operaciones de administracion tambien se han integrado en los casos de uso de gestion de usuarios y roles. La tabla de abajo muestra como ha quedado esta reorganizacion.
 
@@ -238,7 +238,7 @@ Por ejemplo, cosas como editar los metadatos de un documento o moverlo entre car
     Operaciones administrativas & Operaciones administrativas especializadas sobre usuarios y estado global del sistema & UC-0035 Ver Estadísticas Globales, UC-0038 Listar Usuarios y UC-0039 Gestionar Roles \\
     \hline
     \end{tabular}
-    \caption{Consolidación del catálogo funcional en 39 casos de uso principales}
+    \caption{Consolidación del catálogo funcional en 43 casos de uso principales}
     \label{tab:consolidacion-uc}
 \end{table}
 
@@ -1865,7 +1865,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \caption{Especificación del caso de uso UC-0011}
 \end{longtable}
 
-\ucsubsubsection{UC-0012: Reenviar Verificaci\'{o}n de Email}
+\ucsubsubsection{UC-0014: Reenviar Verificaci\'{o}n de Email}
 
 \begin{table}[H]
 \centering
@@ -1898,28 +1898,28 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \textbf{Excepciones} & Email ya verificado (200 con mensaje informativo), usuario no encontrado (200 con exito para no revelar existencia), email invalido (400). \\
 \hline
 \end{tabular}
-\caption{Especificacion del caso de uso UC-0012}
+\caption{Especificacion del caso de uso UC-0014}
 \end{table}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0012-resend-verification.png}
+    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0014-resend-verification.png}
     \caption{Diagrama de secuencia de analisis BCE -- UC-0012: Reenviar Verificacion de Email}
-    \label{fig:seq-bce-uc0012-resend}
+    \label{fig:seq-bce-uc0014-resend}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\textwidth]{diagramas/seq-resend-verification.png}
-    \caption{Diagrama de secuencia de diseno -- UC-0012: Reenviar Verificacion de Email}
-    \label{fig:seq-uc0012-resend}
+    \caption{Diagrama de secuencia de diseno -- UC-0014: Reenviar Verificacion de Email}
+    \label{fig:seq-uc0014-resend}
 \end{figure}
 
-\ucsubsubsection{UC-0013: Subir Documento}
+\ucsubsubsection{UC-0015: Subir Documento}
 
 \begin{longtable}{|p{4cm}|p{10cm}|}
 \hline
-\textbf{UC-0013} & Subir Documento \\
+\textbf{UC-0015} & Subir Documento \\
 \hline
 \textbf{Versión} & 1.0 \\
 \hline
@@ -3408,7 +3408,7 @@ Las matrices de rastreabilidad establecen relaciones entre los diferentes tipos 
 
 \subsection{Matriz UC-UC}
 
-La matriz UC-UC agrupa los 39 casos de uso principales en siete paquetes funcionales y muestra las dependencias de ejecución entre ellos. Una X indica que el paquete de la fila requiere la funcionalidad del paquete de la columna para su correcto funcionamiento.
+La matriz UC-UC agrupa los 43 casos de uso principales en siete paquetes funcionales y muestra las dependencias de ejecución entre ellos. Una X indica que el paquete de la fila requiere la funcionalidad del paquete de la columna para su correcto funcionamiento.
 
 Las operaciones de organización documental y de notificaciones se consideran en esta versión subflujos transversales integrados principalmente en los paquetes de documentos, compartición y auditoría, por lo que no se representan como paquetes independientes dentro de la matriz.
 
@@ -3568,67 +3568,67 @@ UC-0007 Renombrar Wallet & seq-bce-uc0007-rename-wallet.png & seq-label-wallet.p
 \hline
 UC-0008 Gestionar Perfil y Notificaciones & seq-bce-uc0008-profile.png & seq-profile.png \\
 \hline
-UC-0009 Eliminar Cuenta & seq-bce-uc0009-delete-account.png & seq-bce-uc0009-delete-account.png \\
+UC-0009 Eliminar Cuenta & seq-bce-uc0010-delete-account.png & seq-bce-uc0010-delete-account.png \\
 \hline
-UC-0010 Cambiar Contrasena & seq-bce-uc0010-change-password.png & seq-change-password.png \\
+UC-0010 Cambiar Contrasena & seq-bce-uc0011-change-password.png & seq-change-password.png \\
 \hline
-UC-0011 Verificar Email & seq-bce-uc0011-verify-email-single.png & seq-verify-email.png \\
+UC-0011 Verificar Email & seq-bce-uc0013-verify-email.png & seq-verify-email.png \\
 \hline
-UC-0012 Reenviar Verificacion de Email & seq-bce-uc0012-resend-verification.png & seq-resend-verification.png \\
+UC-0012 Reenviar Verificacion de Email & seq-bce-uc0014-resend-verification.png & seq-resend-verification.png \\
 \hline
-UC-0013 Subir Documento & seq-bce-uc0013-upload.png & seq-upload.png \\
+UC-0013 Subir Documento & seq-bce-uc0015-upload.png & seq-upload.png \\
 \hline
-UC-0014 Listar Documentos & seq-bce-uc0014-list.png & seq-list-documents.png \\
+UC-0014 Listar Documentos & seq-bce-uc0016-list.png & seq-list-documents.png \\
 \hline
-UC-0015 Ver Detalle de Documento & seq-bce-uc0015-detail.png & seq-doc-detail.png \\
+UC-0015 Ver Detalle de Documento & seq-bce-uc0017-detail.png & seq-doc-detail.png \\
 \hline
-UC-0016 Descargar Documento & seq-bce-uc0016-download.png & seq-download.png \\
+UC-0016 Descargar Documento & seq-bce-uc0018-download.png & seq-download.png \\
 \hline
-UC-0017 Archivar Documento & seq-bce-uc0017-archive.png & seq-archive.png \\
+UC-0017 Archivar Documento & seq-bce-uc0019-archive.png & seq-archive.png \\
 \hline
-UC-0018 Desarchivar Documento & seq-bce-uc0018-unarchive.png & seq-unarchive.png \\
+UC-0018 Desarchivar Documento & seq-bce-uc0020-unarchive.png & seq-unarchive.png \\
 \hline
-UC-0019 Eliminar Documento & seq-bce-uc0019-delete.png & seq-delete.png \\
+UC-0019 Eliminar Documento & seq-bce-uc0021-delete.png & seq-delete.png \\
 \hline
-UC-0020 Transferir Documento & seq-bce-uc0020-transfer.png & seq-transfer.png \\
+UC-0020 Transferir Documento & seq-bce-uc0022-transfer.png & seq-transfer.png \\
 \hline
-UC-0021 Buscar Documentos & seq-bce-uc0021-search.png & seq-search.png \\
+UC-0021 Buscar Documentos & seq-bce-uc0023-search.png & seq-search.png \\
 \hline
-UC-0022 Crear Nueva Version & seq-bce-uc0022-version.png & seq-version.png \\
+UC-0022 Crear Nueva Version & seq-bce-uc0026-version.png & seq-version.png \\
 \hline
-UC-0023 Listar Versiones & seq-bce-uc0023-list-versions.png & seq-list-versions.png \\
+UC-0023 Listar Versiones & seq-bce-uc0027-list-versions.png & seq-list-versions.png \\
 \hline
-UC-0024 Establecer Version Operativa & seq-bce-uc0024-operational.png & seq-activate-version.png \\
+UC-0024 Establecer Version Operativa & seq-bce-uc0028-operational.png & seq-activate-version.png \\
 \hline
-UC-0025 Restaurar Version Anterior & seq-bce-uc0025-restore.png & seq-restore-version.png \\
+UC-0025 Restaurar Version Anterior & seq-bce-uc0029-restore.png & seq-restore-version.png \\
 \hline
-UC-0026 Descargar Version Especifica & seq-bce-uc0026-download-version.png & seq-download-version.png \\
+UC-0026 Descargar Version Especifica & seq-bce-uc0030-download-version.png & seq-download-version.png \\
 \hline
-UC-0027 Firmar Documento & seq-bce-uc0027-sign.png & seq-sign.png \\
+UC-0027 Firmar Documento & seq-bce-uc0031-sign.png & seq-sign.png \\
 \hline
-UC-0028 Ver Firmas de un Documento & seq-bce-uc0028-view-signatures.png & seq-view-signatures.png \\
+UC-0028 Ver Firmas de un Documento & seq-bce-uc0032-view-signatures.png & seq-view-signatures.png \\
 \hline
-UC-0029 Verificar Firma del Usuario & seq-bce-uc0029-verify-signature.png & seq-verify-signature.png \\
+UC-0029 Verificar Firma del Usuario & seq-bce-uc0033-verify-signature.png & seq-verify-signature.png \\
 \hline
-UC-0030 Compartir Documento & seq-bce-uc0030-share.png & seq-share.png \\
+UC-0030 Compartir Documento & seq-bce-uc0034-share.png & seq-share.png \\
 \hline
-UC-0031 Revocar Acceso a Documento & seq-bce-uc0031-revoke.png & seq-revoke-access.png \\
+UC-0031 Revocar Acceso a Documento & seq-bce-uc0035-revoke.png & seq-revoke-access.png \\
 \hline
-UC-0032 Ver Compartidos Conmigo & seq-bce-uc0032-shared-with-me.png & seq-shared-documents.png \\
+UC-0032 Ver Compartidos Conmigo & seq-bce-uc0036-shared-with-me.png & seq-shared-documents.png \\
 \hline
-UC-0033 Ver Timeline de Documento & seq-bce-uc0033-timeline.png & seq-timeline.png \\
+UC-0033 Ver Timeline de Documento & seq-bce-uc0037-timeline.png & seq-timeline.png \\
 \hline
-UC-0034 Ver Estadisticas Personales & seq-bce-uc0034-stats.png & seq-user-stats.png \\
+UC-0034 Ver Estadisticas Personales & seq-bce-uc0038-stats.png & seq-user-stats.png \\
 \hline
-UC-0035 Ver Estadisticas Globales & seq-bce-uc0035-global-stats.png & seq-global-stats.png \\
+UC-0035 Ver Estadisticas Globales & seq-bce-uc0039-global-stats.png & seq-global-stats.png \\
 \hline
-UC-0036 Verificar Autenticidad & seq-bce-uc0036-verify-authenticity.png & seq-verify-authenticity.png \\
+UC-0036 Verificar Autenticidad & seq-bce-uc0040-verify-authenticity.png & seq-verify-authenticity.png \\
 \hline
-UC-0037 Auditoria Blockchain & seq-bce-uc0037-audit.png & seq-blockchain-audit.png \\
+UC-0037 Auditoria Blockchain & seq-bce-uc0041-audit.png & seq-blockchain-audit.png \\
 \hline
-UC-0038 Listar Usuarios & seq-bce-uc0038-list-users.png & seq-list-users.png \\
+UC-0038 Listar Usuarios & seq-bce-uc0042-list-users.png & seq-list-users.png \\
 \hline
-UC-0039 Gestionar Roles de Usuario & seq-bce-uc0039-manage-roles.png & seq-manage-roles.png \\
+UC-0039 Gestionar Roles de Usuario & seq-bce-uc0043-manage-roles.png & seq-manage-roles.png \\
 \hline
 \caption{Matriz de rastreabilidad: Casos de Uso -- Diagramas de Secuencia}
 \label{tab:matriz-uc-seq}
@@ -3637,7 +3637,7 @@ UC-0039 Gestionar Roles de Usuario & seq-bce-uc0039-manage-roles.png & seq-manag
 
 \section{Matriz de Rastreabilidad Global}
 
-La Tabla~\ref{tab:mtr-global} presenta la matriz de rastreabilidad consolidada que cruza los requisitos de informacion (IRQ) y los requisitos no funcionales (NFR) con los 39 casos de uso del sistema, indicando tambien los diagramas de secuencia de analisis y diseno asociados a cada caso de uso en el Anexo III.
+La Tabla~\ref{tab:mtr-global} presenta la matriz de rastreabilidad consolidada que cruza los requisitos de informacion (IRQ) y los requisitos no funcionales (NFR) con los 43 casos de uso del sistema, indicando tambien los diagramas de secuencia de analisis y diseno asociados a cada caso de uso en el Anexo III.
 
 {\setlength{\tabcolsep}{2pt}
 \begin{center}
@@ -3747,7 +3747,7 @@ UC-0039 Gestionar Roles & X &  &  &  &  &  &  & BCE + Diseno \\
 }
 \end{center}
 
-\noindent La tabla anterior muestra la cobertura completa de los requisitos de informacion por parte de los 39 casos de uso. Todos los IRQ estan cubiertos por al menos un caso de uso, y cada caso de uso cuenta con diagramas de secuencia de analisis (BCE) y diseno documentados en el Anexo III.
+\noindent La tabla anterior muestra la cobertura completa de los requisitos de informacion por parte de los 43 casos de uso. Todos los IRQ estan cubiertos por al menos un caso de uso, y cada caso de uso cuenta con diagramas de secuencia de analisis (BCE) y diseno documentados en el Anexo III.
 
 \section{Referencias}
 \addcontentsline{toc}{section}{Referencias}

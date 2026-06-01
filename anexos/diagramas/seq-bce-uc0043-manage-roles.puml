@@ -1,0 +1,26 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0043: Gestionar Roles de Usuario (Analisis BCE)
+
+actor "Administrador" as Admin
+boundary "Interfaz Administracion" as BF
+control "Controlador Administracion" as CA
+entity "Usuario" as EU
+entity "RolSistema" as ER
+
+Admin -> BF : Selecciona usuario y rol objetivo
+BF -> CA : Solicita cambio de rol
+CA -> CA : Comprueba autoridad administrativa
+CA -> EU : Recupera el usuario afectado
+EU --> CA : Usuario disponible
+CA -> ER : Valida la transicion de rol
+ER --> CA : Transicion admitida
+CA -> EU : Asigna el nuevo rol
+EU --> CA : Rol actualizado
+CA --> BF : Confirma el cambio
+BF --> Admin : Muestra estado actualizado
+
+@enduml
+
+

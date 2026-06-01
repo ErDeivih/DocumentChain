@@ -109,16 +109,6 @@ export const usersApi = {
   },
 
   /**
-   * @deprecated Utilice getUserById en su lugar.
-   * @param userId - Identificador del usuario.
-   * @returns Usuario encontrado.
-   */
-  getById: async (userId: string): Promise<User> => {
-    console.warn('usersApi.getById is deprecated. Use getUserById instead.');
-    return usersApi.getUserById(userId);
-  },
-
-  /**
    * Elimina la cuenta del usuario.
    * @returns Promesa vacía.
    */

@@ -260,8 +260,8 @@ export class EmailService {
   async sendPasswordChangedNotification(
     email: string,
     username: string,
-    ipAddress?: string,
-    userAgent?: string
+    _ipAddress?: string,
+    _userAgent?: string
   ): Promise<void> {
     const template = this.loadTemplate('password-changed');
 
@@ -322,7 +322,7 @@ export class EmailService {
     email: string,
     username: string,
     alertType: 'new_device' | 'new_ip' | 'password_attempt',
-    details: {
+    _details: {
       ipAddress?: string;
       userAgent?: string;
       location?: string;

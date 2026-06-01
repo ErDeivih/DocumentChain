@@ -9,27 +9,33 @@ entity "DocumentRegistry" as sc
 database "Base de datos" as db
 participant "Wallet (EIP-6963 / WalletConnect)" as wallet
 control "EventListenerService" as listener
+title UC-0031: Firmar documento
 
 user -> ui: Abre "Firmar documento" e introduce comentario opcional
-ui -> api: POST /api/signatures/prepare {documentId, versionId, walletId, comment?}
-api -> srv: prepareSignature(documentId, versionId, userId, walletId, comment)
+ui -> api: POST /api/signatures/prepare {documentId, versionNumber, walletId, comment?}
+api -> srv: prepareSignature(documentId, versionNumber, userId, walletId)
 srv -> perm: canView(blockchainId, walletAddress)
 perm -> sc: getUserPermission(docId, userAddress)
 sc --> perm: DocumentRole.VIEWER o superior
 perm --> srv: Acceso validado
 srv -> db: Verificar que no haya firmado ya esta version
 srv -> db: Crear signature en PREPARING
-db --> srv: signatureId, blockchainId, messageToSign
-srv --> api: {signatureId, messageToSign}
+db --> srv: signatureId, blockchainId, mensaje legible
+srv -> sc: getSignaturePayloadHash(docId, versionNumber, message)
+sc --> srv: payloadHash contextual
+srv --> api: {signatureId, message, payloadHash}
 api --> ui: 200 OK firma preparada
 
-ui -> wallet: eth_signTypedData_v4(messageToSign)
+ui -> wallet: personal_sign(bytes(payloadHash))
+wallet --> ui: ecdsaSignature
 wallet -> sc: signDocument(docId, versionNumber, signatureBytes)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: POST /api/signatures/confirm {signatureId, txHash, walletAddress}
-api -> srv: confirmSignature(signatureId, txHash, walletAddress)
+ui -> api: POST /api/signatures/confirm {signatureId, txHash, ecdsaSignature}
+api -> srv: confirmSignature(signatureId, txHash, ecdsaSignature)
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + DocumentSigned
 srv -> db: Actualizar signature a TX_SUBMITTED
 db --> srv: OK
 srv --> api: {status: "TX_SUBMITTED"}
@@ -41,4 +47,3 @@ listener -> ui: WebSocket / refrescar panel de firmas
 ui --> user: Firma incorporada al documento
 
 @enduml
-

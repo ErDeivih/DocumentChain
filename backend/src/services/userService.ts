@@ -27,7 +27,6 @@ export interface UserProfile {
     label: string | null;
     isPrimary: boolean;
   }>;
-  // lastLogin: Date | null; // Removed from Prisma schema
 }
 
 /**
@@ -64,7 +63,7 @@ export class UserService {
             { addedAt: 'asc' },
           ],
         },
-        // lastLogin removed from schema
+         
       }
     });
 
@@ -99,7 +98,7 @@ export class UserService {
         role: true,
         publicKey: true,
         createdAt: true,
-        // lastLogin removed from schema
+         
       }
     });
 
@@ -155,7 +154,7 @@ export class UserService {
         role: true,
         publicKey: true,
         createdAt: true,
-        // lastLogin removed from schema
+         
       }
     });
 
@@ -271,7 +270,7 @@ export class UserService {
           role: true,
           publicKey: true,
           createdAt: true,
-          // lastLogin removed from schema
+           
         },
         skip,
         take: limit,

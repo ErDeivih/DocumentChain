@@ -14,6 +14,9 @@ import prisma from '../config/database';
 import { provider } from '../config/blockchain';
 import logger from '../utils/logger';
 import { BlockchainStatus } from '@prisma/client';
+import type { ScheduledTask } from 'node-cron';
+
+const scheduledTasks: ScheduledTask[] = [];
 
 /**
  * Generic helper: check a single transaction receipt and update status in DB.
@@ -40,7 +43,7 @@ async function checkTxAndUpdate(
 }
 
 // Cada 5 minutos, verificar documentos en TX_SUBMITTED
-cron.schedule('*/5 * * * *', async () => {
+scheduledTasks.push(cron.schedule('*/5 * * * *', async () => {
   try {
     await checkPendingTransactions();
     await checkPendingVersionTransactions();
@@ -50,7 +53,7 @@ cron.schedule('*/5 * * * *', async () => {
       error: error instanceof Error ? error.message : 'Error desconocido'
     });
   }
-});
+}));
 
 /**
  * Verificar documentos en estado TX_SUBMITTED
@@ -179,7 +182,7 @@ async function checkPendingSignatureTransactions() {
  * Verificar documentos/versiones/firmas en PREPARING por más de 30 minutos
  * Estos probablemente nunca fueron firmados por el usuario
  */
-cron.schedule('*/30 * * * *', async () => {
+scheduledTasks.push(cron.schedule('*/30 * * * *', async () => {
   try {
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
 
@@ -229,8 +232,15 @@ cron.schedule('*/30 * * * *', async () => {
       error: error instanceof Error ? error.message : 'Error desconocido'
     });
   }
-});
+}));
 
 logger.info('Worker de sincronización blockchain iniciado (modo frontend signatures)');
+
+export function stopBlockchainSyncWorker(): void {
+  for (const task of scheduledTasks) {
+    task.stop();
+  }
+  logger.info('Worker de sincronización blockchain detenido');
+}
 
 export { checkPendingTransactions, checkPendingVersionTransactions, checkPendingSignatureTransactions };

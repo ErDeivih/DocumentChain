@@ -14,10 +14,10 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
 import { BlockchainStatus } from '@prisma/client';
 import logger from '../utils/logger';
-import { provider } from '../config/blockchain';
 import { DocumentPermissionService } from './documentPermissionService';
-import { BlockchainQueries } from '../lib/blockchain/queries';
 import notificationService, { NotificationType } from './notificationService';
+import { userHasAccess } from '../utils/accessControl';
+import { assertDocumentSignedReceipt } from './blockchainReceiptService';
 
 // ============================================
 // Types
@@ -296,6 +296,17 @@ ContentHash: ${document.contentHash}`;
             id: true,
             name: true,
             ownerId: true,
+            blockchainId: true,
+          },
+        },
+        version: {
+          select: {
+            versionNumber: true,
+          },
+        },
+        signerWallet: {
+          select: {
+            walletAddress: true,
           },
         },
         user: {
@@ -307,20 +318,11 @@ ContentHash: ${document.contentHash}`;
     });
 
     if (!signature) {
-      throw new Error('Signature no encontrada');
+      throw new Error('Firma no encontrada');
     }
 
     if (!signature.userId || signature.userId !== confirmerUserId) {
       throw new Error('No puedes confirmar una firma creada por otro usuario');
-    }
-
-    const receipt = await provider.getTransactionReceipt(txHash);
-    if (!receipt) {
-      throw new Error('No se encontró la transacción de firma en blockchain');
-    }
-
-    if (receipt.status !== 1) {
-      throw new Error('La transacción de firma revirtió en blockchain');
     }
 
     // 2. Validate current status
@@ -328,6 +330,29 @@ ContentHash: ${document.contentHash}`;
       logger.warn(`[CONFIRM] Signature ${signatureId} no está en estado PREPARING (actual: ${signature.blockchainStatus})`);
       throw new Error(`La firma no puede confirmarse en estado ${signature.blockchainStatus}`);
     }
+
+    if (!signature.document.blockchainId || !signature.signerWallet?.walletAddress) {
+      throw new Error('No se puede validar la firma en blockchain');
+    }
+
+    const preparedEvent = await prisma.event.findFirst({
+      where: {
+        eventType: 'SIGNATURE_PREPARED',
+        documentId: signature.documentId,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const metadata = preparedEvent?.metadata as { signatureId?: unknown; contentHash?: unknown } | null;
+    if (metadata?.signatureId !== signatureId || typeof metadata.contentHash !== 'string') {
+      throw new Error('No se encontró la preparación de esta firma');
+    }
+
+    await assertDocumentSignedReceipt({
+      txHash,
+      docId: signature.document.blockchainId,
+      versionNumber: signature.version.versionNumber,
+      signerAddress: signature.signerWallet.walletAddress,
+    });
 
     // 3. Update signature with transaction info
     const updated = await prisma.documentSignature.update({
@@ -614,8 +639,7 @@ ContentHash: ${document.contentHash}`;
   }
 
   private static async assertUserCanAccessDocument(documentId: string, requesterUserId: string): Promise<void> {
-    const { DocumentService } = await import('./documentService');
-    const hasAccess = await DocumentService.userHasAccess(documentId, requesterUserId);
+    const hasAccess = await userHasAccess(documentId, requesterUserId);
 
     if (!hasAccess) {
       throw new Error('No tienes acceso a este documento');

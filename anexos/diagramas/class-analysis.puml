@@ -2,19 +2,14 @@
 !include _structure-style.puml
 title Analisis de clases de dominio
 skinparam classAttributeIconSize 0
+left to right direction
 
 class User {
     - id: String
-    - username: String {unique}
     - email: String {unique}
-    - passwordHash: String
-    - fullName: String?
-    - avatarUrl: String?
     - role: UserRole
     - publicKey: String
-    - encryptedPrivateKey: String
     - createdAt: DateTime
-    - updatedAt: DateTime
 }
 
 enum UserRole {
@@ -26,22 +21,13 @@ class Wallet {
     - id: String
     - walletAddress: String
     - isPrimary: Boolean
-    - isConnected: Boolean
-    - nickname: String?
-    - addedAt: DateTime
 }
 
 class Document {
     - id: String
-    - blockchainId: String?
     - name: String
-    - description: String?
-    - tags: String[]
-    - mimeType: String
-    - size: BigInt
     - contentHash: String
     - metadataHash: String
-    - encryptedSymmetricKey: String
     - isArchived: Boolean
     - createdAt: DateTime
 }
@@ -50,8 +36,6 @@ class Version {
     - id: String
     - versionNumber: Int
     - ipfsCid: String
-    - encryptedSymmetricKey: String
-    - comment: String?
     - isOperational: Boolean
     - createdAt: DateTime
 }
@@ -65,8 +49,6 @@ class DocumentSignature {
 class Folder {
     - id: String
     - name: String
-    - description: String?
-    - color: String?
     - isShared: Boolean
 }
 
@@ -82,15 +64,12 @@ class Event {
 class UserStats {
     - totalDocuments: Int
     - totalSize: BigInt
-    - totalShared: Int
     - totalSignatures: Int
 }
 
 class Notification {
     - id: String
     - type: String
-    - title: String
-    - message: String
     - isRead: Boolean
     - createdAt: DateTime
 }

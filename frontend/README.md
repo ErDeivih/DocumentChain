@@ -10,8 +10,8 @@ Modern React frontend for the DocumentChain blockchain-based document management
 - **Routing**: React Router v7
 - **State Management**: 
   - TanStack Query (React Query) for server state
-  - Zustand for client state
-  - Context API for authentication
+  - React Context for authentication and wallet state
+  - Local component state for UI preferences
 - **Forms**: React Hook Form + Zod validation
 - **HTTP Client**: Axios
 - **Icons**: Lucide React
@@ -38,11 +38,22 @@ frontend/
 │   │   ├── wallets/     # Wallet management
 │   │   └── stats/       # Statistics
 │   ├── contexts/        # React contexts
-│   │   └── AuthContext.tsx
+│   │   ├── AuthContext.tsx          # Autenticación (email/contraseña)
+│   │   ├── ActiveWalletContext.tsx  # Wallet activa
+│   │   └── WalletManagerContext.tsx # Gestión de wallets
 │   ├── hooks/           # Custom React hooks
+│   │   ├── useDebounce.ts
+│   │   ├── useSigner.ts
+│   │   ├── useSocketListener.ts
+│   │   └── useTransactionFlow.ts
 │   ├── lib/             # Utilities
 │   │   ├── api.ts       # Axios configuration
-│   │   └── utils.ts     # Helper functions
+│   │   ├── utils.ts     # Helper functions
+│   │   ├── walletconnect.ts  # WalletConnect integration
+│   │   ├── blockchain/  # Blockchain config, contracts, provider
+│   │   └── crypto/      # RSA-OAEP + AES-256-GCM (frontend)
+│   ├── services/        # Business logic services
+│   │   └── blockchain/  # SharingService, SigningService
 │   ├── pages/           # Page components
 │   │   ├── Login.tsx
 │   │   ├── Register.tsx
@@ -51,7 +62,6 @@ frontend/
 │   │   ├── DocumentDetails.tsx
 │   │   ├── SharedWithMe.tsx
 │   │   └── Dashboard.tsx
-│   ├── store/           # Zustand stores
 │   ├── types/           # TypeScript types
 │   │   └── index.ts
 │   ├── App.tsx          # Root component
@@ -138,7 +148,7 @@ cp .env.example .env
 ```
 
 3. Configure environment variables:
-```env
+```bash
 VITE_API_URL=https://localhost:3000/api
 VITE_APP_NAME=DocumentChain
 ```
@@ -212,7 +222,7 @@ The frontend connects to the backend API via Axios with the following features:
 
 - **Server State**: TanStack Query for caching and synchronization
 - **Auth State**: React Context for user session
-- **Client State**: Zustand for UI state (planned for future features)
+- **Client State**: React Context and local component state for UI preferences
 
 ## Styling
 

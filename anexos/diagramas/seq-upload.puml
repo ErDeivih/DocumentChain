@@ -18,6 +18,7 @@ else Visibilidad privada
 end
 
 ui -> api: POST /api/documents/prepare (multipart/form-data)
+api -> api: Validar extension, MIME, tamano y nombre
 api -> srv: prepareDocument(file, metadata, userId, walletId)
 srv -> db: Verificar wallet activa del usuario
 db --> srv: Wallet valida
@@ -34,20 +35,22 @@ db --> srv: {documentId, versionId, blockchainId, publicId?}
 srv --> api: {documentId, versionId, blockchainId, messageToSign}
 api --> ui: 200 OK con datos para firmar
 
-ui -> wallet: eth_signTypedData_v4 (messageToSign con titulo y direccion del contrato)
+ui -> wallet: Solicita firma de transaccion createDocument
 wallet -> sc: createDocument(blockchainId, cid, metadataHash)
 sc --> wallet: txHash
 wallet --> ui: txHash
 
-ui -> api: POST /api/documents/confirm {documentId, txHash, walletAddress}
-api -> srv: confirmDocument(documentId, txHash, walletAddress)
+ui -> api: POST /api/documents/confirm {documentId, txHash, blockchainId}
+api -> srv: confirmDocument(documentId, txHash, blockchainId)
+srv -> sc: getTransactionReceipt(txHash)
+srv -> srv: Validar contrato, status y evento DocumentCreated(docId, owner, cid)
 srv -> db: Actualizar documento y version a TX_SUBMITTED
 db --> srv: OK
 srv --> api: {status: "TX_SUBMITTED"}
 api --> ui: 200 OK confirmacion registrada
 
 sc -> listener: Evento DocumentCreated(docId, cid, owner, timestamp)
-listener -> db: Actualizar documento y version a SYNCED, registrar evento
+listener -> db: Reconciliar documento y version a SYNCED, registrar evento
 listener -> ui: WebSocket / notificacion de sincronizacion
 ui --> user: Documento visible en biblioteca
 alt Documento publico
@@ -55,4 +58,3 @@ alt Documento publico
 end
 
 @enduml
-

@@ -1,20 +1,17 @@
-﻿@startuml
+@startuml
 !include _sequence-bce-style.puml
 
 title UC-0003: Cerrar Sesion (Analisis BCE)
 
-actor Actor
-boundary "BarraNavegacion" as BF
-control "GestorAutenticacion" as CG
+actor "Usuario logueado" as Actor
+boundary "Interfaz Perfil" as BF
+control "Controlador Autenticacion" as CG
 entity "Sesion" as ES
 
-database "Base de datos" as DB
 
 Actor -> BF : 1. Solicita cerrar sesion
 BF -> CG : 2. Peticion de cierre
 CG -> ES : 3. Invalida sesion activa
-ES -> DB : UPDATE/DELETE sesion + revocar refresh token
-DB --> ES : confirmacion
 ES --> CG : sesion invalidada
 CG --> BF : 4. Confirmacion de cierre
 BF --> Actor : 5. Redirige a pagina de inicio

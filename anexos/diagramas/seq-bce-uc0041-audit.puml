@@ -1,0 +1,24 @@
+﻿@startuml
+!include _sequence-bce-style.puml
+
+title UC-0041: Auditoria y verificacion (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Auditoria" as PA
+control "Controlador Auditoria" as CA
+entity "Documento" as ED
+entity "EventoAuditoria" as EE
+
+Actor -> PA : Solicita revisar la trazabilidad
+PA -> CA : Traslada la peticion de auditoria
+CA -> ED : Localiza el documento objeto de revision
+ED --> CA : Documento identificado
+CA -> EE : Recupera las evidencias asociadas
+EE --> CA : Evidencias disponibles
+CA -> EE : Contrasta la traza del documento
+EE --> CA : Resultado de la comprobacion
+CA --> PA : Devuelve el informe de auditoria
+PA --> Actor : Muestra el resultado
+
+@enduml
+

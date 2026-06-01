@@ -1,0 +1,19 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0024: Gestionar Carpetas (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Biblioteca" as BU
+control "Controlador Documento" as CO
+entity "Carpeta" as EC
+
+Actor -> BU : Accede a gestion de carpetas
+Actor -> BU : Crea, renombra o elimina carpeta
+BU -> CO : Solicita operacion sobre carpeta
+CO -> EC : Ejecuta operacion (crear/renombrar/eliminar)
+EC --> CO : Confirmacion
+CO --> BU : Carpeta actualizada
+BU --> Actor : Muestra arbol de carpetas actualizado
+
+@enduml

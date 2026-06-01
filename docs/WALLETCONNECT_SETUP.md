@@ -133,7 +133,7 @@ Si quieres agregar más redes (Polygon, BSC, etc.), edita el archivo:
 ```typescript
 // Ejemplo: Agregar Polygon
 chains: [1, 137], // Ethereum + Polygon
-optionalChains: [5, 11155111, 31337, 80001], // + Mumbai Testnet
+optionalChains: [5, 11155111, 31337, 80002], // + Polygon Amoy Testnet
 ```
 
 **Chain IDs comunes:**
@@ -146,6 +146,7 @@ optionalChains: [5, 11155111, 31337, 80001], // + Mumbai Testnet
 - Goerli: `5`
 - Sepolia: `11155111`
 - Hardhat Local: `31337`
+- Polygon Amoy: `80002`
 
 ## Límites del Plan Gratuito
 

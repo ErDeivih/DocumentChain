@@ -1,0 +1,27 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0039: Ver Estadisticas Globales del Sistema (Analisis BCE)
+
+actor "Administrador" as Admin
+boundary "Interfaz Auditoria" as BF
+control "Controlador Auditoria" as CS
+entity "Estadistica" as ES
+
+
+Admin -> BF : 1. Accede a estadisticas globales
+BF -> CS : 2. Solicita metricas del sistema
+CS -> CS : 3. Verifica rol de administrador
+
+CS -> ES : 4. Recupera metricas agregadas
+ES --> CS : metricas recuperadas
+
+CS -> CS : 5. Calcula indicadores derivados
+note right : Control computa tasa de adopcion, promedio de firmas por documento, actividad diaria
+
+CS --> BF : 6. Datos estadisticos procesados
+BF --> Admin : 7. Muestra dashboard con graficos y metricas
+
+@enduml
+
+

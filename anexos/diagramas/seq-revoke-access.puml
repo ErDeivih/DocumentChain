@@ -3,7 +3,7 @@
 actor Usuario as user
 boundary "Detalle / Compartir" as ui
 control "Endpoints de comparticion\n(/api/documents/:id/share y /api/shares)" as shareApi
-control "Servicio de comparticion" as srv
+control "ShareService" as srv
 entity "DocumentRegistry" as sc
 participant "Wallet del usuario\n(navegador o WalletConnect)" as wallet
 database "Base de datos" as db
@@ -11,33 +11,36 @@ participant "Sincronizador blockchain" as listener
 
 == Fase PREPARE ==
 user -> ui: Click en "Revocar acceso" para un usuario compartido
-ui -> shareApi: Preparar revocacion de acceso
-shareApi -> srv: Validar propietario y acceso a revocar
+ui -> shareApi: POST /api/documents/:documentId/share/:userId/revoke/prepare {sharerWalletId}
+shareApi -> srv: prepareRevokeShare(documentId, userId, ownerId, sharerWalletId)
 srv -> sc: isOwner(blockchainId, walletAddress)
 sc --> srv: Propietario validado
 srv -> sc: getDocumentUsersWithRoles (verificar acceso activo)
 sc --> srv: Usuario tiene acceso
 srv -> db: Recuperar acceso y wallet destinataria
 db --> srv: Datos para la revocacion
-srv --> shareApi: Payload para firmar
+srv -> db: Registrar evento SHARE_REVOKE_PREPARED
+db --> srv: shareId, blockchainId, sharedWithAddress
+srv --> shareApi: {shareId, blockchainId, sharedWithAddress}
 shareApi --> ui: Revocacion preparada
 
 == Fase CONFIRM ==
-ui -> wallet: Solicitar firma de revocacion
+ui -> wallet: Firmar y enviar revokePermission(blockchainId, sharedWithAddress)
 user -> wallet: Aprueba la operacion
 wallet --> ui: txHash
-ui -> shareApi: Confirmar revocacion de acceso
-shareApi -> srv: Registrar txHash y estado transaccional
-srv -> db: Persistir revocacion pendiente
+ui -> shareApi: POST /api/shares/revoke/confirm {shareId, txHash}
+shareApi -> srv: confirmRevokeShare(shareId, txHash)
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + PermissionRevoked
+srv -> db: Registrar evento SHARE_REVOKED y notificacion al afectado
 db --> srv: OK
 srv --> shareApi: Confirmacion registrada
 shareApi --> ui: Revocacion enviada
 
 == Fase SYNC ==
-sc -> listener: Emite evento de acceso revocado
-listener -> db: Marcar acceso revocado y registrar auditoria
+sc -> listener: Emite PermissionRevoked(docId, user, timestamp)
+listener -> db: Registrar auditoria on-chain si no existe
 listener -> ui: Refrescar lista de accesos
 ui --> user: Acceso revocado correctamente
 
 @enduml
-

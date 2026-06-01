@@ -1,0 +1,24 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0025: Mover Documentos a Carpeta (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Biblioteca" as BU
+control "Controlador Documento" as CO
+entity "Documento" as ED
+entity "Carpeta" as EC
+
+Actor -> BU : Selecciona documento(s) a mover
+Actor -> BU : Arrastra o selecciona carpeta destino
+BU -> CO : MoverDocumento(documentId, folderId)
+CO -> ED : Verifica propiedad del documento
+ED --> CO : Documento valido
+CO -> EC : Verifica existencia de carpeta destino
+EC --> CO : Carpeta valida
+CO -> ED : Actualiza carpeta del documento
+ED --> CO : Documento reubicado
+CO --> BU : Confirmacion de movimiento
+BU --> Actor : Documento visible en nueva carpeta
+
+@enduml

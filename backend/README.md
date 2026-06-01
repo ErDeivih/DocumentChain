@@ -5,7 +5,7 @@
 ### Core Features Implemented
 
 - ✅ **Authentication System**
-  - User registration with ECDH P-256 key generation
+  - User registration with RSA-OAEP 4096 key generation
   - Login/logout with JWT tokens
   - Password change (re-encrypts keys)
   - Session management
@@ -65,15 +65,16 @@
 - **Framework**: Express.js
 - **Database**: PostgreSQL + Prisma ORM
 - **Blockchain**: Ethereum + Hardhat + ethers.js
-- **Storage**: IPFS self-hosted con nodo propio
-- **Encryption**: Node.js crypto (ECDH P-256 + AES-256-GCM)
-- **Authentication**: JWT + bcrypt
+- **Storage**: IPFS self-hosted con nodo propio (adaptador unificado en `config/ipfs.ts`)
+- **Encryption**: RSA-OAEP 4096 (wrapping de claves) + AES-256-GCM (cifrado de archivos)
+- **Hashing de contraseñas**: Argon2id (con migración automática desde bcrypt)
+- **Authentication**: JWT (access + refresh tokens)
 - **File Upload**: Multer
 - **HTTPS**: Self-signed certificates (dev) / Let's Encrypt (production)
 
 ### Smart Contract
-- **Language**: Solidity
-- **Contract**: DocumentRegistry.sol - contrato consolidado que gestiona registro de documentos, versiones, firmas digitales y control de acceso
+- **Language**: Solidity ^0.8.20
+- **Contract**: DocumentRegistry.sol — contrato consolidado que gestiona registro de documentos, versiones, firmas digitales y control de acceso
 
 ---
 
@@ -83,24 +84,42 @@
 backend/
 ├── src/
 │   ├── config/
-│   │   ├── database.ts          # Prisma client
-│   │   ├── blockchain.ts        # Ethers.js contracts
-│   │   ├── ipfs.ts              # Self-hosted IPFS client
-│   │   └── jwt.ts               # JWT utilities
+│   │   ├── database.ts              # Prisma client (con extensión BigInt→number)
+│   │   ├── blockchain.ts            # Ethers.js contracts (provider, signer, registry)
+│   │   ├── ipfs.ts                  # IPFS adapter unificado (self-hosted / Pinata)
+│   │   ├── env.ts                   # Validación estricta de variables de entorno
+│   │   ├── jwt.ts                   # JWT utilities
+│   │   └── swagger.ts               # API documentation
 │   │
 │   ├── lib/
-│   │   └── crypto/
-│   │       ├── KeyManager.ts    # ECDH key management
-│   │       └── FileCrypto.ts    # File encryption/decryption
+│   │   ├── crypto/
+│   │   │   └── KeyManager.ts        # Gestión de claves RSA-OAEP (generate, encrypt, decrypt)
+│   │   ├── encryption.ts            # Cifrado AES-256-GCM + RSA-OAEP wrapping
+│   │   └── blockchain/
+│   │       └── queries.ts           # Consultas tipadas a smart contracts
 │   │
 │   ├── services/
-│   │   ├── authService.ts       # Authentication logic
-│   │   ├── userService.ts       # User management
-│   │   ├── walletService.ts     # Wallet management
-│   │   ├── documentService.ts   # Document operations
-│   │   ├── versionService.ts    # Version control
-│   │   ├── signatureService.ts  # Digital signatures
-│   │   └── shareService.ts      # Sharing/permissions
+│   │   ├── eventHandlers.ts         # Handlers de eventos blockchain (registro data-driven)
+│   │   ├── eventListenerService.ts  # Sincronización blockchain → BD
+│   │   ├── authService.ts           # Autenticación (email/contraseña)
+│   │   ├── argon2Service.ts         # Hashing de contraseñas Argon2id
+│   │   ├── tokenService.ts          # Gestión de JWT y sesiones
+│   │   ├── userService.ts           # Gestión de usuarios
+│   │   ├── walletService.ts         # Gestión de wallets Ethereum
+│   │   ├── documentService.ts       # Operaciones de documentos
+│   │   ├── versionService.ts        # Control de versiones
+│   │   ├── signatureService.ts      # Firmas digitales
+│   │   ├── shareService.ts          # Compartición y permisos
+│   │   ├── transferService.ts       # Transferencia de propiedad
+│   │   ├── folderService.ts         # Gestión de carpetas
+│   │   ├── emailService.ts          # Envío de emails
+│   │   ├── notificationService.ts   # Notificaciones
+│   │   ├── webSocketService.ts      # WebSockets (tiempo real)
+│   │   ├── documentPermissionService.ts  # Permisos on-chain
+│   │   ├── documentTimelineService.ts    # Timeline de documentos
+│   │   ├── auditService.ts          # Auditoría
+│   │   ├── blockchainAdminService.ts # Administración blockchain
+│   │   └── verificationService.ts   # Verificación de documentos
 │   │
 │   ├── controllers/
 │   │   ├── authController.ts
@@ -109,10 +128,11 @@ backend/
 │   │   ├── documentController.ts
 │   │   ├── versionController.ts
 │   │   ├── signatureController.ts
-│   │   └── shareController.ts
+│   │   ├── shareController.ts
+│   │   └── ...
 │   │
 │   ├── routes/
-│   │   ├── auth.ts
+│   │   ├── auth.ts                  # /auth/register, /auth/login, /auth/refresh, etc.
 │   │   ├── users.ts
 │   │   ├── wallets.ts
 │   │   ├── documents.ts
@@ -121,12 +141,27 @@ backend/
 │   │   └── shares.ts
 │   │
 │   ├── middleware/
-│   │   ├── auth.ts              # JWT authentication
-│   │   ├── upload.ts            # Multer file upload
-│   │   ├── errorHandler.ts      # Global error handler
-│   │   └── validator.ts         # Input validation
+│   │   ├── auth.ts                  # JWT authentication
+│   │   ├── upload.ts                # Multer file upload
+│   │   ├── errorHandler.ts          # Global error handler
+│   │   ├── validator.ts             # Input validation (Zod)
+│   │   ├── rateLimiter.ts           # Rate limiting
+│   │   └── pagination.ts            # Paginación
 │   │
-│   └── index.ts                 # Main server
+│   ├── utils/
+│   │   ├── env.ts                   # Normalización de variables de entorno
+│   │   ├── walletHelper.ts          # Helpers de wallet (lookup, validación, DTO)
+│   │   ├── accessControl.ts         # Control de acceso unificado
+│   │   ├── ethereum.ts              # Utilidades Ethereum
+│   │   ├── errors.ts                # Clases de error tipadas
+│   │   ├── logger.ts                # Logger estructurado
+│   │   ├── request.ts               # Helpers de peticiones HTTP
+│   │   └── fileValidation.ts        # Validación de archivos
+│   │
+│   ├── types/
+│   │   └── events.ts                # Constantes canónicas de tipos de evento
+│   │
+│   └── index.ts                     # Servidor principal
 │
 ├── prisma/
 │   └── schema.prisma            # Database schema
@@ -305,7 +340,7 @@ curl https://localhost:3000/api/documents/DOCUMENT_ID/download?password=password
   -o downloaded-file.pdf
 ```
 
-See [API Documentation](../docs/API.md) for complete endpoint list.
+See [API Documentation](./docs/api/) for complete endpoint list (generated via `npm run docs`).
 
 ---
 
@@ -364,7 +399,7 @@ See [API Documentation](../docs/API.md) for complete endpoint list.
 **Three-Layer Security:**
 
 1. **Authentication Layer**: Username/password + JWT
-2. **Encryption Layer**: ECDH P-256 + AES-256-GCM (NOT wallet-based)
+2. **Encryption Layer**: RSA-OAEP 4096 + AES-256-GCM (NOT wallet-based)
 3. **Blockchain Layer**: Wallet signatures for transactions
 
 **Key Points:**
@@ -377,7 +412,7 @@ See [API Documentation](../docs/API.md) for complete endpoint list.
 ### Encryption Flow
 
 1. **User Registration**:
-   - Generate ECDH P-256 key pair
+- Generate RSA-OAEP 4096 key pair
    - Encrypt private key with password
    - Store encrypted private key in database
 

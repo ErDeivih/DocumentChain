@@ -11,8 +11,15 @@ user -> ui: Solicita conectar una wallet
 ui -> wallet: Abrir proveedor y pedir autorizacion
 wallet --> ui: Direccion conectada
 
-ui -> api: Registrar wallet conectada
-api -> srv: Validar propiedad y limite por usuario
+ui -> api: POST /api/wallets/challenge {address}
+api -> srv: generateChallengeMessage(address)
+srv --> api: Mensaje de challenge
+api --> ui: Mensaje a firmar
+
+ui -> wallet: personal_sign(challenge)
+wallet --> ui: Firma del challenge
+ui -> api: POST /api/wallets {address, message, signature}
+api -> srv: verifyWalletSignature(address, message, signature)
 srv -> db: Guardar wallet y estado principal si procede
 db --> srv: Wallet registrada
 srv --> api: Vinculacion completada

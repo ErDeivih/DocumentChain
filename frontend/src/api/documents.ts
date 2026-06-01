@@ -203,48 +203,6 @@ export const documentsApi = {
   },
 
   /**
-   * @deprecated Utilice prepareCreate + confirmCreate en su lugar.
-   * Este método se mantiene por compatibilidad pero será eliminado.
-   * @param file - Archivo a subir.
-   * @param name - Nombre del documento.
-   * @param password - Contraseña del usuario.
-   * @param options - Opciones adicionales.
-   * @returns Documento creado.
-   */
-  upload: async (
-    file: File,
-    name: string,
-    password: string,
-    options?: {
-      description?: string;
-      folderId?: string;
-      tags?: string[];
-    }
-  ): Promise<{ document: Document }> => {
-    console.warn('documentsApi.upload is deprecated. Use prepareCreate + confirmCreate instead.');
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('name', name);
-    formData.append('password', password);
-    if (options?.description) {
-      formData.append('description', options.description);
-    }
-    if (options?.folderId) {
-      formData.append('folderId', options.folderId);
-    }
-    if (options?.tags && options.tags.length > 0) {
-      formData.append('tags', JSON.stringify(options.tags));
-    }
-
-    const response = await api.post<{ document: Document }>('/documents', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return response.data;
-  },
-
-  /**
    * Descarga un documento por su ID.
    * @param id - Identificador del documento.
    * @returns Datos del archivo descargado.
@@ -440,26 +398,6 @@ export const documentsApi = {
     );
     return response.data.version;
   }
-};
-
-/**
- * Función de conveniencia para subir documentos (obsoleto).
- * @deprecated Utilice documentsApi.prepareCreate + confirmCreate.
- * @param file - Archivo a subir.
- * @param password - Contraseña del usuario.
- * @param options - Opciones adicionales.
- * @returns Documento creado.
- */
-export const uploadDocument = async (
-  file: File,
-  password: string,
-  options?: {
-    folderId?: string;
-    tags?: string[];
-  }
-): Promise<Document> => {
-  const result = await documentsApi.upload(file, file.name, password, options);
-  return result.document;
 };
 
 // Alias para compatibilidad hacia atrás

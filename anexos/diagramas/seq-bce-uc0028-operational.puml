@@ -1,0 +1,30 @@
+@startuml
+!include _sequence-bce-style.puml
+
+title UC-0028: Establecer Version Operativa (Analisis BCE)
+
+actor "Usuario logueado" as Actor
+boundary "Interfaz Versiones" as BF
+control "Controlador Version" as CV
+entity "Version" as EV
+entity "Documento" as ED
+
+
+Actor -> BF : 1. Selecciona version como operativa
+BF -> CV : 2. Peticion de cambio de version operativa
+CV -> EV : 3. Verifica existencia de la version
+EV --> CV : version existente
+
+CV -> ED : 4. Verifica propiedad
+ED --> CV : propiedad confirmada
+
+
+CV -> EV : 5. Actualiza version operativa
+EV --> CV : version operativa actualizada
+
+CV --> BF : 6. Confirmacion
+BF --> Actor : 7. Muestra nueva version activa
+
+@enduml
+
+

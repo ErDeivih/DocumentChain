@@ -1,0 +1,33 @@
+@startuml
+!include _sequence-style.puml
+title UC-0015: Subir documento (fase de preparacion)
+
+actor Usuario as user
+boundary "UploadModal.tsx" as ui
+control "DocumentService" as srv
+control "IPFSService" as ipfs
+database "Base de datos" as db
+
+user -> ui: Selecciona archivo, nombre, descripcion y visibilidad
+alt Visibilidad publica
+    ui -> ui: Muestra advertencia de acceso publico
+else Visibilidad privada
+    ui -> ui: Mantiene proteccion cifrada por defecto
+end
+
+ui -> srv: POST /api/documents/prepare (multipart)
+srv -> db: Verificar wallet activa del usuario
+db --> srv: Wallet valida
+alt Documento privado
+    srv -> srv: Cifrar contenido con AES-256-GCM
+    srv -> srv: Cifrar clave con clave publica (RSA-OAEP 4096)
+else Documento publico
+    srv -> srv: Generar publicId unico (nanoid)
+end
+srv -> ipfs: uploadFile(buffer, filename)
+ipfs --> srv: CID
+srv -> db: Crear documento + version en PREPARING
+db --> srv: {documentId, versionId, blockchainId}
+srv --> ui: 200 OK con datos para confirmar en wallet
+
+@enduml

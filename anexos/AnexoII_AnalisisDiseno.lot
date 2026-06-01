@@ -1,8 +1,0 @@
-\babel@toc {spanish}{}\relax 
-\contentsline {table}{\numberline {1}{\ignorespaces Campos del struct Document en el smart contract}}{21}{table.caption.13}%
-\contentsline {table}{\numberline {2}{\ignorespaces Campos del struct Version en el smart contract}}{22}{table.caption.15}%
-\contentsline {table}{\numberline {3}{\ignorespaces Campos del struct Signature en el smart contract}}{22}{table.caption.17}%
-\contentsline {table}{\numberline {4}{\ignorespaces Mappings principales del smart contract DocumentRegistry}}{22}{table.caption.19}%
-\contentsline {table}{\numberline {5}{\ignorespaces Matriz de trazabilidad IRQ -- componentes de diseño}}{67}{table.caption.92}%
-\contentsline {table}{\numberline {6}{\ignorespaces Matriz de trazabilidad UC -- clases de análisis}}{67}{table.caption.93}%
-\contentsline {table}{\numberline {7}{\ignorespaces Cobertura de requisitos no funcionales}}{68}{table.caption.94}%

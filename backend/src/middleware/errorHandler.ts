@@ -15,15 +15,18 @@ import {
  * Debe colocarse al final de la cadena de middleware
  */
 export function errorHandler(
-  error: any,
+  error: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void {
+  const errorLike = error instanceof Error ? error : new Error('Error desconocido');
+  const codedError = error as { code?: string; meta?: { target?: unknown }; name?: string; status?: number };
+
   // Registrar error con contexto
   logger.error('Error en la petición', {
-    error: error.message,
-    stack: error.stack,
+    error: errorLike.message,
+    stack: errorLike.stack,
     path: req.path,
     method: req.method,
     userId: req.user?.userId,
@@ -84,7 +87,7 @@ export function errorHandler(
   }
 
   // Error de tamaño de archivo de Multer
-  if (error.code === 'LIMIT_FILE_SIZE') {
+  if (codedError.code === 'LIMIT_FILE_SIZE') {
     res.status(400).json({ 
       error: 'Archivo demasiado grande',
       maxSize: '100MB' 
@@ -93,7 +96,7 @@ export function errorHandler(
   }
 
   // Error de cantidad de archivos de Multer
-  if (error.code === 'LIMIT_FILE_COUNT') {
+  if (codedError.code === 'LIMIT_FILE_COUNT') {
     res.status(400).json({ 
       error: 'Demasiados archivos',
       maxFiles: 10
@@ -102,43 +105,43 @@ export function errorHandler(
   }
 
   // Error de restricción única de Prisma
-  if (error.code === 'P2002') {
+  if (codedError.code === 'P2002') {
     res.status(409).json({ 
       error: 'Ya existe un registro con este valor',
-      field: error.meta?.target 
+      field: codedError.meta?.target 
     });
     return;
   }
 
   // Registro no encontrado en Prisma
-  if (error.code === 'P2025') {
+  if (codedError.code === 'P2025') {
     res.status(404).json({ error: 'Registro no encontrado' });
     return;
   }
 
   // Errores JWT
-  if (error.name === 'JsonWebTokenError') {
+  if (codedError.name === 'JsonWebTokenError') {
     res.status(401).json({ error: 'Token inválido' });
     return;
   }
 
-  if (error.name === 'TokenExpiredError') {
+  if (codedError.name === 'TokenExpiredError') {
     res.status(401).json({ error: 'Token expirado' });
     return;
   }
 
   // Errores de validación
-  if (error.name === 'ValidationError') {
+  if (codedError.name === 'ValidationError') {
     res.status(400).json({ 
       error: 'Validación fallida',
-      details: error.message
+      details: errorLike.message
     });
     return;
   }
 
   // Error por defecto
-  res.status(error.status || 500).json({
-    error: error.message || 'Error interno del servidor'
+  res.status(codedError.status || 500).json({
+    error: errorLike.message || 'Error interno del servidor'
   });
 }
 
@@ -148,7 +151,7 @@ export function errorHandler(
 export function notFoundHandler(
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void {
   res.status(404).json({
     error: 'Ruta no encontrada',

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
+import logger from '../utils/logger';
 
 /**
  * Middleware que verifica si el usuario autenticado posee el rol de administrador.
@@ -15,7 +16,7 @@ export async function isAdmin(
   next: NextFunction
 ): Promise<void> {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     
     if (!userId) {
       res.status(401).json({ error: 'No autenticado' });
@@ -34,6 +35,10 @@ export async function isAdmin(
     
     next();
   } catch (error) {
+    logger.error('Error al verificar estado de administrador', {
+      userId: req.user?.userId,
+      error: error instanceof Error ? error.message : 'Error desconocido'
+    });
     res.status(500).json({ error: 'Error al verificar estado de administrador' });
   }
 }

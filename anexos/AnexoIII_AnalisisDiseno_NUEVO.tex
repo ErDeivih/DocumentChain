@@ -211,7 +211,7 @@ La arquitectura de DocumentChain es distribuida y se apoya en un frontend SPA co
 
 \subsection*{Criterio de correspondencia con el catálogo funcional}
 
-El diseño de este anexo sigue el catálogo consolidado de \textbf{39 casos de uso principales} del Anexo I. En las secciones de procedimientos se ha puesto el foco en los flujos con más peso funcional, mientras que las operaciones de apoyo se describen como pasos internos o variantes de esos mismos casos de uso, sin inflar el catálogo.
+El diseño de este anexo sigue el catálogo consolidado de \textbf{43 casos de uso principales} del Anexo I. En las secciones de procedimientos se ha puesto el foco en los flujos con más peso funcional, mientras que las operaciones de apoyo se describen como pasos internos o variantes de esos mismos casos de uso, sin inflar el catálogo.
 
 Así, cosas como las carpetas y etiquetas, las notificaciones, las preferencias, la gestión avanzada de wallets o ciertas tareas de administración aparecen desde la perspectiva del flujo principal al que dan servicio. No se ha quitado funcionalidad del sistema: simplemente se ha reorganizado la documentación para que cada caso de uso represente una capacidad completa con sentido propio.
 
@@ -1354,7 +1354,7 @@ En este apartado se presentan los diagramas de secuencia de analisis y diseno qu
 
 \subsection{Clases de análisis (BCE)}
 
-El diagrama de clases de analisis de la Figura~\ref{fig:class-analysis-bce} muestra las clases del sistema estereotipadas segun el patron Boundary-Control-Entity. La Tabla~\ref{tab:bce-clasificacion} presenta la clasificacion BCE para los siete paquetes funcionales del catalogo consolidado de 39 casos de uso.
+El diagrama de clases de analisis de la Figura~\ref{fig:class-analysis-bce} muestra las clases del sistema estereotipadas segun el patron Boundary-Control-Entity. La Tabla~\ref{tab:bce-clasificacion} presenta la clasificacion BCE para los siete paquetes funcionales del catalogo consolidado de 43 casos de uso.
 
 \begin{table}[H]
 \centering
@@ -1473,7 +1473,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0009-delete-account.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0010-delete-account.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0009: Eliminar Cuenta}
     \label{fig:seq-bce-uc0009-delete-account}
 \end{figure}
@@ -1482,7 +1482,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0010-change-password.png}
+    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0011-change-password.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0010: Cambiar Contraseña}
     \label{fig:seq-bce-uc0010-change-password}
 \end{figure}
@@ -1491,7 +1491,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0011-verify-email-single.png}
+    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0013-verify-email.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0011: Verificar Email}
     \label{fig:seq-bce-uc0011-verify-email-single}
 \end{figure}
@@ -1500,7 +1500,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0012-resend-verification.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0014-resend-verification.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0012: Reenviar Verificación de Email}
     \label{fig:seq-bce-uc0012-resend-verification}
 \end{figure}
@@ -1509,7 +1509,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0013-upload.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0015-upload.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0013: Subir Documento}
     \label{fig:seq-bce-uc0013-upload}
 \end{figure}
@@ -1518,7 +1518,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0014-list.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0016-list.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0014: Listar Documentos}
     \label{fig:seq-bce-uc0014-list}
 \end{figure}
@@ -1527,7 +1527,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0015-detail.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0017-detail.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0015: Ver Detalle de Documento}
     \label{fig:seq-bce-uc0015-detail}
 \end{figure}
@@ -1536,7 +1536,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0016-download.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0018-download.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0016: Descargar Documento}
     \label{fig:seq-bce-uc0016-download}
 \end{figure}
@@ -1545,7 +1545,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0017-archive.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0019-archive.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0017: Archivar Documento}
     \label{fig:seq-bce-uc0017-archive}
 \end{figure}
@@ -1554,7 +1554,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0018-unarchive.png}
+    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0020-unarchive.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0018: Desarchivar Documento}
     \label{fig:seq-bce-uc0018-unarchive}
 \end{figure}
@@ -1563,7 +1563,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0019-delete.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0021-delete.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0019: Eliminar Documento}
     \label{fig:seq-bce-uc0019-delete}
 \end{figure}
@@ -1572,7 +1572,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0020-transfer.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0022-transfer.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0020: Transferir Documento}
     \label{fig:seq-bce-uc0020-transfer}
 \end{figure}
@@ -1581,7 +1581,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0021-search.png}
+    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0023-search.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0021: Buscar Documentos}
     \label{fig:seq-bce-uc0021-search}
 \end{figure}
@@ -1590,7 +1590,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0022-version.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0026-version.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0022: Crear Nueva Versión}
     \label{fig:seq-bce-uc0022-version}
 \end{figure}
@@ -1599,7 +1599,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0023-list-versions.png}
+    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0027-list-versions.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0023: Listar Versiones}
     \label{fig:seq-bce-uc0023-list-versions}
 \end{figure}
@@ -1608,7 +1608,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0024-operational.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0028-operational.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0024: Establecer Versión Operativa}
     \label{fig:seq-bce-uc0024-operational}
 \end{figure}
@@ -1617,7 +1617,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0025-restore.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0029-restore.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0025: Restaurar Versión Anterior}
     \label{fig:seq-bce-uc0025-restore}
 \end{figure}
@@ -1626,7 +1626,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0026-download-version.png}
+    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0030-download-version.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0026: Descargar Versión Específica}
     \label{fig:seq-bce-uc0026-download-version}
 \end{figure}
@@ -1635,7 +1635,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0027-sign.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0031-sign.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0027: Firmar Documento}
     \label{fig:seq-bce-uc0027-sign}
 \end{figure}
@@ -1644,7 +1644,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0028-view-signatures.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0032-view-signatures.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0028: Ver Firmas de un Documento}
     \label{fig:seq-bce-uc0028-view-signatures}
 \end{figure}
@@ -1653,7 +1653,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0029-verify-signature.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0033-verify-signature.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0029: Verificar Firma del Usuario}
     \label{fig:seq-bce-uc0029-verify-signature}
 \end{figure}
@@ -1662,7 +1662,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0030-share.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0034-share.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0030: Compartir Documento}
     \label{fig:seq-bce-uc0030-share}
 \end{figure}
@@ -1671,7 +1671,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0031-revoke.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0035-revoke.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0031: Revocar Acceso a Documento}
     \label{fig:seq-bce-uc0031-revoke}
 \end{figure}
@@ -1680,7 +1680,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0032-shared-with-me.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0036-shared-with-me.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0032: Ver Documentos Compartidos Conmigo}
     \label{fig:seq-bce-uc0032-shared-with-me}
 \end{figure}
@@ -1689,7 +1689,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0033-timeline.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0037-timeline.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0033: Ver Timeline de Documento}
     \label{fig:seq-bce-uc0033-timeline}
 \end{figure}
@@ -1698,7 +1698,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0034-stats.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0038-stats.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0034: Ver Estadísticas Personales}
     \label{fig:seq-bce-uc0034-stats}
 \end{figure}
@@ -1707,7 +1707,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0035-global-stats.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0039-global-stats.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0035: Ver Estadísticas Globales del Sistema}
     \label{fig:seq-bce-uc0035-global-stats}
 \end{figure}
@@ -1716,7 +1716,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0036-verify-authenticity.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0040-verify-authenticity.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0036: Verificar Autenticidad de Documento}
     \label{fig:seq-bce-uc0036-verify-authenticity}
 \end{figure}
@@ -1725,7 +1725,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0037-audit.png}
+    \includegraphics[width=0.92\textwidth]{diagramas/seq-bce-uc0041-audit.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0037: Auditoría Blockchain}
     \label{fig:seq-bce-uc0037-audit}
 \end{figure}
@@ -1734,7 +1734,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0038-list-users.png}
+    \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0042-list-users.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0038: Listar Usuarios}
     \label{fig:seq-bce-uc0038-list-users}
 \end{figure}
@@ -1743,7 +1743,7 @@ Los diagramas de secuencia de análisis modelan cómo interactúan los actores c
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0039-manage-roles.png}
+    \includegraphics[width=0.90\textwidth]{diagramas/seq-bce-uc0043-manage-roles.png}
     \caption{Diagrama de secuencia de análisis BCE -- UC-0039: Gestionar Roles de Usuario}
     \label{fig:seq-bce-uc0039-manage-roles}
 \end{figure}
@@ -2119,7 +2119,7 @@ Los diagramas de secuencia de diseño ya muestran los componentes reales del sis
 
 \subsection{Subflujos y extensiones de los casos de uso principales}
 
-Los diagramas que siguen documentan funcionalidades que, según el criterio del Anexo~I, se integran como subflujos o extensiones dentro de los 39 casos de uso principales.
+Los diagramas que siguen documentan funcionalidades que, según el criterio del Anexo~I, se integran como subflujos o extensiones dentro de los 43 casos de uso principales.
 
 \subsection{Diagramas de caso de uso-diseño}
 

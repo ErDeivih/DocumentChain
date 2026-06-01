@@ -22,6 +22,7 @@ jest.mock('../../src/config/database', () => ({
     documentShareKey: {
       deleteMany: jest.fn(),
     },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -44,6 +45,10 @@ jest.mock('ethers', () => ({
   isAddress: jest.fn((addr: string) => addr.startsWith('0x') && addr.length === 42),
   getAddress: jest.fn((addr: string) => addr.toLowerCase()),
   JsonRpcProvider: jest.fn(),
+}));
+
+jest.mock('../../src/services/blockchainReceiptService', () => ({
+  assertOwnershipTransferredReceipt: jest.fn().mockResolvedValue({ blockNumber: 1 }),
 }));
 
 import prisma from '../../src/config/database';
@@ -100,7 +105,19 @@ describe('TransferService prepareTransfer', () => {
         where: { id: 'doc-1' },
         data: expect.objectContaining({
           blockchainStatus: BlockchainStatus.PREPARING,
-          encryptedSymmetricKey: 'enc-new',
+        }),
+      })
+    );
+    expect(mockPrisma.document.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ encryptedSymmetricKey: 'enc-new' }),
+      })
+    );
+    expect(mockPrisma.event.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          eventType: 'TRANSFER_PREPARED',
+          metadata: expect.objectContaining({ pendingEncryptedSymmetricKey: 'enc-new' }),
         }),
       })
     );
@@ -148,10 +165,16 @@ describe('TransferService prepareTransfer', () => {
     });
 
     expect(mockEncryptSymmetricKey).not.toHaveBeenCalled();
-    expect(mockPrisma.document.update).toHaveBeenCalledWith(
+    expect(mockPrisma.document.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ encryptedSymmetricKey: 'UNENCRYPTED' }),
+      })
+    );
+    expect(mockPrisma.event.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          encryptedSymmetricKey: 'UNENCRYPTED',
+          eventType: 'TRANSFER_PREPARED',
+          metadata: expect.objectContaining({ pendingEncryptedSymmetricKey: 'UNENCRYPTED' }),
         }),
       })
     );
@@ -236,7 +259,7 @@ describe('TransferService prepareTransfer', () => {
         newOwnerWalletAddress: '0xNewOwner',
         decryptedSymmetricKey: 'decrypted-key',
       })
-    ).rejects.toThrow('El nuevo propietario no tiene clave pública configurada');
+    ).rejects.toThrow('Usuario no tiene clave pública configurada');
   });
 
   it('throws if private document transfer lacks decrypted symmetric key', async () => {
@@ -282,16 +305,22 @@ describe('TransferService confirmTransfer', () => {
         transferId: 'transfer-1',
         newOwner: 'user-2',
         newOwnerAddress: '0xNewOwner',
+        currentWalletId: 'wallet-1',
         docId: '0xbcid',
+        pendingEncryptedSymmetricKey: 'enc-new',
       },
     });
+    mockPrisma.document.findUnique.mockResolvedValue({ id: 'doc-1', ownerId: 'user-1', blockchainId: '0x' + 'a'.repeat(64) });
+    mockPrisma.wallet.findFirst.mockResolvedValue({ id: 'wallet-1', walletAddress: '0x1234567890abcdef1234567890abcdef12345678' });
     mockPrisma.document.update.mockResolvedValue({ id: 'doc-1', ownerId: 'user-2' });
     mockPrisma.event.create.mockResolvedValue({ id: 'event-confirmed' });
+    mockPrisma.$transaction.mockImplementation(async (callback: any) => callback(mockPrisma));
 
     await TransferService.confirmTransfer({
       transferId: 'transfer-1',
       txHash: '0xtxhash',
       signature: '0xsig',
+      confirmerUserId: 'user-1',
     });
 
     expect(mockPrisma.document.update).toHaveBeenCalledWith(
@@ -299,6 +328,7 @@ describe('TransferService confirmTransfer', () => {
         where: { id: 'doc-1' },
         data: expect.objectContaining({
           ownerId: 'user-2',
+          encryptedSymmetricKey: 'enc-new',
           blockchainStatus: BlockchainStatus.TX_SUBMITTED,
           blockchainTxHash: '0xtxhash',
         }),
@@ -323,8 +353,9 @@ describe('TransferService confirmTransfer', () => {
         transferId: 'missing',
         txHash: '0xtxhash',
         signature: '0xsig',
+        confirmerUserId: 'user-1',
       })
-    ).rejects.toThrow('Document ID not found in transfer event');
+    ).rejects.toThrow('No se encontró el ID del documento en el evento de transferencia');
   });
 
   it('throws if document ID is missing in transfer event', async () => {
@@ -339,7 +370,8 @@ describe('TransferService confirmTransfer', () => {
         transferId: 'transfer-1',
         txHash: '0xtxhash',
         signature: '0xsig',
+        confirmerUserId: 'user-1',
       })
-    ).rejects.toThrow('Document ID not found in transfer event');
+    ).rejects.toThrow('No se encontró el ID del documento en el evento de transferencia');
   });
 });

@@ -1,0 +1,18 @@
+@startuml
+!include _structure-style.puml
+skinparam actorBackgroundColor #FFF3E0
+skinparam actorBorderColor #E65100
+skinparam ActorFontColor #BF360C
+skinparam ActorFontSize 13
+
+title Jerarquia de actores del sistema
+
+actor "Usuario\n(ACT-001)" as User
+actor "Administrador\n(ACT-002)" as Admin
+actor "Smart Contract\n(ACT-003)" as SC
+actor "Nodo IPFS\n(ACT-004)" as IPFS
+actor "Sistema Email\n(ACT-005)" as Email
+
+Admin --|> User
+
+@enduml

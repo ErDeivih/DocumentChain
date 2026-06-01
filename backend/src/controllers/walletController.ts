@@ -56,14 +56,16 @@ export class WalletController {
         return;
       }
 
-      // Verificar propiedad de la wallet si se proporciona firma
-      if (signature && message) {
-        const isValid = WalletService.verifyWalletSignature(address, message, signature);
-        
-        if (!isValid) {
-          res.status(400).json({ error: 'Firma de wallet inválida' });
-          return;
-        }
+      if (!signature || !message) {
+        res.status(400).json({ error: 'Se requiere la firma del desafío de wallet' });
+        return;
+      }
+
+      const isValid = WalletService.verifyWalletSignature(address, message, signature);
+
+      if (!isValid) {
+        res.status(400).json({ error: 'Firma de wallet inválida' });
+        return;
       }
 
       const wallet = await WalletService.addWallet(
