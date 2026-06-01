@@ -477,7 +477,7 @@ funcion prepararDocumento(hashContenido, cid, usuario):
         estado: 'PREPARING',
         usuarioId: usuario.id
     })
-    txData = contrato.populateTransaction('registerDocument', hash, cid)
+    txData = contrato.populateTransaction('createDocument', hash, cid)
     retornar { registroId: registro.id, txData: txData }
 fin funcion
 
@@ -541,178 +541,21 @@ fin funcion
 
 \section{Smart Contracts}
 
-Los smart contracts se han desarrollado en Solidity y desplegado mediante Hardhat. En las subsecciones siguientes se documentan los contratos individuales originales y las razones que motivaron su posterior consolidacion.
+El sistema utiliza un unico contrato inteligente consolidado, \texttt{DocumentRegistry}, ubicado en \texttt{smart-contracts/contracts/DocumentRegistry.sol}. Este contrato agrupa toda la logica on-chain: registro de documentos, versionado, firma digital, comparticion y control de acceso basado en roles mediante \texttt{AccessControl} de OpenZeppelin, ademas de proteccion contra reentrancia con \texttt{ReentrancyGuard}. La documentacion NatSpec y los tests de verificacion funcional se encuentran respectivamente en el codigo fuente del contrato y en \texttt{smart-contracts/test/DocumentRegistry.test.js}.
 
 \subsection{DocumentRegistry.sol}
 
-Registra el hash de contenido y los metadatos de cada documento en la blockchain. Aunque la implementacion final se consolido en un unico contrato, la logica de registro basica se ilustra en la List~\ref{lst:registry}.
+El contrato \texttt{DocumentRegistry} implementa las siguientes responsabilidades: registro de documentos con identificador unico, gestion del ciclo de vida de versiones, firma digital por direccion de wallet, asignacion y revocacion de permisos de lectura y edicion, transferencia de propiedad y operaciones de archivado y borrado logico. La implementacion se apoya en las librerias auditadas de OpenZeppelin para control de acceso granular y proteccion frente a ataques de reentrada.
 
-\begin{lstlisting}[language=Java, caption={DocumentRegistry.sol -- Registro de documentos}, label={lst:registry}]
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+\subsection{Eventos on-chain y verificacion funcional}
 
-contract DocumentRegistry {
-    struct Document {
-        bytes32 contentHash;
-        string ipfsCid;
-        address owner;
-        uint256 timestamp;
-        bool exists;
-    }
+Los diez eventos que emite el contrato constituyen la interfaz de auditoria natural del sistema: \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{VersionRestored}, \texttt{DocumentSigned}, \texttt{DocumentShared}, \texttt{PermissionRevoked}, \texttt{OwnershipTransferred}, \texttt{DocumentArchived}, \texttt{DocumentDeleted} y \texttt{OperationalVersionChanged}. Cada uno se emite en el momento en que la operacion correspondiente es confirmada en bloque, permitiendo reconstruir el historial completo de cada documento.
 
-    mapping(bytes32 => Document) public documents;
-    
-    event DocumentCreated(
-        bytes32 indexed contentHash,
-        string ipfsCid,
-        address indexed owner
-    );
-
-    function registerDocument(
-        bytes32 _contentHash,
-        string memory _ipfsCid
-    ) external {
-        require(!documents[_contentHash].exists, "Documento ya registrado");
-        documents[_contentHash] = Document({
-            contentHash: _contentHash,
-            ipfsCid: _ipfsCid,
-            owner: msg.sender,
-            timestamp: block.timestamp,
-            exists: true
-        });
-        emit DocumentCreated(_contentHash, _ipfsCid, msg.sender);
-    }
-}
-\end{lstlisting}
-
-\subsection{Versioning.sol}
-
-Gestiona las versiones de los documentos registrados, permitiendo mantener un historial inmutable de cambios.
-
-\begin{lstlisting}[language=Java, caption={Versioning.sol -- Gestion de versiones}]
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract Versioning {
-    struct Version {
-        uint256 versionNumber;
-        bytes32 contentHash;
-        string ipfsCid;
-        uint256 timestamp;
-    }
-
-    mapping(bytes32 => Version[]) public documentVersions;
-    mapping(bytes32 => uint256) public operationalVersion;
-
-    event VersionCreated(
-        bytes32 indexed docHash,
-        uint256 versionNumber,
-        bytes32 contentHash
-    );
-
-    function addVersion(
-        bytes32 _docHash,
-        bytes32 _contentHash,
-        string memory _ipfsCid
-    ) external {
-        uint256 newVersion = documentVersions[_docHash].length + 1;
-        documentVersions[_docHash].push(Version({
-            versionNumber: newVersion,
-            contentHash: _contentHash,
-            ipfsCid: _ipfsCid,
-            timestamp: block.timestamp
-        }));
-        operationalVersion[_docHash] = newVersion;
-        emit VersionCreated(_docHash, newVersion, _contentHash);
-    }
-}
-\end{lstlisting}
-
-\subsection{Signing.sol}
-
-Gestiona las firmas digitales sobre versiones de documentos, registrando la direccion del firmante y el instante de la firma.
-
-\begin{lstlisting}[language=Java, caption={Signing.sol -- Firmas digitales}]
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract Signing {
-    struct Signature {
-        address signer;
-        bytes32 docHash;
-        uint256 versionNumber;
-        bytes32 signatureHash;
-        uint256 timestamp;
-    }
-
-    mapping(bytes32 => Signature[]) public signatures;
-
-    event DocumentSigned(
-        bytes32 indexed docHash,
-        address indexed signer,
-        uint256 versionNumber
-    );
-
-    function signDocument(
-        bytes32 _docHash,
-        uint256 _versionNumber,
-        bytes32 _signatureHash
-    ) external {
-        signatures[_docHash].push(Signature({
-            signer: msg.sender,
-            docHash: _docHash,
-            versionNumber: _versionNumber,
-            signatureHash: _signatureHash,
-            timestamp: block.timestamp
-        }));
-        emit DocumentSigned(_docHash, msg.sender, _versionNumber);
-    }
-}
-\end{lstlisting}
-
-\subsection{AccessControl.sol}
-
-Control de acceso y permisos sobre documentos, diferenciando entre ausencia de permiso, lectura, escritura y firma.
-
-\begin{lstlisting}[language=Java, caption={AccessControl.sol -- Control de acceso}]
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract AccessControl {
-    enum Permission { NONE, READ, WRITE, SIGN }
-    
-    mapping(bytes32 => mapping(address => Permission)) public permissions;
-    
-    event PermissionGranted(
-        bytes32 indexed docHash,
-        address indexed user,
-        Permission permission
-    );
-    
-    event PermissionRevoked(
-        bytes32 indexed docHash,
-        address indexed user
-    );
-
-    function grantPermission(
-        bytes32 _docHash,
-        address _user,
-        Permission _permission
-    ) external {
-        permissions[_docHash][_user] = _permission;
-        emit PermissionGranted(_docHash, _user, _permission);
-    }
-
-    function revokePermission(bytes32 _docHash, address _user) external {
-        delete permissions[_docHash][_user];
-        emit PermissionRevoked(_docHash, _user);
-    }
-}
-\end{lstlisting}
+Se realizo una auditoria funcional del contrato mediante tests alojados en \texttt{smart-contracts/test/DocumentRegistry.test.js}. Estos tests verifican la correcta emision de todos los eventos, el control de acceso basado en roles, la proteccion contra reentrancia y los casos limite aritmeticos. La auditoria cubre el despliegue, la creacion de documentos, la gestion de versiones, la firma digital, la comparticion y revocacion de permisos, la transferencia de propiedad, el archivado y borrado, y las funciones de consulta on-chain. El entorno de ejecucion es Hardhat con red local de pruebas.
 
 \subsection{Decision de consolidacion en un unico contrato}
 
-Durante la fase de diseno se evaluo la opcion de mantener la logica distribuida en cuatro contratos independientes (registro, versionado, firmas y permisos) frente a la consolidacion en un unico contrato \texttt{DocumentRegistry}. Se opto por un solo contrato sobre todo por simplicidad. Ademas ayuda a reducir el gas del despliegue y evita problemas de atomicidad.
+Durante la fase de diseno se evaluo la opcion de mantener la logica distribuida en varios contratos independientes frente a la consolidacion en un unico \texttt{DocumentRegistry}. Se opto por un unico contrato por simplicidad, para reducir el coste de gas del despliegue y para evitar problemas de atomicidad entre operaciones que afectan a multiples aspectos del estado on-chain.
 
 \subsection{Decisiones de diseno del contrato consolidado}
 
@@ -883,10 +726,6 @@ A continuacion se detalla el proposito de cada operacion:
 Cada operacion emite eventos que constituyen la interfaz de auditoria natural del sistema. \texttt{DocumentCreated} y \texttt{VersionCreated} registran altas y versionados; \texttt{DocumentShared} y \texttt{PermissionRevoked} reflejan cambios de permisos; \texttt{DocumentSigned} deja constancia de la firma emitida por una direccion concreta.
 
 Las restricciones de seguridad se expresan mediante modificadores y controles internos. \texttt{nonReentrant} reduce la superficie de ataques por reentrada; \texttt{notDeleted} bloquea acciones incompatibles con el borrado logico; y \texttt{notArchived} impide modificar el estado de documentos archivados. El contrato conserva ademas salvaguardas defensivas adicionales a nivel interno, pero no se documentan como funcionalidades visibles del sistema final.
-
-\subsection{Verificacion funcional del contrato inteligente}
-
-Se implemento una bateria de 102 tests funcionales sobre el contrato \texttt{DocumentRegistry} que verifican la correcta emision de los diez eventos definidos, el control de acceso basado en roles mediante \texttt{AccessControl} de OpenZeppelin, la proteccion contra reentrancia (\texttt{ReentrancyGuard}), y los casos limite aritmeticos (direccion cero, valores maximos de \texttt{uint256}). Los tests cubren el despliegue, la creacion de documentos, la gestion completa de versiones (crear, restaurar y establecer version operativa), la firma digital, la comparticion y revocacion de permisos, la transferencia de propiedad, el archivado y borrado de documentos, y las funciones de solo lectura que recuperan el estado on-chain. Esta bateria constituye una verificacion funcional exhaustiva del componente on-chain del sistema y se ejecuta mediante el entorno Hardhat con una red local de pruebas.
 
 \section{Patron prepare/confirm y sincronizacion}
 

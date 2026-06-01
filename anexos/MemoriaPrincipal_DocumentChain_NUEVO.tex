@@ -490,7 +490,7 @@ Una vez finalizada la fase inicial de planificacion temporal, se paso a la fase 
 
 A modo de ejemplo, la Tabla \ref{tab:obj-func} muestra los objetivos funcionales del sistema, la Tabla \ref{tab:actores} identifica los actores que interactuan con DocumentChain, y la Figura \ref{fig:usecase-general-mem} presenta el diagrama general de casos de uso con la distribucion de los 43 casos de uso en siete paquetes funcionales (Tabla \ref{tab:uc-paquetes}).
 
-A titulo ilustrativo, la Tabla \ref{tab:uc-ejemplo} muestra la especificacion completa de un caso de uso representativo del sistema: UC-0015 Subir Documento, que constituye la operacion principal del modulo de gestion documental e involucra las tres capas de persistencia (PostgreSQL, IPFS y blockchain). El Anexo I contiene las 39 especificaciones completas con este mismo nivel de detalle.
+A titulo ilustrativo, la Tabla \ref{tab:uc-ejemplo} muestra la especificacion completa de un caso de uso representativo del sistema: UC-0015 Subir Documento, que constituye la operacion principal del modulo de gestion documental e involucra las tres capas de persistencia (PostgreSQL, IPFS y blockchain). El Anexo I contiene las 43 especificaciones completas con este mismo nivel de detalle.
 
 \begin{table}[H]
 \centering
@@ -498,7 +498,7 @@ A titulo ilustrativo, la Tabla \ref{tab:uc-ejemplo} muestra la especificacion co
 \small
 \begin{tabular}{|p{2.2cm}|p{9.5cm}|}
 \hline
-\multicolumn{2}{|c|}{\textbf{UC-0013: Subir Documento}} \\
+\multicolumn{2}{|c|}{\textbf{UC-0015: Subir Documento}} \\
 \hline
 \textbf{Descripcion} & El usuario sube un archivo a la plataforma. El sistema cifra el contenido (si el documento es privado), lo almacena en IPFS y registra el hash en la blockchain para garantizar la inmutabilidad del registro. \\
 \hline
@@ -847,7 +847,7 @@ Para mas detalle sobre la planificacion y como se ajusto a lo estimado, se puede
 Ya que ningun diseno es perfecto, se plantean una serie de ideas para mejorar el sistema:
 
 \begin{itemize}
-    \item \textbf{Migracion a redes blockchain publicas}: desplegar el contrato DocumentRegistry en una red de pruebas publica (Sepolia) y, tras auditoria de seguridad profesional, migrar a una red principal o Layer 2 (Polygon, Arbitrum) con un sistema de meta-transacciones para eliminar la barrera del gas para el usuario final.
+    \item \textbf{Migracion a redes blockchain publicas}: desplegar el contrato DocumentRegistry en una red de pruebas publica (una red de pruebas publica) y, tras auditoria de seguridad profesional, migrar a una red principal o Layer 2 (Polygon, Arbitrum) con un sistema de meta-transacciones para eliminar la barrera del gas para el usuario final.
     \item \textbf{Aplicacion movil nativa o PWA}: desarrollar una aplicacion para iOS/Android o convertir el frontend actual en una Progressive Web App instalable, con almacenamiento seguro de claves y notificaciones push nativas.
     \item \textbf{Mejoras de usabilidad}: implementar un tour interactivo guiado para nuevos usuarios, modelo de cuenta abstracta (ERC-4337) para abstraer la complejidad de las wallets, y visores de documentos integrados en la interfaz.
     \item \textbf{Funcionalidades avanzadas}: firma colectiva multisig con umbrales de firmantes, plantillas de documentos personalizables, flujos de aprobacion configurables y busqueda semantica sobre el contenido textual de los documentos.

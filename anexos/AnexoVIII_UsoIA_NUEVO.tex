@@ -138,11 +138,11 @@ A continuacion se presentan ejemplos representativos de los prompts utilizados y
 
 \subsection{Generacion de diagramas de secuencia BCE}
 
-\textbf{Contexto:} Para el Anexo III (Analisis y Diseno del Sistema) se requeria generar 39 diagramas de secuencia de analisis (BCE) a partir de las especificaciones de casos de uso ya documentadas en el Anexo I.
+\textbf{Contexto:} Para el Anexo III (Analisis y Diseno del Sistema) se requeria generar 43 diagramas de secuencia de analisis (BCE) a partir de las especificaciones de casos de uso ya documentadas en el Anexo I.
 
 \textbf{Prompt:} \textit{``Genera un diagrama de secuencia PlantUML para el caso de uso 'Firmar documento con wallet blockchain', incluyendo las interacciones con el smart contract. Utiliza estereotipos Boundary, Control y Entity. El diagrama debe seguir el estilo definido en \texttt{\_sequence-bce-style.puml}. El flujo es: usuario selecciona documento, solicita firma, conecta wallet, firma challenge, backend confirma en blockchain.''}
 
-\textbf{Resultado:} Se genero un diagrama de secuencia base que fue posteriormente adaptado manualmente para reflejar la logica real del sistema: gestion de wallets EIP-6963 y WalletConnect, challenge-firma con recuperacion de direccion via \texttt{ethers.verifyMessage()}, y confirmacion on-chain con el patron prepare/confirm. La IA acelero significativamente el proceso de creacion de la estructura basica de los 39 diagramas, que luego fueron revisados y corregidos uno a uno.
+\textbf{Resultado:} Se genero un diagrama de secuencia base que fue posteriormente adaptado manualmente para reflejar la logica real del sistema: gestion de wallets EIP-6963 y WalletConnect, challenge-firma con recuperacion de direccion via \texttt{ethers.verifyMessage()}, y confirmacion on-chain con el patron prepare/confirm. La IA acelero significativamente el proceso de creacion de la estructura basica de los 43 diagramas, que luego fueron revisados y corregidos uno a uno.
 
 \subsection{Documentacion tecnica del sistema de cifrado}
 
@@ -180,7 +180,7 @@ A continuacion se presentan ejemplos representativos de los prompts utilizados y
 
 \textbf{Contexto:} La matriz de rastreabilidad del Anexo I requeria cruzar 43 casos de uso con requisitos funcionales (7 IRQ), no funcionales (6 NFR) y diagramas de secuencia (86 diagramas entre BCE y diseno). La generacion manual de estas tablas era propensa a errores y consumia mucho tiempo.
 
-\textbf{Prompt:} \textit{``Genera el codigo LaTeX para una matriz de rastreabilidad que cruce los casos de uso UC-0001 a UC-0039 con los requisitos de informacion IRQ-0001 a IRQ-0007 y los requisitos no funcionales NFR-0001 a NFR-0006. La matriz debe usar los datos de las tablas de especificacion de casos de uso. Formato: tabla con filas por UC, columnas por IRQ/NFR, celdas con X donde exista relacion.''}
+\textbf{Prompt:} \textit{``Genera el codigo LaTeX para una matriz de rastreabilidad que cruce los casos de uso UC-0001 a UC-0043 con los requisitos de informacion IRQ-0001 a IRQ-0007 y los requisitos no funcionales NFR-0001 a NFR-0006. La matriz debe usar los datos de las tablas de especificacion de casos de uso. Formato: tabla con filas por UC, columnas por IRQ/NFR, celdas con X donde exista relacion.''}
 
 \textbf{Resultado:} La IA genero las tablas de rastreabilidad con la estructura LaTeX correcta, que fueron posteriormente verificadas manualmente contra las especificaciones de cada caso de uso. Se detectaron y corrigieron 3 omisiones en el cruce UC-IRQ y se añadieron las referencias a los diagramas de secuencia correspondientes.
 
@@ -226,7 +226,7 @@ Cifrado (FileCrypto, KeyManager) & Baja & Implementacion manual basada en WebCry
 \hline
 Pruebas unitarias y E2E & Media & Generacion de casos de prueba iniciales, revision manual y ampliacion de cobertura. \\
 \hline
-Diagramas UML (PlantUML) & Alta & Generacion de la estructura base de los 78 diagramas de secuencia. Revision y correccion manual de cada uno. \\
+Diagramas UML (PlantUML) & Alta & Generacion de la estructura base de los 86 diagramas de secuencia. Revision y correccion manual de cada uno. \\
 \hline
 Documentacion LaTeX & Alta & Asistencia en la redaccion de todos los anexos y la memoria. Re vision y adaptacion manual del contenido. \\
 \hline

@@ -311,7 +311,7 @@ El recorrido t\'{i}pico de una solicitud de usuario se describe a continuaci\'{o
     \begin{itemize}
         \item PostgreSQL para datos relacionales a trav\'{e}s de la capa de acceso a base de datos.
         \item IPFS para almacenar o recuperar bloques de documentos cifrados.
-        \item El nodo blockchain (Hardhat local o Sepolia) para emitir o consultar transacciones.
+        \item El nodo blockchain (Hardhat local o una red de pruebas) para emitir o consultar transacciones.
     \end{itemize}
     \item Las respuestas viajan por el camino inverso hasta el navegador del usuario.
 \end{enumerate}
@@ -383,7 +383,7 @@ La tabla \ref{tab:env-vars} detalla las variables m\'{a}s cr\'{i}ticas del siste
 \texttt{EMAIL\_FROM} & Direcci\'{o}n de remitente visible en los correos enviados & \texttt{noreply@ejemplo.com} & S\'{i} \\
 \texttt{EMAIL\_FROM\_NAME} & Nombre descriptivo del remitente & \texttt{DocumentChain} & No \\
 \texttt{FRONTEND\_URL} & URL base para enlaces de verificaci\'{o}n y restablecimiento & \texttt{https://ejemplo.com} & S\'{i} \\
-\texttt{SEPOLIA\_RPC\_URL} & Endpoint de nodo en testnet Sepolia (Alchemy/Infura) & \texttt{https://eth-sepolia.g.alchemy.com/v2/...} & No \\
+\texttt{una red de pruebas\_RPC\_URL} & Endpoint de nodo en testnet una red de pruebas (Alchemy/Infura) & \texttt{https://eth-una red de pruebas.g.alchemy.com/v2/...} & No \\
 \texttt{PRIVATE\_KEY} & Clave privada de la cuenta desplegadora en testnet/mainnet & \texttt{0xabc...} & No \\
 \texttt{ETHERSCAN\_API\_KEY} & Clave de API para verificaci\'{o}n de c\'{o}digo fuente en Etherscan & \texttt{ABC123...} & No \\
 \end{longtable}
@@ -497,7 +497,7 @@ En la configuraci\'on por defecto de DocumentChain, el proveedor IPFS depende de
 
 \subsection{Paso 5: Desplegar smart contracts}
 
-El despliegue var\'{i}a seg\'{u}n el entorno objetivo: red local de desarrollo (Hardhat) o testnet p\'{u}blica (Sepolia).
+El despliegue var\'{i}a seg\'{u}n el entorno objetivo: red local de desarrollo (Hardhat) o testnet p\'{u}blica (una red de pruebas).
 
 \subsubsection{Despliegue en red local}
 
@@ -515,16 +515,16 @@ npx hardhat run scripts/deploy.ts --network localhost
 echo "CONTRACT_ADDRESS=0x..." >> ../backend/.env
 \end{lstlisting}
 
-\subsubsection{Despliegue en Sepolia testnet}
+\subsubsection{Despliegue en una red de pruebas testnet}
 
-\begin{lstlisting}[language=bash, caption={Despliegue en Sepolia}]
-export SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/TU_API_KEY
+\begin{lstlisting}[language=bash, caption={Despliegue en una red de pruebas}]
+export una red de pruebas_RPC_URL=https://eth-una red de pruebas.g.alchemy.com/v2/TU_API_KEY
 export PRIVATE_KEY=0xTU_CLAVE_PRIVADA_SIN_PREFIJO_O_CON_EL
 
-npx hardhat run scripts/deploy.ts --network sepolia
+npx hardhat run scripts/deploy.ts --network una red de pruebas
 \end{lstlisting}
 
-Es imprescindible contar con saldo de ETH de prueba en la cuenta desplegadora. Los faucets p\'{u}blicos de Sepolia permiten solicitar fondos gratuitos introduciendo la direcci\'{o}n de la wallet. La direcci\'{o}n resultante del contrato debe registrarse en el archivo \texttt{.env} antes de reiniciar el backend.
+Es imprescindible contar con saldo de ETH de prueba en la cuenta desplegadora. Los faucets p\'{u}blicos de una red de pruebas permiten solicitar fondos gratuitos introduciendo la direcci\'{o}n de la wallet. La direcci\'{o}n resultante del contrato debe registrarse en el archivo \texttt{.env} antes de reiniciar el backend.
 
 \subsection{Paso 6: Seed de base de datos}
 
@@ -619,7 +619,7 @@ Una vez finalizados los pasos anteriores, debe completarse la siguiente lista de
     \item El contrato inteligente est\'{a} desplegado y su direcci\'{o}n figura en el archivo \texttt{.env}.
     \item La base de datos contiene registros de semilla: consultar la tabla \texttt{User} desde PostgreSQL.
     \item Se env\'{i}a correctamente un correo de prueba desde el formulario de registro o mediante los logs del backend.
-    \item La wallet de prueba conecta a la red configurada (Hardhat o Sepolia) y puede firmar transacciones.
+    \item La wallet de prueba conecta a la red configurada (Hardhat o una red de pruebas) y puede firmar transacciones.
 \end{enumerate}
 
 % ============================================================
@@ -784,25 +784,25 @@ npx hardhat run scripts/deploy.ts --network localhost
 
 La direcci\'{o}n impresa en consola debe asignarse a la variable \texttt{CONTRACT\_ADDRESS} del backend. En modo Docker, el contenedor \texttt{hardhat} ejecuta autom\'{a}ticamente el nodo si la imagen est\'{a} configurada para ello; de lo contrario, puede mapearse el puerto 8545 del anfitri\'{o}n al contenedor backend.
 
-\subsection{Despliegue en Sepolia testnet}
+\subsection{Despliegue en una red de pruebas testnet}
 
-Sepolia es la testnet p\'{u}blica recomendada para validar contratos antes de un despliegue en mainnet.
+una red de pruebas es la testnet p\'{u}blica recomendada para validar contratos antes de un despliegue en mainnet.
 
 \begin{enumerate}[leftmargin=*]
-    \item \textbf{Faucet}: obtener ETH de prueba desde un faucet p\'{u}blico (p. ej., \texttt{sepoliafaucet.com}, Alchemy faucet) enviando fondos a la direcci\'{o}n de la wallet desplegadora.
-    \item \textbf{Configuraci\'{o}n}: a\~{n}adir la red Sepolia al archivo \texttt{hardhat.config.ts}.
+    \item \textbf{Faucet}: obtener ETH de prueba desde un faucet p\'{u}blico (p. ej., \texttt{una red de pruebasfaucet.com}, Alchemy faucet) enviando fondos a la direcci\'{o}n de la wallet desplegadora.
+    \item \textbf{Configuraci\'{o}n}: a\~{n}adir la red una red de pruebas al archivo \texttt{hardhat.config.ts}.
     \item \textbf{Despliegue}: ejecutar el script de despliegue apuntando a la red configurada.
     \item \textbf{Verificaci\'{o}n}: publicar el c\'{o}digo fuente en Etherscan para facilitar la auditor\'{i}a p\'{u}blica.
 \end{enumerate}
 
-\begin{lstlisting}[language=TypeScript, caption={Fragmento de configuraci\'{o}n de red Sepolia en Hardhat}]
+\begin{lstlisting}[language=TypeScript, caption={Fragmento de configuraci\'{o}n de red una red de pruebas en Hardhat}]
 // hardhat.config.ts
 import { HardhatUserConfig } from 'hardhat/config';
 
 const config: HardhatUserConfig = {
   networks: {
-    sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || '',
+    una red de pruebas: {
+      url: process.env.una red de pruebas_RPC_URL || '',
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
@@ -830,7 +830,7 @@ Ambos valores deben trasladarse al archivo \texttt{.env} del backend y del front
 La verificaci\'{o}n permite a terceros inspeccionar el c\'{o}digo fuente asociado a una direcci\'{o}n on-chain.
 
 \begin{lstlisting}[language=bash, caption={Verificaci\'{o}n en Etherscan desde Hardhat}]
-npx hardhat verify --network sepolia CONTRACT_ADDRESS "Argumento1" "Argumento2"
+npx hardhat verify --network una red de pruebas CONTRACT_ADDRESS "Argumento1" "Argumento2"
 \end{lstlisting}
 
 El comando requiere que la variable \texttt{ETHERSCAN\_API\_KEY} est\'{e} exportada en el entorno. Tras la ejecuci\'{o}n exitosa, la p\'{a}gina del contrato en Etherscan mostrar\'{a} el c\'{o}digo fuente Solidity y la interfaz de lectura/escritura p\'{u}blica.
@@ -1297,7 +1297,7 @@ A continuaci\'on se recogen los problemas que han aparecido con m\'as frecuencia
 No se puede conectar a PostgreSQL & Credenciales err\'{o}neas, contenedor ca\'{i}do o red mal configurada & \texttt{docker compose logs postgres}; verificar \texttt{pg\_isready} & Revisar \texttt{DATABASE\_URL}, reiniciar contenedor, comprobar red interna \\
 IPFS no responde en puerto 5001 & Nodo no inicializado, CORS bloqueado o contenedor reinici\'{a}ndose & \texttt{curl http://localhost:5001/api/v0/version} & Ejecutar \texttt{ipfs init}, configurar CORS, revisar logs \\
 Error CORS al subir archivo & Cabeceras CORS no aplicadas en IPFS o backend & Inspeccionar respuesta preflight en navegador & Configurar \texttt{API.HTTPHeaders} en Kubo y headers en Express \\
-Smart contract no desplegado & Cuenta sin saldo, red incorrecta o error de compilaci\'{o}n & Revisar saldo en Hardhat/Sepolia, verificar \texttt{hardhat.config.ts} & Recargar faucet, corregir red, recompilar con \texttt{npm ci} \\
+Smart contract no desplegado & Cuenta sin saldo, red incorrecta o error de compilaci\'{o}n & Revisar saldo en Hardhat/una red de pruebas, verificar \texttt{hardhat.config.ts} & Recargar faucet, corregir red, recompilar con \texttt{npm ci} \\
 Transacciones blockchain fallan & \texttt{CONTRACT\_ADDRESS} incorrecto, red desconectada o gas insuficiente & Verificar direcci\'{o}n en \texttt{.env}, comprobar estado del nodo & Actualizar \texttt{.env}, reiniciar nodo, estimar gas adecuadamente \\
 Frontend no carga (404 en rutas) & Nginx no redirige rutas SPA al \texttt{index.html} & \texttt{curl -I http://localhost/ruta-interna} & A\~{n}adir \texttt{try\_files \$uri \$uri/ /index.html} en Nginx \\
 Emails no se env\'{i}an & Credenciales de Brevo incorrectas, dominio no verificado o puerto bloqueado & \texttt{docker compose logs backend}; revisar logs de Nodemailer & Verificar \texttt{SMTP\_USER} y \texttt{SMTP\_PASS} en \texttt{.env}, comprobar verificaci\'{o}n de dominio en Brevo, probar conectividad a \texttt{smtp-relay.brevo.com:587} \\

@@ -1873,7 +1873,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \small
 \begin{tabular}{|p{2.8cm}|p{8cm}|}
 \hline
-\multicolumn{2}{|c|}{\textbf{UC-0012: Reenviar Verificacion de Email}} \\
+\multicolumn{2}{|c|}{\textbf{UC-0014: Reenviar Verificacion de Email}} \\
 \hline
 \textbf{Descripcion} & El usuario solicita el reenvio del correo de verificacion de email cuando el enlace original ha expirado o no se ha recibido. \\
 \hline
@@ -1904,7 +1904,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.88\textwidth]{diagramas/seq-bce-uc0014-resend-verification.png}
-    \caption{Diagrama de secuencia de analisis BCE -- UC-0012: Reenviar Verificacion de Email}
+    \caption{Diagrama de secuencia de analisis BCE -- UC-0014: Reenviar Verificacion de Email}
     \label{fig:seq-bce-uc0014-resend}
 \end{figure}
 
@@ -1957,7 +1957,7 @@ A continuación se detallan los casos de uso del sistema con un nivel de detalle
 \hline
 \textbf{Comentarios} & El patrón Prepare/Confirm evita inconsistencias entre IPFS, base de datos y blockchain. El backend genera un mensaje legible (\textit{messageToSign}) para que el usuario verifique en la wallet qué documento está creando antes de firmar. La publicación pública es siempre optativa y exige una advertencia explícita porque elimina el cifrado del contenido. \\
 \hline
-\caption{Especificación del caso de uso UC-0013}
+\caption{Especificación del caso de uso UC-0015}
 \end{longtable}
 
 \ucsubsubsection{UC-0014: Listar Documentos}
@@ -3568,7 +3568,7 @@ UC-0007 Renombrar Wallet & seq-bce-uc0007-rename-wallet.png & seq-label-wallet.p
 \hline
 UC-0008 Gestionar Perfil y Notificaciones & seq-bce-uc0008-profile.png & seq-profile.png \\
 \hline
-UC-0009 Eliminar Cuenta & seq-bce-uc0010-delete-account.png & seq-bce-uc0010-delete-account.png \\
+UC-0010 Eliminar Cuenta & seq-bce-uc0010-delete-account.png & seq-delete-account.png \\
 \hline
 UC-0010 Cambiar Contrasena & seq-bce-uc0011-change-password.png & seq-change-password.png \\
 \hline
