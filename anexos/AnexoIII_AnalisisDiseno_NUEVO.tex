@@ -50,48 +50,6 @@
     headsep    = 0.8cm
 }
 
-\usepackage{listings}
-\definecolor{lightgray}{rgb}{0.96, 0.96, 0.96}
-\definecolor{darkblue}{rgb}{0.0, 0.0, 0.6}
-\definecolor{darkorange}{rgb}{0.8, 0.4, 0.0}
-
-\lstdefinelanguage{TypeScript}{
-    keywords={break,case,catch,class,const,continue,debugger,default,delete,do,
-              else,enum,export,extends,false,finally,for,function,if,import,in,
-              instanceof,let,new,null,return,super,switch,this,throw,true,try,
-              typeof,var,void,while,with,yield,async,await,interface,type,
-              implements,private,protected,public,static,abstract,readonly},
-    sensitive=true,
-    comment=[l]{//},
-    morecomment=[s]{/*}{*/},
-    morestring=[b]',
-    morestring=[b]",
-    morestring=[b]`,
-}
-
-\lstdefinelanguage{Solidity}{
-    keywords={pragma,solidity,contract,library,interface,function,modifier,event,
-              struct,enum,mapping,address,bool,string,int,uint,bytes,public,
-              private,internal,external,pure,view,payable,returns,memory,storage,
-              calldata,emit,require,revert,assert,new,delete,this,super,
-              constructor,fallback,receive,import,using,for,is},
-    sensitive=true,
-    comment=[l]{//},
-    morecomment=[s]{/*}{*/},
-    morestring=[b]',
-    morestring=[b]",
-}
-
-\lstset{
-    basicstyle      = \ttfamily\scriptsize,
-    breaklines      = true,
-    frame           = single,
-    backgroundcolor = \color{lightgray},
-    keywordstyle    = \color{darkblue}\bfseries,
-    stringstyle     = \color{darkorange},
-    showstringspaces= false,
-}
-
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
