@@ -18,7 +18,6 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{enumitem}
-\usepackage{listings}
 \usepackage{pdflscape}
 \usepackage[
     colorlinks = true,
@@ -41,30 +40,6 @@
     \textcolor{black}{\textbf{\thepage}}%
     \hspace{0.5cm}%
     \color{gray}\rule[0.5ex]{0.4\textwidth}{0.8pt}%
-}
-
-\definecolor{lightgray}{rgb}{0.96, 0.96, 0.96}
-\definecolor{darkblue}{rgb}{0.0, 0.0, 0.6}
-\definecolor{darkorange}{rgb}{0.8, 0.4, 0.0}
-\lstset{
-    basicstyle=\ttfamily\scriptsize,
-    breaklines=true, frame=single,
-    backgroundcolor=\color{lightgray},
-    keywordstyle=\color{darkblue}\bfseries,
-    stringstyle=\color{darkorange},
-    showstringspaces=false,
-}
-\lstdefinelanguage{JavaScript}{
-    keywords={break,case,catch,class,const,continue,debugger,default,delete,do,
-              else,export,extends,false,finally,for,function,if,import,in,
-              instanceof,let,new,null,return,super,switch,this,throw,true,try,
-              typeof,var,void,while,with,yield,async,await,from,of},
-    sensitive=true,
-    comment=[l]{//},
-    morecomment=[s]{/*}{*/},
-    morestring=[b]',
-    morestring=[b]",
-    morestring=[b]`,
 }
 
 \newcommand{\tituloInforme}{DocumentChain}

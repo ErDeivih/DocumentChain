@@ -775,7 +775,7 @@ A continuación se presenta, en la Tabla~\ref{tab:tareas-hitos}, la relación co
 \hline
 60 & Despliegue del nodo IPFS autoalojado en producción & 59 & Configuración del backend con el nodo IPFS autoalojado y validación de persistencia. \\
 \hline
-61 & Despliegue del smart contract en Sepolia & 59 & Despliegue de DocumentRegistry.sol en la red de pruebas Ethereum Sepolia. \\
+61 & Despliegue del smart contract localmente con Hardhat & 59 & Despliegue de DocumentRegistry.sol en la red de pruebas Ethereum red de pruebas local. \\
 \hline
 62 & Configuración de dominio y certificado SSL & 60 & Configuración de DNS, Nginx como reverse proxy y certificado SSL con Let's Encrypt. \\
 \hline
@@ -991,7 +991,7 @@ La Tabla~\ref{tab:planificacion-detalle} constituye la \textbf{fuente de verdad}
 \hline
 60 & Despliegue del nodo IPFS autoalojado en producción & Trans. I1 & 10/05/2026 & 2 & 11/05/2026 & 58 \\
 \hline
-61 & Despliegue del smart contract en Sepolia & Trans. I1 & 10/05/2026 & 3 & 12/05/2026 & 58 \\
+61 & Despliegue del smart contract localmente con Hardhat & Trans. I1 & 10/05/2026 & 3 & 12/05/2026 & 58 \\
 \hline
 62 & Configuración de dominio y certificado SSL & Trans. I1 & 12/05/2026 & 2 & 13/05/2026 & 59,60 \\
 \hline
@@ -1162,7 +1162,7 @@ En la Figura~\ref{fig:gantt_trans1} se muestra la primera iteración de Transici
   \ganttbar[bar label font=\scriptsize]{58.\ Preparación entorno producción}{2026-05-07}{2026-05-09} \\
   \ganttbar[bar label font=\scriptsize]{59.\ Despliegue backend y base de datos}{2026-05-10}{2026-05-11} \\
   \ganttbar[bar label font=\scriptsize]{60.\ Despliegue nodo IPFS autoalojado}{2026-05-10}{2026-05-11} \\
-  \ganttbar[bar label font=\scriptsize]{61.\ Despliegue SC en Sepolia}{2026-05-10}{2026-05-12} \\
+  \ganttbar[bar label font=\scriptsize]{61.\ Despliegue SC localmente con Hardhat}{2026-05-10}{2026-05-12} \\
   \ganttbar[bar label font=\scriptsize]{62.\ Dominio y certificado SSL}{2026-05-12}{2026-05-13} \\
   \ganttbar[bar label font=\scriptsize]{63.\ Pruebas funcionales producción}{2026-05-13}{2026-05-15} \\
   \ganttbar[bar label font=\scriptsize]{64.\ Corrección incidencias}{2026-05-15}{2026-05-17} \\
@@ -1222,7 +1222,7 @@ Primera iteración de implementación: subsistemas centrales del sistema. Se des
 Segunda iteración de implementación: funcionalidades avanzadas. Se añadieron auditoría, estadísticas, panel de administración, notificaciones y email. Se realizaron las pruebas E2E con Playwright, la optimización del rendimiento, la validación de seguridad y la corrección de bugs. \\
 \hline
 \textbf{Transición} (Iteración 1) &
-Se configuró y desplegó el sistema completo en un VPS con Docker Compose, incluyendo el backend, la base de datos PostgreSQL, la integración con el nodo IPFS autoalojado y el smart contract en la red de pruebas Ethereum Sepolia. Se realizaron pruebas funcionales completas en el entorno de producción. \\
+Se configuró y desplegó el sistema completo en un VPS con Docker Compose, incluyendo el backend, la base de datos PostgreSQL, la integración con el nodo IPFS autoalojado y el smart contract en la red de pruebas Ethereum red de pruebas local. Se realizaron pruebas funcionales completas en el entorno de producción. \\
 \hline
 \textbf{Transición} (Iteración 2) &
 Cierre del proyecto académico. Se redactó la memoria principal del TFG, se revisaron los anexos, se preparó la presentación de la defensa oral y se realizó la entrega oficial del proyecto a los tutores. \\
