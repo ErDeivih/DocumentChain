@@ -559,7 +559,7 @@ El resumen de la clasificación de los 43 casos de uso se presenta en la Tabla~\
 \hline
 Simple (1--3 Tx) & 8 & 5 & 40 \\
 \hline
-Medio (4--7 Tx) & 26 & 10 & 260 \\
+Medio (4--7 Tx) & 23 & 10 & 230 \\
 \hline
 Complejo (8+ Tx) & 8 & 15 & 120 \\
 \hline
@@ -582,8 +582,8 @@ La Figura~\ref{fig:ezestimate-uc} muestra la pantalla de EZEstimate con la clasi
 A partir de los factores y clasificaciones anteriores, se aplica la metodología UCP para obtener los Puntos de Caso de Uso Ajustados (\textit{UCP}):
 
 \begin{align}
-\text{UUCP} &= \text{UAW} + \text{UUCW} = 10 + 420 = \mathbf{430} \\[4pt]
-\text{UCP} &= \text{UUCP} \times \text{TCF} \times \text{ECF} = 430 \times 1{,}195 \times 0{,}86 \approx \mathbf{442}
+\text{UUCP} &= \text{UAW} + \text{UUCW} = 10 + 390 = \mathbf{400} \\[4pt]
+\text{UCP} &= \text{UUCP} \times \text{TCF} \times \text{ECF} = 400 \times 1{,}195 \times 0{,}86 \approx \mathbf{411}
 \end{align}
 
 Estos valores han sido introducidos en la herramienta \textbf{EZEstimate}, que proporciona una estimación del esfuerzo total considerando los factores de complejidad técnica y del entorno. El resultado obtenido se muestra en la Figura~\ref{fig:ezestimate}.
@@ -602,29 +602,29 @@ El resumen numérico de la estimación se recoge en la Tabla~\ref{tab:estimacion
 \hline
 \textbf{Parámetro} & \textbf{Valor} \\
 \hline
-Puntos de Caso de Uso Sin Ajustar (UUCP) & 430 \\
+Puntos de Caso de Uso Sin Ajustar (UUCP) & 400 \\
 \hline
 Factor de Complejidad Técnica (TCF) & 1{,}195 \\
 \hline
 Factor del Entorno (ECF) & 0{,}86 \\
 \hline
-Puntos de Caso de Uso Ajustados (UCP) & 442 \\
+Puntos de Caso de Uso Ajustados (UCP) & 411 \\
 \hline
-Estimación de esfuerzo total & 1.500 horas \\
+Estimación de esfuerzo total & 1.400 horas \\
 \hline
-Horas totales estimadas & 1.500 horas \\
+Horas totales estimadas & 1.400 horas \\
 \hline
 Dedicación real & $\sim$10 h/día (incluye fines de semana) \\
 \hline
 Duración efectiva & 6 meses \\
 \hline
-Período de ejecución & 1 ene.\ 2026 -- 15 jun.\ 2026 \\
+Período de ejecución & 1 dic.\ 2025 -- 15 jun.\ 2026 \\
 \hline
 \end{tabular}
 \caption{Resumen de la estimación de esfuerzo mediante EZEstimate}\label{tab:estimacion-final}
 \end{table}
 
-Las 1.500 horas se han calculado aplicando un factor de productividad de \textbf{3,4 h/UCP}, valor que EZEstimate recoge como referencia para proyectos académicos con un único desarrollador. En la práctica, el esfuerzo se ha traducido en \textbf{unos seis meses de trabajo intensivo} (de enero a mediados de junio de 2026) con una dedicación de unas \textbf{10 horas diarias} de media, fines de semana incluidos.
+Las 1.400 horas se han calculado aplicando un factor de productividad de \textbf{3,4 h/UCP} ($411 \times 3{,}4 \approx 1.400$), valor que EZEstimate recoge como referencia para proyectos académicos con un único desarrollador. En la práctica, el esfuerzo se ha traducido en \textbf{unos seis meses de trabajo intensivo} (de diciembre de 2025 a mediados de junio de 2026) con una dedicación de unas \textbf{10 horas diarias} de media, fines de semana incluidos.
 
 \section{Planificación temporal}
 
@@ -1231,13 +1231,13 @@ Cierre del proyecto académico. Se redactó la memoria principal del TFG, se rev
 \caption{Descripción de las fases por iteraciones}\label{tab:fases-descripcion}
 \end{table}
 
-\section{Comparacion de herramientas de estimacion}
+\section{Comparación de herramientas de estimación}
 
-En este apartado se comparan las herramientas de estimacion utilizadas durante la planificacion.
+En este apartado se comparan las herramientas de estimación utilizadas durante la planificación.
 
-Ademas de EZEstimate, durante el desarrollo se probo GanttProject como herramienta complementaria para la planificacion temporal. Los resultados de ambas fueron bastante parecidos: EZEstimate dio unas 1.500 horas y GanttProject, sobre las mismas 71 tareas, arrojo 148 dias habiles. La diferencia esta en que EZEstimate ajusta con factores tecnicos y de entorno, mientras que GanttProject trabaja directamente con recursos y calendario (5 dias/semana, unas 10 h/dia).
+Además de EZEstimate, durante el desarrollo se probó GanttProject como herramienta complementaria para la planificación temporal. Los resultados de ambas fueron bastante parecidos: EZEstimate dio unas 1.400 horas y GanttProject, sobre las mismas 71 tareas, arrojó 148 días hábiles. La diferencia está en que EZEstimate ajusta con factores técnicos y de entorno, mientras que GanttProject trabaja directamente con recursos y calendario (5 días/semana, unas 10 h/día).
 
-Las dos herramientas coinciden en que Construccion se lleva la mayor parte del esfuerzo (alrededor del 60\%), seguida de Elaboracion (20\%) y luego Inicio y Transicion (10\% cada una). Que una herramienta basada en puntos de casos de uso y otra basada en tareas den resultados parecidos da cierta confianza en que la planificacion presentada es razonable.
+Las dos herramientas coinciden en que Construcción se lleva la mayor parte del esfuerzo (alrededor del 60\%), seguida de Elaboración (20\%) y luego Inicio y Transición (10\% cada una). Que una herramienta basada en puntos de casos de uso y otra basada en tareas den resultados parecidos da cierta confianza en que la planificación presentada es razonable.
 
 \section*{Referencias}
 \addcontentsline{toc}{section}{Referencias}
