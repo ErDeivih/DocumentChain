@@ -13,6 +13,11 @@ $ErrorActionPreference = 'Stop'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $ScriptDir
 
+# Memoria extra para LuaLaTeX: necesario para Anexo III (89 diagramas) y Anexo VI (41 págs)
+$env:main_memory = '12000000'
+$env:extra_mem_top = '12000000'
+$env:font_mem_size = '12000000'
+
 try {
     if (-not $OnlyLatex) {
         Write-Host ''
