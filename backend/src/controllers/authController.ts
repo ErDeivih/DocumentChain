@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../config/database';
 import { AuthService } from '../services/authService';
+import { UserService } from '../services/userService';
 import logger from '../utils/logger';
 
 export class AuthController {
@@ -13,20 +13,12 @@ export class AuthController {
         return;
       }
 
-      const existingUser = await prisma.user.findFirst({
-        where: { OR: [{ email: email.toLowerCase() }, { username }] },
-      });
-
-      if (existingUser) {
-        res.status(409).json({ error: 'Ya existe un usuario con este email o nombre de usuario' });
-        return;
-      }
-
       const result = await AuthService.register({ username, email, password, fullName, adminSecret: req.body.adminSecret });
       res.status(201).json(result);
-    } catch (error: any) {
-      logger.error('Error en el registro:', error);
-      res.status(400).json({ error: error.message || 'Error en el registro' });
+    } catch (error) {
+      const err = error as Error;
+      logger.error('Error en el registro:', err);
+      res.status(err.message.includes('ya existe') ? 409 : 400).json({ error: err.message || 'Error en el registro' });
     }
   }
 
@@ -42,8 +34,8 @@ export class AuthController {
 
       const result = await AuthService.login({ identifier: normalizedIdentifier, password });
       res.status(200).json(result);
-    } catch (error: any) {
-      res.status(401).json({ error: error.message });
+    } catch (error) {
+      res.status(401).json({ error: error instanceof Error ? error.message : 'Error en el inicio de sesión' });
     }
   }
 
@@ -56,8 +48,8 @@ export class AuthController {
       }
       await AuthService.logout(refreshToken);
       res.status(200).json({ message: 'Sesión cerrada correctamente' });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al cerrar sesión' });
     }
   }
 
@@ -70,8 +62,8 @@ export class AuthController {
       }
       const result = await AuthService.refreshToken(refreshToken);
       res.status(200).json(result);
-    } catch (error: any) {
-      res.status(401).json({ error: error.message });
+    } catch (error) {
+      res.status(401).json({ error: error instanceof Error ? error.message : 'Error al refrescar token' });
     }
   }
 
@@ -82,37 +74,16 @@ export class AuthController {
         return;
       }
 
-      const user = await prisma.user.findUnique({
-        where: { id: req.user.userId },
-        select: {
-          id: true, username: true, email: true, emailVerified: true,
-          fullName: true, role: true, publicKey: true,
-          encryptedPrivateKey: true, avatarUrl: true, createdAt: true,
-          wallets: {
-            select: { id: true, walletAddress: true, nickname: true, isPrimary: true },
-            orderBy: [{ isPrimary: 'desc' }, { addedAt: 'asc' }],
-          },
-        },
-      });
+      const user = await UserService.getUserById(req.user.userId);
 
       if (!user) {
         res.status(404).json({ error: 'Usuario no encontrado' });
         return;
       }
 
-      res.status(200).json({
-        user: {
-          ...user,
-          wallets: user.wallets.map((wallet) => ({
-            id: wallet.id,
-            address: wallet.walletAddress,
-            label: wallet.nickname,
-            isPrimary: wallet.isPrimary,
-          })),
-        },
-      });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(200).json({ user });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Error al obtener perfil' });
     }
   }
 
@@ -129,8 +100,8 @@ export class AuthController {
       }
       await AuthService.changePassword(req.user.userId, currentPassword, newPassword);
       res.status(200).json({ message: 'Contraseña cambiada correctamente' });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al cambiar contraseña' });
     }
   }
 }

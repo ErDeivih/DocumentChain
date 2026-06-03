@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ethers } from 'ethers';
 import prisma from '../config/database';
+import { BlockchainAdminService } from './blockchainAdminService';
+import logger from '../utils/logger';
 
 const MAX_WALLETS_PER_USER = 5;
 
@@ -129,13 +131,28 @@ export class WalletService {
     });
 
     // Map to interface
-    return {
+    const walletInfo: WalletInfo = {
       id: wallet.id,
       address: wallet.walletAddress,
       label: wallet.nickname,
       isPrimary: wallet.isPrimary,
-       
     };
+
+    // Sync admin role on blockchain if user is admin
+    try {
+      const syncResult = await BlockchainAdminService.syncAdminOnWalletConnect(userId, normalizedAddress);
+      if (syncResult) {
+        if (syncResult.success) {
+          logger.info(`Admin sincronizado con blockchain al conectar wallet, tx: ${syncResult.txHash}`);
+        } else {
+          logger.warn(`No se pudo sincronizar admin con blockchain: ${syncResult.error}`);
+        }
+      }
+    } catch (syncError) {
+      logger.error('Error al sincronizar admin con blockchain:', syncError);
+    }
+
+    return walletInfo;
   }
 
   /**

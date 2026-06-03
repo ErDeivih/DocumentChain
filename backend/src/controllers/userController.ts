@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
-import fs from 'fs';
-import path from 'path';
-import prisma from '../config/database';
 import { UserService } from '../services/userService';
 import logger from '../utils/logger';
-import { unpinFromIPFS } from '../config/ipfs';
 
 /**
  * Controlador de usuarios.
@@ -217,36 +213,11 @@ export class UserController {
         return;
       }
 
-      const userId = req.user.userId;
-      const ext = path.extname(file.originalname) || '.png';
-      const filename = `${userId}-${Date.now()}${ext}`;
-      const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
-      const filepath = path.join(uploadDir, filename);
-
-      // Ensure directory exists
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      // Remove old avatar if exists
-      const currentUser = await UserService.getUserById(userId);
-      if (currentUser?.avatarUrl) {
-        const oldPath = path.join(process.cwd(), currentUser.avatarUrl.replace(/^\//, ''));
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
-      }
-
-      // Write new file
-      fs.writeFileSync(filepath, file.buffer);
-
-      const avatarUrl = `/uploads/avatars/${filename}`;
-      const user = await UserService.updateAvatar(userId, avatarUrl);
-
+      const user = await UserService.uploadAvatar(req.user.userId, file.buffer, file.originalname);
       res.status(200).json({ user });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error updating avatar:', error);
-      res.status(400).json({ error: error.message || 'Error al actualizar el avatar' });
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al actualizar el avatar' });
     }
   }
 
@@ -265,21 +236,11 @@ export class UserController {
         return;
       }
 
-      const userId = req.user.userId;
-      const currentUser = await UserService.getUserById(userId);
-
-      if (currentUser?.avatarUrl) {
-        const oldPath = path.join(process.cwd(), currentUser.avatarUrl.replace(/^\//, ''));
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
-      }
-
-      const user = await UserService.removeAvatar(userId);
+      const user = await UserService.removeAvatarWithFile(req.user.userId);
       res.status(200).json({ user });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error removing avatar:', error);
-      res.status(400).json({ error: error.message || 'Error al eliminar el avatar' });
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al eliminar el avatar' });
     }
   }
 
@@ -298,56 +259,12 @@ export class UserController {
         return;
       }
 
-      const userId = req.user.userId;
-      const user = await UserService.getUserById(userId);
-      if (!user) {
-        res.status(404).json({ error: 'Usuario no encontrado' });
-        return;
-      }
-
-      // Unpin all IPFS CIDs for documents owned by this user
-      try {
-        const documents = await prisma.document.findMany({
-          where: { ownerId: userId },
-          include: { versions: { select: { ipfsCid: true } } },
-        });
-
-        const cidsToUnpin = new Set<string>();
-        for (const doc of documents) {
-          for (const version of doc.versions) {
-            if (version.ipfsCid) cidsToUnpin.add(version.ipfsCid);
-          }
-        }
-
-        for (const cid of cidsToUnpin) {
-          try {
-            await unpinFromIPFS(cid);
-            logger.info(`Despineado CID ${cid} para usuario ${userId}`);
-          } catch (ipfsError) {
-            logger.warn(`No se pudo despinear CID ${cid}:`, ipfsError);
-          }
-        }
-      } catch (ipfsError) {
-        logger.error('Error durante unpin de IPFS:', ipfsError);
-        // Continue with deletion even if unpin fails
-      }
-
-      // Remove avatar file if exists
-      if (user.avatarUrl) {
-        const avatarPath = path.join(process.cwd(), user.avatarUrl.replace(/^\//, ''));
-        if (fs.existsSync(avatarPath)) {
-          fs.unlinkSync(avatarPath);
-        }
-      }
-
-      // Hard delete user (cascades to all related data)
-      await prisma.user.delete({ where: { id: userId } });
-
-      logger.info(`Usuario eliminado: ${user.username} (${userId})`);
+      await UserService.deleteMyAccount(req.user.userId);
       res.status(200).json({ message: 'Cuenta eliminada permanentemente' });
-    } catch (error: any) {
+    } catch (error) {
       logger.error('Error eliminando cuenta:', error);
-      res.status(500).json({ error: error.message || 'Error al eliminar la cuenta' });
+      const err = error instanceof Error ? error : new Error(String(error));
+      res.status(err.message === 'Usuario no encontrado' ? 404 : 500).json({ error: err.message || 'Error al eliminar la cuenta' });
     }
   }
 }

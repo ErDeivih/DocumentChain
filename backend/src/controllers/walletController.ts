@@ -1,6 +1,5 @@
 ﻿import { Request, Response } from 'express';
 import { WalletService } from '../services/walletService';
-import { BlockchainAdminService } from '../services/blockchainAdminService';
 import logger from '../utils/logger';
 
 /**
@@ -76,21 +75,6 @@ export class WalletController {
       );
 
       logger.debug(`[wallets:add] created walletId=${wallet.id}`);
-
-      // Si el usuario es admin, sincronizar con blockchain
-      try {
-        const syncResult = await BlockchainAdminService.syncAdminOnWalletConnect(req.user.userId, address);
-        if (syncResult) {
-          if (syncResult.success) {
-            logger.info(`✅ Admin sincronizado con blockchain al conectar wallet, tx: ${syncResult.txHash}`);
-          } else {
-            logger.warn(`⚠️ No se pudo sincronizar admin con blockchain: ${syncResult.error}`);
-          }
-        }
-      } catch (syncError) {
-        // No fallar la adición de wallet si falla la sincronización
-        logger.error('Error al sincronizar admin con blockchain:', syncError);
-      }
 
       res.status(201).json({ wallet });
     } catch (error: any) {

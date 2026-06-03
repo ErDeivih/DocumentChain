@@ -190,25 +190,23 @@ export class BlockchainAdminService {
 
       const results: AdminSyncResult[] = [];
 
-      // 2. Sincronizar cada admin
-      for (const admin of admins) {
+      // 2. Sincronizar cada admin en paralelo
+      const syncPromises = admins.map(async (admin): Promise<AdminSyncResult> => {
         const primaryWallet = admin.wallets[0];
-
         if (!primaryWallet) {
           logger.warn(`[BLOCKCHAIN_ADMIN] Admin ${admin.username} (${admin.id}) no tiene wallet primaria`);
-          results.push({
-            success: false,
-            address: 'NO_WALLET',
-            error: `Admin ${admin.username} no tiene wallet`
-          });
-          continue;
+          return { success: false, address: 'NO_WALLET', error: `Admin ${admin.username} no tiene wallet` };
         }
+        return this.grantAdminRole(primaryWallet.walletAddress);
+      });
 
-        const result = await this.grantAdminRole(primaryWallet.walletAddress);
-        results.push(result);
-
-        // Pequeña espera para evitar sobrecarga
-        await new Promise(resolve => setTimeout(resolve, 500));
+      const settled = await Promise.allSettled(syncPromises);
+      for (const result of settled) {
+        if (result.status === 'fulfilled') {
+          results.push(result.value);
+        } else {
+          results.push({ success: false, address: 'ERROR', error: result.reason?.message || 'Error desconocido' });
+        }
       }
 
       // 3. Resumen

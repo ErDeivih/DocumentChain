@@ -6,7 +6,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
-Set-Location $PSScriptRoot
+Set-Location (Split-Path $PSScriptRoot -Parent)
+$REPO_ROOT = (Split-Path $PSScriptRoot -Parent)
 
 function Start-DockerDesktopIfAvailable {
     $dockerDesktopCandidates = @(
@@ -309,9 +310,9 @@ function Clear-ComposePostfixEnvOverrides {
     }
 }
 
-Initialize-LocalEnvFile -TargetPath (Join-Path $PSScriptRoot 'backend\.env') -ExamplePath (Join-Path $PSScriptRoot 'backend\.env.example')
-Initialize-LocalEnvFile -TargetPath (Join-Path $PSScriptRoot 'frontend\.env') -ExamplePath (Join-Path $PSScriptRoot 'frontend\.env.example')
-Import-DeploymentEnvironment -FilePath (Join-Path $PSScriptRoot 'backend\.env')
+Initialize-LocalEnvFile -TargetPath (Join-Path $REPO_ROOT 'backend\.env') -ExamplePath (Join-Path $REPO_ROOT 'backend\.env.example')
+Initialize-LocalEnvFile -TargetPath (Join-Path $REPO_ROOT 'frontend\.env') -ExamplePath (Join-Path $REPO_ROOT 'frontend\.env.example')
+Import-DeploymentEnvironment -FilePath (Join-Path $REPO_ROOT 'backend\.env')
 Clear-ComposePostfixEnvOverrides
 
 Write-Host '[1/8] Iniciando infraestructura base...' -ForegroundColor Yellow
@@ -351,7 +352,7 @@ Wait-ForContainerHealth -ContainerName 'documentchain-hardhat'
 Wait-ForHttpRpc -Url 'http://127.0.0.1:8545'
 
 Write-Host '[4/8] Desplegando contrato consolidado...' -ForegroundColor Yellow
-$contractsPath = Join-Path $PSScriptRoot 'smart-contracts'
+$contractsPath = Join-Path $REPO_ROOT 'smart-contracts'
 & docker run --rm `
     --network container:documentchain-hardhat `
     -v "${contractsPath}:/work" `
@@ -363,7 +364,7 @@ if ($LASTEXITCODE -ne 0) {
     throw 'El despliegue Hardhat fallo'
 }
 
-$deploymentEnvPath = Join-Path $PSScriptRoot 'smart-contracts\deployments\localhost.env'
+$deploymentEnvPath = Join-Path $REPO_ROOT 'smart-contracts/deployments/localhost.env'
 Import-DeploymentEnvironment -FilePath $deploymentEnvPath
 
 if (-not $env:CONTRACT_DOCUMENT_REGISTRY) {
@@ -371,8 +372,8 @@ if (-not $env:CONTRACT_DOCUMENT_REGISTRY) {
 }
 
 Write-Host '[5/8] Sincronizando ficheros .env locales con el contrato desplegado...' -ForegroundColor Yellow
-Set-Or-ReplaceEnvValue -FilePath (Join-Path $PSScriptRoot 'backend\.env') -Key 'CONTRACT_DOCUMENT_REGISTRY' -Value $env:CONTRACT_DOCUMENT_REGISTRY
-Set-Or-ReplaceEnvValue -FilePath (Join-Path $PSScriptRoot 'frontend\.env') -Key 'VITE_CONTRACT_REGISTRY' -Value $env:CONTRACT_DOCUMENT_REGISTRY
+Set-Or-ReplaceEnvValue -FilePath (Join-Path $REPO_ROOT 'backend\.env') -Key 'CONTRACT_DOCUMENT_REGISTRY' -Value $env:CONTRACT_DOCUMENT_REGISTRY
+Set-Or-ReplaceEnvValue -FilePath (Join-Path $REPO_ROOT 'frontend\.env') -Key 'VITE_CONTRACT_REGISTRY' -Value $env:CONTRACT_DOCUMENT_REGISTRY
 
 Invoke-DockerComposeWithRetry -OperationName 'compose stop backend before QA seed' -Command {
     docker compose stop backend 2>&1 | Out-Null

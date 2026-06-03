@@ -116,20 +116,23 @@ export class BlockchainQueries {
       const versionCount = Number(doc.latestVersion);
       const versions: BlockchainVersion[] = [];
       
-      // Obtener cada versión
+      const versionPromises = [];
       for (let i = 1; i <= versionCount; i++) {
-        try {
-          const version = await this.getVersion(blockchainId, i);
-          versions.push(version);
-        } catch (error) {
-          logger.warn('No se pudo obtener la versión de la blockchain', {
-            blockchainId,
-            versionNumber: i,
-            error: error instanceof Error ? error.message : 'Error desconocido'
-          });
-        }
+        versionPromises.push(
+          this.getVersion(blockchainId, i).catch((error) => {
+            logger.warn('No se pudo obtener la versión de la blockchain', {
+              blockchainId,
+              versionNumber: i,
+              error: error instanceof Error ? error.message : 'Error desconocido'
+            });
+            return null;
+          })
+        );
       }
-      
+
+      const results = await Promise.all(versionPromises);
+      const versions = results.filter((v): v is NonNullable<typeof v> => v !== null);
+
       return versions;
     } catch (error) {
       if (error instanceof NotFoundError) {

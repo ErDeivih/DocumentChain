@@ -9,20 +9,15 @@
  * y delega la firma blockchain a la wallet del usuario en el frontend.
  */
 import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
-import { deleteFromIPFS } from '../config/ipfs';
 import { DocumentService } from '../services/documentService';
 import { TransferService } from '../services/transferService';
 import { DocumentPermissionService } from '../services/documentPermissionService';
+import { DocumentLifecycleService } from '../services/documentLifecycleService';
 import logger from '../utils/logger';
 import { isNonEmptyString, isValidTxHash } from '../utils/validation';
 import { validateFile } from '../utils/fileValidation';
-import { buildAttachmentDisposition } from '../utils/httpHeaders';
-import {
-  assertDocumentArchivedReceipt,
-  assertDocumentDeletedReceipt,
-} from '../services/blockchainReceiptService';
+import { setDownloadHeaders, DownloadResult } from '../utils/downloadHeaders';
 
 /**
  * Controlador de gestión de documentos.
@@ -30,86 +25,7 @@ import {
  * descarga, archivado, eliminación, transferencia y restauración.
  */
 export class DocumentController {
-  private static async softDeleteDocument(documentId: string, userId: string, txHash: string) {
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
-      include: {
-        versions: {
-          select: {
-            ipfsCid: true,
-          },
-        },
-      },
-    });
-
-    if (!document) {
-      throw new Error('Documento no encontrado');
-    }
-
-    if (document.isDeleted) {
-      throw new Error('El documento ya ha sido eliminado');
-    }
-
-    // Validate ownership (on-chain or DB fallback)
-    const ownership = await DocumentPermissionService.validateOwnership(document, userId, {
-      errorMessage: 'No tienes permisos para eliminar este documento',
-    });
-
-    if (!document.blockchainId) {
-      throw new Error('El documento no tiene ID de blockchain aún');
-    }
-
-    await assertDocumentDeletedReceipt({
-      txHash,
-      docId: document.blockchainId,
-      actorAddress: ownership.wallet.walletAddress,
-    });
-
-    const deletedAt = new Date();
-    const cidsToUnpin = Array.from(
-      new Set(document.versions.map((version) => version.ipfsCid).filter((cid): cid is string => Boolean(cid)))
-    );
-
-    await prisma.$transaction(async (tx) => {
-      await tx.document.update({
-        where: { id: documentId },
-        data: {
-          isDeleted: true,
-          deletedAt,
-          isArchived: false,
-          archivedAt: null,
-        },
-      });
-
-      await tx.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'DOCUMENT_DELETED',
-          userId,
-          documentId: document.id,
-          transactionHash: txHash,
-          metadata: {
-            cidsScheduledForUnpin: cidsToUnpin,
-          },
-        },
-      });
-    });
-
-    for (const cid of cidsToUnpin) {
-      try {
-        await deleteFromIPFS(cid);
-      } catch (error) {
-        logger.error('[DELETE] Error al desanclar documento de IPFS', {
-          documentId,
-          cid,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
-  }
-
-  /**
-   * Prepara un documento para su creación.
+  static async prepareDocument(req: Request, res: Response): Promise<void> {
    * El frontend envía el archivo en bruto; el backend decide si cifrarlo
    * en función de la visibilidad del documento.
    * Endpoint: POST /api/documents/prepare
@@ -296,33 +212,15 @@ export class DocumentController {
         req.user.userId
       );
 
-      const isUnencrypted = result.encryptedSymmetricKey === 'UNENCRYPTED';
-
-      // Set headers for file download
-      res.setHeader('Content-Type', isUnencrypted ? result.mimeType : 'application/octet-stream');
-      res.setHeader('Content-Disposition', buildAttachmentDisposition(`${result.name}${isUnencrypted ? '' : '.encrypted'}`));
-      
-      // Only send encryption key header if file is actually encrypted
-      if (!isUnencrypted) {
-        res.setHeader('X-Encrypted-Symmetric-Key', result.encryptedSymmetricKey);
-        if (result.encryptionIV) {
-          res.setHeader('X-Encryption-IV', result.encryptionIV);
-        }
-        if (result.encryptionAuthTag) {
-          res.setHeader('X-Encryption-Auth-Tag', result.encryptionAuthTag);
-        }
-      }
-      
-      res.setHeader('X-Is-Encrypted', isUnencrypted ? 'false' : 'true');
-      res.setHeader('X-Mime-Type', result.mimeType);
+      setDownloadHeaders(res, result as DownloadResult);
 
       res.send(result.encryptedFile);
-    } catch (error: any) {
+    } catch (error) {
       logger.error('[DOWNLOAD] Error al descargar documento', { 
-        error: error.message, 
+        error: error instanceof Error ? error.message : String(error), 
         userId: req.user?.userId 
       });
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al descargar' });
     }
   }
 
@@ -590,21 +488,20 @@ export class DocumentController {
         return;
       }
 
-      await DocumentController.softDeleteDocument(documentId, req.user.userId, txHash);
+      await DocumentLifecycleService.softDeleteDocument(documentId, req.user.userId, txHash);
 
       res.status(200).json({ message: 'Documento eliminado correctamente' });
-    } catch (error: any) {
-      if (error.message === 'Documento no encontrado') {
-        res.status(404).json({ error: error.message });
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      if (err === 'Documento no encontrado') {
+        res.status(404).json({ error: err });
         return;
       }
-
-      if (error.message === 'No tienes permisos para eliminar este documento') {
-        res.status(403).json({ error: error.message });
+      if (err.includes('permisos')) {
+        res.status(403).json({ error: err });
         return;
       }
-
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: err });
     }
   }
 

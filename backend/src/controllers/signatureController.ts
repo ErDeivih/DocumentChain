@@ -11,7 +11,6 @@
 import { Request, Response } from 'express';
 import { SignatureService } from '../services/signatureService';
 import logger from '../utils/logger';
-import prisma from '../config/database';
 import { isNonEmptyString, isValidTxHash, toPositiveInteger } from '../utils/validation';
 
 /**
@@ -78,12 +77,13 @@ export class SignatureController {
       });
 
       res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
       logger.error('[PREPARE] Error al preparar firma', {
-        error: error.message,
+        error: err.message,
         userId: req.user?.userId,
       });
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: err.message });
     }
   }
 
@@ -133,12 +133,13 @@ export class SignatureController {
       });
 
       res.status(200).json({ signature });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
       logger.error('[CONFIRM] Error al confirmar firma', {
-        error: error.message,
+        error: err.message,
         userId: req.user?.userId,
       });
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: err.message });
     }
   }
 
@@ -161,114 +162,73 @@ export class SignatureController {
 
       const signatures = await SignatureService.getVersionSignatures(versionId, req.user.userId);
       res.status(200).json({ signatures });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al obtener firmas' });
     }
   }
 
-  /**
-   * Obtiene todas las firmas asociadas a un documento.
-   * Endpoint: GET /api/documents/:documentId/signatures
-   *
-   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID del documento.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con la lista de firmas del documento.
-   */
   static async getDocumentSignatures(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         res.status(401).json({ error: 'No autenticado' });
         return;
       }
-
       const documentId = req.params.documentId as string;
-
       const signatures = await SignatureService.getDocumentSignatures(documentId, req.user.userId);
       res.status(200).json({ signatures });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al obtener firmas del documento' });
     }
   }
 
-  /**
-   * Verifica si el usuario autenticado ha firmado una versión específica.
-   * Endpoint: GET /api/versions/:versionId/signatures/check
-   *
-   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la versión.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con un indicador booleano.
-   */
   static async checkSignature(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         res.status(401).json({ error: 'No autenticado' });
         return;
       }
-
       const versionId = req.params.versionId as string;
-
       const hasSigned = await SignatureService.checkSignature(versionId, req.user.userId);
       res.status(200).json({ hasSigned });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al verificar firma' });
     }
   }
 
-  /**
-   * Obtiene la firma del usuario autenticado para una versión específica.
-   * Endpoint: GET /api/versions/:versionId/signatures/me
-   *
-   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la versión.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con la firma del usuario o un error 404.
-   */
   static async getMySignature(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         res.status(401).json({ error: 'No autenticado' });
         return;
       }
-
       const versionId = req.params.versionId as string;
-
       const signature = await SignatureService.getMySignature(versionId, req.user.userId);
-
       if (!signature) {
         res.status(404).json({ error: 'Firma no encontrada' });
         return;
       }
-
       res.status(200).json({ signature });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al obtener firma' });
     }
   }
 
-  /**
-   * Revierte una firma en estado PREPARING eliminando su registro.
-   * Endpoint: POST /api/signatures/:signatureId/rollback
-   *
-   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la firma.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con la confirmación de reversión.
-   */
   static async rollbackSignature(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user) {
         res.status(401).json({ error: 'No autenticado' });
         return;
       }
-
       const signatureId = req.params.signatureId as string;
-
       await SignatureService.rollbackSignature(signatureId, req.user.userId);
       res.status(200).json({ message: 'Firma revertida correctamente' });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
       logger.error('[ROLLBACK] Error al revertir firma', {
-        error: error.message,
+        error: err.message,
         userId: req.user?.userId,
       });
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: err.message });
     }
   }
 
@@ -295,20 +255,10 @@ export class SignatureController {
         return;
       }
 
-      // Resolve versionId from documentId + versionNumber
-      const version = await prisma.version.findFirst({
-        where: { documentId, versionNumber },
-      });
-
-      if (!version) {
-        res.status(404).json({ error: 'Versión no encontrada' });
-        return;
-      }
-
-      const signatures = await SignatureService.getVersionSignatures(version.id, req.user.userId);
+      const signatures = await SignatureService.getVersionSignaturesByNumber(documentId, versionNumber, req.user.userId);
       res.status(200).json({ signatures });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : 'Error al obtener firmas' });
     }
   }
 }

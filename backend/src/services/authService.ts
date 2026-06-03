@@ -73,22 +73,13 @@ export class AuthService {
 
     logger.info(`Fortaleza de contraseña: ${passwordValidation.strength} (puntuación: ${passwordValidation.score})`);
 
-    // Verificar si el nombre de usuario ya existe
-    const existingUser = await prisma.user.findUnique({
-      where: { username }
+    // Verificar si el nombre de usuario o email ya existen
+    const existingUser = await prisma.user.findFirst({
+      where: { OR: [{ username }, { email }] }
     });
 
     if (existingUser) {
-      throw new Error('El nombre de usuario ya existe');
-    }
-
-    // Verificar si el email ya existe
-    const existingEmail = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (existingEmail) {
-      throw new Error('El email ya existe');
+      throw new Error(existingUser.username === username ? 'El nombre de usuario ya existe' : 'El email ya existe');
     }
 
     // Generar par de claves RSA para cifrado
