@@ -71,6 +71,7 @@ export const Documents: React.FC = () => {
       page: currentPage, 
       limit: pageSize,
       folderId: selectedFolder?.id,
+      // onlyArchived / includeArchived are handled by BlockchainCacheService.batchGetDocumentStates() on the backend
       onlyArchived: activeTab === 'archived',
       includeArchived: false,
       search: searchTerm || undefined,

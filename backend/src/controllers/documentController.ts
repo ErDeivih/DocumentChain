@@ -354,61 +354,17 @@ export class DocumentController {
       const documentId = req.params.documentId as string;
       const { txHash } = req.body;
 
-      // Verify ownership
-      const document = await prisma.document.findUnique({
-        where: { id: documentId },
-      });
-
-      if (!document) {
-        res.status(404).json({ error: 'Documento no encontrado' });
-        return;
-      }
-
-      const ownership = await DocumentPermissionService.validateOwnership(document, req.user.userId, {
-        errorMessage: 'No tienes permisos para archivar este documento',
-      });
-
       if (!isValidTxHash(txHash)) {
         res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
-      if (!document.blockchainId) {
-        res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
-        return;
-      }
+      await DocumentLifecycleService.archiveDocument(documentId, req.user.userId, txHash);
 
-      await assertDocumentArchivedReceipt({
-        txHash,
-        docId: document.blockchainId,
-        actorAddress: ownership.wallet.walletAddress,
-        archived: true,
-      });
-
-      const updated = await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          isArchived: true,
-          archivedAt: new Date(),
-        },
-      });
-
-      await prisma.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'DOCUMENT_ARCHIVED',
-          userId: req.user.userId,
-          documentId: document.id,
-          transactionHash: txHash,
-        },
-      });
-
-      res.status(200).json({
-        message: 'Documento archivado correctamente',
-        document: updated,
-      });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(200).json({ message: 'Documento archivado correctamente' });
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      res.status(400).json({ error: err });
     }
   }
 
@@ -428,38 +384,25 @@ export class DocumentController {
       }
 
       const documentId = req.params.documentId as string;
-
-      // Verify ownership
-      const document = await prisma.document.findUnique({
-        where: { id: documentId },
-      });
-
+      const document = await DocumentService.getDocumentById(documentId, req.user.userId);
       if (!document) {
         res.status(404).json({ error: 'Documento no encontrado' });
         return;
       }
 
-      // Validate ownership (on-chain or DB fallback)
       await DocumentPermissionService.validateOwnership(document, req.user.userId, {
         errorMessage: 'No tienes permisos para eliminar este documento',
       });
-
-      if (document.isDeleted) {
-        res.status(400).json({ error: 'El documento ya ha sido eliminado' });
-        return;
-      }
 
       if (!document.blockchainId) {
         res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
         return;
       }
 
-      res.status(200).json({
-        documentId,
-        blockchainId: document.blockchainId,
-      });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(200).json({ documentId, blockchainId: document.blockchainId });
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      res.status(400).json({ error: err });
     }
   }
 
@@ -561,64 +504,17 @@ export class DocumentController {
       const documentId = req.params.documentId as string;
       const { txHash } = req.body;
 
-      const document = await prisma.document.findUnique({
-        where: { id: documentId },
-      });
-
-      if (!document) {
-        res.status(404).json({ error: 'Documento no encontrado' });
-        return;
-      }
-
-      const ownership = await DocumentPermissionService.validateOwnership(document, req.user.userId, {
-        errorMessage: 'No tienes permisos para desarchivar este documento',
-      });
-
       if (!isValidTxHash(txHash)) {
         res.status(400).json({ error: 'Hash de transacción inválido' });
         return;
       }
 
-      if (!document.blockchainId) {
-        res.status(400).json({ error: 'El documento no tiene ID de blockchain aún' });
-        return;
-      }
+      await DocumentLifecycleService.unarchiveDocument(documentId, req.user.userId, txHash);
 
-      await assertDocumentArchivedReceipt({
-        txHash,
-        docId: document.blockchainId,
-        actorAddress: ownership.wallet.walletAddress,
-        archived: false,
-      });
-
-      const updated = await prisma.$transaction(async (tx) => {
-        const unarchived = await tx.document.update({
-          where: { id: documentId },
-          data: {
-            isArchived: false,
-            archivedAt: null,
-          },
-        });
-
-        await tx.event.create({
-          data: {
-            id: uuidv4(),
-            eventType: 'DOCUMENT_UNARCHIVED',
-            userId: req.user!.userId,
-            documentId: document.id,
-            transactionHash: txHash,
-          },
-        });
-
-        return unarchived;
-      });
-
-      res.status(200).json({
-        message: 'Documento desarchivado correctamente',
-        document: updated,
-      });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(200).json({ message: 'Documento desarchivado correctamente' });
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      res.status(400).json({ error: err });
     }
   }
 

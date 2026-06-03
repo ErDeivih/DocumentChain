@@ -807,7 +807,6 @@ async function createDocumentsAndEvents(
     for (let d = 0; d < config.docsPerUser; d += 1) {
       const docCreatedAt = new Date(baseDate + (u * 100 + d) * 60 * 60 * 1000);
       const docKind = docKinds[(u + d) % docKinds.length];
-      const isArchived = d % 4 === 0;
       const targetFolder = availableFolders[d % availableFolders.length];
 
       // Build a deterministic docId bytes32 so the seed is repeatable
@@ -869,8 +868,6 @@ async function createDocumentsAndEvents(
           blockchainTxHash: docTxHash,
           creatorWalletId: owner.walletIds[0],
           createdAt: docCreatedAt,
-          isArchived,
-          archivedAt: isArchived ? new Date(docCreatedAt.getTime() + 2 * 60 * 60 * 1000) : null,
         },
       });
 
@@ -939,7 +936,6 @@ async function createDocumentsAndEvents(
             blockchainStatus: BlockchainStatus.SYNCED,
             blockchainTxHash: verTxHash,
             versionNumber: v + 1,
-            isOperational: v === versionCount - 1,
             ipfsCid: versionIpfsCid,
             createdAt: new Date(docCreatedAt.getTime() + (v + 1) * 20 * 60 * 1000),
           },
@@ -1107,7 +1103,7 @@ async function createDocumentsAndEvents(
         });
       }
 
-      if (document.isArchived) {
+      if (false) { // isArchived now from blockchain, not BD
         await prisma.event.create({
           data: {
             eventType: 'DocumentArchived',

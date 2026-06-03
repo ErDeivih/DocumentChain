@@ -99,11 +99,10 @@ export const DocumentDetails: React.FC = () => {
     enabled: !!id && !!document,
   });
 
-  // Get operational version number
-  // Note: API returns versionNumber from blockchain, even though it's not in the Version type
+  // Get operational version number from document API (backed by BlockchainCacheService)
   const versionsArray: any[] = versions?.versions || [];
-  const operationalVersion = versionsArray.find((v: any) => v.isOperational);
-  const operationalVersionNumber: number = operationalVersion?.versionNumber || 1;
+  const operationalVersionNumber: number = (document as any)?.operationalVersionNumber ?? versionsArray.find((v: any) => v.isOperational)?.versionNumber ?? 1;
+  const operationalVersion = versionsArray.find((v: any) => v.versionNumber === operationalVersionNumber);
 
   const { data: shares } = useQuery({
     queryKey: ['shares', id],
@@ -572,6 +571,7 @@ export const DocumentDetails: React.FC = () => {
             isPublic={isPublicDocument}
             publicId={document.publicId}
             isLoading={isLoadingVersions}
+            operationalVersionNumber={operationalVersionNumber}
             onVersionChange={() => refetch()}
             onDownloadVersion={(versionId) => {
               setDownloadingVersionId(versionId);

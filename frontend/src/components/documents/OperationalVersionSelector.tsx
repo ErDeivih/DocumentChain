@@ -48,6 +48,8 @@ interface OperationalVersionSelectorProps {
   publicId?: string | null;
   /** Indica si se están cargando las versiones. */
   isLoading?: boolean;
+  /** Número de versión operativa actual (desde el documento API, respaldado por BlockchainCacheService). */
+  operationalVersionNumber?: number | null;
   /** Callback al cambiar la versión operacional. */
   onVersionChange?: (versionNumber: number) => void;
   /** Callback para descargar una versión específica. */
@@ -66,12 +68,13 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   isPublic = false,
   publicId = null,
   isLoading = false,
+  operationalVersionNumber: propOperationalVersionNumber = null,
   onVersionChange,
   onDownloadVersion
 }) => {
   const [versions, setVersions] = useState<OperationalVersion[]>(providedVersions);
   const [operationalVersionNumber, setOperationalVersionNumber] = useState<number | null>(
-    () => providedVersions.find(v => v.isOperational)?.versionNumber ?? null
+    () => propOperationalVersionNumber ?? null
   );
   const [changing, setChanging] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +89,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
 
   useEffect(() => {
     setVersions(providedVersions);
-    const opVersion = providedVersions.find(v => v.isOperational)?.versionNumber;
+    const opVersion = propOperationalVersionNumber;
     if (opVersion != null) {
       setOperationalVersionNumber(opVersion);
     }
