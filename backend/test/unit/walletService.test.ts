@@ -15,6 +15,28 @@ jest.mock('../../src/config/database', () => ({
   },
 }));
 
+jest.mock('../../src/config/blockchain', () => ({
+  __esModule: true,
+  getProvider: jest.fn(() => null),
+  getSigner: jest.fn(() => null),
+  getContract: jest.fn(() => null),
+  provider: null,
+}));
+
+jest.mock('../../src/services/blockchainAdminService', () => ({
+  __esModule: true,
+  BlockchainAdminService: {
+    syncAdminOnWalletConnect: jest.fn().mockResolvedValue({ success: true, txHash: '0xtx' }),
+    grantAdminRole: jest.fn().mockResolvedValue({ success: true, txHash: '0xtx' }),
+    revokeAdminRole: jest.fn().mockResolvedValue({ success: true, txHash: '0xtx' }),
+  },
+}));
+
+jest.mock('../../src/utils/logger', () => ({
+  __esModule: true,
+  default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
+}));
+
 jest.mock('ethers', () => ({
   __esModule: true,
   ethers: {
