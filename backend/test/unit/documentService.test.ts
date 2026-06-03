@@ -102,6 +102,7 @@ describe('DocumentService - Additional Methods', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (prisma.wallet.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   describe('listDocuments()', () => {
@@ -133,7 +134,9 @@ describe('DocumentService - Additional Methods', () => {
       };
 
       (prisma.document.count as jest.Mock).mockResolvedValue(1);
-      (prisma.document.findMany as jest.Mock).mockResolvedValue([mockDoc]);
+      (prisma.document.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ blockchainId: mockBlockchainId }])
+        .mockResolvedValue([mockDoc]);
 
       const result = await DocumentService.listDocuments(mockUserId, { page: 1, limit: 10 });
 
@@ -148,7 +151,9 @@ describe('DocumentService - Additional Methods', () => {
 
     it('should apply fileType filter when provided', async () => {
       (prisma.document.count as jest.Mock).mockResolvedValue(0);
-      (prisma.document.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.document.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ blockchainId: mockBlockchainId }])
+        .mockResolvedValue([]);
 
       await DocumentService.listDocuments(mockUserId, { fileType: '.pdf' });
 
@@ -158,7 +163,9 @@ describe('DocumentService - Additional Methods', () => {
 
     it('should normalize fileType without dot', async () => {
       (prisma.document.count as jest.Mock).mockResolvedValue(0);
-      (prisma.document.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.document.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ blockchainId: mockBlockchainId }])
+        .mockResolvedValue([]);
 
       await DocumentService.listDocuments(mockUserId, { fileType: 'pdf' });
 
@@ -172,7 +179,9 @@ describe('DocumentService - Additional Methods', () => {
 
     it('should filter by walletId', async () => {
       (prisma.document.count as jest.Mock).mockResolvedValue(0);
-      (prisma.document.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.document.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ blockchainId: mockBlockchainId }])
+        .mockResolvedValue([]);
 
       await DocumentService.listDocuments(mockUserId, { walletId: mockWalletId });
 
@@ -182,7 +191,9 @@ describe('DocumentService - Additional Methods', () => {
 
     it('should filter by folderId', async () => {
       (prisma.document.count as jest.Mock).mockResolvedValue(0);
-      (prisma.document.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.document.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ blockchainId: mockBlockchainId }])
+        .mockResolvedValue([]);
 
       await DocumentService.listDocuments(mockUserId, { folderId: 'folder-1' });
 

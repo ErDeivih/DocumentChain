@@ -61,7 +61,14 @@ jest.mock('../../services/blockchainCacheService', () => ({
 }));
 
 jest.mock('../../config/blockchain', () => ({
-  provider: {},
+  __esModule: true,
+  provider: { getTransactionReceipt: jest.fn(), getBlock: jest.fn() },
+  DOCUMENT_REGISTRY_ADDRESS: '0xDocumentRegistry',
+  documentRegistryInterface: { parseLog: jest.fn().mockReturnValue(null) },
+}));
+
+jest.mock('../../services/blockchainReceiptService', () => ({
+  assertDocumentCreatedReceipt: jest.fn().mockResolvedValue({}),
 }));
 
 // Unmock encryption to test real encryption
@@ -93,7 +100,7 @@ describe('DocumentService - Backend Encryption', () => {
     (prisma.version.findFirst as jest.Mock).mockResolvedValue({ id: 'existing-version-id' });
     (prisma.event.findFirst as jest.Mock).mockResolvedValue({
       id: 'prepared-event-id',
-      metadata: { ipfsCid: 'QmPreparedCID' },
+      metadata: { docId: '0x' + 'a'.repeat(64), ipfsCid: 'QmPreparedCID' },
     });
   });
 
@@ -267,6 +274,13 @@ describe('DocumentService - Backend Encryption', () => {
         id: input.documentId,
         blockchainStatus: 'PREPARING',
         ownerId: mockUserId,
+        creatorWalletId: mockWalletId,
+      });
+
+      (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
+        id: mockWalletId,
+        userId: mockUserId,
+        walletAddress: mockWalletAddress,
       });
 
       (prisma.document.update as jest.Mock).mockResolvedValue({
@@ -343,7 +357,7 @@ describe('DocumentService - Backend Encryption', () => {
         ownerId: mockUserId,
         blockchainId: null,
         versions: [
-          { id: 'version-1', ipfsCid: 'QmTestCID', encryptedSymmetricKey: mockEncryptedKey },
+          { id: 'version-1', versionNumber: 1, ipfsCid: 'QmTestCID', encryptedSymmetricKey: mockEncryptedKey },
         ],
       };
 
@@ -384,6 +398,7 @@ describe('DocumentService - Backend Encryption', () => {
         versions: [
           {
             id: 'version-operational',
+            versionNumber: 1,
             ipfsCid: 'QmOperationalCID',
             encryptedSymmetricKey: 'version-level-key',
             encryptionIV: 'version-level-iv',
@@ -420,6 +435,7 @@ describe('DocumentService - Backend Encryption', () => {
         versions: [
           {
             id: 'version-legacy',
+            versionNumber: 1,
             ipfsCid: 'QmLegacyCID',
             encryptedSymmetricKey: null,
             encryptionIV: null,
@@ -485,6 +501,15 @@ describe('DocumentService - Backend Encryption', () => {
 
       // Step 2: Confirm (simulating frontend blockchain transaction)
       (prisma.document.findUnique as jest.Mock).mockResolvedValue(createdDocument);
+      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
+        id: 'prepared-event-id',
+        metadata: { docId: '0xblockchainid', ipfsCid: 'QmPreparedCID' },
+      });
+      (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
+        id: mockWalletId,
+        userId: mockUserId,
+        walletAddress: mockWalletAddress,
+      });
       (prisma.document.update as jest.Mock).mockResolvedValue({
         ...createdDocument,
         blockchainId: '0xblockchainid',
