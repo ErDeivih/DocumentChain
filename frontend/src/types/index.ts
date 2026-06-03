@@ -141,12 +141,6 @@ export interface Document {
   /** Tag de autenticación de AES-GCM, codificado en Base64. */
   encryptionAuthTag?: string;
 
-  // Estado de archivado
-  /** Indica si el documento ha sido archivado. */
-  isArchived: boolean;
-  /** Fecha de archivado, o `null`. */
-  archivedAt: string | null;
-
   // Metadata de sincronización
   /** Estado actual de sincronización con blockchain. */
   blockchainStatus: 'PREPARING' | 'TX_SUBMITTED' | 'SYNCED' | 'FAILED';
@@ -189,8 +183,8 @@ export interface Version {
   ipfsCid: string | null;
   /** Fecha de creación en formato ISO. */
   createdAt: string;
-  /** Indica si es la versión operativa actual. */
-  isOperational: boolean;
+  /** @deprecated Calculado desde blockchain: comparar con currentVersion del documento. */
+  isOperational?: boolean;
   /** Indica si la versión está cifrada. */
   isEncrypted?: boolean;
 
@@ -266,8 +260,8 @@ export interface PublicDocumentVersion {
   comment: string | null;
   /** Fecha de creación. */
   createdAt: string;
-  /** Indica si es la versión operativa. */
-  isOperational: boolean;
+  /** @deprecated Calculado desde blockchain: comparar con currentVersion del documento. */
+  isOperational?: boolean;
   /** CID de IPFS. */
   ipfsCid: string | null;
   /** Estado de sincronización blockchain. */
@@ -320,10 +314,8 @@ export interface PublicDocument {
   metadataHash: string;
   /** Visibilidad (siempre PUBLIC). */
   visibility: 'PUBLIC';
-  /** Indica si está archivado. */
-  isArchived: boolean;
-  /** Indica si está eliminado. */
-  isDeleted: boolean;
+  /** @deprecated isArchived e isDeleted ahora solo en blockchain. */
+  // TODO: Obtener isArchived / isDeleted desde blockchain
   /** Fecha de creación. */
   createdAt: string;
   /** Propietario del documento. */
@@ -505,7 +497,6 @@ export interface VerificationResult {
     uploadedAt: string;
     fileSize: number;
     ipfsHash: string;
-    isArchived: boolean;
     currentVersion: number;
   };
   /** Versiones verificadas. */
@@ -576,7 +567,6 @@ export interface DocumentFilters {
   /** Etiquetas requeridas. */
   tags?: string[];
   // ❌ NO incluir filtros de fechas (createdAt solo en blockchain)
-  // ❌ NO incluir isArchived (solo en blockchain)
   // Si se necesitan, consultar BlockchainQueries después
 }
 

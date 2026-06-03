@@ -297,7 +297,7 @@ export const DocumentDetails: React.FC = () => {
     { id: 'details' as TabType, label: 'Detalles', icon: FileText },
     { id: 'timeline' as TabType, label: 'Historial', icon: Clock },
     { id: 'versions' as TabType, label: 'Versiones', icon: GitBranch },
-    ...(isOwner && !document?.isArchived ? [{ id: 'transfer' as TabType, label: 'Transferir', icon: ArrowRightLeft }] : []),
+    ...(isOwner ? [{ id: 'transfer' as TabType, label: 'Transferir', icon: ArrowRightLeft }] : []),
   ];
 
   return (
@@ -349,7 +349,7 @@ export const DocumentDetails: React.FC = () => {
                   {document.blockchainStatus}
                 </Badge>
               )}
-              {document.isArchived && (
+              {false && (
                 <Badge variant="secondary">
                   Archivado
                 </Badge>
@@ -393,7 +393,7 @@ export const DocumentDetails: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsShareModalOpen(true)}
-                disabled={document.blockchainStatus !== 'SYNCED' || document.isArchived}
+                disabled={document.blockchainStatus !== 'SYNCED'}
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Compartir
@@ -408,7 +408,7 @@ export const DocumentDetails: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setIsSignModalOpen(true)}
-              disabled={document?.blockchainStatus !== 'SYNCED' || document?.isArchived}
+              disabled={document?.blockchainStatus !== 'SYNCED'}
             >
               <FileSignature className="w-4 h-4 mr-2" />
               Firmar Documento
@@ -416,7 +416,7 @@ export const DocumentDetails: React.FC = () => {
             
             {isOwner && (
               <>
-                {document.isArchived ? (
+                {false ? (
                   <Button
                     variant="secondary"
                     onClick={() => unarchiveMutation.mutate()}
@@ -492,7 +492,7 @@ export const DocumentDetails: React.FC = () => {
               <CardContent className="p-6 text-center text-muted-foreground">
                 <Share2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p>Este documento no ha sido compartido con otros usuarios.</p>
-                {isOwner && !document.isArchived && (
+                {isOwner && (
                   <p className="text-sm mt-1">Use el botón "Compartir" arriba para dar acceso.</p>
                 )}
               </CardContent>
@@ -557,7 +557,7 @@ export const DocumentDetails: React.FC = () => {
               <Button
                 variant="primary"
                 onClick={() => setIsUploadVersionModalOpen(true)}
-                disabled={document.blockchainStatus !== 'SYNCED' || document.isArchived}
+                disabled={document.blockchainStatus !== 'SYNCED'}
               >
                 <GitBranch className="w-4 h-4 mr-2" />
                 Subir Nueva Versión
@@ -567,7 +567,7 @@ export const DocumentDetails: React.FC = () => {
           <OperationalVersionSelector
             documentId={id!}
             isOwner={isOwner}
-            isArchived={document.isArchived}
+            isArchived={false}
             versions={versionsArray}
             isPublic={isPublicDocument}
             publicId={document.publicId}

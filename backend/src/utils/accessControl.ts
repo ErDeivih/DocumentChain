@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { DocumentPermissionService, DocumentRole } from '../services/documentPermissionService';
+import { BlockchainCacheService } from '../services/blockchainCacheService';
 
 export async function userHasAccess(
   documentId: string,
@@ -7,11 +8,11 @@ export async function userHasAccess(
 ): Promise<boolean> {
   const document = await prisma.document.findUnique({
     where: { id: documentId },
-    select: { ownerId: true, blockchainId: true, visibility: true, isDeleted: true },
+    select: { ownerId: true, blockchainId: true, visibility: true },
   });
 
   if (!document) return false;
-  if (document.isDeleted) return false;
+  if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) return false;
   if (document.ownerId === userId) return true;
 
   if (document.visibility === 'PUBLIC') {

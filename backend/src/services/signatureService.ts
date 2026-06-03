@@ -17,6 +17,7 @@ import logger from '../utils/logger';
 import { DocumentPermissionService } from './documentPermissionService';
 import notificationService, { NotificationType } from './notificationService';
 import { userHasAccess } from '../utils/accessControl';
+import { BlockchainCacheService } from './blockchainCacheService';
 import { assertDocumentSignedReceipt } from './blockchainReceiptService';
 
 // ============================================
@@ -184,7 +185,7 @@ export class SignatureService {
       throw new Error('El documento no tiene ID de blockchain aún');
     }
 
-    if (document.isArchived) {
+    if (await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
       throw new Error('No se pueden firmar documentos archivados');
     }
 

@@ -76,7 +76,7 @@ describe('VerificationService', () => {
         ownerId: 'owner-1',
         size: BigInt(1024),
         owner: { username: 'user1' },
-        versions: [{ versionNumber: 1, isOperational: true, comment: null, user: { username: 'user1' } }],
+        versions: [{ versionNumber: 1, comment: null, user: { username: 'user1' } }],
         signatures: [],
       };
 
@@ -86,7 +86,6 @@ describe('VerificationService', () => {
         ipfsHash: mockIpfsHash,
         metadataHash: 'metadata-hash',
         owner: '0xowner',
-        isDeleted: false,
         createdBlock: { toNumber: () => 100 },
         txHash: '0xtx',
       };
@@ -116,7 +115,7 @@ describe('VerificationService', () => {
         ownerId: 'owner-1',
         size: BigInt(500),
         owner: { username: 'user1' },
-        versions: [{ versionNumber: 1, isOperational: true, comment: null, user: { username: 'user1' } }],
+        versions: [{ versionNumber: 1, comment: null, user: { username: 'user1' } }],
         signatures: [],
       };
 
@@ -174,8 +173,8 @@ describe('VerificationService', () => {
         size: BigInt(500),
         owner: { username: 'user1' },
         versions: [
-          { versionNumber: 1, isOperational: false, comment: null, user: { username: 'user1' } },
-          { versionNumber: 2, isOperational: true, comment: null, user: { username: 'user1' } },
+          { versionNumber: 1, comment: null, user: { username: 'user1' } },
+          { versionNumber: 2, comment: null, user: { username: 'user1' } },
         ],
         signatures: [],
       };
@@ -188,7 +187,6 @@ describe('VerificationService', () => {
             ipfsHash: mockIpfsHash,
             metadataHash: 'metadata-hash',
             owner: '0xowner',
-            isDeleted: false,
             createdBlock: { toNumber: () => 100 },
             txHash: '0xtx',
           }),
@@ -212,7 +210,7 @@ describe('VerificationService', () => {
         size: BigInt(300),
         owner: { username: 'user1' },
         versions: [
-          { versionNumber: 1, isOperational: true, comment: null, user: { username: 'user1' } },
+          { versionNumber: 1, comment: null, user: { username: 'user1' } },
         ],
         signatures: [],
       };
@@ -225,7 +223,6 @@ describe('VerificationService', () => {
             ipfsHash: mockIpfsHash,
             metadataHash: 'metadata-hash',
             owner: '0xowner',
-            isDeleted: false,
             createdBlock: { toNumber: () => 200 },
             txHash: '0xtx',
           }),
@@ -247,7 +244,6 @@ describe('VerificationService', () => {
             ipfsHash: mockIpfsHash,
             metadataHash: 'metadata-hash',
             owner: '0xowner',
-            isDeleted: false,
             createdBlock: { toNumber: () => 300 },
             txHash: '0xtx',
           }),
@@ -285,8 +281,8 @@ describe('VerificationService', () => {
         size: BigInt(100),
         owner: { username: 'user1' },
         versions: [
-          { versionNumber: 1, isOperational: false, comment: null, user: { username: 'user1' } },
-          { versionNumber: 3, isOperational: true, comment: null, user: { username: 'user1' } },
+          { versionNumber: 1, comment: null, user: { username: 'user1' } },
+          { versionNumber: 3, comment: null, user: { username: 'user1' } },
         ],
         signatures: [],
       };
@@ -299,7 +295,6 @@ describe('VerificationService', () => {
             ipfsHash: mockIpfsHash,
             metadataHash: 'metadata-hash',
             owner: '0xowner',
-            isDeleted: false,
             createdBlock: { toNumber: () => 100 },
             txHash: '0xtx',
           }),

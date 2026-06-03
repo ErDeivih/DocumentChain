@@ -326,12 +326,11 @@ describe('DocumentService - Backend Encryption', () => {
         id: mockDocId,
         name: 'Document.pdf',
         mimeType: 'application/pdf',
-        ipfsCid: 'QmTestCID',
         encryptedSymmetricKey: mockEncryptedKey,
         ownerId: mockUserId,
         blockchainId: null,
         versions: [
-          { id: 'version-1', ipfsCid: 'QmTestCID', isOperational: true, encryptedSymmetricKey: mockEncryptedKey },
+          { id: 'version-1', ipfsCid: 'QmTestCID', encryptedSymmetricKey: mockEncryptedKey },
         ],
       };
 
@@ -373,7 +372,6 @@ describe('DocumentService - Backend Encryption', () => {
           {
             id: 'version-operational',
             ipfsCid: 'QmOperationalCID',
-            isOperational: true,
             encryptedSymmetricKey: 'version-level-key',
             encryptionIV: 'version-level-iv',
             encryptionAuthTag: 'version-level-auth',
@@ -410,7 +408,6 @@ describe('DocumentService - Backend Encryption', () => {
           {
             id: 'version-legacy',
             ipfsCid: 'QmLegacyCID',
-            isOperational: true,
             encryptedSymmetricKey: null,
             encryptionIV: null,
             encryptionAuthTag: null,
@@ -454,8 +451,7 @@ describe('DocumentService - Backend Encryption', () => {
       (prisma.document.create as jest.Mock).mockImplementation((args) => {
         createdDocument = {
           ...args.data,
-          id: 'flow-doc-id',  // Override generated UUID with fixed test ID
-          ipfsCid: 'QmFlowTestCID',
+          id: 'flow-doc-id',
         };
         return Promise.resolve(createdDocument);
       });

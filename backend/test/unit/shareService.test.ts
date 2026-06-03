@@ -1,5 +1,18 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+jest.mock('../../src/services/blockchainCacheService', () => ({
+  __esModule: true,
+  BlockchainCacheService: {
+    getDocumentState: jest.fn().mockResolvedValue({ isArchived: false, isDeleted: false, owner: '0xOwner', currentVersion: 1, updatedAt: Date.now() }),
+    getOperationalVersionNumber: jest.fn().mockResolvedValue(1),
+    batchGetDocumentStates: jest.fn().mockResolvedValue(new Map()),
+    isDocumentArchived: jest.fn().mockResolvedValue(false),
+    isDocumentDeleted: jest.fn().mockResolvedValue(false),
+    invalidate: jest.fn(),
+    invalidateAll: jest.fn(),
+  },
+}));
+
 jest.mock('../../src/config/database', () => ({
   __esModule: true,
   default: {
@@ -83,7 +96,6 @@ describe('ShareService prepareShare', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       blockchainId: '0xbcid',
-      isArchived: false,
     });
     mockPrisma.wallet.findFirst.mockResolvedValue({
       id: 'wallet-1',
@@ -132,7 +144,6 @@ describe('ShareService prepareShare', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       blockchainId: '0xbcid',
-      isArchived: false,
       visibility: 'PUBLIC',
     });
     mockPrisma.wallet.findFirst.mockResolvedValue({
@@ -181,7 +192,6 @@ describe('ShareService prepareShare', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       blockchainId: null,
-      isArchived: false,
     });
 
     await expect(
@@ -201,7 +211,6 @@ describe('ShareService prepareShare', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       blockchainId: '0xbcid',
-      isArchived: false,
     });
     mockPrisma.wallet.findFirst.mockResolvedValue({ id: 'wallet-1', userId: 'user-1' });
     mockPrisma.user.findUnique.mockResolvedValue({
@@ -228,7 +237,6 @@ describe('ShareService prepareShare', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       blockchainId: '0xbcid',
-      isArchived: false,
     });
     mockPrisma.wallet.findFirst.mockResolvedValue({ id: 'wallet-1', userId: 'user-1' });
     mockPrisma.user.findUnique.mockResolvedValue({

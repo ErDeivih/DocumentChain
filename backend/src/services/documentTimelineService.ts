@@ -149,7 +149,6 @@ export class DocumentTimelineService {
       actor: this.toActor(version.user),
       details: {
         versionNumber: version.versionNumber,
-        isOperational: version.isOperational,
         comment: version.comment,
       },
       blockchainTx: version.blockchainTxHash || undefined,

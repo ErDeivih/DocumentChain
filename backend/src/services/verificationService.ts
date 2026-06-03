@@ -5,6 +5,7 @@ import { BlockchainQueries } from '../lib/blockchain/queries';
 import { DocumentPermissionService, DocumentRole } from './documentPermissionService';
 import { logBlockchainError } from '../utils/logger';
 import { normalizeEthereumAddress } from '../utils/ethereum';
+import { BlockchainCacheService } from './blockchainCacheService';
 
 /**
  * Resultado de una operación de verificación de documento.
@@ -26,7 +27,6 @@ export interface VerificationResult {
     uploadedAt: Date;
     fileSize: number;
     ipfsHash: string;
-    isArchived: boolean;
     currentVersion: number;
   };
   versions?: Array<{
@@ -150,7 +150,13 @@ export class VerificationService {
       logBlockchainError('Fetch blockchain data', error as Error);
     }
 
-    const operationalVersion = document.versions.find(v => v.isOperational);
+    let operationalVersionNumber = 0;
+    try {
+      if (document.blockchainId) {
+        operationalVersionNumber = await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId);
+      }
+    } catch { /* ignore */ }
+    const operationalVersion = document.versions.find(v => v.versionNumber === operationalVersionNumber);
     const matchedVersion = operationalVersion?.versionNumber || document.versions[0]?.versionNumber || 1;
 
     return {
@@ -163,7 +169,6 @@ export class VerificationService {
         uploadedAt: blockchainDoc?.createdAt || new Date(),
         fileSize: Number(document.size),
         ipfsHash: blockchainInfo?.ipfsHash || '',
-        isArchived: blockchainDoc?.isArchived || false,
         currentVersion: operationalVersion?.versionNumber || document.versions.length || 1,
       },
       versions: document.versions.map(v => ({
@@ -309,7 +314,13 @@ export class VerificationService {
       logBlockchainError('Fetch blockchain data', error as Error);
     }
 
-    const operationalVersion = document.versions.find(v => v.isOperational);
+    let operationalVersionNumber2 = 0;
+    try {
+      if (document.blockchainId) {
+        operationalVersionNumber2 = await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId);
+      }
+    } catch { /* ignore */ }
+    const operationalVersion = document.versions.find(v => v.versionNumber === operationalVersionNumber2);
     const matchedVersion = matchedVersionHint || operationalVersion?.versionNumber || document.versions[0]?.versionNumber || 1;
 
     return {
@@ -322,7 +333,6 @@ export class VerificationService {
         uploadedAt: blockchainDoc?.createdAt || new Date(),
         fileSize: Number(document.size),
         ipfsHash: blockchainInfo?.ipfsHash || '',
-        isArchived: blockchainDoc?.isArchived || false,
         currentVersion: operationalVersion?.versionNumber || document.versions.length || 1,
       },
       versions: document.versions.map(v => ({

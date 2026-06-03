@@ -16,6 +16,7 @@ import { ethers } from 'ethers';
 import * as Encryption from '../lib/encryption';
 import { DocumentPermissionService } from './documentPermissionService';
 import { validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
+import { BlockchainCacheService } from './blockchainCacheService';
 import { assertOwnershipTransferredReceipt } from './blockchainReceiptService';
 
 // ============================================
@@ -127,11 +128,11 @@ export class TransferService {
     });
 
     // Soft-delete check: cannot transfer deleted documents
-    if (document.isDeleted) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
       throw new Error('No se pueden transferir documentos eliminados');
     }
 
-    if (document.isArchived) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
       throw new Error('No se pueden transferir documentos archivados');
     }
 

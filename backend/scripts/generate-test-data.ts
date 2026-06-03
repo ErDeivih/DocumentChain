@@ -1132,32 +1132,6 @@ async function createDocumentsAndEvents(
 async function recomputeStats(users: GeneratedUser[]): Promise<void> {
   console.log('[4/6] Recalculando estadisticas de usuario y documento...');
 
-  const allDocuments = await prisma.document.findMany({
-    include: {
-      versions: true,
-      signatures: true,
-    },
-  });
-
-  for (const doc of allDocuments) {
-    const totalDownloads = Math.floor(Math.random() * 15);
-
-    await prisma.documentStats.upsert({
-      where: { documentId: doc.id },
-      create: {
-        documentId: doc.id,
-        totalDownloads,
-        lastActivityAt: new Date(),
-      },
-      update: {
-        totalDownloads,
-        lastActivityAt: new Date(),
-      },
-    });
-  }
-
-
-
   await prisma.systemStats.create({
     data: {
       statType: 'DAILY',

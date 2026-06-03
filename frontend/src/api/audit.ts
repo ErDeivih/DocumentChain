@@ -127,8 +127,6 @@ export interface PublicMetadata {
   contentCid: string;
   /** Fecha de creación. */
   createdAt: string;
-  /** Indica si está eliminado. */
-  isDeleted: boolean;
   /** Versión actual. */
   currentVersion: number;
 }

@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
 import { deleteFromIPFS } from '../config/ipfs';
 import { DocumentPermissionService } from './documentPermissionService';
+import { BlockchainCacheService } from './blockchainCacheService';
 import { assertDocumentDeletedReceipt, assertDocumentArchivedReceipt } from './blockchainReceiptService';
 import { logger } from '../utils/logger';
 
@@ -16,7 +17,7 @@ export class DocumentLifecycleService {
       throw new Error('Documento no encontrado');
     }
 
-    if (document.isDeleted) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
       throw new Error('El documento ya ha sido eliminado');
     }
 
@@ -34,17 +35,11 @@ export class DocumentLifecycleService {
       actorAddress: ownership.wallet.walletAddress,
     });
 
-    const deletedAt = new Date();
     const cidsToUnpin = Array.from(
       new Set(document.versions.map((v) => v.ipfsCid).filter((cid): cid is string => Boolean(cid)))
     );
 
     await prisma.$transaction(async (tx) => {
-      await tx.document.update({
-        where: { id: documentId },
-        data: { isDeleted: true, deletedAt, isArchived: false, archivedAt: null },
-      });
-
       await tx.event.create({
         data: {
           id: uuidv4(),
@@ -72,7 +67,7 @@ export class DocumentLifecycleService {
   static async archiveDocument(documentId: string, userId: string, txHash: string): Promise<void> {
     const document = await prisma.document.findUnique({ where: { id: documentId } });
     if (!document) throw new Error('Documento no encontrado');
-    if (document.isArchived) throw new Error('El documento ya está archivado');
+    if (document.blockchainId && await BlockchainCacheService.isDocumentArchived(document.blockchainId)) throw new Error('El documento ya está archivado');
 
     await DocumentPermissionService.validateOwnership(document, userId, {
       errorMessage: 'No tienes permisos para archivar este documento',
@@ -89,10 +84,6 @@ export class DocumentLifecycleService {
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.document.update({
-        where: { id: documentId },
-        data: { isArchived: true, archivedAt: new Date() },
-      });
 
       await tx.event.create({
         data: {
@@ -112,7 +103,7 @@ export class DocumentLifecycleService {
   static async unarchiveDocument(documentId: string, userId: string, txHash: string): Promise<void> {
     const document = await prisma.document.findUnique({ where: { id: documentId } });
     if (!document) throw new Error('Documento no encontrado');
-    if (!document.isArchived) throw new Error('El documento no está archivado');
+    if (!document.blockchainId || !(await BlockchainCacheService.isDocumentArchived(document.blockchainId))) throw new Error('El documento no está archivado');
 
     await DocumentPermissionService.validateOwnership(document, userId, {
       errorMessage: 'No tienes permisos para desarchivar este documento',
@@ -129,10 +120,6 @@ export class DocumentLifecycleService {
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.document.update({
-        where: { id: documentId },
-        data: { isArchived: false, archivedAt: null },
-      });
 
       await tx.event.create({
         data: {

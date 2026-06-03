@@ -43,7 +43,6 @@ export const PublicDocument: React.FC = () => {
   const document = data?.document;
   const selectedVersionNumber = versionNumber ? Number(versionNumber) : undefined;
   const selectedVersion = document?.versions.find((version) => version.versionNumber === selectedVersionNumber)
-    || document?.versions.find((version) => version.isOperational)
     || document?.versions[0];
 
   const { data: auditTrail } = useQuery({

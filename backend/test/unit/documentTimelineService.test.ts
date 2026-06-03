@@ -56,7 +56,6 @@ describe('DocumentTimelineService', () => {
         id: 'version-1',
         versionNumber: 2,
         comment: 'Nueva revisión',
-        isOperational: false,
         createdAt: new Date('2026-04-05T10:05:00Z'),
         blockchainTxHash: '0xversion',
         user: {

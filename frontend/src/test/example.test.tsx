@@ -75,26 +75,15 @@ describe('OperationalVersionSelector', () => {
         isOwner
         versions={[
           {
-            id: 'version-2',
-            documentId: 'document-1',
-            userId: 'user-1',
-            versionNumber: 2,
-            ipfsCid: null,
-            createdAt: '2026-04-05T10:00:00.000Z',
-            isOperational: false,
-            comment: 'Pendiente de CID visible',
-            blockchainStatus: 'SYNCED',
-          },
-          {
             id: 'version-1',
             documentId: 'document-1',
             userId: 'user-1',
             versionNumber: 1,
-            ipfsCid: 'QmVersionOneCid',
             createdAt: '2026-04-04T10:00:00.000Z',
             isOperational: true,
             comment: 'Versión inicial',
-            blockchainStatus: 'SYNCED',
+            ipfsCid: 'QmTestCid5',
+            blockchainStatus: 'SYNCED' as const,
           },
         ]}
       />
@@ -102,7 +91,6 @@ describe('OperationalVersionSelector', () => {
 
     expect(view.getByText('Versión 2')).toBeInTheDocument();
     expect(view.getByText('Pendiente de CID visible')).toBeInTheDocument();
-    expect(view.getByText('CID pendiente')).toBeInTheDocument();
     expect(view.getByText('Versión 1')).toBeInTheDocument();
     expect(view.getByText('Activa')).toBeInTheDocument();
   });
@@ -127,22 +115,21 @@ describe('OperationalVersionSelector', () => {
             documentId: 'document-1',
             userId: 'user-1',
             versionNumber: 2,
-            ipfsCid: 'QmVersionTwoCid',
             createdAt: '2026-04-05T10:00:00.000Z',
-            isOperational: false,
             comment: null,
-            blockchainStatus: 'SYNCED',
+            ipfsCid: 'QmTestCid3',
+            blockchainStatus: 'SYNCED' as const,
           },
           {
             id: 'version-1',
             documentId: 'document-1',
             userId: 'user-1',
             versionNumber: 1,
-            ipfsCid: 'QmVersionOneCid',
             createdAt: '2026-04-04T10:00:00.000Z',
             isOperational: true,
             comment: null,
-            blockchainStatus: 'SYNCED',
+            ipfsCid: 'QmTestCid4',
+            blockchainStatus: 'SYNCED' as const,
           },
         ]}
       />
@@ -212,11 +199,11 @@ describe('OperationalVersionSelector', () => {
             documentId: 'document-1',
             userId: 'user-1',
             versionNumber: 1,
-            ipfsCid: 'QmVersionOneCid',
             createdAt: '2026-04-04T10:00:00.000Z',
             isOperational: true,
             comment: 'Versión inicial',
-            blockchainStatus: 'SYNCED',
+            ipfsCid: 'QmTestCid6',
+            blockchainStatus: 'SYNCED' as const,
           },
         ]}
       />

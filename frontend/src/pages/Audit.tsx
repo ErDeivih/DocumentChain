@@ -474,8 +474,8 @@ export const Audit: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Estado</p>
-                <Badge variant={metadataResult.isDeleted ? 'destructive' : 'success'}>
-                  {metadataResult.isDeleted ? 'Eliminado' : 'Activo'}
+                <Badge variant="success">
+                  Activo
                 </Badge>
               </div>
             </div>

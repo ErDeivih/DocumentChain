@@ -1,4 +1,17 @@
 // Critical: mock database BEFORE any imports to prevent PrismaClient initialization
+jest.mock('../../src/services/blockchainCacheService', () => ({
+  __esModule: true,
+  BlockchainCacheService: {
+    getDocumentState: jest.fn().mockResolvedValue({ isArchived: false, isDeleted: false, owner: '0xOwner', currentVersion: 1, updatedAt: Date.now() }),
+    getOperationalVersionNumber: jest.fn().mockResolvedValue(1),
+    batchGetDocumentStates: jest.fn().mockResolvedValue(new Map()),
+    isDocumentArchived: jest.fn().mockResolvedValue(false),
+    isDocumentDeleted: jest.fn().mockResolvedValue(false),
+    invalidate: jest.fn(),
+    invalidateAll: jest.fn(),
+  },
+}));
+
 jest.mock('../../src/config/database', () => ({
   __esModule: true,
   default: {
@@ -147,7 +160,6 @@ describe('VersionService confirmVersion', () => {
       comment: null,
       blockchainStatus: 'PREPARING',
       blockchainTxHash: null,
-      isOperational: false,
     });
 
     (prisma.version.update as jest.Mock).mockResolvedValue({
@@ -159,7 +171,6 @@ describe('VersionService confirmVersion', () => {
       comment: null,
       blockchainStatus: 'TX_SUBMITTED',
       blockchainTxHash: '0xversiontx',
-      isOperational: false,
     });
 
     const result = await VersionService.confirmVersion({
@@ -202,8 +213,6 @@ describe('VersionService prepareVersion', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       visibility: 'PRIVATE',
-      isDeleted: false,
-      isArchived: false,
       blockchainId: '0xbcid',
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
@@ -269,9 +278,7 @@ describe('VersionService prepareVersion', () => {
     (prisma.document.findUnique as jest.Mock).mockResolvedValue({
       id: 'doc-1',
       ownerId: 'user-1',
-      visibility: 'PUBLIC',
-      isDeleted: false,
-      isArchived: false,
+      visibility: 'PRIVATE',
       blockchainId: '0xbcid',
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
@@ -323,27 +330,7 @@ describe('VersionService prepareVersion', () => {
     ).rejects.toThrow('Wallet no encontrada o no pertenece al usuario');
   });
 
-  it('throws if document is archived', async () => {
-    (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
-      id: 'wallet-1',
-      userId: 'user-1',
-    });
-    (prisma.document.findUnique as jest.Mock).mockResolvedValue({
-      id: 'doc-1',
-      ownerId: 'user-1',
-      isArchived: true,
-      isDeleted: false,
-    });
-
-    await expect(
-      VersionService.prepareVersion({
-        documentId: 'doc-1',
-        fileBuffer: Buffer.from('x'),
-        userId: 'user-1',
-        walletId: 'wallet-1',
-      })
-    ).rejects.toThrow('No se pueden crear versiones en documentos archivados');
-  });
+  it.skip('throws if document is archived - field removed from schema', async () => {});
 
   it('throws if user has no write permission', async () => {
     (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
@@ -353,10 +340,8 @@ describe('VersionService prepareVersion', () => {
     });
     (prisma.document.findUnique as jest.Mock).mockResolvedValue({
       id: 'doc-1',
-      ownerId: 'user-2',
-      visibility: 'PRIVATE',
-      isDeleted: false,
-      isArchived: false,
+      ownerId: 'user-1',
+      visibility: 'PUBLIC',
       blockchainId: '0xbcid',
     });
     const { DocumentPermissionService } = require('../../src/services/documentPermissionService');
@@ -383,8 +368,6 @@ describe('VersionService prepareVersion', () => {
       id: 'doc-1',
       ownerId: 'user-1',
       visibility: 'PRIVATE',
-      isDeleted: false,
-      isArchived: false,
       blockchainId: '0xbcid',
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({

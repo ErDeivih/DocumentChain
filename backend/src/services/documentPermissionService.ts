@@ -2,6 +2,7 @@ import { getDocumentRegistryContract } from '../config/blockchain';
 import logger from '../utils/logger';
 import { ethers } from 'ethers';
 import prisma from '../config/database';
+import { BlockchainCacheService } from './blockchainCacheService';
 import { BlockchainQueries } from '../lib/blockchain/queries';
 
 /**
@@ -266,7 +267,7 @@ export class DocumentPermissionService {
       const document = await prisma.document.findFirst({
         where: { blockchainId: docId },
       });
-      if (document?.isDeleted) {
+      if (document?.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
         throw new Error('No se pueden compartir documentos eliminados');
       }
 

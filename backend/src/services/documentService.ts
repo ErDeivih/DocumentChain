@@ -26,6 +26,8 @@ import { normalizeFileExtensionFilter } from '../utils/fileValidation';
 import { validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
 import { userHasAccess, resolveUserRole } from '../utils/accessControl';
 import { assertDocumentCreatedReceipt } from './blockchainReceiptService';
+import { BlockchainCacheService } from './blockchainCacheService';
+import { DocumentPermissionService } from './documentPermissionService';
 
 function deriveFileExtension(fileName: string, explicitExtension?: string): string | null {
   const normalizedExplicit = normalizeFileExtensionFilter(explicitExtension);
@@ -69,10 +71,7 @@ export interface DocumentInfo {
   encryptedSymmetricKey?: string | null;
   encryptionIV?: string | null;
   encryptionAuthTag?: string | null;
-  ipfsCid: string | null;
   blockchainStatus: BlockchainStatus;
-  isArchived: boolean;
-  archivedAt: Date | null;
   role?: 'OWNER' | 'SHARED_WRITE' | 'SHARED_READ' | null;
   createdAt: Date;
   updatedAt: Date;
@@ -128,7 +127,6 @@ export interface PublicDocumentVersionInfo {
   versionNumber: number;
   comment: string | null;
   createdAt: Date;
-  isOperational: boolean;
   ipfsCid: string | null;
   blockchainStatus: BlockchainStatus;
 }
@@ -162,8 +160,6 @@ export interface PublicDocumentInfo {
   contentHash: string;
   metadataHash: string;
   visibility: 'PUBLIC';
-  isArchived: boolean;
-  isDeleted: boolean;
   createdAt: Date;
   owner: {
     id: string;
@@ -448,7 +444,6 @@ export class DocumentService {
             blockchainStatus: BlockchainStatus.TX_SUBMITTED,
             blockchainTxHash: txHash,
             versionNumber: 1,
-            isOperational: true,
             ipfsCid: preparedIpfsCid,
           },
         });
@@ -626,7 +621,9 @@ export class DocumentService {
       },
     });
 
-    if (!document || document.isDeleted) return null;
+    if (!document) return null;
+
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) return null;
 
     const role = await resolveUserRole(document.id, document.ownerId, document.blockchainId, userId);
 
@@ -664,17 +661,43 @@ export class DocumentService {
     } = options || {};
     const normalizedFileType = normalizeFileExtensionFilter(fileType);
 
-    const where: any = {
-      ownerId: userId,
-      isDeleted: false,
-    };
+    // Obtener las wallets del usuario
+    const userWallets = await prisma.wallet.findMany({
+      where: { userId },
+      select: { walletAddress: true },
+    });
 
-    // Filtro de archivado
-    if (onlyArchived) {
-      where.isArchived = true;
-    } else if (!includeArchived) {
-      where.isArchived = false;
+    // Obtener blockchainIds de documentos donde el usuario es propietario directo
+    const ownedDocs = await prisma.document.findMany({
+      where: { ownerId: userId },
+      select: { blockchainId: true },
+    });
+    const ownedBlockchainIds = ownedDocs
+      .filter(d => d.blockchainId !== null)
+      .map(d => d.blockchainId as string);
+
+    // Obtener blockchainIds de documentos compartidos via permisos on-chain
+    const sharedBlockchainIds: string[] = [];
+    for (const wallet of userWallets) {
+      const docs = await DocumentPermissionService.getUserDocuments(wallet.walletAddress);
+      sharedBlockchainIds.push(...docs);
     }
+
+    // Unir ambos conjuntos (sin duplicados)
+    const allBlockchainIds = [...new Set([...ownedBlockchainIds, ...sharedBlockchainIds])];
+
+    if (allBlockchainIds.length === 0) {
+      return {
+        documents: [],
+        total: 0,
+        page: 1,
+        totalPages: 1,
+      };
+    }
+
+    const where: any = {
+      blockchainId: { in: allBlockchainIds },
+    };
 
     if (walletId) {
       where.creatorWalletId = walletId;
@@ -723,8 +746,26 @@ export class DocumentService {
       }),
     ]);
 
+    // Post-filter: usar blockchain como fuente de verdad para archivado/eliminado
+    const blockchainIdsToCheck = documents
+      .filter(d => d.blockchainId !== null)
+      .map(d => d.blockchainId as string);
+    const states = await BlockchainCacheService.batchGetDocumentStates(blockchainIdsToCheck);
+
+    const filtered = documents.filter(d => {
+      if (!d.blockchainId) return true;
+      const state = states.get(d.blockchainId);
+      if (!state) return true;
+
+      if (!includeArchived && !onlyArchived && state.isArchived) return false;
+      if (onlyArchived && !state.isArchived) return false;
+      if (state.isDeleted) return false;
+
+      return true;
+    });
+
     return {
-      documents: documents.map(d => this.toDocumentInfo(d)),
+      documents: filtered.map(d => this.toDocumentInfo(d)),
       total,
       page: safePage,
       totalPages: Math.max(1, Math.ceil(total / safeLimit)),
@@ -757,10 +798,7 @@ export class DocumentService {
     const document = await prisma.document.findUnique({
       where: { id: documentId },
       include: {
-        versions: {
-          where: { isOperational: true },
-          take: 1,
-        },
+        versions: true,
       },
     });
 
@@ -768,11 +806,18 @@ export class DocumentService {
       throw new Error('Documento no encontrado');
     }
 
-    if (document.isDeleted) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
       throw new Error('Documento no encontrado');
     }
 
-    const operationalVersion = document.versions[0];
+    const blockchainId = document.blockchainId;
+    const operationalVersionNumber = blockchainId
+      ? await BlockchainCacheService.getOperationalVersionNumber(blockchainId)
+      : null;
+    const operationalVersion = operationalVersionNumber
+      ? document.versions.find(v => v.versionNumber === operationalVersionNumber)
+      : document.versions.find(v => v.versionNumber === 1);
+
     if (!operationalVersion || !operationalVersion.ipfsCid) {
       throw new Error('Documento no tiene versión operacional en IPFS');
     }
@@ -806,17 +851,6 @@ export class DocumentService {
       },
     });
 
-    // Actualizar estadísticas
-    await prisma.documentStats.update({
-      where: { documentId: document.id },
-      data: {
-        totalDownloads: { increment: 1 },
-        lastActivityAt: new Date(),
-      },
-    }).catch(() => {
-      // Las estadísticas pueden no existir; se ignora el error
-    });
-
     return {
       encryptedFile,
       encryptedSymmetricKey,
@@ -848,7 +882,6 @@ export class DocumentService {
     const documents = await prisma.document.findMany({
       where: {
         creatorWalletId: walletId,
-        isDeleted: false,
       },
       orderBy: {
         name: 'asc',
@@ -878,7 +911,6 @@ export class DocumentService {
       where: {
         publicId,
         visibility: DocumentVisibility.PUBLIC,
-        isDeleted: false,
       },
       include: {
         owner: {
@@ -898,7 +930,6 @@ export class DocumentService {
             versionNumber: true,
             comment: true,
             createdAt: true,
-            isOperational: true,
             ipfsCid: true,
             blockchainStatus: true,
           },
@@ -931,6 +962,11 @@ export class DocumentService {
       return null;
     }
 
+    // Post-filter: usar blockchain como fuente de verdad para eliminado
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
+      return null;
+    }
+
     return {
       id: document.id,
       publicId: document.publicId || publicId,
@@ -943,8 +979,6 @@ export class DocumentService {
       contentHash: document.contentHash,
       metadataHash: document.metadataHash,
       visibility: 'PUBLIC',
-      isArchived: document.isArchived,
-      isDeleted: document.isDeleted,
       createdAt: document.createdAt,
       owner: document.owner,
       versions: document.versions.map((version) => ({
@@ -952,7 +986,6 @@ export class DocumentService {
         versionNumber: version.versionNumber,
         comment: version.comment,
         createdAt: version.createdAt,
-        isOperational: version.isOperational,
         ipfsCid: version.ipfsCid,
         blockchainStatus: version.blockchainStatus,
       })),
@@ -986,7 +1019,6 @@ export class DocumentService {
       where: {
         publicId,
         visibility: DocumentVisibility.PUBLIC,
-        isDeleted: false,
       },
       include: {
         versions: {
@@ -996,7 +1028,6 @@ export class DocumentService {
           select: {
             id: true,
             versionNumber: true,
-            isOperational: true,
             ipfsCid: true,
             encryptedSymmetricKey: true,
           },
@@ -1008,9 +1039,20 @@ export class DocumentService {
       throw new Error('Documento público no encontrado');
     }
 
+    // Post-filter: usar blockchain como fuente de verdad para eliminado
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
+      throw new Error('Documento público no encontrado');
+    }
+
+    const operationalVersionNumber = !versionNumber && document.blockchainId
+      ? await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId)
+      : null;
+
     const targetVersion = versionNumber
       ? document.versions.find((version) => version.versionNumber === versionNumber)
-      : document.versions.find((version) => version.isOperational) || document.versions[0];
+      : document.versions.find((version) => version.versionNumber === operationalVersionNumber)
+        || document.versions.find((version) => version.versionNumber === 1)
+        || document.versions[0];
 
     if (!targetVersion || !targetVersion.ipfsCid) {
       throw new Error('No se encontró una versión pública descargable');
@@ -1094,10 +1136,7 @@ export class DocumentService {
       encryptedSymmetricKey: document.encryptedSymmetricKey ?? null,
       encryptionIV: document.encryptionIV ?? null,
       encryptionAuthTag: document.encryptionAuthTag ?? null,
-      ipfsCid: document.ipfsCid,
       blockchainStatus: document.blockchainStatus,
-      isArchived: document.isArchived || false,
-      archivedAt: document.archivedAt || null,
       role,
       createdAt: document.createdAt,
       updatedAt: document.updatedAt,

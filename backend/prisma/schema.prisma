@@ -115,20 +115,15 @@ model Document {
   blockchainTxHash      String?
   creatorWalletId       String?
   blockchainStatus      BlockchainStatus    @default(PREPARING)
-  archivedAt            DateTime?
-  isArchived            Boolean             @default(false)
   encryptionAuthTag     String?
   encryptionIV          String?
   createdAt             DateTime            @default(now())
-  deletedAt             DateTime?
-  isDeleted             Boolean             @default(false)
   publicId              String?             @unique
   visibility            DocumentVisibility  @default(PRIVATE)
   creatorWallet         Wallet?             @relation("DocumentCreator", fields: [creatorWalletId], references: [id], onDelete: SetNull)
   folder                Folder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
   owner                 User                @relation("UserDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
   signatures            DocumentSignature[]
-  stats                 DocumentStats?
   events                Event[]
   versions              Version[]
   shareKeys             DocumentShareKey[]
@@ -141,9 +136,7 @@ model Document {
   @@index([folderId])
   @@index([fileExtension])
   @@index([blockchainStatus])
-  @@index([isArchived])
   @@index([createdAt])
-  @@index([isDeleted])
 }
 
 model Version {
@@ -156,7 +149,6 @@ model Version {
   blockchainError       String?
   blockchainTxHash      String?
   ipfsCid               String?
-  isOperational         Boolean             @default(false)
   versionNumber         Int
   blockchainStatus      BlockchainStatus    @default(PREPARING)
   encryptionAuthTag     String?
@@ -234,16 +226,6 @@ model DocumentShareKey {
   @@unique([documentId, userId])
   @@index([documentId])
   @@index([userId])
-}
-
-model DocumentStats {
-  id             String   @id @default(cuid())
-  documentId     String   @unique
-  totalDownloads Int      @default(0)
-  lastActivityAt DateTime @default(now())
-  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-
-  @@index([documentId])
 }
 
 model SystemStats {

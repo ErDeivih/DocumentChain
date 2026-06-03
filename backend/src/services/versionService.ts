@@ -14,6 +14,7 @@ import logger from '../utils/logger';
 import * as Encryption from '../lib/encryption';
 import { DocumentPermissionService } from './documentPermissionService';
 import { provider, getContracts } from '../config/blockchain';
+import { BlockchainCacheService } from './blockchainCacheService';
 import { userHasAccess } from '../utils/accessControl';
 import { validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
 import {
@@ -165,20 +166,27 @@ export class VersionService {
       const wallet = await validateWalletBelongsToUser(walletId, userId);
 
       // 2. Check document access
-      const document = await prisma.document.findUnique({
-        where: { id: documentId },
-      });
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      select: {
+        id: true,
+        ownerId: true,
+        blockchainId: true,
+        name: true,
+        visibility: true,
+      },
+    });
 
       if (!document) {
         throw new Error('Documento no encontrado');
       }
 
       // Soft-delete check: cannot create versions on deleted documents
-      if (document.isDeleted) {
+      if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
         throw new Error('No se pueden crear versiones en documentos eliminados');
       }
 
-      if (document.isArchived) {
+      if (document.blockchainId && await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
         throw new Error('No se pueden crear versiones en documentos archivados');
       }
 
@@ -360,26 +368,21 @@ export class VersionService {
     logger.info(`[CONFIRM] Versión ${versionId} actualizada a TX_SUBMITTED`);
 
     // 4. Try to get receipt immediately (Hardhat mines instantly)
+    let isNowOperational = false;
     try {
       if (txHash && provider) {
         const receipt = await provider.getTransactionReceipt(txHash);
         if (receipt && receipt.status === 1) {
           updated = await prisma.$transaction(async (tx) => {
-            // Demote all previous versions
-            await tx.version.updateMany({
-              where: { documentId: version.documentId },
-              data: { isOperational: false },
-            });
-            // Promote this version to SYNCED and operational
             const synced = await tx.version.update({
               where: { id: versionId },
               data: {
                 blockchainStatus: BlockchainStatus.SYNCED,
-                isOperational: true,
               },
             });
             return synced;
           });
+          isNowOperational = true;
           logger.info(`[CONFIRM] Versión ${versionId} sincronizada inmediatamente a SYNCED`);
         }
       }
@@ -403,7 +406,7 @@ export class VersionService {
       },
     });
 
-    return this.toVersionInfo(updated);
+    return this.toVersionInfo(updated, isNowOperational);
   }
 
   /**
@@ -441,10 +444,7 @@ export class VersionService {
       logger.warn(`[GET_VERSIONS] Error consultando versión operacional on-chain: ${chainErr.message}`);
     }
 
-    return versions.map(v => this.toVersionInfo({
-      ...v,
-      isOperational: v.versionNumber === currentOnchainVersion,
-    }));
+    return versions.map(v => this.toVersionInfo(v, v.versionNumber === currentOnchainVersion));
   }
 
   /**
@@ -480,8 +480,6 @@ export class VersionService {
         ownerId: true,
         blockchainId: true,
         name: true,
-        isDeleted: true,
-        isArchived: true,
       }
     });
 
@@ -494,11 +492,11 @@ export class VersionService {
       errorMessage: 'Solo el propietario puede cambiar la versión operacional',
     });
 
-    if (document.isDeleted) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
       throw new Error('No se pueden cambiar versiones en documentos eliminados');
     }
 
-    if (document.isArchived) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
       throw new Error('No se pueden cambiar versiones en documentos archivados');
     }
 
@@ -517,20 +515,12 @@ export class VersionService {
       throw new Error('Solo se puede activar una versión enviada a blockchain');
     }
 
-    if (targetVersion.isOperational) {
-      return this.toVersionInfo(targetVersion);
+    const currentOperational = await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId!);
+    if (targetVersion.versionNumber === currentOperational) {
+      return this.toVersionInfo(targetVersion, true);
     }
 
-    const updatedVersion = await prisma.$transaction(async (tx) => {
-      await tx.version.updateMany({
-        where: { documentId, isOperational: true },
-        data: { isOperational: false },
-      });
-
-      const updated = await tx.version.update({
-        where: { id: targetVersion.id },
-        data: { isOperational: true },
-      });
+    await prisma.$transaction(async (tx) => {
 
       await tx.event.create({
         data: {
@@ -539,18 +529,17 @@ export class VersionService {
           userId,
           documentId,
           metadata: {
-            versionId: updated.id,
+            versionId: targetVersion.id,
             versionNumber,
           },
         },
       });
 
-      return updated;
     });
 
     logger.info(`[VERSION] Documento ${documentId} cambió la versión operacional a v${versionNumber}`);
 
-    return this.toVersionInfo(updatedVersion);
+    return this.toVersionInfo(targetVersion, true);
   }
 
   /**
@@ -587,11 +576,11 @@ export class VersionService {
       throw new Error('Solo el propietario puede cambiar la versión operacional');
     }
 
-    if (document.isDeleted) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
       throw new Error('No se pueden cambiar versiones en documentos eliminados');
     }
 
-    if (document.isArchived) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
       throw new Error('No se pueden cambiar versiones en documentos archivados');
     }
 
@@ -614,7 +603,8 @@ export class VersionService {
       throw new Error('Solo se puede activar una versión enviada a blockchain');
     }
 
-    if (targetVersion.isOperational) {
+    const operationalVersion = await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId!);
+    if (targetVersion.versionNumber === operationalVersion) {
       throw new Error('Esta versión ya es la operacional');
     }
 
@@ -638,8 +628,6 @@ export class VersionService {
         ownerId: true,
         blockchainId: true,
         name: true,
-        isDeleted: true,
-        isArchived: true,
       },
     });
 
@@ -652,7 +640,7 @@ export class VersionService {
       errorMessage: 'Solo el propietario puede cambiar la versión operacional',
     });
 
-    if (document.isDeleted || document.isArchived) {
+    if (document.blockchainId && (await BlockchainCacheService.isDocumentDeleted(document.blockchainId) || await BlockchainCacheService.isDocumentArchived(document.blockchainId))) {
       throw new Error('No se pueden cambiar versiones en documentos eliminados o archivados');
     }
 
@@ -718,7 +706,6 @@ export class VersionService {
             ownerId: true,
             blockchainId: true,
             visibility: true,
-            isDeleted: true,
             encryptedSymmetricKey: true,
             name: true,
             mimeType: true,
@@ -788,7 +775,7 @@ export class VersionService {
   /**
    * Convert Prisma version to VersionInfo
    */
-  private static toVersionInfo(version: any): VersionInfo {
+  private static toVersionInfo(version: any, isOperational: boolean = false): VersionInfo {
     return {
       id: version.id,
       documentId: version.documentId,
@@ -799,7 +786,7 @@ export class VersionService {
       isEncrypted: version.encryptedSymmetricKey !== 'UNENCRYPTED',
       blockchainStatus: version.blockchainStatus,
       blockchainTxHash: version.blockchainTxHash,
-      isOperational: version.isOperational,
+      isOperational,
       createdAt: version.createdAt,
     };
   }
@@ -956,11 +943,11 @@ export class VersionService {
       errorMessage: 'Solo el propietario puede restaurar versiones',
     });
 
-    if (document.isDeleted) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
       throw new Error('No se pueden restaurar versiones en documentos eliminados');
     }
 
-    if (document.isArchived) {
+    if (document.blockchainId && await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
       throw new Error('No se pueden restaurar versiones en documentos archivados');
     }
 
@@ -1093,7 +1080,7 @@ export class VersionService {
       isEncrypted: updated.encryptedSymmetricKey !== 'UNENCRYPTED',
       blockchainStatus: updated.blockchainStatus,
       blockchainTxHash: updated.blockchainTxHash,
-      isOperational: updated.isOperational,
+      isOperational: false,
       createdAt: updated.createdAt,
     };
   }

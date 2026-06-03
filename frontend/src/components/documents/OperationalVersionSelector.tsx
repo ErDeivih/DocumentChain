@@ -70,6 +70,9 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
   onDownloadVersion
 }) => {
   const [versions, setVersions] = useState<OperationalVersion[]>(providedVersions);
+  const [operationalVersionNumber, setOperationalVersionNumber] = useState<number | null>(
+    () => providedVersions.find(v => v.isOperational)?.versionNumber ?? null
+  );
   const [changing, setChanging] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -83,6 +86,10 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
 
   useEffect(() => {
     setVersions(providedVersions);
+    const opVersion = providedVersions.find(v => v.isOperational)?.versionNumber;
+    if (opVersion != null) {
+      setOperationalVersionNumber(opVersion);
+    }
   }, [providedVersions]);
 
   const handleStartSetOperational = (versionNumber: number) => {
@@ -110,10 +117,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
       await versionsApi.confirmSetOperational(documentId, pendingVersionNumber, tx.hash);
 
       // 5. Actualización optimista: reflejar el cambio inmediatamente en UI
-      setVersions(prev => prev.map(v => ({
-        ...v,
-        isOperational: v.versionNumber === pendingVersionNumber,
-      })));
+      setOperationalVersionNumber(pendingVersionNumber);
 
       setSuccess(`Transacción enviada. La versión ${pendingVersionNumber} se sincronizará con la blockchain en breve.`);
       onVersionChange?.(pendingVersionNumber);
@@ -240,6 +244,7 @@ export const OperationalVersionSelector: React.FC<OperationalVersionSelectorProp
               isPublic={isPublic}
               publicId={publicId || null}
               changing={changing}
+              operationalVersionNumber={operationalVersionNumber ?? undefined}
               buildVersionUrl={buildVersionUrl}
               onViewSignatures={openSignaturesModal}
               onActivate={handleStartSetOperational}

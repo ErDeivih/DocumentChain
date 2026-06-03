@@ -1,6 +1,7 @@
 import { getContracts, provider, documentRegistryInterface } from '../config/blockchain';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
+import { BlockchainCacheService } from './blockchainCacheService';
 import logger from '../utils/logger';
 import { ethers } from 'ethers';
 
@@ -95,8 +96,6 @@ export interface OwnershipProof {
  * @property contentCid - CID de IPFS del contenido
  * @property fileSize - Tamaño del archivo en bytes
  * @property currentVersion - Versión operacional actual
- * @property isArchived - Indica si está archivado
- * @property isDeleted - Indica si está eliminado
  * @property lastUpdated - Fecha de última actualización
  */
 export interface PublicDocumentMetadata {
@@ -110,8 +109,6 @@ export interface PublicDocumentMetadata {
   contentCid: string;
   fileSize: number;
   currentVersion: number;
-  isArchived: boolean;
-  isDeleted: boolean;
   lastUpdated: Date;
 }
 
@@ -138,9 +135,6 @@ export class AuditService {
           },
         },
         versions: {
-          where: {
-            isOperational: true,
-          },
           orderBy: {
             versionNumber: 'desc',
           },
@@ -459,7 +453,7 @@ export class AuditService {
           exists: Boolean(dbDocument.blockchainId),
           owner: blockchainOwner,
           fileHash: blockchainHash,
-          isDeleted: blockchainDoc?.isDeleted ?? dbDocument.isDeleted,
+          isDeleted: blockchainDoc?.isDeleted ?? false,
         },
         databaseData: {
           exists: true,
@@ -579,8 +573,6 @@ export class AuditService {
           contentCid: version.ipfsCid,
           fileSize: 0,
           currentVersion,
-          isArchived: doc.isArchived,
-          isDeleted: doc.isDeleted,
           lastUpdated: new Date(Number(doc.updatedAt) * 1000)
         };
       } catch (error) {
@@ -609,8 +601,6 @@ export class AuditService {
           contentCid: operationalVersion?.ipfsCid || '',
           fileSize: Number(dbDoc.size),
           currentVersion: operationalVersion?.versionNumber || 1,
-          isArchived: dbDoc.isArchived,
-          isDeleted: dbDoc.isDeleted,
           lastUpdated: dbDoc.createdAt,
         };
       }

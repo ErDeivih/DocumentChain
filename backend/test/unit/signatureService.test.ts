@@ -1,4 +1,18 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+
+jest.mock('../../src/services/blockchainCacheService', () => ({
+  __esModule: true,
+  BlockchainCacheService: {
+    getDocumentState: jest.fn().mockResolvedValue({ isArchived: false, isDeleted: false, owner: '0xOwner', currentVersion: 1, updatedAt: Date.now() }),
+    getOperationalVersionNumber: jest.fn().mockResolvedValue(1),
+    batchGetDocumentStates: jest.fn().mockResolvedValue(new Map()),
+    isDocumentArchived: jest.fn().mockResolvedValue(false),
+    isDocumentDeleted: jest.fn().mockResolvedValue(false),
+    invalidate: jest.fn(),
+    invalidateAll: jest.fn(),
+  },
+}));
+
 import { BlockchainStatus } from '@prisma/client';
 
 jest.mock('../../src/config/database', () => ({

@@ -71,15 +71,11 @@ export async function handleVersionCreated(args: unknown, event: BlockchainEvent
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.version.updateMany({
-        where: { documentId: document.id },
-        data: { isOperational: false },
-      });
 
       if (existingVersion) {
         await tx.version.update({
           where: { id: existingVersion.id },
-          data: { blockchainStatus: 'SYNCED', ipfsCid: eventArgs.ipfsCid, isOperational: true },
+          data: { blockchainStatus: 'SYNCED', ipfsCid: eventArgs.ipfsCid },
         });
       } else {
         await tx.version.create({
@@ -89,7 +85,7 @@ export async function handleVersionCreated(args: unknown, event: BlockchainEvent
             versionNumber: Number(eventArgs.versionNumber),
             ipfsCid: eventArgs.ipfsCid,
             encryptedSymmetricKey: document.encryptedSymmetricKey,
-            isOperational: true, blockchainStatus: 'SYNCED',
+            blockchainStatus: 'SYNCED',
             blockchainTxHash: event.transactionHash,
           },
         });
@@ -235,11 +231,6 @@ export async function handleDocumentDeleted(args: unknown, event: BlockchainEven
     const document = await prisma.document.findUnique({ where: { blockchainId: eventArgs.docId }, include: { owner: true } });
     if (!document) return;
 
-    await prisma.document.update({
-      where: { blockchainId: eventArgs.docId },
-      data: { isDeleted: true, deletedAt: new Date(Number(eventArgs.timestamp) * 1000), isArchived: false, archivedAt: null },
-    });
-
     await notificationService.createNotification({
       userId: document.ownerId, type: NotificationType.FILE_DELETED,
       title: 'Documento eliminado', message: `"${document.name}" ha sido eliminado permanentemente del blockchain`,
@@ -284,11 +275,6 @@ export async function handleDocumentArchived(args: unknown, event: BlockchainEve
     const eventArgs = normalizeEventArgs(args);
     const document = await prisma.document.findUnique({ where: { blockchainId: eventArgs.docId }, include: { owner: true } });
     if (!document) return;
-
-    await prisma.document.update({
-      where: { blockchainId: eventArgs.docId },
-      data: { isArchived: eventArgs.archived, archivedAt: eventArgs.archived ? new Date(Number(eventArgs.timestamp) * 1000) : null },
-    });
 
     await prisma.event.create({
       data: {
@@ -356,10 +342,6 @@ export async function handleOperationalVersionChanged(args: unknown, event: Bloc
     if (!document) return;
 
     await prisma.$transaction(async (tx) => {
-      if (Number(eventArgs.oldVersion) > 0) {
-        await tx.version.updateMany({ where: { documentId: document.id, versionNumber: Number(eventArgs.oldVersion) }, data: { isOperational: false } });
-      }
-      await tx.version.updateMany({ where: { documentId: document.id, versionNumber: Number(eventArgs.newVersion) }, data: { isOperational: true } });
 
       await tx.event.create({
         data: {

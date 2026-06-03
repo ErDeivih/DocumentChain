@@ -40,13 +40,11 @@ export class FolderService {
       },
       include: {
         documents: {
-          // ❌ NO filtrar por isDeleted (solo en blockchain)
           select: {
             id: true,
             name: true,
             fileExtension: true,
             size: true
-            // ❌ NO seleccionar createdAt (solo en blockchain)
           },
         },
         children: true,
@@ -330,7 +328,6 @@ export class FolderService {
     const [documentCount, totalSize, subfolderCount] = await Promise.all([
       prisma.document.count({
         where: { folderId }
-        // ❌ NO filtrar por isDeleted (solo en blockchain)
       }),
       prisma.document.aggregate({
         where: { folderId },

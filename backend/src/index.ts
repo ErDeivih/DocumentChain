@@ -10,6 +10,7 @@ import logger from './utils/logger';
 import { swaggerSpec } from './config/swagger';
 import { disconnectDatabase } from './config/database';
 import { stopBlockchainSyncWorker } from './workers/blockchainSync'; // Start blockchain sync worker
+import { BlockchainReconciler } from './workers/blockchainReconciler';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -195,6 +196,7 @@ const shutdown = async (signal: string): Promise<void> => {
   try {
     webSocketService.close();
     stopBlockchainSyncWorker();
+    BlockchainReconciler.stop();
 
     await Promise.allSettled([
       eventListenerService.shutdown(),
@@ -242,6 +244,7 @@ const startHttpServer = () => {
     try {
       await eventListenerService.start();
       logger.info('Event listeners de blockchain iniciados');
+      BlockchainReconciler.start();
     } catch (error) {
       logger.error('Error al iniciar event listeners de blockchain', { error });
     }
@@ -275,6 +278,7 @@ if (USE_HTTPS) {
       try {
         await eventListenerService.start();
         logger.info('Event listeners de blockchain iniciados');
+        BlockchainReconciler.start();
       } catch (error) {
         logger.error('Error al iniciar event listeners de blockchain', { error });
       }

@@ -35,7 +35,6 @@ async function resetDatabase() {
   await prisma.documentSignature.deleteMany({});
   await prisma.event.deleteMany({});
   await prisma.version.deleteMany({});
-  await prisma.documentStats.deleteMany({});
   await prisma.document.deleteMany({});
   await prisma.wallet.deleteMany({});
   await prisma.notification.deleteMany({});
@@ -135,7 +134,6 @@ async function createSampleDocument(
       contentHash: 'seed-content-hash-' + Date.now(),
       metadataHash: 'seed-metadata-hash-' + Date.now(),
       publicId: visibility === 'PUBLIC' ? `pub-${Date.now()}-${Math.random().toString(36).substring(2, 10)}` : null,
-      isArchived: false,
     }
   });
 
@@ -147,17 +145,8 @@ async function createSampleDocument(
       ipfsCid,
       encryptedSymmetricKey: 'seed-encrypted-key-placeholder',
       comment: 'Versión inicial (seed)',
-      isOperational: true,
       blockchainTxHash: `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
       blockchainStatus: 'SYNCED',
-    }
-  });
-
-  await prisma.documentStats.create({
-    data: {
-      documentId: document.id,
-      totalDownloads: 0,
-      lastActivityAt: new Date(),
     }
   });
 
