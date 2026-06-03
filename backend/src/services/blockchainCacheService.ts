@@ -88,6 +88,7 @@ export class BlockchainCacheService {
     const doc = await contracts.documentRegistry.getDocument(blockchainId);
 
     if (doc.owner === ethers.ZeroAddress) {
+      // Documento eliminado: el estado de archivado es irrelevante, se fuerza a false
       return {
         isArchived: false,
         isDeleted: true,

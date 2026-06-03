@@ -73,6 +73,7 @@ describe('OperationalVersionSelector', () => {
       <OperationalVersionSelector
         documentId="document-1"
         isOwner
+        operationalVersionNumber={1}
         versions={[
           {
             id: 'version-2',
@@ -116,6 +117,7 @@ describe('OperationalVersionSelector', () => {
       <OperationalVersionSelector
         documentId="document-1"
         isOwner
+        operationalVersionNumber={1}
         onVersionChange={onVersionChange}
         versions={[
           {

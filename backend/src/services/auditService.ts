@@ -1,7 +1,7 @@
 import { getContracts, provider, documentRegistryInterface } from '../config/blockchain';
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
-import { BlockchainCacheService } from './blockchainCacheService';
+
 import logger from '../utils/logger';
 import { ethers } from 'ethers';
 

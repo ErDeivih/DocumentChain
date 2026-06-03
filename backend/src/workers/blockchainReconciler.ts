@@ -9,6 +9,7 @@ const RECONCILE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 export class BlockchainReconciler {
   private static timer: ReturnType<typeof setInterval> | null = null;
+  private static reconciling = false;
 
   static start(): void {
     logger.info('[BlockchainReconciler] Starting periodic reconciliation (every 6h)');
@@ -21,6 +22,8 @@ export class BlockchainReconciler {
   }
 
   private static async reconcile(): Promise<void> {
+    if (this.reconciling) { logger.info('[BlockchainReconciler] Cycle already running, skipping'); return; }
+    this.reconciling = true;
     try {
       logger.info('[BlockchainReconciler] Starting cycle');
       const syncedDocs = await prisma.document.findMany({
@@ -62,6 +65,8 @@ export class BlockchainReconciler {
       logger.info(`[BlockchainReconciler] Complete. ${corrections} corrections.`);
     } catch (error) {
       logger.error('[BlockchainReconciler] Failed:', error);
+    } finally {
+      this.reconciling = false;
     }
   }
 }

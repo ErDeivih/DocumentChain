@@ -294,7 +294,9 @@ export class FolderService {
   /**
    * Verificar si una carpeta es descendiente de otra (prevenir ciclos)
    */
-  private static async checkIfDescendant(ancestorId: string, potentialDescendantId: string): Promise<boolean> {
+  private static async checkIfDescendant(ancestorId: string, potentialDescendantId: string, depth: number = 0): Promise<boolean> {
+    if (depth > 50) throw new Error('Profundidad máxima de carpeta excedida');
+
     if (ancestorId === potentialDescendantId) {
       return true;
     }
@@ -307,7 +309,7 @@ export class FolderService {
       return false;
     }
 
-    return this.checkIfDescendant(ancestorId, folder.parentId);
+    return this.checkIfDescendant(ancestorId, folder.parentId, depth + 1);
   }
 
   /**

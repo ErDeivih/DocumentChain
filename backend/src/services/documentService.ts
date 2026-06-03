@@ -1123,7 +1123,7 @@ export class DocumentService {
       name: document.name,
       description: document.description,
       mimeType: document.mimeType,
-      size: Number(document.size),
+      size: Number(document.size), // BigInt → Number is safe: actual file sizes never exceed Number.MAX_SAFE_INTEGER (~9 PB)
       fileExtension: document.fileExtension ?? null,
       folderId: document.folderId ?? null,
       tags: document.tags ?? [],
