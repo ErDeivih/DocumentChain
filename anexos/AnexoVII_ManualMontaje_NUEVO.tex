@@ -234,7 +234,7 @@ La aplicaci\'{o}n se materializa como un conjunto de servicios orquestados media
     \node[service, above right=0.6cm and 1.2cm of ngx, fill=blue!10] (fe) {Frontend\\(Nginx est\'{a}tico)};
     \node[service, below right=0.6cm and 1.2cm of ngx, fill=blue!10] (be) {Backend\\(Node.js + Express)};
     \node[db, right=of fe, fill=orange!10] (ipfs) {IPFS\\(Kubo)};
-    \node[db, right=of be, fill=orange!10] (pg) {PostgreSQL\\(15+)};
+    \node[db, right=of be, fill=orange!10] (pg) {PostgreSQL\\(16)};
     \node[service, below=0.8cm of be, fill=gray!15] (hh) {Hardhat\\(localhost)};
     \node[service, below=0.8cm of ngx, fill=purple!10] (pf) {Brevo SMTP\\(servicio SMTP externo)};
 
@@ -257,7 +257,7 @@ A continuaci\'{o}n se describe la funci\'{o}n de cada servicio definido en el ar
 \begin{itemize}[leftmargin=*]
     \item \textbf{frontend}: construido a partir de una imagen base Nginx Alpine. Su responsabilidad consiste en servir los artefactos est\'{a}ticos generados por Vite (HTML, JS, CSS) y resolver el enrutamiento de la Single Page Application (SPA) mediante la directiva \texttt{try\_files}.
     \item \textbf{backend}: imagen basada en Node.js 20-slim. Ejecuta el servidor Express que expone la API REST en el puerto 3000. Contiene la l\'{o}gica de negocio, la capa de cifrado de documentos y los adaptadores hacia base de datos, IPFS y blockchain.
-    \item \textbf{postgres}: instancia de PostgreSQL 15 (o superior). Almacena usuarios, documentos metadatos, versiones, firmas, notificaciones y logs de auditor\'{i}a. Persiste sus datos en un volumen Docker dedicado.
+    \item \textbf{postgres}: instancia de PostgreSQL 16. Almacena usuarios, documentos metadatos, versiones, firmas, notificaciones y logs de auditor\'{i}a. Persiste sus datos en un volumen Docker dedicado.
     \item \textbf{ipfs}: nodo Kubo oficial. Gestiona el almacenamiento descentralizado de documentos cifrados. Expone la API en el puerto 5001 y opcionalmente un gateway de lectura en el 8080. Requiere configuraci\'{o}n de CORS para la comunicaci\'{o}n con el backend.
     \item \textbf{nginx}: proxy inverso frontal. Recibe el tr\'{a}fico HTTPS en el puerto 443 y lo distribuye hacia el frontend o el backend seg\'{u}n la ruta. Gestiona la terminaci\'{o}n SSL, la compresi\'{o}n gzip y las cabeceras de seguridad HTTP.
     \item \textbf{brevo-smtp} (opcional pero recomendado): servicio SMTP externo de Brevo utilizado para el env\'{i}o de correos electr\'{o}nicos de la plataforma.

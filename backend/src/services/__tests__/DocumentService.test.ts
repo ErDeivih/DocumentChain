@@ -51,10 +51,6 @@ jest.mock('../../config/blockchain', () => ({
   provider: {},
 }));
 
-jest.mock('../blockchainReceiptService', () => ({
-  assertDocumentCreatedReceipt: jest.fn().mockResolvedValue({ blockNumber: 1 }),
-}));
-
 // Unmock encryption to test real encryption
 jest.unmock('../../lib/encryption');
 
@@ -258,18 +254,6 @@ describe('DocumentService - Backend Encryption', () => {
         id: input.documentId,
         blockchainStatus: 'PREPARING',
         ownerId: mockUserId,
-        creatorWalletId: mockWalletId,
-        ipfsCid: 'QmTestCID',
-      });
-
-      (prisma.version.findFirst as jest.Mock).mockResolvedValue({ ipfsCid: 'QmTestCID' });
-      (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
-        id: mockWalletId,
-        userId: mockUserId,
-        walletAddress: mockWalletAddress,
-      });
-      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
-        metadata: { docId: input.blockchainId, ipfsCid: 'QmTestCID' },
       });
 
       (prisma.document.update as jest.Mock).mockResolvedValue({
@@ -491,22 +475,17 @@ describe('DocumentService - Backend Encryption', () => {
       expect(prepareResult.ipfsCid).toBe('QmFlowTestCID');
 
       // Step 2: Confirm (simulating frontend blockchain transaction)
-      const blockchainId = '0x' + 'b'.repeat(64);
       (prisma.document.findUnique as jest.Mock).mockResolvedValue(createdDocument);
-      (prisma.version.findFirst as jest.Mock).mockResolvedValue({ ipfsCid: 'QmFlowTestCID' });
-      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
-        metadata: { docId: blockchainId, ipfsCid: 'QmFlowTestCID' },
-      });
       (prisma.document.update as jest.Mock).mockResolvedValue({
         ...createdDocument,
-        blockchainId,
+        blockchainId: '0xblockchainid',
         blockchainStatus: 'SYNCED',
       });
 
       await DocumentService.confirmDocument({
         documentId: prepareResult.documentId,
-        txHash: '0x' + 'c'.repeat(64),
-        blockchainId,
+        txHash: '0xtxhash',
+        blockchainId: '0xblockchainid',
         confirmerUserId: mockUserId,
       });
 
