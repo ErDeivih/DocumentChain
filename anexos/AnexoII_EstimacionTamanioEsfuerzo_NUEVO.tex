@@ -131,7 +131,7 @@ El método UCP arranca a partir de los actores y casos de uso identificados y lo
 
 El proyecto tiene una complejidad particular porque mezcla cuatro tecnologías muy distintas entre sí: un \textit{backend} REST en Node.js, una base de datos PostgreSQL, almacenamiento descentralizado sobre IPFS mediante un nodo Kubo autoalojado y un \textit{smart contract} en Solidity sobre Ethereum. Tener que coordinar cuatro subsistemas tan dispares justifica tanto la elección del Proceso Unificado como el esfuerzo de estimación que se detalla a continuación.
 
-La estimación se hace sobre un \textbf{catálogo consolidado de 43 casos de uso principales}, en coherencia con el Anexo I. Se redujo el número respecto al inventario funcional inicial porque varias operaciones auxiliares se agruparon como subflujos dentro de casos de uso más grandes. Así se evita contar dos veces el mismo esfuerzo en el cálculo UCP.
+La estimación se hace sobre el \textbf{catálogo de 39 casos de uso principales}, en coherencia con el Anexo I. Los 4 casos restantes del catálogo funcional completo (43 UC) se integran como subflujos de estos 39, por lo que no añaden peso UCP independiente al no requerir transacciones ni flujos de análisis diferenciados. Así se evita contar dos veces el mismo esfuerzo en el cálculo UCP.
 
 El mapeo detallado entre qué operación se integró en qué UC principal está en el Anexo I. De esta forma, la estimación, las especificaciones y los diagramas de paquetes comparten el mismo criterio, por lo que se garantiza la coherencia entre los distintos anexos del proyecto.
 
@@ -251,7 +251,7 @@ Un ECF inferior a 1,0 refleja factores negativos como la curva de aprendizaje en
 
 \subsection{Lista de casos de uso y representación de actores}
 
-El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo consolidado de 43 casos de uso principales}. Para el cálculo UCP de este anexo se ponderan esos mismos 43 UC, mientras que las operaciones complementarias quedan absorbidas como variantes de los flujos principales. Para facilitar la lectura, los diagramas de casos de uso se presentan agrupados por áreas funcionales. La Figura~\ref{fig:uc_acceso} muestra el paquete de Gestión de Acceso.
+El sistema DocumentChain cuenta con \textbf{5 actores} y un \textbf{catálogo de 39 casos de uso principales}. Para el cálculo UCP de este anexo se ponderan esos mismos 39 UC, mientras que las operaciones complementarias quedan absorbidas como variantes de los flujos principales. Para facilitar la lectura, los diagramas de casos de uso se presentan agrupados por áreas funcionales. La Figura~\ref{fig:uc_acceso} muestra el paquete de Gestión de Acceso.
 
 \begin{figure}[H]
     \centering
@@ -550,7 +550,7 @@ UC-0039 & Gestionar Roles de Usuario & Medio (5) & 10 \\
 
 \subsubsection*{Resumen de clasificación}
 
-El resumen de la clasificación de los 43 casos de uso se presenta en la Tabla~\ref{tab:uucw-resumen}.
+El resumen de la clasificación de los 39 casos de uso se presenta en la Tabla~\ref{tab:uucw-resumen}.
 \begin{table}[H]
 \centering
 \begin{tabular}{|l|c|c|c|}
@@ -569,7 +569,7 @@ Complejo (8+ Tx) & 8 & 15 & 120 \\
     \caption{Resumen de Pesos de Casos de Uso (UUCW)}\label{tab:uucw-resumen}
 \end{table}
 
-La Figura~\ref{fig:ezestimate-uc} muestra la pantalla de EZEstimate con la clasificación de los 43 casos de uso por complejidad.
+La Figura~\ref{fig:ezestimate-uc} muestra la pantalla de EZEstimate con la clasificación de los 39 casos de uso por complejidad.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.92\linewidth]{diagramas/ezestimate-uc-1.png}
@@ -669,7 +669,7 @@ A continuación se presenta, en la Tabla~\ref{tab:tareas-hitos}, la relación co
 \hline
 11 & Especificación de requisitos no funcionales (NFR) & 10 & Definición de restricciones de rendimiento, seguridad, disponibilidad y usabilidad. \\
 \hline
-12 & Especificación consolidada de casos de uso (43 UC principales) & 11 & Desarrollo del catálogo consolidado de 43 casos de uso principales y agrupación de variantes, subflujos y operaciones de apoyo. \\
+12 & Especificación consolidada de casos de uso (39 UC principales) & 11 & Desarrollo del catálogo de 39 casos de uso principales y agrupación de variantes, subflujos y operaciones de apoyo. \\
 \hline
 13 & Diseño de la arquitectura general & 12 & Definición de la arquitectura de cuatro capas: frontend, backend, IPFS y blockchain. \\
 \hline
@@ -885,7 +885,7 @@ La Tabla~\ref{tab:planificacion-detalle} constituye la \textbf{fuente de verdad}
 \hline
 11 & Especificación de requisitos no funcionales (NFR) & Elab. I1 & 15/12/2025 & 2 & 16/12/2025 & 10 \\
 \hline
-12 & Especificación consolidada de casos de uso (43 UC) & Elab. I1 & 17/12/2025 & 3 & 19/12/2025 & 11 \\
+12 & Especificación consolidada de casos de uso (39 UC) & Elab. I1 & 17/12/2025 & 3 & 19/12/2025 & 11 \\
 \hline
 13 & Diseño de la arquitectura general & Elab. I1 & 20/12/2025 & 2 & 21/12/2025 & 12 \\
 \hline
@@ -1074,7 +1074,7 @@ En la Figura~\ref{fig:gantt_elab1} se presenta la iteración 1 de la fase de Ela
   \gantttitlecalendar{month=name, day} \\
   \ganttbar[bar label font=\scriptsize]{10.\ Requisitos funcionales (IRQ)}{2025-12-12}{2025-12-14} \\
   \ganttbar[bar label font=\scriptsize]{11.\ Requisitos no funcionales (NFR)}{2025-12-15}{2025-12-16} \\
-  \ganttbar[bar label font=\scriptsize]{12.\ Catálogo UC (43 UC principales)}{2025-12-17}{2025-12-19} \\
+  \ganttbar[bar label font=\scriptsize]{12.\ Catálogo UC (39 UC principales)}{2025-12-17}{2025-12-19} \\
   \ganttbar[bar label font=\scriptsize]{13.\ Diseño arquitectura general}{2025-12-20}{2025-12-21} \\
   \ganttbar[bar label font=\scriptsize]{14.\ Diseño modelo de datos (ER)}{2025-12-22}{2025-12-22} \\
   \ganttmilestone{$\blacklozenge$ Fin Iter. 1 (Elab.)}{2025-12-22}
@@ -1190,7 +1190,7 @@ Por último, la Figura~\ref{fig:gantt_trans2} ilustra la iteración final de Tra
 
 En este apartado se sintetizan los resultados de la estimación y la planificación temporal del proyecto.
 
-Una vez realizada la estimación y detallada la planificación temporal, queda claro que DocumentChain es un proyecto con una complejidad considerable. No solo por los \textbf{43 casos de uso principales} que se han manejado en el cálculo, sino también por la cantidad de operaciones auxiliares agrupadas dentro de ellos y, sobre todo, por tener que integrar tecnologías tan distintas en un único sistema.
+Una vez realizada la estimación y detallada la planificación temporal, queda claro que DocumentChain es un proyecto con una complejidad considerable. No solo por los \textbf{39 casos de uso principales} que se han manejado en el cálculo, sino también por la cantidad de operaciones auxiliares agrupadas dentro de ellos y, sobre todo, por tener que integrar tecnologías tan distintas en un único sistema.
 
 El proyecto combina un frontend React para la operativa de usuario y el manejo del material criptográfico, un backend Node.js con lógica compleja (cifrado AES-256-GCM, encapsulado RSA-OAEP de claves, integración blockchain), almacenamiento IPFS con nodo Kubo autoalojado y un smart contract Solidity como registro inmutable de la custodia documental. Cada subsistema ha necesitado su propio análisis, diseño, implementación y pruebas.
 
