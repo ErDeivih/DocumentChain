@@ -12,7 +12,7 @@ import crypto from 'crypto';
 jest.mock('../../config/database', () => ({
   __esModule: true,
   default: {
-    $transaction: jest.fn(),
+    $transaction: jest.fn((cb: any) => cb(prisma)),
     wallet: {
       findFirst: jest.fn(),
     },
@@ -48,11 +48,30 @@ jest.mock('../../config/ipfs', () => ({
 }));
 
 jest.mock('../../config/blockchain', () => ({
-  provider: {},
+  __esModule: true,
+  getProvider: jest.fn(() => ({
+    getBlockNumber: jest.fn().mockResolvedValue(100),
+    getTransactionReceipt: jest.fn().mockResolvedValue({ status: 1, blockNumber: 100, logs: [] }),
+    getTransaction: jest.fn().mockResolvedValue({ blockNumber: 100 }),
+  })),
+  provider: {
+    getBlockNumber: jest.fn().mockResolvedValue(100),
+    getTransactionReceipt: jest.fn().mockResolvedValue({ status: 1, blockNumber: 100, logs: [] }),
+    getTransaction: jest.fn().mockResolvedValue({ blockNumber: 100 }),
+  },
 }));
 
 // Unmock encryption to test real encryption
 jest.unmock('../../lib/encryption');
+
+jest.mock('../blockchainReceiptService', () => ({
+  __esModule: true,
+  assertDocumentCreatedReceipt: jest.fn().mockResolvedValue(true),
+  assertDocumentArchivedReceipt: jest.fn().mockResolvedValue(true),
+  assertDocumentDeletedReceipt: jest.fn().mockResolvedValue(true),
+  assertDocumentSignedReceipt: jest.fn().mockResolvedValue(true),
+  getSuccessfulRegistryReceipt: jest.fn().mockResolvedValue({ status: 1, blockNumber: 100, logs: [] }),
+}));
 
 jest.mock('../../utils/logger', () => ({
   __esModule: true,
@@ -254,6 +273,16 @@ describe('DocumentService - Backend Encryption', () => {
         id: input.documentId,
         blockchainStatus: 'PREPARING',
         ownerId: mockUserId,
+        creatorWalletId: mockWalletId,
+      });
+
+      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
+        id: 'event-1', eventType: 'DOCUMENT_PREPARED', documentId: input.documentId,
+        metadata: { docId: input.blockchainId, ipfsCid: 'QmTest' },
+      });
+
+      (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
+        id: mockWalletId, userId: mockUserId, walletAddress: mockWalletAddress,
       });
 
       (prisma.document.update as jest.Mock).mockResolvedValue({
@@ -476,6 +505,13 @@ describe('DocumentService - Backend Encryption', () => {
 
       // Step 2: Confirm (simulating frontend blockchain transaction)
       (prisma.document.findUnique as jest.Mock).mockResolvedValue(createdDocument);
+      (prisma.event.findFirst as jest.Mock).mockResolvedValue({
+        id: 'event-prep', eventType: 'DOCUMENT_PREPARED', documentId: prepareResult.documentId,
+        metadata: { docId: '0xblockchainid', ipfsCid: 'QmFlowTestCID' },
+      });
+      (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
+        id: mockWalletId, userId: mockUserId, walletAddress: mockWalletAddress,
+      });
       (prisma.document.update as jest.Mock).mockResolvedValue({
         ...createdDocument,
         blockchainId: '0xblockchainid',
