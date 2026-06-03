@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0014: Reenviar Verificacion de Email (Analisis BCE)
+title UC-0014: Reenviar Verificacion de Email (Análisis)
 
 actor "Usuario no logueado" as Actor
 boundary "Interfaz Login" as BF
@@ -20,7 +20,6 @@ alt Email ya verificado
   BF --> Actor : 5. Muestra mensaje informativo
 else Email pendiente de verificacion
   CG -> CG : 6. Invalida token anterior y genera nuevo token
-  note right : Control invalida cualquier token de verificacion previo para evitar conflictos
 
   CG -> EU : 7. Almacena nuevo token de verificacion
   EU --> CG : token almacenado

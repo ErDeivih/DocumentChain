@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Verify Authenticity
 !include _sequence-style.puml
 actor Visitante as visitor
 boundary "Pagina Verificar" as ui

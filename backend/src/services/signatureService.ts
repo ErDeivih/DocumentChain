@@ -678,14 +678,8 @@ ContentHash: ${document.contentHash}`;
   }
 
   static async getVersionSignaturesByNumber(documentId: string, versionNumber: number, requesterUserId: string): Promise<SignatureView[]> {
-    const version = await prisma.version.findFirst({
-      where: { documentId, versionNumber },
-    });
-
-    if (!version) {
-      throw new Error('Versión no encontrada');
-    }
-
+    const version = await prisma.version.findFirst({ where: { documentId, versionNumber } });
+    if (!version) throw new Error('Versión no encontrada');
     return this.getVersionSignatures(version.id, requesterUserId);
   }
 }

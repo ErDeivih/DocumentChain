@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0006: Establecer Wallet Principal (Analisis BCE)
+title UC-0006: Establecer Wallet Principal (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Perfil" as BF

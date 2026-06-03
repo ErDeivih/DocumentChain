@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0007: Renombrar Wallet (Analisis BCE)
+title UC-0007: Renombrar Wallet (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Perfil" as BF
@@ -18,7 +18,6 @@ BF --> Actor : 5. Muestra wallets con etiquetas
 
 Actor -> BF : 6. Edita la etiqueta de una wallet
 BF -> BF : 7. Valida longitud maxima y formato
-note right : Boundary valida que la etiqueta no exceda la longitud permitida
 
 BF -> CW : 8. Envia nueva etiqueta
 CW -> EW : 9. Actualiza etiqueta de la wallet

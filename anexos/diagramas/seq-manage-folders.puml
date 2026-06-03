@@ -1,4 +1,6 @@
-@startuml
+﻿@startuml
+
+title Manage Folders
 !include _sequence-style.puml
 title UC-0024: Gestionar carpetas
 

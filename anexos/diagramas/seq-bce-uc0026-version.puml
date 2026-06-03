@@ -1,7 +1,7 @@
 ﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0026: Crear Nueva Version (Analisis BCE)
+title UC-0026: Crear Nueva Version (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Versiones" as BS

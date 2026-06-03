@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Blockchain Audit
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Vista Auditoria blockchain" as ui

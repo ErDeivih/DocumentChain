@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0010: Eliminar Cuenta (Analisis BCE)
+title UC-0010: Eliminar Cuenta (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Perfil" as BF
@@ -13,7 +13,6 @@ entity "Documento" as ED
 
 Actor -> BF : 1. Accede a configuracion de cuenta
 BF -> BF : 2. Muestra opcion de eliminacion con advertencia
-note right : Boundary advierte al usuario de la irreversibilidad de la operacion
 
 Actor -> BF : 3. Confirma eliminacion de cuenta
 BF -> CU : 4. Solicita eliminacion de cuenta

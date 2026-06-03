@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Search
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Biblioteca / Busqueda" as ui

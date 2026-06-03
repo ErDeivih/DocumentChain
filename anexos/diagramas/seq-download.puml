@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Download
 !include _sequence-style.puml
 actor Usuario as user
 boundary "DocumentDetails.tsx / Download" as ui

@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Upload
 !include _sequence-style.puml
 actor Usuario as user
 boundary "UploadModal.tsx" as ui

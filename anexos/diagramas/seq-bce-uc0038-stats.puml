@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0038: Ver Estadisticas Personales (Analisis BCE)
+title UC-0038: Ver Estadisticas Personales (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Auditoria" as PE

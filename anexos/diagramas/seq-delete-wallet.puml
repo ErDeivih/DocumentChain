@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Delete Wallet
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Ajustes / Wallets" as ui

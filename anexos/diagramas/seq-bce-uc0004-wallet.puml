@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0004: Conectar Wallet (Analisis BCE)
+title UC-0004: Conectar Wallet (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Perfil" as BCW
@@ -11,13 +11,11 @@ entity "Wallet" as EW
 
 Actor -> BCW : 1. Selecciona tipo de wallet
 BCW -> BCW : 2. Detecta wallets disponibles
-note right : La interfaz solicita elegir una wallet disponible
 
 BCW -> CW : 3. Solicita conexion
 CW -> Actor : 4. Solicita autorizacion en wallet externa
 Actor -> CW : 5. Autoriza conexion
 CW -> CW : 6. Verifica firma (challenge)
-note right : El control valida la posesion de la wallet mediante desafio firmado
 
 CW -> EW : 7. Registra wallet vinculada
 EW --> CW : Wallet creada

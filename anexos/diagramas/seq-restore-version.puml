@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Restore Version
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Historial de versiones" as ui

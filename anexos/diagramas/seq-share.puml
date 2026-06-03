@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Share
 !include _sequence-style.puml
 actor Usuario as owner
 boundary "ShareModal.tsx" as ui

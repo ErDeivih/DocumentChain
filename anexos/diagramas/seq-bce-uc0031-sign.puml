@@ -1,7 +1,7 @@
 ﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0031: Firmar Documento (Analisis BCE)
+title UC-0031: Firmar Documento (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Firma" as BF

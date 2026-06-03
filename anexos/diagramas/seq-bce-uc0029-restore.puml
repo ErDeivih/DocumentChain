@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0029: Restaurar Version Anterior (Analisis BCE)
+title UC-0029: Restaurar Version Anterior (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Versiones" as BF
@@ -20,7 +20,6 @@ ED --> CV : permiso verificado
 
 
 CV -> EV : 5. Restaura contenido de la version
-note right : Control restablece el CID de la version anterior como contenido activo
 
 CV -> ED : 6. Actualiza referencia del documento
 ED --> CV : documento actualizado

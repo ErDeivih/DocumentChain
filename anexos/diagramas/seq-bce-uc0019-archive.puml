@@ -1,7 +1,7 @@
 ﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0019: Archivar Documento (Analisis BCE)
+title UC-0019: Archivar Documento (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Detalle Documento" as BB

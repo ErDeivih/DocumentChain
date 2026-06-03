@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Profile
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Ajustes / Perfil" as ui

@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0035: Revocar Acceso a Documento (Analisis BCE)
+title UC-0035: Revocar Acceso a Documento (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Comparticion" as BF

@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0040: Verificar Autenticidad de Documento (Analisis BCE)
+title UC-0040: Verificar Autenticidad de Documento (Análisis)
 
 actor "Usuario no logueado" as Actor
 boundary "Interfaz Auditoria" as BF
@@ -22,7 +22,6 @@ else Verificacion por hash de transaccion
 end
 
 CV -> CV : 4. Verifica integridad
-note right : Control contrasta hash del contenido proporcionado con la evidencia registrada
 
 CV --> BF : 5. Resultado de verificacion
 BF --> Actor : 6. Muestra autenticidad (valido/no encontrado/invalido)

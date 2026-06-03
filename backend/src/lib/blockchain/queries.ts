@@ -130,9 +130,7 @@ export class BlockchainQueries {
       }
 
       const results = await Promise.all(versionPromises);
-      const versions = results.filter((v): v is NonNullable<typeof v> => v !== null);
-
-      return versions;
+      return results.filter((v): v is BlockchainVersion => v !== null);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;

@@ -1,4 +1,6 @@
-@startuml
+﻿@startuml
+
+title List Documents
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Biblioteca" as ui
@@ -15,11 +17,6 @@ srv --> docApi: Documentos preparados para la vista
 docApi --> ui: Biblioteca cargada
 ui --> user: Visualiza documentos, estados e iconos de tipo
 
-note right
-  Los documentos compartidos se consultan
-  por separado en /api/documents/shared,
-  validando acceso on-chain via DocumentRegistry.
-end note
 
 @enduml
 

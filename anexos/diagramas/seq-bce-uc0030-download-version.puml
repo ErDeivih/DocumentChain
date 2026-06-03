@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0030: Descargar Version Especifica (Analisis BCE)
+title UC-0030: Descargar Version Especifica (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Versiones" as BF
@@ -16,7 +16,6 @@ EV --> CV : CID de la version
 
 
 CV -> CV : 4. Verifica integridad del contenido
-note right : Control contrasta hash del contenido recuperado con el hash registrado
 
 CV --> BF : 5. Archivo de la version
 BF --> Actor : 6. Inicia descarga del archivo

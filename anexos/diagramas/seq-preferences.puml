@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Preferences
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Settings.tsx / Seguridad y Cuenta" as ui

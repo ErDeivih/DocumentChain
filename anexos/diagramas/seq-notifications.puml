@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Notifications
 !include _sequence-style.puml
 autonumber 1
 actor Usuario as user

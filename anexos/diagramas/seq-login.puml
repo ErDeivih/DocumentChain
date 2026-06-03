@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Login
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Login.tsx" as ui

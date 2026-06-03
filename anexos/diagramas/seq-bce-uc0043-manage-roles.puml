@@ -1,7 +1,7 @@
 ﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0043: Gestionar Roles de Usuario (Analisis BCE)
+title UC-0043: Gestionar Roles de Usuario (Análisis)
 
 actor "Administrador" as Admin
 boundary "Interfaz Administracion" as BF

@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title View Signatures
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Detalle / Firmas" as ui

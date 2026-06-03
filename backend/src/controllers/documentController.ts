@@ -9,6 +9,7 @@
  * y delega la firma blockchain a la wallet del usuario en el frontend.
  */
 import { Request, Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
 import { DocumentService } from '../services/documentService';
 import { TransferService } from '../services/transferService';
@@ -18,6 +19,7 @@ import logger from '../utils/logger';
 import { isNonEmptyString, isValidTxHash } from '../utils/validation';
 import { validateFile } from '../utils/fileValidation';
 import { setDownloadHeaders, DownloadResult } from '../utils/downloadHeaders';
+import { assertDocumentArchivedReceipt } from '../services/blockchainReceiptService';
 
 /**
  * Controlador de gestión de documentos.
@@ -25,14 +27,10 @@ import { setDownloadHeaders, DownloadResult } from '../utils/downloadHeaders';
  * descarga, archivado, eliminación, transferencia y restauración.
  */
 export class DocumentController {
-  static async prepareDocument(req: Request, res: Response): Promise<void> {
+  /**
+   * Prepara un documento para su creación.
    * El frontend envía el archivo en bruto; el backend decide si cifrarlo
    * en función de la visibilidad del documento.
-   * Endpoint: POST /api/documents/prepare
-   *
-   * @param req - Objeto de solicitud HTTP autenticado con el archivo y metadatos.
-   * @param res - Objeto de respuesta HTTP.
-   * @returns Promesa que resuelve con el resultado de la preparación del documento.
    */
   static async prepareDocument(req: Request, res: Response): Promise<void> {
     try {

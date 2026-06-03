@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title List Users
 !include _sequence-style.puml
 actor Admin as admin
 boundary "Panel de administracion" as ui

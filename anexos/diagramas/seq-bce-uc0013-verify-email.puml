@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0013: Verificar Email (Analisis BCE)
+title UC-0013: Verificar Email (Análisis)
 
 actor "Usuario no logueado" as Actor
 boundary "Interfaz Login" as BF
@@ -15,7 +15,6 @@ CG -> EU : 3. Busca token de verificacion
 EU --> CG : usuario encontrado, token valido
 
 CG -> CG : 4. Verifica que el token no ha expirado
-note right : Control comprueba fecha de expiracion del token
 
 CG -> EU : 5. Marca email como verificado
 EU --> CG : email verificado

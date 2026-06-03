@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Timeline
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Detalle / Actividad" as ui

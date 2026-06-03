@@ -1,4 +1,6 @@
-@startuml
+﻿@startuml
+
+title Delete Account
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Settings.tsx / DeleteAccountModal" as ui

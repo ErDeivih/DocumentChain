@@ -1,7 +1,7 @@
 ﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0041: Auditoria y verificacion (Analisis BCE)
+title UC-0041: Auditoria y verificacion (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Auditoria" as PA

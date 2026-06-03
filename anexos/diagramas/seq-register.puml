@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Register
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Register.tsx" as ui

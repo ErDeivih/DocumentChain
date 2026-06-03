@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0042: Listar Usuarios (Analisis BCE)
+title UC-0042: Listar Usuarios (Análisis)
 
 actor "Administrador" as Admin
 boundary "Interfaz Administracion" as BF
@@ -12,7 +12,6 @@ entity "Usuario" as EU
 Admin -> BF : 1. Accede al panel de administracion
 BF -> CA : 2. Solicita listado de usuarios
 CA -> CA : 3. Verifica rol de administrador
-note right : Control comprueba que el actor tiene permisos de administracion
 
 CA -> EU : 4. Recupera listado de usuarios
 EU --> CA : datos de usuarios

@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Resend Verification
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Login / pagina verify-email" as ui

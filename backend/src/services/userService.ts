@@ -271,8 +271,9 @@ export class UserService {
         select: {
           id: true,
           username: true,
-          email: true,
-          fullName: true,
+        email: true,
+        emailVerified: true,
+        fullName: true,
           role: true,
           publicKey: true,
           createdAt: true,
@@ -312,19 +313,12 @@ export class UserService {
     const filename = `${userId}-${Date.now()}${ext}`;
     const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
     const filepath = path.join(uploadDir, filename);
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     const currentUser = await prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } });
     if (currentUser?.avatarUrl) {
       const oldPath = path.join(process.cwd(), currentUser.avatarUrl.replace(/^\//, ''));
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath);
-      }
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
     }
-
     fs.writeFileSync(filepath, fileBuffer);
     return this.updateAvatar(userId, `/uploads/avatars/${filename}`);
   }
@@ -341,37 +335,15 @@ export class UserService {
   static async deleteMyAccount(userId: string): Promise<void> {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, username: true, avatarUrl: true } });
     if (!user) throw new Error('Usuario no encontrado');
-
     try {
-      const documents = await prisma.document.findMany({
-        where: { ownerId: userId },
-        include: { versions: { select: { ipfsCid: true } } },
-      });
-
+      const documents = await prisma.document.findMany({ where: { ownerId: userId }, include: { versions: { select: { ipfsCid: true } } } });
       const cidsToUnpin = new Set<string>();
-      for (const doc of documents) {
-        for (const version of doc.versions) {
-          if (version.ipfsCid) cidsToUnpin.add(version.ipfsCid);
-        }
-      }
-
+      for (const doc of documents) for (const version of doc.versions) if (version.ipfsCid) cidsToUnpin.add(version.ipfsCid);
       for (const cid of cidsToUnpin) {
-        try {
-          await unpinFromIPFS(cid);
-          logger.info(`Despineado CID ${cid} para usuario ${userId}`);
-        } catch (ipfsError) {
-          logger.warn(`No se pudo despinear CID ${cid}:`, ipfsError);
-        }
+        try { await unpinFromIPFS(cid); } catch (ipfsError) { logger.warn(`No se pudo despinear CID ${cid}:`, ipfsError); }
       }
-    } catch (ipfsError) {
-      logger.error('Error durante unpin de IPFS:', ipfsError);
-    }
-
-    if (user.avatarUrl) {
-      const avatarPath = path.join(process.cwd(), user.avatarUrl.replace(/^\//, ''));
-      if (fs.existsSync(avatarPath)) fs.unlinkSync(avatarPath);
-    }
-
+    } catch (ipfsError) { logger.error('Error durante unpin de IPFS:', ipfsError); }
+    if (user.avatarUrl) { const avatarPath = path.join(process.cwd(), user.avatarUrl.replace(/^\//, '')); if (fs.existsSync(avatarPath)) fs.unlinkSync(avatarPath); }
     await prisma.user.delete({ where: { id: userId } });
     logger.info(`Usuario eliminado: ${user.username} (${userId})`);
   }

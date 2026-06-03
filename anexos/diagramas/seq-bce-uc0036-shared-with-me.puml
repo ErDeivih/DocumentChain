@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0036: Ver Documentos Compartidos Conmigo (Analisis BCE)
+title UC-0036: Ver Documentos Compartidos Conmigo (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Comparticion" as BF

@@ -308,14 +308,7 @@ export class WalletService {
       return null;
     }
 
-    // Map to interface
-    return {
-      id: wallet.id,
-      address: wallet.walletAddress,
-      label: wallet.nickname,
-      isPrimary: wallet.isPrimary,
-       
-    };
+    return { id: wallet.id, address: wallet.walletAddress, label: wallet.nickname, isPrimary: wallet.isPrimary };
   }
 
   /**

@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Label Wallet
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Ajustes / Wallets" as ui

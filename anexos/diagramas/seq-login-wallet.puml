@@ -1,4 +1,6 @@
-@startuml
+﻿@startuml
+
+title Login Wallet
 !include _sequence-style.puml
 actor Usuario as user
 boundary "Login.tsx" as ui
@@ -9,7 +11,6 @@ participant "Wallet externa" as wallet
 
 user -> ui: Entra en la pagina de inicio de sesion
 ui -> ui: Detecta wallets disponibles (EIP-6963)
-note right: Boundary escanea eventos de ventana para detectar MetaMask, Rabby, etc.
 
 ui -> api: Solicita challenge de autenticacion
 api -> srv: getChallenge(walletAddress)

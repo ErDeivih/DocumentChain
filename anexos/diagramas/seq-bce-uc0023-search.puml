@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0023: Buscar Documentos (Analisis BCE)
+title UC-0023: Buscar Documentos (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Biblioteca" as BF
@@ -12,13 +12,11 @@ entity "Documento" as ED
 Actor -> BF : 1. Introduce termino de busqueda
 BF -> CG : 2. Envia consulta de busqueda
 CG -> CG : 3. Procesa criterios de busqueda
-note right : Control aplica filtros por nombre, etiquetas, fecha y carpeta
 
 CG -> ED : 4. Busca documentos coincidentes
 ED --> CG : documentos encontrados
 
 CG -> CG : 5. Verifica permisos de lectura
-note right : Control filtra resultados segun permisos del usuario
 
 CG --> BF : 6. Devuelve resultados filtrados
 BF --> Actor : 7. Muestra lista de documentos coincidentes

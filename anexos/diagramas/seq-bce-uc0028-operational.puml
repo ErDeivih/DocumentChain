@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0028: Establecer Version Operativa (Analisis BCE)
+title UC-0028: Establecer Version Operativa (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Versiones" as BF

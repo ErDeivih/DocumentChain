@@ -1,4 +1,6 @@
 ﻿@startuml
+
+title Global Stats
 !include _sequence-style.puml
 actor Administrador as admin
 boundary "Panel de administracion / Resumen" as ui

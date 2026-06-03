@@ -1,7 +1,7 @@
-@startuml
+﻿@startuml
 !include _sequence-bce-style.puml
 
-title UC-0037: Ver Timeline de Documento (Analisis BCE)
+title UC-0037: Ver Timeline de Documento (Análisis)
 
 actor "Usuario logueado" as Actor
 boundary "Interfaz Auditoria" as VT
@@ -16,7 +16,6 @@ EE --> CA : retorna eventos
 
 
 CA -> CA : 4. Ordena cronologicamente
-note right : Control ordena cronologicamente todos los eventos recuperados
 
 CA --> VT : 5. Retorna historia completa
 VT --> Actor : 6. Renderiza timeline
