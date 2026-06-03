@@ -34,9 +34,7 @@ export const VersionCard: React.FC<VersionCardProps> = ({
   onActivate,
   onDownloadVersion,
 }) => {
-  const isOperational = operationalVersionNumber != null
-    ? version.versionNumber === operationalVersionNumber
-    : !!version.isOperational;
+  const isOperational = version.versionNumber === operationalVersionNumber;
 
   return (
   <div

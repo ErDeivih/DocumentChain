@@ -555,8 +555,6 @@ export class VersionService {
         ownerId: true,
         blockchainId: true,
         name: true,
-        isDeleted: true,
-        isArchived: true,
       },
     });
 
@@ -731,10 +729,21 @@ export class VersionService {
     // Download from IPFS
     const encryptedFile = await downloadFromIPFS(version.ipfsCid);
 
+    // If user is not owner, check for DocumentShareKey
+    let versionEncryptedSymmetricKey = version.encryptedSymmetricKey || version.document.encryptedSymmetricKey || 'UNENCRYPTED';
+    if (userId !== version.document.ownerId) {
+      const shareKey = await prisma.documentShareKey.findUnique({
+        where: { documentId_userId: { documentId: version.documentId, userId } }
+      });
+      if (shareKey) {
+        versionEncryptedSymmetricKey = shareKey.encryptedSymmetricKey;
+      }
+    }
+
     return {
       encryptedFile,
       ipfsCid: version.ipfsCid,
-      encryptedSymmetricKey: version.encryptedSymmetricKey || version.document.encryptedSymmetricKey || 'UNENCRYPTED',
+      encryptedSymmetricKey: versionEncryptedSymmetricKey,
       encryptionIV: version.encryptionIV || null,
       encryptionAuthTag: version.encryptionAuthTag || null,
       documentName: version.document.name,

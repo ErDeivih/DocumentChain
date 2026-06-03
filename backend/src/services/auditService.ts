@@ -621,7 +621,6 @@ export class AuditService {
     totalDocuments: number;
     totalSignatures: number;
     totalVersions: number;
-    totalShares: number;
     activeUsers: number;
     lastBlockSynced: number;
   }> {
@@ -630,15 +629,12 @@ export class AuditService {
         totalDocuments,
         totalVersions,
         totalSignatures,
-        totalShares,
         activeUsers,
         latestSystemStats,
       ] = await Promise.all([
         prisma.document.count(),
         prisma.version.count(),
         prisma.documentSignature.count(),
-        // totalShares is calculated from the smart contract, not DB events
-        Promise.resolve(0),
         prisma.user.count(),
         prisma.systemStats.findFirst({
           orderBy: {
@@ -654,7 +650,6 @@ export class AuditService {
         totalDocuments,
         totalVersions,
         totalSignatures,
-        totalShares,
         activeUsers,
         lastBlockSynced: latestSystemStats?.lastSyncedBlock || 0,
       };

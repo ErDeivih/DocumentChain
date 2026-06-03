@@ -26,6 +26,7 @@ import { DocumentPermissionService, DocumentRole } from './documentPermissionSer
 import { BlockchainStatus } from '@prisma/client';
 import logger from '../utils/logger';
 import * as Encryption from '../lib/encryption';
+import { BlockchainCacheService } from './blockchainCacheService';
 import notificationService, { NotificationType } from './notificationService';
 import { normalizeEthereumAddress } from '../utils/ethereum';
 import { buildInsensitiveWalletFilter, validateWalletBelongsToUser, getUserWithPublicKey } from '../utils/walletHelper';
@@ -163,6 +164,13 @@ export class ShareService {
 
     if (!document.blockchainId) {
       throw new Error('El documento no tiene ID de blockchain aún');
+    }
+
+    if (await BlockchainCacheService.isDocumentArchived(document.blockchainId)) {
+      throw Object.assign(new Error('No se puede compartir un documento archivado'), { statusCode: 400 });
+    }
+    if (await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
+      throw Object.assign(new Error('No se puede compartir un documento eliminado'), { statusCode: 400 });
     }
 
     // 2. Validate sharer's wallet

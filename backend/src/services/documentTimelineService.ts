@@ -5,6 +5,7 @@
 
 import prisma from '../config/database';
 import { BlockchainQueries } from '../lib/blockchain/queries';
+import { BlockchainCacheService } from './blockchainCacheService';
 
 /**
  * Evento individual dentro de la línea temporal de un documento.
@@ -84,21 +85,38 @@ export class DocumentTimelineService {
     }
 
     // Verificar permiso de lectura usando blockchain
-    const wallet = await prisma.wallet.findFirst({
-      where: { userId, isPrimary: true }
-    });
+    // Get all user wallets
+    const wallets = await prisma.wallet.findMany({ where: { userId }, select: { walletAddress: true } });
+    const walletAddresses = wallets.map(w => w.walletAddress);
 
-    if (!wallet) {
-      throw new Error('Wallet primaria no encontrada');
+    if (walletAddresses.length === 0) {
+      throw new Error('Wallet no encontrada');
     }
 
     // El propietario en base de datos siempre tiene acceso, independientemente del estado on-chain
     let canRead = document.ownerId === userId;
 
-    // Si no es propietario en BD, verificar permisos on-chain
-    if (!canRead && document.blockchainId && wallet) {
-      canRead = await BlockchainQueries.isOwner(document.blockchainId, wallet.walletAddress) ||
-                await BlockchainQueries.canRead(document.blockchainId, wallet.walletAddress);
+    // If not owner in DB, check all wallets on-chain for ownership
+    if (!canRead && document.blockchainId) {
+      // Check on-chain ownership for all user wallets
+      for (const addr of walletAddresses) {
+        const state = await BlockchainCacheService.getDocumentState(document.blockchainId);
+        if (state.owner.toLowerCase() === addr.toLowerCase()) {
+          canRead = true;
+          break;
+        }
+      }
+
+      // If not owner, check read access
+      if (!canRead) {
+        for (const addr of walletAddresses) {
+          const canReadOnChain = await BlockchainQueries.canRead(document.blockchainId, addr);
+          if (canReadOnChain) {
+            canRead = true;
+            break;
+          }
+        }
+      }
     }
 
     if (!canRead) {

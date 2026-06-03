@@ -108,7 +108,6 @@ export class TransferService {
           select: {
             id: true,
             username: true,
-            passwordHash: true,
           },
         },
       },

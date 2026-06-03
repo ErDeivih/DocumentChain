@@ -189,6 +189,10 @@ export class SignatureService {
       throw new Error('No se pueden firmar documentos archivados');
     }
 
+    if (await BlockchainCacheService.isDocumentDeleted(document.blockchainId)) {
+      throw new Error('No se puede firmar un documento eliminado');
+    }
+
     // Verify access: if blockchainId exists, consult smart contract FIRST (single source of truth).
     // Fallback to PostgreSQL ownerId only for documents not yet on chain.
     let hasAccess: boolean;

@@ -330,8 +330,6 @@ describe('VersionService prepareVersion', () => {
     ).rejects.toThrow('Wallet no encontrada o no pertenece al usuario');
   });
 
-  it.skip('throws if document is archived - field removed from schema', async () => {});
-
   it('throws if user has no write permission', async () => {
     (prisma.wallet.findFirst as jest.Mock).mockResolvedValue({
       id: 'wallet-1',

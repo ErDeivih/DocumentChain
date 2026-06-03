@@ -209,9 +209,13 @@ export class WalletDocumentService {
       take: 50,
     });
 
-    // Get versions - Note: Version model doesn't have creatorWalletId in schema
-    // We'll return empty for now
-    const versions: any[] = [];
+    // Get versions created via documents owned by this wallet
+    const versions = await prisma.version.findMany({
+      where: { document: { creatorWalletId: walletId } },
+      include: { document: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
 
     return {
       created: created.map(d => ({
@@ -233,7 +237,7 @@ export class WalletDocumentService {
       versions: versions.map(v => ({
         id: v.id,
         documentId: v.documentId,
-        documentName: v.documentName,
+        documentName: v.document.name,
         comment: v.comment,
       })),
     };
@@ -308,8 +312,9 @@ export class WalletDocumentService {
           prisma.documentSignature.count({
             where: { signerWalletId: wallet.id },
           }),
-          // Version doesn't have creatorWalletId, return 0
-          Promise.resolve(0),
+          prisma.version.count({
+            where: { document: { creatorWalletId: wallet.id } },
+          }),
         ]);
 
         return {

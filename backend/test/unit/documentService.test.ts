@@ -173,10 +173,6 @@ describe('DocumentService - Additional Methods', () => {
       expect(countWhere.fileExtension).toBe('.pdf');
     });
 
-    it.skip('should include archived documents when requested - field removed from schema', async () => {});
-
-    it.skip('should filter only archived when onlyArchived is set - field removed from schema', async () => {});
-
     it('should filter by walletId', async () => {
       (prisma.document.count as jest.Mock).mockResolvedValue(0);
       (prisma.document.findMany as jest.Mock)
@@ -255,7 +251,6 @@ describe('DocumentService - Additional Methods', () => {
       expect(result).toBeNull();
     });
 
-    it.skip('should return null when document is deleted - field removed from schema', async () => {});
   });
 
   describe('getDocumentsByWallet()', () => {
@@ -519,7 +514,6 @@ describe('DocumentService - Additional Methods', () => {
       ).rejects.toThrow('Acceso denegado');
     });
 
-    it.skip('should throw if userHasAccess returns false for deleted document - field removed', async () => {});
   });
 
   describe('userHasAccess()', () => {

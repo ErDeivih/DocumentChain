@@ -1,3 +1,4 @@
+import { BlockchainStatus, UserRole } from '@prisma/client';
 import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,7 +33,7 @@ export async function handleDocumentCreated(args: unknown, event: BlockchainEven
     const eventArgs = normalizeEventArgs(args);
     const document = await prisma.document.update({
       where: { blockchainId: eventArgs.docId },
-      data: { blockchainStatus: 'SYNCED' },
+      data: { blockchainStatus: BlockchainStatus.SYNCED },
       include: { owner: true },
     });
 
@@ -75,7 +76,7 @@ export async function handleVersionCreated(args: unknown, event: BlockchainEvent
       if (existingVersion) {
         await tx.version.update({
           where: { id: existingVersion.id },
-          data: { blockchainStatus: 'SYNCED', ipfsCid: eventArgs.ipfsCid },
+          data: { blockchainStatus: BlockchainStatus.SYNCED, ipfsCid: eventArgs.ipfsCid },
         });
       } else {
         await tx.version.create({
@@ -85,7 +86,7 @@ export async function handleVersionCreated(args: unknown, event: BlockchainEvent
             versionNumber: Number(eventArgs.versionNumber),
             ipfsCid: eventArgs.ipfsCid,
             encryptedSymmetricKey: document.encryptedSymmetricKey,
-            blockchainStatus: 'SYNCED',
+            blockchainStatus: BlockchainStatus.SYNCED,
             blockchainTxHash: event.transactionHash,
           },
         });
@@ -192,8 +193,8 @@ export async function handleDocumentSigned(args: unknown, event: BlockchainEvent
 
     if (signerWallet) {
       await prisma.documentSignature.updateMany({
-        where: { documentId: document.id, signerWalletId: signerWallet.id, blockchainStatus: 'TX_SUBMITTED' },
-        data: { blockchainStatus: 'SYNCED' },
+        where: { documentId: document.id, signerWalletId: signerWallet.id, blockchainStatus: BlockchainStatus.TX_SUBMITTED },
+        data: { blockchainStatus: BlockchainStatus.SYNCED },
       });
     }
 
@@ -372,7 +373,7 @@ export async function handleAdminRoleGranted(args: unknown, event: BlockchainEve
     const grantedByUser = await findUserByWalletAddress(eventArgs.by);
 
     if (adminUser) {
-      await prisma.user.update({ where: { id: adminUser.id }, data: { role: 'ADMIN' } });
+      await prisma.user.update({ where: { id: adminUser.id }, data: { role: UserRole.ADMIN } });
 
       await notificationService.createNotification({
         userId: adminUser.id, type: NotificationType.SYSTEM,
@@ -401,8 +402,8 @@ export async function handleAdminRoleRevoked(args: unknown, event: BlockchainEve
     const adminUser = await findUserByWalletAddress(eventArgs.admin);
     const revokedByUser = await findUserByWalletAddress(eventArgs.by);
 
-    if (adminUser && adminUser.role === 'ADMIN') {
-      await prisma.user.update({ where: { id: adminUser.id }, data: { role: 'USER' } });
+    if (adminUser && adminUser.role === UserRole.ADMIN) {
+      await prisma.user.update({ where: { id: adminUser.id }, data: { role: UserRole.USER } });
 
       await notificationService.createNotification({
         userId: adminUser.id, type: NotificationType.SYSTEM,

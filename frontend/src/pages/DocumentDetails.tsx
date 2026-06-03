@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDocument, downloadDocument, archiveDocument, deleteDocument } from '../api/documents';
-import { documentsApi } from '../api/documents';
 import { listVersions, versionsApi } from '../api/versions';
 import { getMyRole, listShares } from '../api/shares';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,7 +31,6 @@ import {
   FileText,
   Download,
   Archive,
-  ArchiveRestore,
   Trash2,
   Share2,
   ArrowLeft,
@@ -226,17 +224,6 @@ export const DocumentDetails: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  const unarchiveMutation = useMutation({
-    mutationFn: () => documentsApi.unarchive(id!),
-    onSuccess: () => {
-      refetch();
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
-    },
-    onError: (err: any) => {
-      setError(err.message || 'Error al desarchivar el documento');
-    },
-  });
-
   const deleteMutation = useMutation({
     mutationFn: () => deleteDocument(id!),
     onSuccess: () => navigate('/app/documents'),
@@ -348,11 +335,7 @@ export const DocumentDetails: React.FC = () => {
                   {document.blockchainStatus}
                 </Badge>
               )}
-              {false && (
-                <Badge variant="secondary">
-                  Archivado
-                </Badge>
-              )}
+
             </div>
           </div>
         </CardHeader>
@@ -415,27 +398,15 @@ export const DocumentDetails: React.FC = () => {
             
             {isOwner && (
               <>
-                {false ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => unarchiveMutation.mutate()}
-                    isLoading={unarchiveMutation.isPending}
-                    title="Los documentos archivados permanecen visibles para quienes tienen acceso, pero bloquean modificaciones"
-                  >
-                    <ArchiveRestore className="w-4 h-4 mr-2" />
-                    Desarchivar
-                  </Button>
-                ) : (
-                  <Button
-                    variant="secondary"
-                    onClick={() => archiveMutation.mutate()}
-                    isLoading={archiveMutation.isPending}
-                    title="Al archivar, el documento seguirá visible para quienes tienen acceso, pero no se podrá modificar"
-                  >
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archivar
-                  </Button>
-                )}
+                <Button
+                  variant="secondary"
+                  onClick={() => archiveMutation.mutate()}
+                  isLoading={archiveMutation.isPending}
+                  title="Al archivar, el documento seguirá visible para quienes tienen acceso, pero no se podrá modificar"
+                >
+                  <Archive className="w-4 h-4 mr-2" />
+                  Archivar
+                </Button>
                 <Button
                   variant="destructive"
                   onClick={() => {
@@ -566,6 +537,7 @@ export const DocumentDetails: React.FC = () => {
           <OperationalVersionSelector
             documentId={id!}
             isOwner={isOwner}
+            // TODO: Get isArchived from blockchain via API
             isArchived={false}
             versions={versionsArray}
             isPublic={isPublicDocument}

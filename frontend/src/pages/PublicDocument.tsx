@@ -204,7 +204,7 @@ export const PublicDocument: React.FC = () => {
                         <p className="font-medium">Versión {version.versionNumber}</p>
                         <p className="text-xs text-muted-foreground">{formatRelativeTime(version.createdAt)}</p>
                       </div>
-                      {version.isOperational ? <Badge variant="success">Activa</Badge> : null}
+                      {version.versionNumber === (document as any).operationalVersionNumber ? <Badge variant="success">Activa</Badge> : null}
                     </div>
                     {version.comment ? <p className="mt-2 text-sm text-muted-foreground">{version.comment}</p> : null}
                   </button>

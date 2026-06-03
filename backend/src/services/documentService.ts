@@ -766,9 +766,9 @@ export class DocumentService {
 
     return {
       documents: filtered.map(d => this.toDocumentInfo(d)),
-      total,
+      total: filtered.length,
       page: safePage,
-      totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+      totalPages: Math.max(1, Math.ceil(filtered.length / safeLimit)),
     };
   }
 

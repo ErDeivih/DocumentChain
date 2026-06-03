@@ -183,8 +183,6 @@ export interface Version {
   ipfsCid: string | null;
   /** Fecha de creación en formato ISO. */
   createdAt: string;
-  /** @deprecated Calculado desde blockchain: comparar con currentVersion del documento. */
-  isOperational?: boolean;
   /** Indica si la versión está cifrada. */
   isEncrypted?: boolean;
 
@@ -260,8 +258,6 @@ export interface PublicDocumentVersion {
   comment: string | null;
   /** Fecha de creación. */
   createdAt: string;
-  /** @deprecated Calculado desde blockchain: comparar con currentVersion del documento. */
-  isOperational?: boolean;
   /** CID de IPFS. */
   ipfsCid: string | null;
   /** Estado de sincronización blockchain. */
@@ -314,8 +310,6 @@ export interface PublicDocument {
   metadataHash: string;
   /** Visibilidad (siempre PUBLIC). */
   visibility: 'PUBLIC';
-  /** @deprecated isArchived e isDeleted ahora solo en blockchain. */
-  // TODO: Obtener isArchived / isDeleted desde blockchain
   /** Fecha de creación. */
   createdAt: string;
   /** Propietario del documento. */
@@ -566,8 +560,7 @@ export interface DocumentFilters {
   folderId?: string;
   /** Etiquetas requeridas. */
   tags?: string[];
-  // ❌ NO incluir filtros de fechas (createdAt solo en blockchain)
-  // Si se necesitan, consultar BlockchainQueries después
+
 }
 
 // ========================================
