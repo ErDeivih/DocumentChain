@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { useWalletManager, SavedWallet } from './WalletManagerContext';
 
 /** Clave utilizada en `sessionStorage` para persistir el identificador de la wallet activa. */
@@ -113,11 +113,11 @@ export function ActiveWalletProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value: ActiveWalletContextType = {
+  const value: ActiveWalletContextType = useMemo(() => ({
     activeWallet,
     setActiveWallet,
     resetToPrimary,
-  };
+  }), [activeWallet, setActiveWallet, resetToPrimary]);
 
   return (
     <ActiveWalletContext.Provider value={value}>

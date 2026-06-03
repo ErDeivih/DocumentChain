@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react';
 import { blockchainProvider, WalletType } from '../lib/blockchain/provider';
 import { walletsApi } from '../api/wallets';
 import { useAuth } from './AuthContext';
@@ -429,7 +429,7 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     );
   }, [savedWallets]);
 
-  const value: WalletManagerContextType = {
+  const value: WalletManagerContextType = useMemo(() => ({
     savedWallets,
     connectedWallet,
     isLoading,
@@ -444,7 +444,7 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
     canAddWallet,
     getWalletByAddress,
     isWalletSaved
-  };
+  }), [savedWallets, connectedWallet, isLoading, isConnecting, error, loadSavedWallets, connectWallet, disconnectWallet, addWallet, removeWallet, setPrimaryWalletFn, canAddWallet, getWalletByAddress, isWalletSaved]);
 
   return (
     <WalletManagerContext.Provider value={value}>

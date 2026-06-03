@@ -86,12 +86,4 @@ export interface TransferOwnershipInput {
   password: string;
 }
 
-/** Resultado genérico de un servicio blockchain. */
-export interface ServiceResult<T = void> {
-  /** Indica si la operación fue exitosa. */
-  success: boolean;
-  /** Datos resultantes (si aplica). */
-  data?: T;
-  /** Mensaje de error (si aplica). */
-  error?: string;
-}
+

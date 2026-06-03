@@ -6,7 +6,7 @@
  */
 
 import { api } from '../lib/api';
-import type { Document, PaginatedResponse, Version } from '../types';
+import type { Document, PaginatedDocumentsResponse, Version } from '../types';
 
 /**
  * Respuesta de descarga de documento.
@@ -187,8 +187,8 @@ export const documentsApi = {
     folderId?: string;
     search?: string;
     fileType?: string;
-  }): Promise<PaginatedResponse<Document>> => {
-    const response = await api.get<PaginatedResponse<Document>>('/documents', { params });
+  }): Promise<PaginatedDocumentsResponse> => {
+    const response = await api.get<PaginatedDocumentsResponse>('/documents', { params });
     return response.data;
   },
 

@@ -5,27 +5,10 @@
  * del backend e invalida las consultas de React Query correspondientes.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
-
-let socket: Socket | null = null;
-
-/**
- * Obtiene o crea la instancia singleton de Socket.IO.
- * @returns Instancia de Socket.
- */
-function getSocket(): Socket {
-  if (!socket) {
-    socket = io(window.location.origin, {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'],
-      autoConnect: false,
-    });
-  }
-  return socket;
-}
 
 /**
  * Hook para escuchar eventos de socket en tiempo real.
@@ -36,16 +19,26 @@ function getSocket(): Socket {
 export function useSocketListener() {
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      if (socket?.connected) {
-        socket.disconnect();
+      if (socketRef.current?.connected) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
       return;
     }
 
-    const s = getSocket();
+    if (!socketRef.current) {
+      socketRef.current = io(window.location.origin, {
+        path: '/socket.io',
+        transports: ['websocket', 'polling'],
+        autoConnect: false,
+      });
+    }
+
+    const s = socketRef.current;
 
     const token = localStorage.getItem('accessToken');
     if (token) {

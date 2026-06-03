@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
@@ -9,21 +10,23 @@ import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { Profile } from './pages/Profile';
-import { Landing } from './pages/Landing'; // Import landing page
+import { Landing } from './pages/Landing';
 import { VerifyEmail } from './pages/VerifyEmail';
 
-// Main pages
+// Main pages (eager)
 import { Documents } from './pages/Documents';
 import { DocumentDetails } from './pages/DocumentDetails';
-import { SharedWithMe } from './pages/SharedWithMe';
-import { AdminDashboard } from './pages/AdminDashboard';
 import { Verify } from './pages/Verify';
-import { Settings } from './pages/Settings';
 import { Notifications } from './pages/Notifications';
-import { Audit } from './pages/Audit';
 import { DocumentTimeline } from './pages/DocumentTimeline';
-import { BlockchainAuditor } from './pages/BlockchainAuditor';
 import { PublicDocument } from './pages/PublicDocument';
+
+// Lazy-loaded pages
+const SharedWithMe = lazy(() => import('./pages/SharedWithMe').then(m => ({ default: m.SharedWithMe })));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+const Audit = lazy(() => import('./pages/Audit').then(m => ({ default: m.Audit })));
+const BlockchainAuditor = lazy(() => import('./pages/BlockchainAuditor').then(m => ({ default: m.BlockchainAuditor })));
 
 /**
  * Componente raíz de la aplicación.
@@ -44,7 +47,7 @@ function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify" element={<Verify />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/audit" element={<Audit />} />
+      <Route path="/audit" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div></div>}><Audit /></Suspense>} />
       <Route path="/public/d/:publicId" element={<PublicDocument />} />
       <Route path="/public/d/:publicId/v/:versionNumber" element={<PublicDocument />} />
       {/* Protected routes */}
@@ -60,13 +63,13 @@ function App() {
         <Route path="documents" element={<Documents />} />
         <Route path="documents/:id" element={<DocumentDetails />} />
         <Route path="documents/:id/timeline" element={<DocumentTimeline />} />
-        <Route path="shared" element={<SharedWithMe />} />
-        <Route path="dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="shared" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div></div>}><SharedWithMe /></Suspense>} />
+        <Route path="dashboard" element={<AdminRoute><Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div></div>}><AdminDashboard /></Suspense></AdminRoute>} />
         <Route path="verify" element={<Verify />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
+        <Route path="settings" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div></div>}><Settings /></Suspense>} />
         <Route path="notifications" element={<Notifications />} />
-        <Route path="blockchain" element={<BlockchainAuditor />} />
+        <Route path="blockchain" element={<Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div></div>}><BlockchainAuditor /></Suspense>} />
       </Route>
 
       {/* 404 fallback */}

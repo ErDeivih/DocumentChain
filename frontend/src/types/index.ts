@@ -378,15 +378,25 @@ export type Role = DocumentRole;
 export type ShareDocument = Share;
 
 /**
- * Estructura genérica de respuesta paginada del backend.
- *
- * @typeParam T - Tipo de los elementos paginados.
+ * Respuesta paginada de documentos.
  */
-export interface PaginatedResponse<T> {
-  /** Documentos paginados (alias para compatibilidad). */
-  documents?: T[];
-  /** Usuarios paginados (alias para compatibilidad). */
-  users?: T[];
+export interface PaginatedDocumentsResponse {
+  /** Documentos paginados. */
+  documents: Document[];
+  /** Total de elementos disponibles. */
+  total: number;
+  /** Página actual. */
+  page: number;
+  /** Total de páginas. */
+  totalPages: number;
+}
+
+/**
+ * Respuesta paginada de usuarios.
+ */
+export interface PaginatedUsersResponse {
+  /** Usuarios paginados. */
+  users: User[];
   /** Total de elementos disponibles. */
   total: number;
   /** Página actual. */
@@ -474,7 +484,7 @@ export interface FolderStats {
   /** Número de documentos contenidos. */
   documentCount: number;
   /** Tamaño total de los documentos. */
-  totalSize: bigint;
+  totalSize: number;
   /** Número de subcarpetas. */
   subfolderCount: number;
 }

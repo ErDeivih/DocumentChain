@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { DocumentPermissionService, DocumentRole } from '../services/documentPermissionService';
 
 export async function userHasAccess(
   documentId: string,
@@ -18,23 +19,18 @@ export async function userHasAccess(
   }
 
   if (document.blockchainId) {
-    const permModule = await import('../services/documentPermissionService');
-    const DocumentPermissionService = permModule.DocumentPermissionService;
     const wallets = await prisma.wallet.findMany({
       where: { userId },
       select: { walletAddress: true },
     });
 
-    for (const wallet of wallets) {
-      if (
-        await DocumentPermissionService.canView(
-          document.blockchainId,
-          wallet.walletAddress
-        )
-      ) {
-        return true;
-      }
-    }
+    const results = await Promise.all(
+      wallets.map((wallet) =>
+        DocumentPermissionService.canView(document.blockchainId!, wallet.walletAddress).catch(() => false)
+      )
+    );
+
+    return results.some(Boolean);
   }
 
   return false;
@@ -47,29 +43,29 @@ export async function resolveUserRole(
   userId: string
 ): Promise<'OWNER' | 'SHARED_WRITE' | 'SHARED_READ' | null> {
   if (blockchainId) {
-    const permModule = await import('../services/documentPermissionService');
-    const DocumentPermissionService = permModule.DocumentPermissionService;
-    const DocRole = permModule.DocumentRole;
     const wallets = await prisma.wallet.findMany({
       where: { userId },
       select: { walletAddress: true },
     });
 
-    for (const wallet of wallets) {
-      const isOwner = await DocumentPermissionService.isOwner(
-        blockchainId,
-        wallet.walletAddress
-      );
-      if (isOwner) return 'OWNER';
+    const results = await Promise.all(
+      wallets.map(async (wallet) => {
+        try {
+          const isOwner = await DocumentPermissionService.isOwner(blockchainId, wallet.walletAddress);
+          if (isOwner) return 'OWNER' as const;
 
-      const role = await DocumentPermissionService.getUserRole(
-        blockchainId,
-        wallet.walletAddress
-      );
-      if (role === DocRole.EDITOR) return 'SHARED_WRITE';
-      if (role === DocRole.VIEWER) return 'SHARED_READ';
-    }
+          const role = await DocumentPermissionService.getUserRole(blockchainId, wallet.walletAddress);
+          if (role === DocumentRole.EDITOR) return 'SHARED_WRITE' as const;
+          if (role === DocumentRole.VIEWER) return 'SHARED_READ' as const;
+          return null;
+        } catch {
+          return null;
+        }
+      })
+    );
 
+    const found = results.find((r) => r !== null);
+    if (found) return found;
     return null;
   }
 

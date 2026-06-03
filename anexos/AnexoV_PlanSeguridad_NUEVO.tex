@@ -878,7 +878,7 @@ La autorizacion se articula en dos niveles complementarios:
 
 \subsubsection{Control de acceso on-chain}
 
-Los smart contracts mantienen un registro de permisos que condicionan las operaciones ejecutadas sobre la blockchain. Cada funcion critica (registro de documento, firma, versionado, transferencia de propiedad) verifica que la direccion que invoca la transaccion posea el rol adecuado o figure como destinatario autorizado en el mapping de permisos. Esta comprobacion es inmutable y auditable, proporcionando una capa adicional de control que no depende exclusivamente del backend.
+El smart contract \texttt{DocumentRegistry} mantiene un registro de permisos que condicionan las operaciones ejecutadas sobre la blockchain. Cada funcion critica (registro de documento, firma, versionado, transferencia de propiedad) verifica que la direccion que invoca la transaccion posea el rol adecuado o figure como destinatario autorizado en el mapping de permisos. Esta comprobacion es inmutable y auditable, proporcionando una capa adicional de control que no depende exclusivamente del backend.
 
 \section{Componentes criticos del software}
 

@@ -154,6 +154,101 @@ describe('AuthService - login()', () => {
     expect(result.accessToken).toBe('access-token-abc');
     expect(result.user.username).toBe('testuser');
   });
+
+  it('rejects login when email is not verified', async () => {
+    const user = makeUser({ emailVerified: false });
+    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(user);
+    (Argon2Service.verify as jest.Mock).mockResolvedValue(true);
+
+    await expect(
+      AuthService.login({ identifier: 'testuser', password: 'correctpass' })
+    ).rejects.toThrow('Debes verificar tu email');
+  });
+
+  it('rejects login for wallet-only user (no passwordHash)', async () => {
+    const user = makeUser({ passwordHash: null });
+    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(user);
+
+    await expect(
+      AuthService.login({ identifier: 'testuser', password: 'pass' })
+    ).rejects.toThrow('requiere autenticación con wallet');
+  });
+
+  it('allows login by email as identifier', async () => {
+    const user = makeUser();
+    (mockPrisma.user.findUnique as jest.Mock)
+      .mockResolvedValueOnce(null)  // username lookup fails
+      .mockResolvedValueOnce(user); // email lookup succeeds
+    (Argon2Service.verify as jest.Mock).mockResolvedValue(true);
+    (TokenService.generateTokenPair as jest.Mock).mockResolvedValue(makeSession());
+
+    const result = await AuthService.login({ identifier: 'test@example.com', password: 'correctpass' });
+    expect(result.user.email).toBe('test@example.com');
+  });
+
+  it('migrates bcrypt password to argon2id on login', async () => {
+    const user = makeUser();
+    (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue(user);
+    (Argon2Service.detectHashType as jest.Mock).mockReturnValue('bcrypt');
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (Argon2Service.hash as jest.Mock).mockResolvedValue('$argon2id$newhash');
+    (TokenService.generateTokenPair as jest.Mock).mockResolvedValue(makeSession());
+    (mockPrisma.user.update as jest.Mock).mockResolvedValue(user);
+
+    const result = await AuthService.login({ identifier: 'testuser', password: 'correctpass' });
+
+    expect(Argon2Service.hash).toHaveBeenCalledWith('correctpass');
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'user-123' },
+      data: { passwordHash: '$argon2id$newhash' }
+    }));
+    expect(result.accessToken).toBe('access-token-abc');
+  });
+});
+
+describe('AuthService - register()', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.ADMIN_REGISTRATION_SECRET = '';
+  });
+
+  it('rejects register with duplicate username', async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUser({ username: 'testuser' }));
+
+    await expect(
+      AuthService.register({ username: 'testuser', email: 'new@test.com', password: 'Str0ng!Pass1' })
+    ).rejects.toThrow('El nombre de usuario ya existe');
+  });
+
+  it('rejects register with duplicate email', async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUser({ email: 'existing@test.com' }));
+
+    await expect(
+      AuthService.register({ username: 'newuser', email: 'existing@test.com', password: 'Str0ng!Pass1' })
+    ).rejects.toThrow('El email ya existe');
+  });
+
+  it('rejects register with weak password', async () => {
+    await expect(
+      AuthService.register({ username: 'newuser', email: 'new@test.com', password: '123' })
+    ).rejects.toThrow('Validación de contraseña fallida');
+  });
+
+  it('rejects register with short username', async () => {
+    await expect(
+      AuthService.register({ username: 'ab', email: 'new@test.com', password: 'Str0ng!Pass1' })
+    ).rejects.toThrow('al menos 3 caracteres');
+  });
+});
+
+describe('AuthService - logout()', () => {
+  it('calls TokenService.revokeRefreshToken', async () => {
+    const { TokenService: ts } = require('../../src/services/tokenService');
+    (ts.revokeRefreshToken as jest.Mock).mockResolvedValue(undefined);
+
+    await AuthService.logout('refresh-token-xyz');
+    expect(ts.revokeRefreshToken).toHaveBeenCalledWith('refresh-token-xyz');
+  });
 });
 
 
