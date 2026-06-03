@@ -47,6 +47,19 @@ jest.mock('../../config/ipfs', () => ({
   deleteFromIPFS: jest.fn(),
 }));
 
+jest.mock('../../services/blockchainCacheService', () => ({
+  __esModule: true,
+  BlockchainCacheService: {
+    getDocumentState: jest.fn().mockResolvedValue({ isArchived: false, isDeleted: false, owner: '0xOwner', currentVersion: 1, updatedAt: Date.now() }),
+    getOperationalVersionNumber: jest.fn().mockResolvedValue(1),
+    batchGetDocumentStates: jest.fn().mockResolvedValue(new Map()),
+    isDocumentArchived: jest.fn().mockResolvedValue(false),
+    isDocumentDeleted: jest.fn().mockResolvedValue(false),
+    invalidate: jest.fn(),
+    invalidateAll: jest.fn(),
+  },
+}));
+
 jest.mock('../../config/blockchain', () => ({
   provider: {},
 }));

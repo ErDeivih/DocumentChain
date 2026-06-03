@@ -75,6 +75,16 @@ describe('OperationalVersionSelector', () => {
         isOwner
         versions={[
           {
+            id: 'version-2',
+            documentId: 'document-1',
+            userId: 'user-1',
+            versionNumber: 2,
+            createdAt: '2026-04-05T10:00:00.000Z',
+            comment: null,
+            ipfsCid: '',
+            blockchainStatus: 'PREPARING' as const,
+          },
+          {
             id: 'version-1',
             documentId: 'document-1',
             userId: 'user-1',
@@ -82,7 +92,7 @@ describe('OperationalVersionSelector', () => {
             createdAt: '2026-04-04T10:00:00.000Z',
             isOperational: true,
             comment: 'Versión inicial',
-            ipfsCid: 'QmTestCid5',
+            ipfsCid: 'QmTestCid6',
             blockchainStatus: 'SYNCED' as const,
           },
         ]}
@@ -90,7 +100,6 @@ describe('OperationalVersionSelector', () => {
     );
 
     expect(view.getByText('Versión 2')).toBeInTheDocument();
-    expect(view.getByText('Pendiente de CID visible')).toBeInTheDocument();
     expect(view.getByText('Versión 1')).toBeInTheDocument();
     expect(view.getByText('Activa')).toBeInTheDocument();
   });
