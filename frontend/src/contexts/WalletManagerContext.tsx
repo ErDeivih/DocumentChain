@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode, useCallback, useRef } from 'react';
 import { blockchainProvider, WalletType } from '../lib/blockchain/provider';
 import { walletsApi } from '../api/wallets';
 import { useAuth } from './AuthContext';

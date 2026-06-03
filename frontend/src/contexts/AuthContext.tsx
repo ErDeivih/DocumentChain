@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { authApi } from '../api/auth';
 import type { User, AuthResponse, LoginRequest, RegisterRequest } from '../types';
 import { getErrorMessage } from '../lib/api';
@@ -252,7 +252,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     accessToken,
     isLoading,
@@ -262,7 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     refreshUser,
     patchUserSession
-  };
+  }), [user, accessToken, isLoading, login, register, logout, refreshUser, patchUserSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

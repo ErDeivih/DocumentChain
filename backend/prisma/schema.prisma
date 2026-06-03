@@ -19,6 +19,7 @@ model User {
   encryptedPrivateKey         String
   createdAt                   DateTime                @default(now())
   updatedAt                   DateTime                @updatedAt
+  // encryptedPrivateKeyRecovery y recoveryKeyHash van siempre juntos
   encryptedPrivateKeyRecovery String?
   recoveryKeyHash             String?
   avatarUrl                   String?
@@ -108,6 +109,7 @@ model Document {
   folderId              String?
   tags                  String[]            @default([])
   ownerId               String
+  // encryptedSymmetricKey: cifrada con la clave pública del owner del documento
   encryptedSymmetricKey String
   blockchainError       String?
   blockchainTxHash      String?
@@ -175,7 +177,7 @@ model DocumentSignature {
   id                          String           @id @default(cuid())
   documentId                  String
   versionId                   String
-  userId                      String?
+  userId                      String
   blockchainError             String?
   blockchainTxHash            String?
   signerWalletId              String?
@@ -186,7 +188,7 @@ model DocumentSignature {
   signerWalletAddressSnapshot String?
   document                    Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
   signerWallet                Wallet?          @relation("SignatureWallet", fields: [signerWalletId], references: [id], onDelete: SetNull)
-  user                        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user                        User             @relation(fields: [userId], references: [id], onDelete: SetNull)
   version                     Version          @relation(fields: [versionId], references: [id], onDelete: Cascade)
 
   @@unique([versionId, userId])
@@ -215,6 +217,7 @@ model Event {
   @@index([transactionHash])
   @@index([blockNumber])
   @@index([documentId])
+  @@index([documentId, eventType, createdAt])
 }
 
 model DocumentShareKey {

@@ -1,78 +1,31 @@
 import prisma from '../config/database';
+import { DocumentPermissionService, DocumentRole } from '../services/documentPermissionService';
 
-export async function userHasAccess(
-  documentId: string,
-  userId: string
-): Promise<boolean> {
-  const document = await prisma.document.findUnique({
-    where: { id: documentId },
-    select: { ownerId: true, blockchainId: true, visibility: true, isDeleted: true },
-  });
-
-  if (!document) return false;
-  if (document.isDeleted) return false;
-  if (document.ownerId === userId) return true;
-
-  if (document.visibility === 'PUBLIC') {
-    return true;
-  }
-
+export async function userHasAccess(documentId: string, userId: string): Promise<boolean> {
+  const document = await prisma.document.findUnique({ where: { id: documentId }, select: { ownerId: true, blockchainId: true, visibility: true, isDeleted: true } });
+  if (!document || document.isDeleted) return false;
+  if (document.ownerId === userId || document.visibility === 'PUBLIC') return true;
   if (document.blockchainId) {
-    const permModule = await import('../services/documentPermissionService');
-    const DocumentPermissionService = permModule.DocumentPermissionService;
-    const wallets = await prisma.wallet.findMany({
-      where: { userId },
-      select: { walletAddress: true },
-    });
-
-    for (const wallet of wallets) {
-      if (
-        await DocumentPermissionService.canView(
-          document.blockchainId,
-          wallet.walletAddress
-        )
-      ) {
-        return true;
-      }
-    }
+    const wallets = await prisma.wallet.findMany({ where: { userId }, select: { walletAddress: true } });
+    const results = await Promise.all(wallets.map(w => DocumentPermissionService.canView(document.blockchainId!, w.walletAddress).catch(() => false)));
+    return results.some(Boolean);
   }
-
   return false;
 }
 
-export async function resolveUserRole(
-  documentId: string,
-  ownerId: string,
-  blockchainId: string | null,
-  userId: string
-): Promise<'OWNER' | 'SHARED_WRITE' | 'SHARED_READ' | null> {
+export async function resolveUserRole(documentId: string, ownerId: string, blockchainId: string | null, userId: string): Promise<'OWNER' | 'SHARED_WRITE' | 'SHARED_READ' | null> {
   if (blockchainId) {
-    const permModule = await import('../services/documentPermissionService');
-    const DocumentPermissionService = permModule.DocumentPermissionService;
-    const DocRole = permModule.DocumentRole;
-    const wallets = await prisma.wallet.findMany({
-      where: { userId },
-      select: { walletAddress: true },
-    });
-
-    for (const wallet of wallets) {
-      const isOwner = await DocumentPermissionService.isOwner(
-        blockchainId,
-        wallet.walletAddress
-      );
-      if (isOwner) return 'OWNER';
-
-      const role = await DocumentPermissionService.getUserRole(
-        blockchainId,
-        wallet.walletAddress
-      );
-      if (role === DocRole.EDITOR) return 'SHARED_WRITE';
-      if (role === DocRole.VIEWER) return 'SHARED_READ';
-    }
-
-    return null;
+    const wallets = await prisma.wallet.findMany({ where: { userId }, select: { walletAddress: true } });
+    const results = await Promise.all(wallets.map(async (wallet) => {
+      try {
+        if (await DocumentPermissionService.isOwner(blockchainId, wallet.walletAddress)) return 'OWNER' as const;
+        const role = await DocumentPermissionService.getUserRole(blockchainId, wallet.walletAddress);
+        if (role === DocumentRole.EDITOR) return 'SHARED_WRITE' as const;
+        if (role === DocumentRole.VIEWER) return 'SHARED_READ' as const;
+        return null;
+      } catch { return null; }
+    }));
+    return results.find(r => r !== null) || null;
   }
-
-  if (ownerId === userId) return 'OWNER';
-  return null;
+  return ownerId === userId ? 'OWNER' : null;
 }
