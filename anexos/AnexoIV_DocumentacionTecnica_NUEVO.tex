@@ -509,13 +509,13 @@ Este patron desacopla la logica de negocio del backend de la interaccion directa
 
 \subsection{Sincronizacion blockchain}
 
-La consistencia entre la base de datos relacional y la blockchain se mantiene mediante dos mecanismos complementarios: un listener de eventos en tiempo real y un worker de reconciliacion periodica.
+La consistencia entre la base de datos relacional y la blockchain se mantiene mediante tres mecanismos complementarios: una cache de estado on-chain, un listener de eventos en tiempo real y un worker de reconciliacion periodica.
 
-\textbf{Event Listener.} Al iniciarse, el backend suscribe una instancia del contrato a los eventos reales del contrato \texttt{DocumentRegistry}: \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{VersionRestored}, \texttt{DocumentSigned}, \texttt{DocumentShared}, \texttt{PermissionRevoked}, \texttt{OwnershipTransferred}, \texttt{DocumentArchived}, \texttt{DocumentDeleted} y \texttt{OperationalVersionChanged}. Cuando se emite un evento, el callback actualiza el estado correspondiente en PostgreSQL y emite un mensaje WebSocket a los clientes conectados.
+\textbf{Cache de estado on-chain.} El servicio \texttt{BlockchainCacheService} (en \texttt{backend/src/services/blockchainCacheService.ts}) mantiene una cache en memoria con TTL de 30 segundos del estado de cada documento segun el contrato: propietario, estado de archivado, borrado y version operativa. Esto evita consultar la blockchain para cada verificacion de permisos, reduciendo la latencia de las operaciones de lectura.
 
-\textbf{Worker de sincronizacion.} Ejecutado cada cinco minutos mediante \texttt{node-cron}, este worker consulta los registros en estado \texttt{TX\_SUBMITTED} y solicita su \textit{receipt} al proveedor Ethereum. Si detecta una discrepancia (por ejemplo, una transaccion minada que no disparo el event listener por un reinicio del servidor), ejecuta una reconciliacion manual sobre el bloque afectado.
+\textbf{Event Listener.} Al iniciarse, el backend suscribe una instancia del contrato a los eventos reales del contrato \texttt{DocumentRegistry}: \texttt{DocumentCreated}, \texttt{VersionCreated}, \texttt{VersionRestored}, \texttt{DocumentSigned}, \texttt{DocumentShared}, \texttt{PermissionRevoked}, \texttt{OwnershipTransferred}, \texttt{DocumentArchived}, \texttt{DocumentDeleted} y \texttt{OperationalVersionChanged}. Cuando se emite un evento, el callback invalida la entrada correspondiente en la cache y actualiza el estado en PostgreSQL.
 
-\textbf{Mecanismo de reconciliacion.} Si el listener pierde conectividad o el nodo Ethereum se reinicia, el worker puede escanear un rango de bloques recientes, filtrar los logs del contrato y reaplicar los eventos perdidos sobre la base de datos. Este mecanismo garantiza que, incluso ante fallos transitorios, el estado final de PostgreSQL converja con el de la blockchain.
+\textbf{Reconciliacion periodica.} El worker \texttt{BlockchainReconciler} (en \texttt{backend/src/workers/blockchainReconciler.ts}) se ejecuta cada seis horas y recorre los documentos sincronizados comparando su estado en base de datos con el estado on-chain obtenido via la cache. Si detecta divergencias, corrige el registro local para mantener la coherencia entre ambas fuentes de datos.
 
 \begin{lstlisting}[caption={Pseudocodigo del listener y reconciliacion}, label={lst:sync}]
 funcion iniciarListener():

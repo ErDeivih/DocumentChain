@@ -130,6 +130,19 @@ package "Services (Logica de Negocio)" #DFFFDF {
         +revokeAdminRole(walletAddress): Promise<any>
         +syncAllAdmins(): Promise<any>
     }
+    class BlockchainCacheService {
+        +getDocumentState(blockchainId): Promise<DocState>
+        +invalidateCache(blockchainId): void
+    }
+    class TransferService {
+        +prepareTransfer(docId, newOwnerId, walletId): Promise<any>
+        +confirmTransfer(txHash, docId): Promise<any>
+    }
+    class BlockchainReconciler {
+        +start(): void
+        +stop(): void
+        -reconcile(): Promise<void>
+    }
 }
 
 package "Repositories (Acceso a Datos)" #FFFDE7 {
