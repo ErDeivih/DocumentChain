@@ -11,16 +11,14 @@ process.env.BLOCKCHAIN_PRIVATE_KEY = '0x0000000000000000000000000000000000000000
 
 jest.mock('../../src/services/userService', () => ({
   UserService: {
-    getUserById: jest.fn(),
-    updateAvatar: jest.fn(),
-    removeAvatar: jest.fn(),
+    uploadAvatar: jest.fn(),
+    removeAvatarWithFile: jest.fn(),
   },
 }));
 
 import { Request, Response } from 'express';
 import { UserController } from '../../src/controllers/userController';
 import { UserService } from '../../src/services/userService';
-import fs from 'fs';
 
 const mockUserService = UserService as jest.Mocked<typeof UserService>;
 
@@ -69,13 +67,7 @@ describe('UserController avatar flow', () => {
       });
       const res = mockRes();
 
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
-      (mockUserService.getUserById as jest.Mock).mockResolvedValue({
-        id: 'user-123',
-        avatarUrl: null,
-      });
-      (mockUserService.updateAvatar as jest.Mock).mockResolvedValue({
+      (mockUserService.uploadAvatar as jest.Mock).mockResolvedValue({
         id: 'user-123',
         username: 'testuser',
         avatarUrl: '/uploads/avatars/user-123-1234567890.png',
@@ -83,10 +75,10 @@ describe('UserController avatar flow', () => {
 
       await UserController.updateAvatar(req, res);
 
-      expect(fs.writeFileSync).toHaveBeenCalled();
-      expect(mockUserService.updateAvatar).toHaveBeenCalledWith(
+      expect(mockUserService.uploadAvatar).toHaveBeenCalledWith(
         'user-123',
-        expect.stringContaining('/uploads/avatars/user-123-')
+        Buffer.from('fake-image'),
+        'avatar.png'
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
@@ -94,11 +86,9 @@ describe('UserController avatar flow', () => {
           user: expect.objectContaining({ avatarUrl: expect.stringContaining('/uploads/avatars/') }),
         })
       );
-
-      jest.restoreAllMocks();
     });
 
-    it('removes old avatar before uploading new one', async () => {
+    it('handles upload error gracefully', async () => {
       const req = mockReq({
         file: {
           originalname: 'avatar.jpg',
@@ -107,26 +97,14 @@ describe('UserController avatar flow', () => {
       });
       const res = mockRes();
 
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {});
-      jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
-      (mockUserService.getUserById as jest.Mock).mockResolvedValue({
-        id: 'user-123',
-        avatarUrl: '/uploads/avatars/old-avatar.png',
-      });
-      (mockUserService.updateAvatar as jest.Mock).mockResolvedValue({
-        id: 'user-123',
-        username: 'testuser',
-        avatarUrl: '/uploads/avatars/user-123-1234567890.jpg',
-      });
+      (mockUserService.uploadAvatar as jest.Mock).mockRejectedValue(new Error('Upload failed'));
 
       await UserController.updateAvatar(req, res);
 
-      expect(fs.unlinkSync).toHaveBeenCalledWith(
-        expect.stringContaining('old-avatar.png')
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Upload failed' })
       );
-
-      jest.restoreAllMocks();
     });
   });
 
@@ -135,13 +113,7 @@ describe('UserController avatar flow', () => {
       const req = mockReq();
       const res = mockRes();
 
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {});
-      (mockUserService.getUserById as jest.Mock).mockResolvedValue({
-        id: 'user-123',
-        avatarUrl: '/uploads/avatars/user-123.png',
-      });
-      (mockUserService.removeAvatar as jest.Mock).mockResolvedValue({
+      (mockUserService.removeAvatarWithFile as jest.Mock).mockResolvedValue({
         id: 'user-123',
         username: 'testuser',
         avatarUrl: null,
@@ -149,18 +121,13 @@ describe('UserController avatar flow', () => {
 
       await UserController.removeAvatar(req, res);
 
-      expect(fs.unlinkSync).toHaveBeenCalledWith(
-        expect.stringContaining('user-123.png')
-      );
-      expect(mockUserService.removeAvatar).toHaveBeenCalledWith('user-123');
+      expect(mockUserService.removeAvatarWithFile).toHaveBeenCalledWith('user-123');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           user: expect.objectContaining({ avatarUrl: null }),
         })
       );
-
-      jest.restoreAllMocks();
     });
 
     it('returns 401 when not authenticated', async () => {

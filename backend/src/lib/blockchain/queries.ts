@@ -114,7 +114,6 @@ export class BlockchainQueries {
       }
       
       const versionCount = Number(doc.latestVersion);
-      const versions: BlockchainVersion[] = [];
       
       // Obtener cada versión
       for (let i = 1; i <= versionCount; i++) {

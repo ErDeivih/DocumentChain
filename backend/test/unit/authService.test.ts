@@ -27,6 +27,7 @@ jest.mock('../../src/services/tokenService', () => ({
   TokenService: {
     generateTokenPair: jest.fn(),
     verifyRefreshToken: jest.fn(),
+    revokeRefreshToken: jest.fn(),
   },
 }));
 
