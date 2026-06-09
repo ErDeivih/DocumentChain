@@ -11,18 +11,24 @@ entity "Documento" as ED
 
 
 Actor -> BF : 1. Selecciona usuario a revocar
-BF -> CS : 2. Peticion de revocacion
+BF -> CS : 2. Peticion de revocacion (prepare)
 CS -> ED : 3. Verifica propiedad del documento
 ED --> CS : propiedad confirmada
 
 CS -> EC : 4. Busca permiso compartido
 EC --> CS : datos del permiso
 
+' wallet: firma transaccion revokePermission on-chain
+' wallet -> sc: revokePermission(docId, userAddress)
+' sc --> wallet: txHash
+' Confirmacion con receipt
+' srv -> sc: getTransactionReceipt(txHash)
+' sc --> srv: receipt + evento PermissionRevoked
 
 CS -> EC : 5. Elimina acceso compartido
 EC --> CS : acceso revocado
 
-CS --> BF : 6. Confirmacion de revocacion
+CS --> BF : 6. Confirmacion de revocacion (PermissionRevoked)
 BF --> Actor : 7. Muestra lista actualizada de permisos
 
 @enduml

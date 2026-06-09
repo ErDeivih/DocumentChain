@@ -18,6 +18,9 @@ sc --> wallet: txHash
 wallet --> ui: txHash
 
 ui -> srv: POST /api/documents/confirm {documentId, txHash, blockchainId}
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt status=1 + evento DocumentCreated
+srv -> srv: Validar receipt antes de persistir
 srv -> db: Actualizar documento y version a TX_SUBMITTED
 db --> srv: OK
 srv --> ui: 200 OK confirmacion registrada

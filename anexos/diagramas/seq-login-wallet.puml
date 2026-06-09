@@ -1,4 +1,6 @@
-﻿@startuml
+﻿' NOTA: Login con wallet no implementado actualmente
+' El sistema utiliza autenticacion estandar JWT con email/password
+@startuml
 
 title Login Wallet
 !include _sequence-style.puml

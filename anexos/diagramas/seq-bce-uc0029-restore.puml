@@ -11,20 +11,26 @@ entity "Documento" as ED
 
 
 Actor -> BF : 1. Selecciona restaurar version
-BF -> CV : 2. Peticion de restauracion
+BF -> CV : 2. Peticion de restauracion (prepare)
 CV -> EV : 3. Verifica existencia de version anterior
 EV --> CV : version encontrada
 
 CV -> ED : 4. Verifica propiedad
 ED --> CV : permiso verificado
 
+' wallet: firma transaccion restoreVersion on-chain
+' wallet -> sc: restoreVersion(docId, versionId)
+' sc --> wallet: txHash
+' Confirmacion con receipt
+' srv -> sc: getTransactionReceipt(txHash)
+' sc --> srv: receipt + evento VersionRestored
 
 CV -> EV : 5. Restaura contenido de la version
 
 CV -> ED : 6. Actualiza referencia del documento
 ED --> CV : documento actualizado
 
-CV --> BF : 7. Confirmacion
+CV --> BF : 7. Confirmacion (VersionRestored)
 BF --> Actor : 8. Muestra documento restaurado
 
 @enduml

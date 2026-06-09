@@ -49,7 +49,17 @@ export class BlockchainReconciler {
 
           if (ownerWallet && ownerWallet.userId !== doc.ownerId) {
             logger.warn(`[BlockchainReconciler] Owner mismatch for ${doc.id}: DB=${doc.ownerId}, chain=${state.owner}`);
-            await prisma.document.update({ where: { id: doc.id }, data: { ownerId: ownerWallet.userId } });
+            // Buscar clave re-cifrada antes de actualizar owner
+            const transferEvent = await prisma.event.findFirst({
+              where: { documentId: doc.id, eventType: 'TRANSFER_PREPARED' },
+              orderBy: { createdAt: 'desc' },
+            });
+            const pendingKey = transferEvent?.metadata && typeof transferEvent.metadata === 'object' && 'encryptedSymmetricKey' in transferEvent.metadata ? (transferEvent.metadata as any).encryptedSymmetricKey : null;
+            if (pendingKey) {
+              await prisma.document.update({ where: { id: doc.id }, data: { ownerId: ownerWallet.userId, encryptedSymmetricKey: pendingKey } });
+            } else {
+              logger.warn(`[Reconciler] Ownership mismatch for ${doc.id} without re-encrypted key. Skipping update.`);
+            }
             await prisma.event.create({
               data: {
                 id: uuidv4(), eventType: 'OWNER_RECONCILED', documentId: doc.id,

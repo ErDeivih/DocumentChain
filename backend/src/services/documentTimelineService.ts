@@ -94,29 +94,19 @@ export class DocumentTimelineService {
     }
 
     // El propietario en base de datos siempre tiene acceso, independientemente del estado on-chain
-    let canRead = document.ownerId === userId;
-
-    // If not owner in DB, check all wallets on-chain for ownership
-    if (!canRead && document.blockchainId) {
-      // Check on-chain ownership for all user wallets
-      for (const addr of walletAddresses) {
-        const state = await BlockchainCacheService.getDocumentState(document.blockchainId);
-        if (state.owner.toLowerCase() === addr.toLowerCase()) {
+    let canRead = false;
+    if (document.blockchainId) {
+      // Check on-chain first
+      const wallets = await prisma.wallet.findMany({ where: { userId }, select: { walletAddress: true } });
+      for (const w of wallets) {
+        if (await BlockchainQueries.canRead(document.blockchainId, w.walletAddress)) {
           canRead = true;
           break;
         }
       }
-
-      // If not owner, check read access
-      if (!canRead) {
-        for (const addr of walletAddresses) {
-          const canReadOnChain = await BlockchainQueries.canRead(document.blockchainId, addr);
-          if (canReadOnChain) {
-            canRead = true;
-            break;
-          }
-        }
-      }
+    }
+    if (!canRead) {
+      canRead = document.ownerId === userId; // DB fallback
     }
 
     if (!canRead) {

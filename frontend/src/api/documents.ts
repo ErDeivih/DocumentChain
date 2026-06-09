@@ -410,5 +410,7 @@ export const getDocument = documentsApi.get;
 export const downloadDocument = documentsApi.download;
 /** Alias de {@link documentsApi.archive}. */
 export const archiveDocument = documentsApi.archive;
+/** Alias de {@link documentsApi.unarchive}. */
+export const unarchiveDocument = documentsApi.unarchive;
 /** Alias de {@link documentsApi.delete}. */
 export const deleteDocument = documentsApi.delete;

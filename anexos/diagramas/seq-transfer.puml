@@ -33,8 +33,8 @@ else Documento publico
 	srv -> srv: Mantener marcador UNENCRYPTED
 end
 srv -> db: Actualizar documento a PREPARING y registrar evento TRANSFER_PREPARED
-db --> srv: transferId, docId, newOwnerWalletAddress, message, nonce
-srv --> api: {transferId, docId, newOwnerAddress, message, nonce}
+db --> srv: transferId, docId, newOwnerWalletAddress, message
+srv --> api: {transferId, docId, newOwnerAddress, message}
 api --> ui: 200 OK transferencia preparada
 
 ui -> wallet: Firmar y enviar transferOwnership(docId, newOwnerAddress)

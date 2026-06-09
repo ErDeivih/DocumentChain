@@ -571,7 +571,7 @@ Para obtener mas informacion sobre este apartado, consultar el Anexo III (Analis
 
 Una vez definidos todos los casos de uso y analizados, se procedio a disenar el sistema, preparando el proyecto para su implementacion. La arquitectura de DocumentChain se organiza en capas funcionales desacopladas, con tres subsistemas de persistencia coordinados: PostgreSQL para estado relacional mutable, IPFS para contenido binario direccionable por hash, y Ethereum para registro verificable e inmutable.
 
-Entre las decisiones de diseno mas relevantes destacan: la eleccion de Ethereum/Hardhat frente a Hyperledger Fabric o Bitcoin por su ecosistema de herramientas y compatibilidad con wallets estandar; la adopcion de IPFS con nodo Kubo autoalojado frente al almacenamiento cloud tradicional; y la seleccion de PostgreSQL con Prisma ORM por su robustez en entornos concurrentes y su integracion con TypeScript.
+Entre las decisiones de diseno mas relevantes destacan: la eleccion de Ethereum/Hardhat frente a Hyperledger Fabric o Bitcoin por su ecosistema de herramientas y compatibilidad con wallets estandar; la adopcion de IPFS con Pinata por defecto y Kubo autoalojado opcional frente al almacenamiento cloud tradicional; y la seleccion de PostgreSQL con Prisma ORM por su robustez en entornos concurrentes y su integracion con TypeScript.
 
 El modelo de permisos on-chain distingue tres roles (VIEWER, EDITOR, OWNER) gestionados directamente por el contrato \texttt{DocumentRegistry}, y la seguridad se abordo mediante defensa en profundidad, combinando cifrado AES-256-GCM para documentos privados, proteccion de claves con criptografia asimetrica y controles de sesion en el backend.
 

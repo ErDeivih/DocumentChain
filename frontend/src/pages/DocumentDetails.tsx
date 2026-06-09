@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDocument, downloadDocument, archiveDocument, deleteDocument } from '../api/documents';
+import { getDocument, downloadDocument, archiveDocument, unarchiveDocument, deleteDocument } from '../api/documents';
 import { listVersions, versionsApi } from '../api/versions';
 import { getMyRole, listShares } from '../api/shares';
 import { useAuth } from '../contexts/AuthContext';
@@ -222,6 +222,14 @@ export const DocumentDetails: React.FC = () => {
     },
   });
 
+  const unarchiveMutation = useMutation({
+    mutationFn: () => unarchiveDocument(id!),
+    onSuccess: () => refetch(),
+    onError: (err: any) => {
+      setError(err.message || 'Error al desarchivar el documento');
+    },
+  });
+
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -400,12 +408,13 @@ export const DocumentDetails: React.FC = () => {
               <>
                 <Button
                   variant="secondary"
-                  onClick={() => archiveMutation.mutate()}
-                  isLoading={archiveMutation.isPending}
+                  onClick={() => (document as any)?.isArchived ? unarchiveMutation.mutate() : archiveMutation.mutate()}
+                  isLoading={archiveMutation.isPending || unarchiveMutation.isPending}
                   title="Al archivar, el documento seguirá visible para quienes tienen acceso, pero no se podrá modificar"
                 >
                   <Archive className="w-4 h-4 mr-2" />
-                  Archivar
+                  {/* TODO: Use real isArchived from document response once backend includes it */}
+                  {(document as any)?.isArchived ? 'Desarchivar' : 'Archivar'}
                 </Button>
                 <Button
                   variant="destructive"
@@ -537,8 +546,8 @@ export const DocumentDetails: React.FC = () => {
           <OperationalVersionSelector
             documentId={id!}
             isOwner={isOwner}
-            // TODO: Get isArchived from blockchain via API
-            isArchived={false}
+            // TODO: Get isArchived from document response once backend includes it
+            isArchived={!!(document as any)?.isArchived}
             versions={versionsArray}
             isPublic={isPublicDocument}
             publicId={document.publicId}

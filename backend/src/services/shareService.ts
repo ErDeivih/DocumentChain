@@ -288,7 +288,10 @@ export class ShareService {
     } | null = null;
 
     const preparedEvents = await prisma.event.findMany({
-      where: { eventType: 'SHARE_PREPARED' },
+      where: {
+        eventType: 'SHARE_PREPARED',
+        ...(inputDocumentId ? { documentId: inputDocumentId } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });

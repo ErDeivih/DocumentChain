@@ -91,16 +91,7 @@ export class VerificationService {
             },
           }
         },
-        // shares comentado: documentShare ya no existe
-        // shares: {
-        //   include: {
-        //     user: {
-        //       select: {
-        //         username: true,
-        //       },
-        //     },
-        //   },
-        // },
+
         signatures: {
           include: {
             user: {
@@ -238,16 +229,7 @@ export class VerificationService {
             },
           }
         },
-        // shares comentado: documentShare ya no existe
-        // shares: {
-        //   include: {
-        //     user: {
-        //       select: {
-        //         username: true,
-        //       },
-        //     },
-        //   },
-        // },
+
         signatures: {
           include: {
             user: {

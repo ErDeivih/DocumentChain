@@ -787,7 +787,7 @@ Esta separacion entre la contraseña de acceso (que puede cambiarse) y la frase 
 
 \section{Despliegue tecnico con Docker}
 
-La materializacion operativa de esta arquitectura se apoya en Docker Compose. El motivo principal no es unicamente la comodidad de arranque, sino la necesidad de conservar una topologia estable entre servicios que dependen unos de otros: PostgreSQL para persistencia relacional, Hardhat como red EVM local, backend Node.js para la logica de aplicacion, frontend servido por Nginx, Postfix para correo transaccional y un nodo Kubo para almacenamiento distribuido.
+La materializacion operativa de esta arquitectura se apoya en Docker Compose. El motivo principal no es unicamente la comodidad de arranque, sino la necesidad de conservar una topologia estable entre servicios que dependen unos de otros: PostgreSQL para persistencia relacional, Hardhat como red EVM local, backend Node.js para la logica de aplicacion, frontend servido por Nginx y Postfix para correo transaccional. Opcionalmente, se incluye un nodo Kubo comentado para almacenamiento IPFS autoalojado, siendo Pinata el proveedor IPFS por defecto.
 
 \subsection{Arquitectura de contenedores}
 
@@ -806,9 +806,9 @@ El fichero \texttt{docker-compose.yml} define los siguientes servicios:
 
 \begin{itemize}
     \item \textbf{postgres:} Base de datos relacional PostgreSQL 16. Almacena metadatos, usuarios, sesiones, estados de sincronizacion y claves cifradas. Expone el puerto 5432 internamente.
-    \item \textbf{ipfs-node:} Nodo Kubo oficial de IPFS. Gestiona el almacenamiento distribuido de archivos, el pinning local y la API HTTP en el puerto 5001. Su volumen persistente garantiza que los CIDs no se pierdan ante reinicios.
+    \item \textbf{ipfs-node (opcional):} Nodo Kubo oficial de IPFS. Aparece comentado en el \texttt{docker-compose.yml} por defecto, ya que el sistema utiliza Pinata como proveedor IPFS principal. Si se habilita, gestiona el almacenamiento distribuido de archivos, el pinning local y la API HTTP en el puerto 5001.
     \item \textbf{hardhat:} Red Ethereum local para desarrollo y pruebas. Se ejecuta con la configuracion por defecto de Hardhat (cuentas pre-fundidas, minado automatico). Expone el RPC en el puerto 8545.
-    \item \textbf{backend:} Servicio Node.js que encapsula la API REST. Depende de \texttt{postgres} e \texttt{ipfs-node}. Se reconstruye automaticamente ante cambios en el codigo fuente durante el desarrollo.
+    \item \textbf{backend:} Servicio Node.js que encapsula la API REST. Depende de \texttt{postgres} y, si el nodo Kubo esta habilitado, de \texttt{ipfs-node}. El backend se comunica con Pinata como proveedor IPFS por defecto. Se reconstruye automaticamente ante cambios en el codigo fuente durante el desarrollo.
     \item \textbf{frontend:} Imagen de produccion basada en Nginx. Sirve los assets estaticos generados por Vite y redirige las rutas de la SPA al fichero \texttt{index.html}.
     \item \textbf{nginx:} Proxy inverso que expone los puertos 80 y 443 hacia el exterior. Redirige las peticiones a \texttt{/api} al backend y el resto al contenedor del frontend. Termina las conexiones SSL/TLS cuando se configuran certificados.
     \item \textbf{postfix:} Servidor de correo para el envio de notificaciones transaccionales (verificacion de cuenta, recuperacion de acceso) sin depender de servicios SMTP externos.
@@ -816,7 +816,7 @@ El fichero \texttt{docker-compose.yml} define los siguientes servicios:
 
 \subsection{Volúmenes, redes y variables de entorno}
 
-\textbf{Volúmenes.} Se definen volúmenes Docker persistentes para \texttt{postgres-data} (ficheros de base de datos), \texttt{ipfs-data} (repositorio de bloques y configuracion del nodo Kubo) y \texttt{backend-logs} (ficheros de trazas de Winston). Esta separacion garantiza que los datos sobrevivan a la recreacion de contenedores.
+\textbf{Volúmenes.} Se definen volúmenes Docker persistentes para \texttt{postgres-data} (ficheros de base de datos) y \texttt{backend-logs} (ficheros de trazas de Winston). Si se habilita el nodo Kubo opcional, se añade el volumen \texttt{ipfs-data} para el repositorio de bloques y configuracion del nodo. Esta separacion garantiza que los datos sobrevivan a la recreacion de contenedores.
 
 \textbf{Redes.} Todos los servicios se conectan a una red bridge interna denominada \texttt{documentchain-network}. El aislamiento de red impide que servicios externos accedan directamente a PostgreSQL o al API de IPFS sin pasar por Nginx y el backend.
 

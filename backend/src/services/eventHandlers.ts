@@ -6,6 +6,7 @@ import notificationService, { NotificationType } from './notificationService';
 import WebSocketService from './webSocketService';
 import { normalizeEthereumAddress } from '../utils/ethereum';
 import { findUserByWalletAddress } from '../utils/walletHelper';
+import { BlockchainCacheService } from './blockchainCacheService';
 
 export type EventHandlerArgs = Record<string, any>;
 export type BlockchainEvent = {
@@ -237,6 +238,8 @@ export async function handleDocumentDeleted(args: unknown, event: BlockchainEven
       title: 'Documento eliminado', message: `"${document.name}" ha sido eliminado permanentemente del blockchain`,
       data: { documentId: document.id, blockNumber: event.blockNumber },
     });
+
+    BlockchainCacheService.invalidate(eventArgs.docId);
   } catch (error) {
     logger.error('Error handling DocumentDeleted event', { error });
   }
@@ -293,6 +296,8 @@ export async function handleDocumentArchived(args: unknown, event: BlockchainEve
       link: `/files/${document.id}`,
       data: { documentId: document.id, archived: eventArgs.archived, blockNumber: event.blockNumber },
     });
+
+    BlockchainCacheService.invalidate(eventArgs.docId);
   } catch (error) {
     logger.error('Error handling DocumentArchived event', { error });
   }
@@ -308,7 +313,17 @@ export async function handleOwnershipTransferred(args: unknown, event: Blockchai
     const newOwner = await findUserByWalletAddress(eventArgs.to);
     if (!newOwner) return;
 
-    await prisma.document.update({ where: { blockchainId: eventArgs.docId }, data: { ownerId: newOwner.id } });
+    // Buscar evento TRANSFER_PREPARED con clave re-cifrada
+    const transferEvent = await prisma.event.findFirst({
+      where: { documentId: document.id, eventType: 'TRANSFER_PREPARED' },
+      orderBy: { createdAt: 'desc' },
+    });
+    const pendingKey = transferEvent?.metadata && typeof transferEvent.metadata === 'object' && 'encryptedSymmetricKey' in transferEvent.metadata ? (transferEvent.metadata as any).encryptedSymmetricKey : null;
+    if (pendingKey) {
+      await prisma.document.update({ where: { blockchainId: eventArgs.docId }, data: { ownerId: newOwner.id, encryptedSymmetricKey: pendingKey } });
+    } else {
+      logger.warn(`Ownership transferred without re-encrypted key for doc ${eventArgs.docId}. Skipping ownerId update.`);
+    }
 
     await prisma.event.create({
       data: {
@@ -330,6 +345,8 @@ export async function handleOwnershipTransferred(args: unknown, event: Blockchai
       title: 'Propiedad transferida', message: `Transferiste la propiedad de "${document.name}" a ${newOwner.username}`,
       link: `/files/${document.id}`, data: { documentId: document.id, newOwner: eventArgs.to },
     });
+
+    BlockchainCacheService.invalidate(eventArgs.docId);
   } catch (error) {
     logger.error('Error handling OwnershipTransferred event', { error });
   }
@@ -360,6 +377,8 @@ export async function handleOperationalVersionChanged(args: unknown, event: Bloc
       message: `La versión operacional de "${document.name}" cambió de v${Number(eventArgs.oldVersion)} a v${Number(eventArgs.newVersion)}`,
       link: `/files/${document.id}`, data: { documentId: document.id, oldVersion: Number(eventArgs.oldVersion), newVersion: Number(eventArgs.newVersion) },
     });
+
+    BlockchainCacheService.invalidate(eventArgs.docId);
   } catch (error) {
     logger.error('Error handling OperationalVersionChanged event', { error });
   }

@@ -189,26 +189,4 @@ describe('DocumentTimelineService', () => {
       role: 'SHARED_WRITE',
     });
   });
-
-  // TODO: Update test expectations for new wallet-based ownership check via BlockchainCacheService
-  it.skip('checks blockchain permissions for non-owners', async () => {
-    mockPrisma.document.findUnique.mockResolvedValue({
-      id: 'doc-1',
-      blockchainId: 'chain-doc-1',
-      ownerId: 'owner-1',
-    } as any);
-    mockPrisma.wallet.findFirst.mockResolvedValue({
-      walletAddress: '0xrecipient',
-    } as any);
-    mockBlockchainQueries.isOwner.mockResolvedValue(false);
-    mockBlockchainQueries.canRead.mockResolvedValue(true);
-    mockPrisma.version.findMany.mockResolvedValue([] as any);
-    mockPrisma.documentSignature.findMany.mockResolvedValue([] as any);
-    mockPrisma.event.findMany.mockResolvedValue([] as any);
-    mockPrisma.user.findMany.mockResolvedValue([] as any);
-
-    await DocumentTimelineService.getDocumentTimeline('doc-1', 'recipient-1');
-
-    expect(mockBlockchainQueries.canRead).toHaveBeenCalledWith('chain-doc-1', '0xrecipient');
-  });
 });

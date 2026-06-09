@@ -222,8 +222,6 @@ describe('TransferService prepareTransfer', () => {
     ).rejects.toThrow('No eres el propietario del documento');
   });
 
-  it.skip('throws if document is archived - field removed from schema', async () => {});
-
   it('throws if new owner has no public key', async () => {
     mockPrisma.document.findUnique.mockResolvedValue({
       id: 'doc-1',

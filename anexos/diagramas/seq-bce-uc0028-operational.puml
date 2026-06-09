@@ -11,18 +11,24 @@ entity "Documento" as ED
 
 
 Actor -> BF : 1. Selecciona version como operativa
-BF -> CV : 2. Peticion de cambio de version operativa
+BF -> CV : 2. Peticion de cambio de version operativa (prepare)
 CV -> EV : 3. Verifica existencia de la version
 EV --> CV : version existente
 
 CV -> ED : 4. Verifica propiedad
 ED --> CV : propiedad confirmada
 
+' wallet: firma transaccion setOperationalVersion on-chain
+' wallet -> sc: setOperationalVersion(docId, versionId)
+' sc --> wallet: txHash
+' Confirmacion con receipt
+' srv -> sc: getTransactionReceipt(txHash)
+' sc --> srv: receipt + evento OperationalVersionChanged
 
 CV -> EV : 5. Actualiza version operativa
 EV --> CV : version operativa actualizada
 
-CV --> BF : 6. Confirmacion
+CV --> BF : 6. Confirmacion (OperationalVersionChanged)
 BF --> Actor : 7. Muestra nueva version activa
 
 @enduml

@@ -218,8 +218,6 @@ export interface Signature {
   signerWalletId?: string | null;
   /** Dirección de la wallet firmante. */
   walletAddress?: string;
-  // ❌ Campos eliminados (ahora solo en blockchain):
-  // signature, message, comment, signedAt
   /** Fecha de firma en formato ISO. */
   signedAt?: string;
   /** Hash de la transacción blockchain, o `null`. */

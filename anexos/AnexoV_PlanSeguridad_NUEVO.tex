@@ -1099,7 +1099,7 @@ Las pruebas de penetracion se han estructurado siguiendo el \textbf{OWASP Testin
     \item \textbf{Validacion de entradas}: Inyecciones SQL, NoSQL, XSS, command injection, path traversal y deserializacion insegura.
     \item \textbf{Logica de negocio}: Manipulacion de flujos de firma, intento de doble gasto en evidencias blockchain y evasion de controles de permisos on-chain.
     \item \textbf{Seguridad en el cliente}: Analisis del almacenamiento local, deteccion de secretos en el bundle de React y validacion de la configuracion CSP.
-    \item \textbf{Criptografia}: Verificacion de la longitud de claves, aleatoriedad de nonces, almacenamiento seguro de claves privadas y resistencia a replay attacks en los mensajes de firma con wallet.
+    \item \textbf{Criptografia}: Verificacion de la longitud de claves, aleatoriedad de nonces, almacenamiento seguro de claves privadas y resistencia a replay attacks en los mensajes de firma con wallet (riesgo residual; no implementado como challenge persistente).
 \end{enumerate}
 
 Los resultados de cada fase se documentan en un informe de pentesting interno que incluye la descripcion de la vulnerabilidad, su criticidad, evidencias (capturas de pantalla, peticiones HTTP) y la recomendacion de remedio. Las vulnerabilidades criticas y altas deben corregirse antes de cualquier despliegue en produccion.

@@ -695,8 +695,27 @@ export class DocumentService {
       };
     }
 
+    // Pre-filtro usando blockchain como fuente de verdad para archivado/eliminado
+    const states = await BlockchainCacheService.batchGetDocumentStates(allBlockchainIds);
+    const visibleIds = allBlockchainIds.filter(id => {
+      const state = states.get(id);
+      if (!state) return true;
+      if (onlyArchived) return state.isArchived && !state.isDeleted;
+      if (includeArchived) return !state.isDeleted;
+      return !state.isArchived && !state.isDeleted;
+    });
+
+    if (visibleIds.length === 0) {
+      return {
+        documents: [],
+        total: 0,
+        page: 1,
+        totalPages: 1,
+      };
+    }
+
     const where: any = {
-      blockchainId: { in: allBlockchainIds },
+      blockchainId: { in: visibleIds },
     };
 
     if (walletId) {
@@ -746,29 +765,11 @@ export class DocumentService {
       }),
     ]);
 
-    // Post-filter: usar blockchain como fuente de verdad para archivado/eliminado
-    const blockchainIdsToCheck = documents
-      .filter(d => d.blockchainId !== null)
-      .map(d => d.blockchainId as string);
-    const states = await BlockchainCacheService.batchGetDocumentStates(blockchainIdsToCheck);
-
-    const filtered = documents.filter(d => {
-      if (!d.blockchainId) return true;
-      const state = states.get(d.blockchainId);
-      if (!state) return true;
-
-      if (!includeArchived && !onlyArchived && state.isArchived) return false;
-      if (onlyArchived && !state.isArchived) return false;
-      if (state.isDeleted) return false;
-
-      return true;
-    });
-
     return {
-      documents: filtered.map(d => this.toDocumentInfo(d)),
-      total: filtered.length,
+      documents: documents.map(d => this.toDocumentInfo(d)),
+      total,
       page: safePage,
-      totalPages: Math.max(1, Math.ceil(filtered.length / safeLimit)),
+      totalPages: Math.max(1, Math.ceil(total / safeLimit)),
     };
   }
 
