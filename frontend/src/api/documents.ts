@@ -225,34 +225,28 @@ export const documentsApi = {
     };
   },
 
-  /**
-   * Archiva un documento.
-   * @param id - Identificador del documento.
-   * @returns Promesa vacía.
-   */
-  archive: async (id: string): Promise<void> => {
-    await api.post(`/documents/${id}/archive/prepare`);
-    await api.post(`/documents/${id}/archive/confirm`, { txHash: null });
+  archive: async (id: string): Promise<{ blockchainId: string }> => {
+    const prepareRes = await api.post(`/documents/${id}/archive/prepare`);
+    return prepareRes.data;
+  },
+  archiveConfirm: async (id: string, txHash: string): Promise<void> => {
+    await api.post(`/documents/${id}/archive/confirm`, { txHash });
   },
 
-  /**
-   * Desarchiva un documento.
-   * @param id - Identificador del documento.
-   * @returns Promesa vacía.
-   */
-  unarchive: async (id: string): Promise<void> => {
-    await api.post(`/documents/${id}/unarchive/prepare`);
-    await api.post(`/documents/${id}/unarchive/confirm`, { txHash: null });
+  unarchive: async (id: string): Promise<{ blockchainId: string }> => {
+    const prepareRes = await api.post(`/documents/${id}/unarchive/prepare`);
+    return prepareRes.data;
+  },
+  unarchiveConfirm: async (id: string, txHash: string): Promise<void> => {
+    await api.post(`/documents/${id}/unarchive/confirm`, { txHash });
   },
 
-  /**
-   * Elimina un documento.
-   * @param id - Identificador del documento.
-   * @returns Promesa vacía.
-   */
-  delete: async (id: string): Promise<void> => {
-    await api.post(`/documents/${id}/delete/prepare`);
-    await api.post(`/documents/${id}/delete/confirm`, { txHash: null });
+  delete: async (id: string): Promise<{ blockchainId: string }> => {
+    const prepareRes = await api.post(`/documents/${id}/delete/prepare`);
+    return prepareRes.data;
+  },
+  deleteConfirm: async (id: string, txHash: string): Promise<void> => {
+    await api.post(`/documents/${id}/delete/confirm`, { txHash });
   },
 
   /**
@@ -412,7 +406,13 @@ export const getDocument = documentsApi.get;
 export const downloadDocument = documentsApi.download;
 /** Alias de {@link documentsApi.archive}. */
 export const archiveDocument = documentsApi.archive;
+/** Alias de {@link documentsApi.archiveConfirm}. */
+export const archiveConfirmDocument = documentsApi.archiveConfirm;
 /** Alias de {@link documentsApi.unarchive}. */
 export const unarchiveDocument = documentsApi.unarchive;
+/** Alias de {@link documentsApi.unarchiveConfirm}. */
+export const unarchiveConfirmDocument = documentsApi.unarchiveConfirm;
 /** Alias de {@link documentsApi.delete}. */
 export const deleteDocument = documentsApi.delete;
+/** Alias de {@link documentsApi.deleteConfirm}. */
+export const deleteConfirmDocument = documentsApi.deleteConfirm;

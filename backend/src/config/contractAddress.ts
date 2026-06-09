@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { env } from './env';
+import logger from '../utils/logger';
 
 /** Dirección por defecto del contrato `DocumentRegistry` en red local. */
 const DEFAULT_LOCAL_DOCUMENT_REGISTRY_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
@@ -33,7 +34,8 @@ function isLocalRpcUrl(value: string | null | undefined): boolean {
   try {
     const parsed = new URL(value);
     return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
-  } catch {
+  } catch (error) {
+    logger.warn(`[contractAddress] URL parse failed: ${error instanceof Error ? error.message : String(error)}`);
     return false;
   }
 }

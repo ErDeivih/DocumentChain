@@ -287,17 +287,13 @@ export class ShareService {
       sharerWalletAddress?: unknown;
     } | null = null;
 
-    const preparedEvents = await prisma.event.findMany({
+    const preparedEvent = await prisma.event.findFirst({
       where: {
         eventType: 'SHARE_PREPARED',
         documentId: inputDocumentId,
+        metadata: { path: ['shareId'], equals: shareId },
       },
       orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
-    const preparedEvent = preparedEvents.find((event) => {
-      const metadata = event.metadata as { shareId?: unknown } | null;
-      return metadata?.shareId === shareId;
     });
 
     if (preparedEvent?.metadata) {
@@ -549,8 +545,8 @@ export class ShareService {
       try {
         const docs = await DocumentPermissionService.getUserDocuments(wallet.walletAddress);
         docs.forEach((id) => accessibleBlockchainIds.add(id));
-      } catch {
-        // Continue with other wallets
+      } catch (error) {
+        logger.warn(`[shareService] getUserDocuments failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
 
@@ -593,8 +589,8 @@ export class ShareService {
             role = 'SHARED_WRITE';
             break;
           }
-        } catch {
-          // Continue
+        } catch (error) {
+          logger.warn(`[shareService] getUserRole failed: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -744,20 +740,13 @@ export class ShareService {
    */
   static async confirmRevokeShare(shareId: string, txHash: string): Promise<void> {
     const documentId = shareId.split(':')[0];
-    const preparedEvents = await prisma.event.findMany({
+    const preparedEvent = await prisma.event.findFirst({
       where: {
         eventType: 'SHARE_REVOKE_PREPARED',
         documentId,
+        metadata: { path: ['shareId'], equals: shareId },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: 100,
-    });
-
-    const preparedEvent = preparedEvents.find((event) => {
-      const metadata = event.metadata as { shareId?: unknown } | null;
-      return metadata?.shareId === shareId;
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!preparedEvent?.documentId) {

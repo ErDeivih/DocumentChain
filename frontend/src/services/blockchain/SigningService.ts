@@ -23,19 +23,11 @@ import { buildDocumentSignaturePayloadHash } from './signaturePayload';
  */
 export class SigningService {
   /**
-   * Firma una versión de documento mediante transacción blockchain.
+   * Sign a document version on-chain.
    *
-   * Flujo:
-   * 1. Prepara la firma con el backend (mensaje a firmar).
-   * 2. Firma el mensaje con la wallet conectada.
-   * 3. Envía la transacción al contrato DocumentRegistry.
-   * 4. Confirma la firma en el backend.
-   *
-   * Si ocurre un error después de la preparación, revierte el registro
-   * de firma en el backend para mantener la consistencia.
-   *
-   * @param input - Datos de entrada para la firma.
-   * @returns Firma registrada.
+   * La doble firma (off-chain signMessage + on-chain signDocument) es intencional:
+   * - signMessage: produce evidencia criptográfica EIP-191 verificable fuera de la cadena
+   * - signDocument: registra la firma on-chain con protección anti-replay (domain + chainId)
    */
   async signDocument(input: SignDocumentInput): Promise<Signature> {
     let preparedSignature: any = null;

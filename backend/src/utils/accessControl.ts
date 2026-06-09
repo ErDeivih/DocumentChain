@@ -1,6 +1,7 @@
 import prisma from '../config/database';
 import { DocumentPermissionService, DocumentRole } from '../services/documentPermissionService';
 import { BlockchainCacheService } from '../services/blockchainCacheService';
+import logger from './logger';
 
 export async function userHasAccess(
   documentId: string,
@@ -59,7 +60,8 @@ export async function resolveUserRole(
           if (role === DocumentRole.EDITOR) return 'SHARED_WRITE' as const;
           if (role === DocumentRole.VIEWER) return 'SHARED_READ' as const;
           return null;
-        } catch {
+        } catch (error) {
+          logger.warn(`[accessControl] Role resolution failed: ${error instanceof Error ? error.message : String(error)}`);
           return null;
         }
       })

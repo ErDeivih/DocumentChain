@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ShareController } from '../controllers/shareController';
 import { authenticate } from '../middleware/auth';
+import { shareLimiter } from '../middleware/rateLimiter';
 
 /**
  * Router de gestión de comparticiones.
@@ -22,7 +23,7 @@ router.get('/with-me', authenticate, ShareController.getSharedWithMe);
  * POST /shares/confirm
  * Confirma la creación de una compartición utilizando el shareId proporcionado en el cuerpo de la petición.
  */
-router.post('/confirm', authenticate, ShareController.confirmShare);
+router.post('/confirm', authenticate, shareLimiter, ShareController.confirmShare);
 
 // Confirm share revocation (shareId in body identifies the record — no documentId/userId in URL needed)
 
@@ -30,6 +31,6 @@ router.post('/confirm', authenticate, ShareController.confirmShare);
  * POST /shares/revoke/confirm
  * Confirma la revocación de una compartición utilizando el shareId proporcionado en el cuerpo de la petición.
  */
-router.post('/revoke/confirm', authenticate, ShareController.confirmRevokeShare);
+router.post('/revoke/confirm', authenticate, shareLimiter, ShareController.confirmRevokeShare);
 
 export default router;

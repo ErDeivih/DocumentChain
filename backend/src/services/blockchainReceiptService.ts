@@ -4,6 +4,7 @@ import {
   documentRegistryInterface,
   provider,
 } from '../config/blockchain';
+import logger from '../utils/logger';
 
 function normalizeAddress(address: string | null | undefined): string | null {
   return address ? address.toLowerCase() : null;
@@ -44,7 +45,8 @@ export function parseRegistryEvents(receipt: TransactionReceipt, eventName: stri
     .map((log) => {
       try {
         return documentRegistryInterface.parseLog({ topics: [...log.topics], data: log.data });
-      } catch {
+      } catch (error) {
+        logger.debug(`[blockchainReceiptService] Log parse failed: ${error instanceof Error ? error.message : String(error)}`);
         return null;
       }
     })

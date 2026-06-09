@@ -326,7 +326,8 @@ export class WalletService {
     try {
       const recoveredAddress = ethers.verifyMessage(message, signature);
       return recoveredAddress.toLowerCase() === address.toLowerCase();
-    } catch {
+    } catch (error) {
+      logger.warn(`[walletService] Wallet signature verification failed: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }

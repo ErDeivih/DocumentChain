@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDocument, downloadDocument, archiveDocument, unarchiveDocument, deleteDocument } from '../api/documents';
+import { getDocument, downloadDocument, documentsApi } from '../api/documents';
 import { listVersions, versionsApi } from '../api/versions';
 import { getMyRole, listShares } from '../api/shares';
 import { useAuth } from '../contexts/AuthContext';
@@ -214,30 +214,39 @@ export const DocumentDetails: React.FC = () => {
     },
   });
 
-  const archiveMutation = useMutation({
-    mutationFn: () => archiveDocument(id!),
-    onSuccess: () => refetch(),
-    onError: (err: any) => {
-      setError(err.message || 'Error al archivar el documento');
-    },
-  });
-
-  const unarchiveMutation = useMutation({
-    mutationFn: () => unarchiveDocument(id!),
-    onSuccess: () => refetch(),
-    onError: (err: any) => {
-      setError(err.message || 'Error al desarchivar el documento');
-    },
-  });
-
   const queryClient = useQueryClient();
 
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteDocument(id!),
-    onSuccess: () => navigate('/app/documents'),
-    onError: (err: any) => {
-      setError(err.message || 'Error al eliminar el documento');
+  // TODO: Implement wallet signing for archive/unarchive/delete operations
+  const archiveMutation = useMutation({
+    mutationFn: async () => {
+      await documentsApi.archive(id!);
+      const txHash = '0x' + Array(64).fill('0').join(''); // TODO: Replace with real wallet signing
+      await documentsApi.archiveConfirm(id!, txHash);
     },
+    onSuccess: () => { refetch(); queryClient.invalidateQueries({ queryKey: ['documents'] }); },
+    onError: (err: any) => setError(err.message || 'Error al archivar'),
+  });
+
+  // TODO: Implement wallet signing for archive/unarchive/delete operations
+  const unarchiveMutation = useMutation({
+    mutationFn: async () => {
+      await documentsApi.unarchive(id!);
+      const txHash = '0x' + Array(64).fill('0').join(''); // TODO: Replace with real wallet signing
+      await documentsApi.unarchiveConfirm(id!, txHash);
+    },
+    onSuccess: () => { refetch(); queryClient.invalidateQueries({ queryKey: ['documents'] }); },
+    onError: (err: any) => setError(err.message || 'Error al desarchivar'),
+  });
+
+  // TODO: Implement wallet signing for archive/unarchive/delete operations
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await documentsApi.delete(id!);
+      const txHash = '0x' + Array(64).fill('0').join(''); // TODO: Replace with real wallet signing
+      await documentsApi.deleteConfirm(id!, txHash);
+    },
+    onSuccess: () => { navigate('/app/documents'); queryClient.invalidateQueries({ queryKey: ['documents'] }); },
+    onError: (err: any) => setError(err.message || 'Error al eliminar'),
   });
 
   if (isLoading) {

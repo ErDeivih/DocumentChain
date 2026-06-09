@@ -318,18 +318,22 @@ export class EmailService {
   /**
    * Envía alerta de seguridad (login desde nuevo dispositivo/IP)
    */
-  async sendSecurityAlert(
-    email: string,
-    username: string,
-    alertType: 'new_device' | 'new_ip' | 'password_attempt',
-    _details: {
-      ipAddress?: string;
-      userAgent?: string;
-      location?: string;
-      timestamp?: Date;
+  async sendSecurityAlert(email: string, username: string, alertType: string, details: any): Promise<void> {
+    try {
+      const template = this.loadTemplate('security-alert');
+      const html = template({
+        username, alertType,
+        timestamp: new Date().toLocaleString('es-ES'),
+        ipAddress: details?.ipAddress || 'Desconocida',
+        userAgent: details?.userAgent || 'Desconocido',
+        appUrl: this.appUrl,
+        year: new Date().getFullYear(),
+      });
+      await this.sendEmail(email, `Alerta de seguridad - DocumentChain`, html);
+      logger.info(`Alerta de seguridad (${alertType}) enviada a ${email}`);
+    } catch (error) {
+      logger.warn(`No se pudo enviar alerta de seguridad a ${email}: ${error instanceof Error ? error.message : String(error)}`);
     }
-  ): Promise<void> {
-    logger.info(`Alerta de seguridad omitida (${alertType}) para ${email}`);
   }
 
   /**

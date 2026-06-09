@@ -841,8 +841,8 @@ export class AuditService {
           if (block?.timestamp) {
             timestamp = new Date(Number(block.timestamp) * 1000);
           }
-        } catch {
-          // ignore
+        } catch (error) {
+          logger.debug(`[auditService] Failed to get block timestamp: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 
@@ -906,8 +906,8 @@ export class AuditService {
                 document,
               });
             }
-          } catch {
-            // Not a DocumentRegistry event, ignore
+          } catch (error) {
+            logger.debug(`[auditService] Log not a DocumentRegistry event: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
       }

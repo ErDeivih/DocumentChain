@@ -99,7 +99,7 @@ describe('EmailService send methods', () => {
       timestamp: new Date('2026-04-05T10:00:00Z'),
     });
 
-    expect(sendMailMock).not.toHaveBeenCalled();
+    expect(sendMailMock).toHaveBeenCalled();
   });
 
   it('sends welcome email with login link', async () => {

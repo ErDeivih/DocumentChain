@@ -28,8 +28,8 @@ function parseLogLine(line: string) {
         metadata: Object.keys(metadata).length > 0 ? metadata : null,
       };
     }
-  } catch {
-    // Fallback to legacy text parsing below.
+  } catch (error) {
+    logger.debug(`[logController] JSON parse failed, falling back to text: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   const legacyMatch = line.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) \[(\w+)\]: (.+)$/);
@@ -49,7 +49,8 @@ function parseLogLine(line: string) {
           message: message.trim(),
           metadata,
         };
-      } catch {
+      } catch (error) {
+        logger.debug(`[logController] Metadata JSON parse failed: ${error instanceof Error ? error.message : String(error)}`);
         return { timestamp, level, message: rest, metadata: null };
       }
     }
