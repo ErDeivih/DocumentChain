@@ -322,6 +322,7 @@ describe('ShareService confirmShare', () => {
 
   it('throws if prepared share event not found', async () => {
     mockPrisma.event.findMany.mockResolvedValue([]);
+    mockPrisma.event.findFirst.mockResolvedValue(null);
 
     await expect(
       ShareService.confirmShare({
@@ -403,18 +404,16 @@ describe('ShareService revocation flow', () => {
   });
 
   it('confirms a revocation by persisting the event and notifying the recipient', async () => {
-    mockPrisma.event.findMany.mockResolvedValue([
-      {
-        id: 'prepared-1',
-        eventType: 'SHARE_REVOKE_PREPARED',
-        documentId: 'doc-1',
-        metadata: {
-          shareId: 'share-1',
-          recipientId: 'recipient-1',
-          recipientWalletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-        },
+    mockPrisma.event.findFirst.mockResolvedValue({
+      id: 'prepared-1',
+      eventType: 'SHARE_REVOKE_PREPARED',
+      documentId: 'doc-1',
+      metadata: {
+        shareId: 'share-1',
+        recipientId: 'recipient-1',
+        recipientWalletAddress: '0x1234567890abcdef1234567890abcdef12345678',
       },
-    ]);
+    });
     mockPrisma.document.findUnique.mockResolvedValue({
       id: 'doc-1',
       ownerId: 'owner-1',
