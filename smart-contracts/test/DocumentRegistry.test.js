@@ -1137,4 +1137,28 @@ describe("DocumentRegistry - Complete Test Suite", function () {
   describe("12: Removed Features (placeholder)", function () {
     it("formerly tested suspended user operations", function () {});
   });
+
+  describe("13: Additional Revert Tests", function () {
+    it("should revert when archiving an already archived document", async function () {
+      const { registry, owner } = await loadFixture(deployDocumentRegistryFixture);
+      const docId = ethers.encodeBytes32String("doc-archive-twice");
+      await registry.createDocument(docId, "QmTest1", ethers.ZeroHash);
+      await registry.setArchiveStatus(docId, true);
+      await expect(registry.setArchiveStatus(docId, true)).to.be.reverted;
+    });
+
+    it("should revert when unarchiving a non-archived document", async function () {
+      const { registry, owner } = await loadFixture(deployDocumentRegistryFixture);
+      const docId = ethers.encodeBytes32String("doc-unarchive-fresh");
+      await registry.createDocument(docId, "QmTest1", ethers.ZeroHash);
+      await expect(registry.setArchiveStatus(docId, false)).to.be.reverted;
+    });
+
+    it("should revert when transferring ownership to self", async function () {
+      const { registry, owner } = await loadFixture(deployDocumentRegistryFixture);
+      const docId = ethers.encodeBytes32String("doc-transfer-self");
+      await registry.createDocument(docId, "QmTest1", ethers.ZeroHash);
+      await expect(registry.transferOwnership(docId, owner.address)).to.be.reverted;
+    });
+  });
 });

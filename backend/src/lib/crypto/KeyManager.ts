@@ -37,7 +37,7 @@ export class KeyManager {
   static encryptPrivateKey(privateKey: string, password: string): string {
     // Derivar clave de cifrado desde la contraseña usando PBKDF2
     const salt = crypto.randomBytes(32);
-    const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+    const key = crypto.pbkdf2Sync(password, salt, 600000, 32, 'sha256');
 
     // Cifrar clave privada
     const iv = crypto.randomBytes(12); // IV de 96 bits para GCM
@@ -72,7 +72,7 @@ export class KeyManager {
     const authTag = Buffer.from(authTagB64, 'base64');
 
     // Derivar clave de descifrado desde la contraseña
-    const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+    const key = crypto.pbkdf2Sync(password, salt, 600000, 32, 'sha256');
 
     // Descifrar clave privada
     const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
@@ -129,7 +129,9 @@ export class KeyManager {
    * @returns Hash SHA-256 de la clave de recuperación.
    */
   static hashRecoveryKey(recoveryKey: string): string {
-    return crypto.createHash('sha256').update(recoveryKey).digest('hex');
+    const salt = Buffer.from('DocumentChainRecoveryKeySalt2026');
+    const key = crypto.pbkdf2Sync(recoveryKey, salt, 600000, 32, 'sha256');
+    return key.toString('hex');
   }
 
   /**

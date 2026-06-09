@@ -270,50 +270,52 @@ export class DocumentService {
       const metadataHash = Encryption.calculateHash(Buffer.from(metadata));
 
       // 9. Crear documento en BD con estado PREPARING
-      const document = await prisma.document.create({
-        data: {
-          id: uuidv4(),
-          blockchainId: undefined, // Se establecerá tras la confirmación blockchain
-          name,
-          description: description || null,
-          mimeType,
-          size: BigInt(fileBuffer.length),
-          contentHash: encryptionResult?.contentHash || Encryption.calculateHash(fileBuffer),
-          metadataHash,
-          ownerId,
-          creatorWalletId: walletId,
-          publicId: documentVisibility === DocumentVisibility.PUBLIC ? generatePublicId() : null,
-          visibility: documentVisibility,
-          encryptedSymmetricKey,
-          blockchainStatus: BlockchainStatus.PREPARING,
-          fileExtension: deriveFileExtension(name, fileExtension),
-          folderId: folderId || null,
-          tags: tags || [],
-          // Almacenar metadatos de cifrado
-          encryptionIV: encryptionResult?.iv ?? null,
-          encryptionAuthTag: encryptionResult?.authTag ?? null,
-        },
+      const document = await prisma.$transaction(async (tx) => {
+        const doc = await tx.document.create({
+          data: {
+            id: uuidv4(),
+            blockchainId: undefined, // Se establecerá tras la confirmación blockchain
+            name,
+            description: description || null,
+            mimeType,
+            size: BigInt(fileBuffer.length),
+            contentHash: encryptionResult?.contentHash || Encryption.calculateHash(fileBuffer),
+            metadataHash,
+            ownerId,
+            creatorWalletId: walletId,
+            publicId: documentVisibility === DocumentVisibility.PUBLIC ? generatePublicId() : null,
+            visibility: documentVisibility,
+            encryptedSymmetricKey,
+            blockchainStatus: BlockchainStatus.PREPARING,
+            fileExtension: deriveFileExtension(name, fileExtension),
+            folderId: folderId || null,
+            tags: tags || [],
+            encryptionIV: encryptionResult?.iv ?? null,
+            encryptionAuthTag: encryptionResult?.authTag ?? null,
+          },
+        });
+
+        await tx.event.create({
+          data: {
+            id: uuidv4(),
+            eventType: 'DOCUMENT_PREPARED',
+            userId: ownerId,
+            documentId: doc.id,
+            metadata: {
+              docId,
+              ipfsCid,
+              walletId,
+              walletAddress: wallet.walletAddress,
+              visibility: documentVisibility,
+              publicId: doc.publicId,
+            },
+          },
+        });
+
+        return doc;
       });
 
       logger.info(`[PREPARE] Documento creado en DB: ${document.id}, estado: PREPARING`);
-
-      // 5. Registrar evento de preparación
-      await prisma.event.create({
-        data: {
-          id: uuidv4(),
-          eventType: 'DOCUMENT_PREPARED',
-          userId: ownerId,
-          documentId: document.id,
-          metadata: {
-            docId,
-            ipfsCid,
-            walletId,
-            walletAddress: wallet.walletAddress,
-            visibility: documentVisibility,
-            publicId: document.publicId,
-          },
-        },
-      });
 
       const encryptedKeyHash = ethers.id(encryptedSymmetricKey);
 
@@ -499,6 +501,15 @@ export class DocumentService {
       }
 
       if (receipt.status === 0) {
+        const preparedEvent = await prisma.event.findFirst({
+          where: { documentId, eventType: 'DOCUMENT_PREPARED' },
+          orderBy: { createdAt: 'desc' },
+        });
+        const cid = (preparedEvent?.metadata as any)?.ipfsCid;
+        if (cid) {
+          try { await deleteFromIPFS(cid); } catch (e) { logger.warn(`Failed to unpin ${cid}`); }
+        }
+
         await prisma.$transaction(async (tx) => {
           await tx.document.updateMany({
             where: {
@@ -1192,12 +1203,7 @@ export class DocumentService {
         }
       });
 
-      // Eliminar de la base de datos (el borrado en cascada gestiona versiones, compartidos, etc.)
-      await prisma.document.delete({
-        where: { id: documentId },
-      });
-
-      // Desanclar de IPFS
+      // Desanclar de IPFS primero (antes de eliminar de BD)
       for (const cid of cidsToUnpin) {
         try {
           await deleteFromIPFS(cid);
@@ -1206,6 +1212,11 @@ export class DocumentService {
           logger.error(`[ROLLBACK] Failed to unpin CID ${cid}:`, error);
         }
       }
+
+      // Eliminar de la base de datos (el borrado en cascada gestiona versiones, compartidos, etc.)
+      await prisma.document.delete({
+        where: { id: documentId },
+      });
 
       // Registrar evento
       await prisma.event.create({

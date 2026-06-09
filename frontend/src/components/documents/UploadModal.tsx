@@ -54,6 +54,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 }) => {
   const { user } = useAuth(); // Get current user
   const { getRegistryContract } = useSigner();
+  const cancelledRef = useRef(false);
   const [file, setFile] = useState<File | null>(null);
   const [isPublic, setIsPublic] = useState(false);
   const [folderId, setFolderId] = useState<string | null>(defaultFolderId || null);
@@ -86,10 +87,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   const handleClose = () => {
-    if (step === 'form') {
-      resetForm();
-      onClose();
-    }
+    cancelledRef.current = true;
+    resetForm();
+    onClose();
   };
 
   const handleFileSelect = (selectedFile: File) => {
@@ -149,6 +149,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const handleWalletSelected = async (wallet: SavedWallet | null, connectedAddress: string) => {
     setShowWalletModal(false);
     setStep('preparing');
+    cancelledRef.current = false;
     
     try {
       if (!file) throw new Error('No file selected');
@@ -156,9 +157,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       if (!wallet) throw new Error('Wallet not selected');
       
       const registryContract = await getRegistryContract(connectedAddress);
+      if (cancelledRef.current) return;
 
       // Step 1: Read file as ArrayBuffer (unencrypted)
       const fileBuffer = await file.arrayBuffer();
+      if (cancelledRef.current) return;
       
       // Step 2: Prepare document on backend (backend encrypts and uploads to IPFS)
       const prepareResult = await documentsApi.prepareCreate({
@@ -171,6 +174,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         folderId: folderId || undefined,
         tags: tags ? tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : undefined,
       });
+      if (cancelledRef.current) return;
       
       // Step 3: Sign blockchain transaction
       setStep('signing');
@@ -183,11 +187,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           prepareResult.encryptedKeyHash,
         );
         setTxHash(tx1.hash);
+      if (cancelledRef.current) return;
       setStep('confirming');
       await Promise.race([
         tx1.wait(),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Transaction timeout')), 120000)),
       ]);
+      if (cancelledRef.current) return;
       
       // Step 4: Confirm with backend (use first tx hash as main reference)
       await documentsApi.confirmCreate({
@@ -195,6 +201,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         txHash: tx1.hash,
         blockchainId: prepareResult.docId,
       });
+      if (cancelledRef.current) return;
       
       setStep('success');
       
@@ -205,6 +212,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       }, 2000);
       
     } catch (err: any) {
+      if (cancelledRef.current) return;
       console.error('Upload error:', err);
       setError(getErrorMessage(err) || 'Error al subir el documento');
       setStep('error');

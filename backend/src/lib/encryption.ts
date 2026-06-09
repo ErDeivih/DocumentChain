@@ -53,6 +53,8 @@ export function encryptFile(
   const keyString = symmetricKey || generateSymmetricKey();
   const key = Buffer.from(keyString, 'base64');
 
+  if (key.length !== KEY_LENGTH) throw new Error('Invalid encryption key length');
+
   // Generar vector de inicialización aleatorio
   const iv = crypto.randomBytes(IV_LENGTH);
 

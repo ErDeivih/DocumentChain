@@ -403,6 +403,19 @@ export class VersionService {
           });
           isNowOperational = true;
           logger.info(`[CONFIRM] Versión ${versionId} sincronizada inmediatamente a SYNCED`);
+        } else if (receipt && receipt.status === 0) {
+          const failedVersion = await prisma.version.findFirst({ where: { blockchainTxHash: txHash } });
+          if (failedVersion?.ipfsCid) {
+            try { await deleteFromIPFS(failedVersion.ipfsCid); } catch (e) { logger.warn(`Failed to unpin failed version ${failedVersion.ipfsCid}`); }
+          }
+          updated = await prisma.version.update({
+            where: { id: versionId },
+            data: {
+              blockchainStatus: BlockchainStatus.FAILED,
+              blockchainError: 'Transaction reverted on chain',
+            },
+          });
+          logger.warn(`[CONFIRM] Versión ${versionId} marcada como FAILED por receipt revertido`);
         }
       }
     } catch (syncErr: any) {
@@ -848,12 +861,7 @@ export class VersionService {
 
       const ipfsCid = version.ipfsCid;
 
-      // Delete from database
-      await prisma.version.delete({
-        where: { id: versionId },
-      });
-
-      // Unpin from IPFS
+      // Unpin from IPFS first (before deleting from DB)
       if (ipfsCid) {
         try {
           await deleteFromIPFS(ipfsCid);
@@ -862,6 +870,11 @@ export class VersionService {
           logger.error(`[VERSION_ROLLBACK] Failed to unpin CID ${ipfsCid}:`, error);
         }
       }
+
+      // Delete from database
+      await prisma.version.delete({
+        where: { id: versionId },
+      });
 
       // Log event
       await prisma.event.create({
