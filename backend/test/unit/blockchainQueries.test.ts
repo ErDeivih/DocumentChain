@@ -412,7 +412,6 @@ describe('BlockchainQueries', () => {
 
       expect(result).toEqual(mockDocs);
       expect(mockContracts.documentRegistry.getUserDocuments).toHaveBeenCalledWith('0xUser1');
-      expect(mockContracts.documentRegistry.canView).toHaveBeenCalledTimes(mockDocs.length);
     });
 
     it('should return empty array if user has no documents', async () => {

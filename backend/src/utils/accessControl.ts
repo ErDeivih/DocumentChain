@@ -53,10 +53,8 @@ export async function resolveUserRole(
     const results = await Promise.all(
       wallets.map(async (wallet) => {
         try {
-          const isOwner = await DocumentPermissionService.isOwner(blockchainId, wallet.walletAddress);
-          if (isOwner) return 'OWNER' as const;
-
           const role = await DocumentPermissionService.getUserRole(blockchainId, wallet.walletAddress);
+          if (role === DocumentRole.OWNER) return 'OWNER' as const;
           if (role === DocumentRole.EDITOR) return 'SHARED_WRITE' as const;
           if (role === DocumentRole.VIEWER) return 'SHARED_READ' as const;
           return null;

@@ -91,21 +91,15 @@ export class DocumentPermissionService {
 
       const contract = getDocumentRegistryContract();
 
-      // Obtener rol y permisos en paralelo
-      const [role, canView, canEdit, isOwner] = await Promise.all([
-        contract.getUserPermission(docId, userAddress),
-        contract.canView(docId, userAddress),
-        contract.canEdit(docId, userAddress),
-        contract.isOwner(docId, userAddress)
-      ]);
-
+      const roleValue = await contract.getUserPermission(docId, userAddress);
+      const roleNum = Number(roleValue);
       return {
         docId,
         userAddress,
-        role: Number(role) as DocumentRole,
-        canView,
-        canEdit,
-        isOwner
+        role: roleNum as DocumentRole,
+        canView: roleNum >= 1,
+        canEdit: roleNum >= 2,
+        isOwner: roleNum === 3,
       };
 
     } catch (error) {

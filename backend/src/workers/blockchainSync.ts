@@ -190,6 +190,7 @@ scheduledTasks.push(cron.schedule('*/30 * * * *', async () => {
     // Documents — createdAt añadido en migración add-createdAt-to-document-and-version
     const staleDocs = await prisma.document.findMany({
       where: { blockchainStatus: BlockchainStatus.PREPARING, createdAt: { lt: thirtyMinutesAgo } },
+      orderBy: { createdAt: 'asc' },
       take: 50
     });
     for (const doc of staleDocs) {
@@ -199,6 +200,16 @@ scheduledTasks.push(cron.schedule('*/30 * * * *', async () => {
           try { await deleteFromIPFS(ver.ipfsCid); } catch(e) { logger.warn(`Failed to unpin ${ver.ipfsCid}`); }
         }
       }
+      // Also check DOCUMENT_PREPARED event for CIDs before versions exist
+      const preparedEvent = await prisma.event.findFirst({
+        where: { documentId: doc.id, eventType: 'DOCUMENT_PREPARED' },
+        orderBy: { createdAt: 'desc' },
+      });
+      const preparedCid = (preparedEvent?.metadata as any)?.ipfsCid;
+      if (preparedCid) {
+        try { await deleteFromIPFS(preparedCid); } catch(e) { logger.warn(`Failed to unpin prepared CID ${preparedCid}`); }
+      }
+
       await prisma.document.update({
         where: { id: doc.id },
         data: { blockchainStatus: BlockchainStatus.FAILED, blockchainError: 'User did not sign transaction within 30 minutes' }
@@ -209,6 +220,7 @@ scheduledTasks.push(cron.schedule('*/30 * * * *', async () => {
     // Versions — createdAt añadido en migración add-createdAt-to-document-and-version
     const staleVersions = await prisma.version.findMany({
       where: { blockchainStatus: BlockchainStatus.PREPARING, createdAt: { lt: thirtyMinutesAgo } },
+      orderBy: { createdAt: 'asc' },
       take: 50
     });
     for (const ver of staleVersions) {

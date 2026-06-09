@@ -683,11 +683,10 @@ export class DocumentService {
       .map(d => d.blockchainId as string);
 
     // Obtener blockchainIds de documentos compartidos via permisos on-chain
-    const sharedBlockchainIds: string[] = [];
-    for (const wallet of userWallets) {
-      const docs = await DocumentPermissionService.getUserDocuments(wallet.walletAddress);
-      sharedBlockchainIds.push(...docs);
-    }
+    const docArrays = await Promise.all(
+      userWallets.map(w => DocumentPermissionService.getUserDocuments(w.walletAddress).catch(() => []))
+    );
+    const sharedBlockchainIds = [...new Set(docArrays.flat())];
 
     // Unir ambos conjuntos (sin duplicados)
     const allBlockchainIds = [...new Set([...ownedBlockchainIds, ...sharedBlockchainIds])];

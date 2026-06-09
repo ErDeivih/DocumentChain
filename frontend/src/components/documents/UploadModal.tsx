@@ -184,7 +184,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         );
         setTxHash(tx1.hash);
       setStep('confirming');
-      await tx1.wait();
+      await Promise.race([
+        tx1.wait(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Transaction timeout')), 120000)),
+      ]);
       
       // Step 4: Confirm with backend (use first tx hash as main reference)
       await documentsApi.confirmCreate({
@@ -290,7 +293,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             <Button
               variant="outline"
               onClick={handleClose}
-              disabled={isProcessing}
               type="button"
             >
               {step === 'success' ? 'Cerrar' : 'Cancelar'}

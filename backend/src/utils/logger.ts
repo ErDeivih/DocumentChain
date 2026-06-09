@@ -365,7 +365,7 @@ export function withLogging<T extends (...args: any[]) => Promise<any>>(
       logger.error(`[${context}] Error: ${error.message}`, {
         error: error.message,
         stack: error.stack,
-        args: JSON.stringify(args)
+        args: args.map((a: any) => typeof a).join(', ')
       });
       throw error;
     }

@@ -37,15 +37,20 @@ export class BlockchainReconciler {
       const states = await BlockchainCacheService.batchGetDocumentStates(blockchainIds);
       let corrections = 0;
 
+      const ownersOnChain = [...states.values()].map(s => s.owner).filter(o => o !== ethers.ZeroAddress);
+      const wallets = await prisma.wallet.findMany({
+        where: { walletAddress: { in: ownersOnChain.map(a => a.toLowerCase()) } },
+        select: { walletAddress: true, userId: true },
+      });
+      const walletMap = new Map(wallets.map(w => [w.walletAddress.toLowerCase(), w.userId]));
+
       for (const doc of syncedDocs) {
         const state = states.get(doc.blockchainId!);
         if (!state) continue;
 
         if (state.owner !== ethers.ZeroAddress) {
-          const ownerWallet = await prisma.wallet.findFirst({
-            where: { walletAddress: state.owner.toLowerCase() },
-            select: { userId: true },
-          });
+          const ownerUserId = walletMap.get(state.owner.toLowerCase());
+          const ownerWallet = ownerUserId ? { userId: ownerUserId } : null;
 
           if (ownerWallet && ownerWallet.userId !== doc.ownerId) {
             logger.warn(`[BlockchainReconciler] Owner mismatch for ${doc.id}: DB=${doc.ownerId}, chain=${state.owner}`);

@@ -50,16 +50,19 @@ export class BlockchainCacheService {
     }
 
     if (uncached.length > 0) {
-      const promises = uncached.map(async (id) => {
-        try {
-          const state = await this.fetchDocumentState(id);
-          this.cache.set(id, { state, timestamp: Date.now() });
-          result.set(id, state);
-        } catch (error) {
-          logger.warn(`[BlockchainCache] No se pudo obtener estado para ${id}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      });
-      await Promise.all(promises);
+      const CHUNK_SIZE = 10;
+      for (let i = 0; i < uncached.length; i += CHUNK_SIZE) {
+        const chunk = uncached.slice(i, i + CHUNK_SIZE).map(async (id) => {
+          try {
+            const state = await this.fetchDocumentState(id);
+            this.cache.set(id, { state, timestamp: Date.now() });
+            result.set(id, state);
+          } catch (error) {
+            logger.warn(`[BlockchainCache] No se pudo obtener estado para ${id}`);
+          }
+        });
+        await Promise.all(chunk);
+      }
     }
 
     return result;

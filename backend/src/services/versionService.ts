@@ -274,24 +274,24 @@ export class VersionService {
           },
         });
 
+        const shareKeys = await tx.documentShareKey.findMany({
+          where: { documentId },
+          include: { user: { select: { publicKey: true } } },
+        });
+        for (const shareKey of shareKeys) {
+          const reEncryptedKey = encryptionResult
+            ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, shareKey.user.publicKey)
+            : 'UNENCRYPTED';
+          await tx.documentShareKey.update({
+            where: { id: shareKey.id },
+            data: { encryptedSymmetricKey: reEncryptedKey },
+          });
+        }
+
         return createdVersion;
       });
 
       logger.info(`[PREPARE] Versión creada en DB: ${version.id}, estado: PREPARING`);
-
-      const shareKeys = await prisma.documentShareKey.findMany({
-        where: { documentId },
-        include: { user: { select: { publicKey: true } } },
-      });
-      for (const shareKey of shareKeys) {
-        const reEncryptedKey = encryptionResult
-          ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, shareKey.user.publicKey)
-          : 'UNENCRYPTED';
-        await prisma.documentShareKey.update({
-          where: { id: shareKey.id },
-          data: { encryptedSymmetricKey: reEncryptedKey },
-        });
-      }
 
       const encryptedKeyHash = ethers.id(encryptedSymmetricKey);
 

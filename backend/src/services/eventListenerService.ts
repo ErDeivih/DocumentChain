@@ -92,15 +92,18 @@ class EventListenerService {
       const filter = { fromBlock: lastSyncedBlock + 1, toBlock: currentBlock };
       let totalEvents = 0;
 
-      for (const { eventName, handler } of EVENT_HANDLERS) {
-        const events = await contracts.documentRegistry.queryFilter(
-          contracts.documentRegistry.filters[eventName](), filter.fromBlock, filter.toBlock
-        );
-        for (const evt of events) {
-          await handler((evt as any).args || {}, evt);
-        }
-        totalEvents += events.length;
-      }
+      const allEventResults = await Promise.all(
+        EVENT_HANDLERS.map(async ({ eventName, handler }) => {
+          const events = await contracts.documentRegistry.queryFilter(
+            contracts.documentRegistry.filters[eventName](), filter.fromBlock, filter.toBlock
+          );
+          for (const evt of events) {
+            await handler((evt as any).args || {}, evt);
+          }
+          return events.length;
+        })
+      );
+      totalEvents = allEventResults.reduce((sum, count) => sum + count, 0);
 
       const now = new Date();
       await prisma.systemStats.upsert({

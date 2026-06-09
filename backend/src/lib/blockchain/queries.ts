@@ -115,22 +115,20 @@ export class BlockchainQueries {
       
       const versionCount = Number(doc.latestVersion);
       
-      const versionPromises = [];
-      for (let i = 1; i <= versionCount; i++) {
-        versionPromises.push(
-          this.getVersion(blockchainId, i).catch((error) => {
-            logger.warn('No se pudo obtener la versión de la blockchain', {
-              blockchainId,
-              versionNumber: i,
-              error: error instanceof Error ? error.message : 'Error desconocido'
-            });
+      const results: BlockchainVersion[] = [];
+      const CHUNK_SIZE = 10;
+      for (let i = 1; i <= versionCount; i += CHUNK_SIZE) {
+        const chunk = [];
+        for (let j = i; j < Math.min(i + CHUNK_SIZE, versionCount + 1); j++) {
+          chunk.push(this.getVersion(blockchainId, j).catch((error) => {
+            logger.warn('No se pudo obtener la versión', { blockchainId, versionNumber: j, error: error instanceof Error ? error.message : 'Error desconocido' });
             return null;
-          })
-        );
+          }));
+        }
+        const chunkResults = await Promise.all(chunk);
+        results.push(...chunkResults.filter((v): v is BlockchainVersion => v !== null));
       }
-
-      const results = await Promise.all(versionPromises);
-      return results.filter((v): v is BlockchainVersion => v !== null);
+      return results;
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
@@ -336,33 +334,10 @@ export class BlockchainQueries {
     try {
       const contracts = getContracts();
       const documentIds = await contracts.documentRegistry.getUserDocuments(userAddress);
-
-      if (!Array.isArray(documentIds) || documentIds.length === 0) {
-        return [];
-      }
-
-      const activeDocumentIds = await Promise.all(
-        documentIds.map(async (id: string) => {
-          try {
-            const canView = await contracts.documentRegistry.canView(id, userAddress);
-            return canView ? id : null;
-          } catch (permissionError) {
-            logger.warn('No se pudo validar acceso activo del usuario al documento', {
-              userAddress,
-              blockchainId: id,
-              error: permissionError instanceof Error ? permissionError.message : 'Error desconocido',
-            });
-            return null;
-          }
-        })
-      );
-
-      return activeDocumentIds.filter((id): id is string => Boolean(id));
+      if (!Array.isArray(documentIds) || documentIds.length === 0) return [];
+      return documentIds.filter((id): id is string => id !== ethers.ZeroAddress);
     } catch (error) {
-      logger.error('Error al obtener documentos del usuario', {
-        userAddress,
-        error: error instanceof Error ? error.message : 'Error desconocido'
-      });
+      logger.error('Error al obtener documentos del usuario', { userAddress, error: error instanceof Error ? error.message : 'Error desconocido' });
       return [];
     }
   }

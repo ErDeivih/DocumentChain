@@ -101,3 +101,7 @@ anexos/capt/pdf_pages/
 anexos/obsoletos/
 frontend/e2e/
 frontend/playwright.config.ts
+
+# Explicit env files
+backend/.env
+frontend/.env

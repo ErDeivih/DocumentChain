@@ -39,6 +39,17 @@ export class DocumentLifecycleService {
       new Set(document.versions.map((v) => v.ipfsCid).filter((cid): cid is string => Boolean(cid)))
     );
 
+    for (const cid of cidsToUnpin) {
+      try {
+        await deleteFromIPFS(cid);
+      } catch (error) {
+        logger.error('[DELETE] Error al desanclar documento de IPFS', {
+          documentId, cid,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.event.create({
         data: {
@@ -51,17 +62,6 @@ export class DocumentLifecycleService {
         },
       });
     });
-
-    for (const cid of cidsToUnpin) {
-      try {
-        await deleteFromIPFS(cid);
-      } catch (error) {
-        logger.error('[DELETE] Error al desanclar documento de IPFS', {
-          documentId, cid,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
 
     if (document?.blockchainId) BlockchainCacheService.invalidate(document.blockchainId);
   }

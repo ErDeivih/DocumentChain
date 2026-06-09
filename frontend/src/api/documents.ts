@@ -285,27 +285,6 @@ export const documentsApi = {
   },
 
   /**
-   * Prepara el archivado de un documento.
-   * @param documentId - UUID del documento.
-   * @returns Identificador blockchain del documento.
-   */
-  prepareArchive: async (documentId: string): Promise<{ blockchainId: string }> => {
-    const response = await api.post<{ blockchainId: string }>(`/documents/${documentId}/archive/prepare`);
-    return response.data;
-  },
-
-  /**
-   * Confirma el archivado tras la transacción blockchain.
-   * @param params - Parámetros de confirmación.
-   * @param params.documentId - UUID del documento.
-   * @param params.txHash - Hash de la transacción.
-   * @returns Promesa vacía.
-   */
-  confirmArchive: async (params: { documentId: string; txHash: string }): Promise<void> => {
-    await api.post(`/documents/${params.documentId}/archive/confirm`, { txHash: params.txHash });
-  },
-
-  /**
    * Prepara la transferencia de un documento (Arquitectura de Cifrado Backend).
    *
    * Flujo:

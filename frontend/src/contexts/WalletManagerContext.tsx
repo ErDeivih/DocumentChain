@@ -200,6 +200,17 @@ export function WalletManagerProvider({ children }: { children: ReactNode }) {
       }
 
       loadSavedWallets();
+
+      if ((window as any).ethereum) {
+        (async () => {
+          try {
+            const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' });
+            if (accounts && accounts.length > 0) {
+              // User already authorized - connection available silently
+            }
+          } catch { /* silent - user hasn't authorized yet */ }
+        })();
+      }
     } else {
       setSavedWallets([]);
       setConnectedWallet(null);
