@@ -77,7 +77,7 @@ export async function deleteFolder(req: Request, res: Response) {
     const userId = getUserId(req, res);
     if (!userId) return;
 
-    await FolderService.deleteFolder(req.params.id as string, userId, req.query.deleteContents === 'true');
+    await FolderService.deleteFolder(req.params.id as string, userId, req.query.orphanContents === 'true');
     res.json({ message: 'Carpeta eliminada exitosamente' });
   } catch (error) {
     res.status(400).json({ error: error instanceof Error ? error.message : 'Error al eliminar carpeta' });

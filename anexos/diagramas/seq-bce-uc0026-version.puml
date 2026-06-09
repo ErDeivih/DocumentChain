@@ -12,12 +12,12 @@ entity "Documento" as ED
 Actor -> BS : Selecciona nuevo contenido
 BS -> CV : Solicita crear una nueva version (prepare)
 CV -> CV : Comprueba elegibilidad del cambio
-' wallet: firma transaccion createVersion on-chain
-' wallet -> sc: createVersion(docId, cid, metadataHash)
-' sc --> wallet: txHash
-' Confirmacion con receipt
-' srv -> sc: getTransactionReceipt(txHash)
-' sc --> srv: receipt + evento VersionCreated
+wallet: firma transaccion createVersion on-chain
+wallet -> sc: createVersion(docId, cid, metadataHash)
+sc --> wallet: txHash
+Confirmacion con receipt
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt + evento VersionCreated
 CV -> EV : Genera la nueva version
 EV --> CV : Version disponible
 CV -> ED : Vincula la version al documento

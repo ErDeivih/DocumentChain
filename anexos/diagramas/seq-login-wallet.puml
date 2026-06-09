@@ -1,4 +1,5 @@
-﻿' NOTA: Login con wallet no implementado actualmente
+﻿' ARCHIVED: Login con wallet no implementado
+' NOTA: Login con wallet no implementado actualmente
 ' El sistema utiliza autenticacion estandar JWT con email/password
 @startuml
 

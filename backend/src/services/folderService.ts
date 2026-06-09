@@ -184,12 +184,12 @@ export class FolderService {
    * Eliminar una carpeta y, opcionalmente, su contenido.
    * @param folderId - ID de la carpeta
    * @param userId - ID del propietario
-   * @param deleteContents - Si es true, mueve documentos y subcarpetas a la raíz antes de eliminar
+   * @param orphanContents - Si es true, mueve documentos y subcarpetas a la raíz antes de eliminar
    */
   static async deleteFolder(
     folderId: string,
     userId: string,
-    deleteContents: boolean = false
+    orphanContents: boolean = false
   ): Promise<void> {
     const folder = await prisma.folder.findFirst({
       where: { id: folderId, userId },
@@ -203,11 +203,11 @@ export class FolderService {
       throw new Error('Carpeta no encontrada');
     }
 
-    if (!deleteContents && (folder.documents.length > 0 || folder.children.length > 0)) {
+    if (!orphanContents && (folder.documents.length > 0 || folder.children.length > 0)) {
       throw new Error('La carpeta no está vacía. Mueve o elimina el contenido primero.');
     }
 
-    if (deleteContents) {
+    if (orphanContents) {
       // Mover documentos a la raíz
       await prisma.document.updateMany({
         where: { folderId },

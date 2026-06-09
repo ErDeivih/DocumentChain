@@ -179,7 +179,8 @@ export const UploadVersionModal: React.FC<UploadVersionModalProps> = ({
       // Create new version on blockchain with IPFS CID
       const tx = await registryContract.createVersion(
         docId,
-        prepareResult.ipfsCid
+        prepareResult.ipfsCid,
+        prepareResult.encryptedKeyHash
       );
       
       setTxHash(tx.hash);

@@ -180,6 +180,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         const tx1 = await registryContract.createDocument(
           prepareResult.docId,
           prepareResult.ipfsCid,
+          prepareResult.encryptedKeyHash,
         );
         setTxHash(tx1.hash);
       setStep('confirming');

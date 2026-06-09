@@ -71,6 +71,7 @@ model Wallet {
   user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, walletAddress])
+  @@unique([walletAddress])
   @@index([walletAddress])
   @@index([userId])
 }
@@ -170,7 +171,7 @@ model DocumentSignature {
   id                          String           @id @default(cuid())
   documentId                  String
   versionId                   String
-  userId                      String
+  userId                      String?
   blockchainError             String?
   blockchainTxHash            String?
   signerWalletId              String?
@@ -181,7 +182,7 @@ model DocumentSignature {
   signerWalletAddressSnapshot String?
   document                    Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
   signerWallet                Wallet?          @relation("SignatureWallet", fields: [signerWalletId], references: [id], onDelete: SetNull)
-  user                        User             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user                        User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   version                     Version          @relation(fields: [versionId], references: [id], onDelete: Cascade)
 
   @@unique([versionId, userId])

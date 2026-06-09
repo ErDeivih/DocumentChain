@@ -2,7 +2,7 @@ jest.mock('../../src/config/database', () => ({
   __esModule: true,
   default: {
     document: { findMany: jest.fn(), update: jest.fn() },
-    event: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue({ metadata: { encryptedSymmetricKey: 'enc-key-new' } }) },
+    event: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue({ metadata: { pendingEncryptedSymmetricKey: 'enc-key-new' } }) },
     wallet: { findFirst: jest.fn() },
   },
 }));

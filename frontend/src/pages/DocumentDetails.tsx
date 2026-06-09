@@ -99,7 +99,7 @@ export const DocumentDetails: React.FC = () => {
 
   // Get operational version number from document API (backed by BlockchainCacheService)
   const versionsArray: any[] = versions?.versions || [];
-  const operationalVersionNumber: number = (document as any)?.operationalVersionNumber ?? versionsArray.find((v: any) => v.isOperational)?.versionNumber ?? 1;
+  const operationalVersionNumber: number = document?.operationalVersionNumber ?? versionsArray.find((v: any) => v.isOperational)?.versionNumber ?? 1;
   const operationalVersion = versionsArray.find((v: any) => v.versionNumber === operationalVersionNumber);
 
   const { data: shares } = useQuery({
@@ -408,13 +408,12 @@ export const DocumentDetails: React.FC = () => {
               <>
                 <Button
                   variant="secondary"
-                  onClick={() => (document as any)?.isArchived ? unarchiveMutation.mutate() : archiveMutation.mutate()}
+                  onClick={() => document?.isArchived ? unarchiveMutation.mutate() : archiveMutation.mutate()}
                   isLoading={archiveMutation.isPending || unarchiveMutation.isPending}
                   title="Al archivar, el documento seguirá visible para quienes tienen acceso, pero no se podrá modificar"
                 >
                   <Archive className="w-4 h-4 mr-2" />
-                  {/* TODO: Use real isArchived from document response once backend includes it */}
-                  {(document as any)?.isArchived ? 'Desarchivar' : 'Archivar'}
+                  {document?.isArchived ? 'Desarchivar' : 'Archivar'}
                 </Button>
                 <Button
                   variant="destructive"
@@ -546,8 +545,7 @@ export const DocumentDetails: React.FC = () => {
           <OperationalVersionSelector
             documentId={id!}
             isOwner={isOwner}
-            // TODO: Get isArchived from document response once backend includes it
-            isArchived={!!(document as any)?.isArchived}
+            isArchived={!!document?.isArchived}
             versions={versionsArray}
             isPublic={isPublicDocument}
             publicId={document.publicId}

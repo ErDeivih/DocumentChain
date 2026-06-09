@@ -18,8 +18,8 @@
     "data:seed:qa:max": "ts-node scripts/generate-test-data.ts --profile=qa-max",
     "docs": "typedoc",
     "docs:serve": "npx http-server docs/api -p 8080",
-    "lint": "eslint src/ --ext .ts",
-    "lint:fix": "eslint src/ --ext .ts --fix"
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
   },
   "keywords": [],
   "author": "",

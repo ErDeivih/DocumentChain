@@ -81,6 +81,8 @@ export interface DocumentInfo {
     fullName: string | null;
     avatarUrl: string | null;
   } | null;
+  isArchived?: boolean;
+  operationalVersionNumber?: number;
 }
 
 /**
@@ -107,6 +109,7 @@ export interface PrepareDocumentResult {
   ipfsCid: string;         // CID del archivo cifrado
   documentId: string;      // UUID del documento en BD
   publicId: string | null;
+  encryptedKeyHash: string;
 }
 
 /**
@@ -312,11 +315,14 @@ export class DocumentService {
         },
       });
 
+      const encryptedKeyHash = ethers.id(encryptedSymmetricKey);
+
       return {
         docId,
         ipfsCid,
         documentId: document.id,
         publicId: document.publicId,
+        encryptedKeyHash,
       };
 
     } catch (error) {
@@ -474,7 +480,7 @@ export class DocumentService {
       where: { id: documentId },
     });
 
-    return this.toDocumentInfo(syncedDocument ?? updated);
+    return await this.toDocumentInfo(syncedDocument ?? updated);
   }
 
   private static async trySyncConfirmedDocument(
@@ -627,7 +633,7 @@ export class DocumentService {
 
     const role = await resolveUserRole(document.id, document.ownerId, document.blockchainId, userId);
 
-    return this.toDocumentInfo(document, role);
+    return await this.toDocumentInfo(document, role);
   }
 
   /**
@@ -766,7 +772,7 @@ export class DocumentService {
     ]);
 
     return {
-      documents: documents.map(d => this.toDocumentInfo(d)),
+      documents: await Promise.all(documents.map(d => this.toDocumentInfo(d))),
       total,
       page: safePage,
       totalPages: Math.max(1, Math.ceil(total / safeLimit)),
@@ -826,7 +832,7 @@ export class DocumentService {
     // Determinar la clave simétrica cifrada correcta para este usuario
     let encryptedSymmetricKey: string;
     if (document.ownerId === userId) {
-      encryptedSymmetricKey = operationalVersion.encryptedSymmetricKey || document.encryptedSymmetricKey || 'UNENCRYPTED';
+      encryptedSymmetricKey = document.encryptedSymmetricKey || operationalVersion.encryptedSymmetricKey || 'UNENCRYPTED';
     } else {
       const shareKey = await prisma.documentShareKey.findUnique({
         where: {
@@ -899,7 +905,7 @@ export class DocumentService {
       },
     });
 
-    return documents.map(d => this.toDocumentInfo(d));
+    return Promise.all(documents.map(d => this.toDocumentInfo(d)));
   }
 
   /**
@@ -1113,7 +1119,7 @@ export class DocumentService {
    * @param role - Rol del usuario solicitante (opcional).
    * @returns Información normalizada del documento.
    */
-  private static toDocumentInfo(document: any, role: DocumentInfo['role'] = null): DocumentInfo {
+  private static async toDocumentInfo(document: any, role: DocumentInfo['role'] = null): Promise<DocumentInfo> {
     const isEncrypted = document.encryptedSymmetricKey !== 'UNENCRYPTED';
 
     return {
@@ -1149,6 +1155,8 @@ export class DocumentService {
             avatarUrl: document.owner.avatarUrl ?? null,
           }
         : null,
+      isArchived: await BlockchainCacheService.isDocumentArchived(document.blockchainId!).catch(() => undefined),
+      operationalVersionNumber: await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId!).catch(() => undefined),
     };
   }
 

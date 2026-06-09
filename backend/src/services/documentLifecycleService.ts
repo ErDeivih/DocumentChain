@@ -62,6 +62,8 @@ export class DocumentLifecycleService {
         });
       }
     }
+
+    if (document?.blockchainId) BlockchainCacheService.invalidate(document.blockchainId);
   }
 
   static async archiveDocument(documentId: string, userId: string, txHash: string): Promise<void> {
@@ -98,6 +100,8 @@ export class DocumentLifecycleService {
     });
 
     logger.info(`Documento ${documentId} archivado por ${userId}`);
+
+    if (document?.blockchainId) BlockchainCacheService.invalidate(document.blockchainId);
   }
 
   static async unarchiveDocument(documentId: string, userId: string, txHash: string): Promise<void> {
@@ -134,5 +138,7 @@ export class DocumentLifecycleService {
     });
 
     logger.info(`Documento ${documentId} desarchivado por ${userId}`);
+
+    if (document?.blockchainId) BlockchainCacheService.invalidate(document.blockchainId);
   }
 }

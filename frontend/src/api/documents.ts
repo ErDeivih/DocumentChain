@@ -88,6 +88,8 @@ export interface PrepareDocumentResponse {
   documentId: string;
   /** Identificador público (si aplica). */
   publicId: string | null;
+  /** Hash de la clave simétrica cifrada (bytes32 para blockchain). */
+  encryptedKeyHash: string;
 }
 
 /**

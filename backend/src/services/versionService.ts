@@ -22,6 +22,7 @@ import {
   assertVersionCreatedReceipt,
   assertVersionRestoredReceipt,
 } from './blockchainReceiptService';
+import { ethers } from 'ethers';
 
 // ============================================
 // Types
@@ -83,6 +84,7 @@ export interface PrepareVersionResult {
   ipfsCid: string;
   blockchainId: string;
   versionNumber: number;
+  encryptedKeyHash: string;
 }
 
 /**
@@ -277,11 +279,26 @@ export class VersionService {
 
       logger.info(`[PREPARE] Versión creada en DB: ${version.id}, estado: PREPARING`);
 
+      const shareKeys = await prisma.documentShareKey.findMany({
+        where: { documentId },
+        include: { user: { select: { publicKey: true } } },
+      });
+      for (const shareKey of shareKeys) {
+        const reEncryptedKey = Encryption.encryptSymmetricKey(encryptedSymmetricKey, shareKey.user.publicKey);
+        await prisma.documentShareKey.update({
+          where: { id: shareKey.id },
+          data: { encryptedSymmetricKey: reEncryptedKey },
+        });
+      }
+
+      const encryptedKeyHash = ethers.id(encryptedSymmetricKey);
+
       return {
         versionId: version.id,
         ipfsCid,
         blockchainId,
         versionNumber: version.versionNumber,
+        encryptedKeyHash,
       };
 
     } catch (error) {

@@ -318,7 +318,7 @@ export async function handleOwnershipTransferred(args: unknown, event: Blockchai
       where: { documentId: document.id, eventType: 'TRANSFER_PREPARED' },
       orderBy: { createdAt: 'desc' },
     });
-    const pendingKey = transferEvent?.metadata && typeof transferEvent.metadata === 'object' && 'encryptedSymmetricKey' in transferEvent.metadata ? (transferEvent.metadata as any).encryptedSymmetricKey : null;
+    const pendingKey = transferEvent?.metadata && typeof transferEvent.metadata === 'object' && 'pendingEncryptedSymmetricKey' in transferEvent.metadata ? (transferEvent.metadata as any).pendingEncryptedSymmetricKey : null;
     if (pendingKey) {
       await prisma.document.update({ where: { blockchainId: eventArgs.docId }, data: { ownerId: newOwner.id, encryptedSymmetricKey: pendingKey } });
     } else {

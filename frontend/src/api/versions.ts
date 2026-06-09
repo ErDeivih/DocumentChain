@@ -55,6 +55,8 @@ export interface PrepareVersionResponse {
   blockchainId: string;
   /** CID del archivo cifrado en IPFS. */
   ipfsCid: string;
+  /** Hash de la clave simétrica cifrada (bytes32 para blockchain). */
+  encryptedKeyHash: string;
 }
 
 /**

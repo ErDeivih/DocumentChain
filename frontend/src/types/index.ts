@@ -163,6 +163,8 @@ export interface Document {
   folder?: Folder;
   /** Rol del usuario actual sobre el documento. */
   role?: DocumentRole;
+  isArchived?: boolean;
+  operationalVersionNumber?: number;
 }
 
 /**

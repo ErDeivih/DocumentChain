@@ -11,8 +11,8 @@
         "test:e2e": "playwright test --config playwright.e2e.local.config.ts",
         "capture:emails": "node scripts/generate-email-previews.mjs",
         "docs": "typedoc",
-        "lint": "eslint src/ --ext .ts,.tsx",
-        "lint:fix": "eslint src/ --ext .ts,.tsx --fix"
+        "lint": "eslint src/",
+        "lint:fix": "eslint src/ --fix"
     },
     "keywords": [],
     "author": "",

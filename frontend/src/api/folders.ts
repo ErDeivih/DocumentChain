@@ -81,14 +81,14 @@ export async function updateFolder(
 /**
  * Elimina una carpeta.
  * @param folderId - Identificador de la carpeta.
- * @param deleteContents - Indica si se deben eliminar los contenidos.
+ * @param orphanContents - Indica si se deben mover los contenidos a la raíz.
  * @returns Promesa vacía.
  */
 export async function deleteFolder(
   folderId: string,
-  deleteContents: boolean = false
+  orphanContents: boolean = false
 ): Promise<void> {
-  await api.delete(`/folders/${folderId}?deleteContents=${deleteContents}`);
+  await api.delete(`/folders/${folderId}?orphanContents=${orphanContents}`);
 }
 
 /**

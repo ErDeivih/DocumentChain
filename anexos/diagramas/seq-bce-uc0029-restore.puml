@@ -18,12 +18,12 @@ EV --> CV : version encontrada
 CV -> ED : 4. Verifica propiedad
 ED --> CV : permiso verificado
 
-' wallet: firma transaccion restoreVersion on-chain
-' wallet -> sc: restoreVersion(docId, versionId)
-' sc --> wallet: txHash
-' Confirmacion con receipt
-' srv -> sc: getTransactionReceipt(txHash)
-' sc --> srv: receipt + evento VersionRestored
+wallet: firma transaccion restoreVersion on-chain
+wallet -> sc: restoreVersion(docId, versionId)
+sc --> wallet: txHash
+Confirmacion con receipt
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt + evento VersionRestored
 
 CV -> EV : 5. Restaura contenido de la version
 

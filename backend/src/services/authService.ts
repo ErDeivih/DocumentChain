@@ -115,7 +115,7 @@ export class AuthService {
       data: {
         id: uuidv4(),
         username,
-        email,
+        email: email.toLowerCase().trim(),
         passwordHash: hashedPassword,
         fullName: fullName || null,
         role: userRole,

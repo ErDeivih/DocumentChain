@@ -12,6 +12,7 @@
 import cron from 'node-cron';
 import prisma from '../config/database';
 import { provider } from '../config/blockchain';
+import { deleteFromIPFS } from '../config/ipfs';
 import logger from '../utils/logger';
 import { BlockchainStatus } from '@prisma/client';
 import type { ScheduledTask } from 'node-cron';
@@ -192,6 +193,12 @@ scheduledTasks.push(cron.schedule('*/30 * * * *', async () => {
       take: 50
     });
     for (const doc of staleDocs) {
+      const versions = await prisma.version.findMany({ where: { documentId: doc.id }, select: { ipfsCid: true } });
+      for (const ver of versions) {
+        if (ver.ipfsCid) {
+          try { await deleteFromIPFS(ver.ipfsCid); } catch(e) { logger.warn(`Failed to unpin ${ver.ipfsCid}`); }
+        }
+      }
       await prisma.document.update({
         where: { id: doc.id },
         data: { blockchainStatus: BlockchainStatus.FAILED, blockchainError: 'User did not sign transaction within 30 minutes' }
@@ -205,6 +212,9 @@ scheduledTasks.push(cron.schedule('*/30 * * * *', async () => {
       take: 50
     });
     for (const ver of staleVersions) {
+      if (ver.ipfsCid) {
+        try { await deleteFromIPFS(ver.ipfsCid); } catch(e) { logger.warn(`Failed to unpin ${ver.ipfsCid}`); }
+      }
       await prisma.version.update({
         where: { id: ver.id },
         data: { blockchainStatus: BlockchainStatus.FAILED, blockchainError: 'User did not sign transaction within 30 minutes' }

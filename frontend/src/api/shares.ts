@@ -44,6 +44,8 @@ export interface ConfirmShareInput {
   shareId: string;
   /** Hash de la transacción blockchain. */
   txHash: string;
+  /** Identificador del documento. */
+  documentId: string;
 }
 
 /**

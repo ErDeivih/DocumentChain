@@ -109,7 +109,7 @@ export interface PrepareShareResult {
 export interface ConfirmShareInput {
   shareId: string;
   txHash: string;
-  documentId?: string;
+  documentId: string;
   recipientId?: string;
   role?: 'SHARED_READ' | 'SHARED_WRITE';
 }
@@ -290,7 +290,7 @@ export class ShareService {
     const preparedEvents = await prisma.event.findMany({
       where: {
         eventType: 'SHARE_PREPARED',
-        ...(inputDocumentId ? { documentId: inputDocumentId } : {}),
+        documentId: inputDocumentId,
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
@@ -743,9 +743,11 @@ export class ShareService {
    * Confirm share revocation
    */
   static async confirmRevokeShare(shareId: string, txHash: string): Promise<void> {
+    const documentId = shareId.split(':')[0];
     const preparedEvents = await prisma.event.findMany({
       where: {
         eventType: 'SHARE_REVOKE_PREPARED',
+        documentId,
       },
       orderBy: {
         createdAt: 'desc',

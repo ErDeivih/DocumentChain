@@ -191,6 +191,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       await sharesApi.confirmShare({
         shareId: prepareResult.shareId,
         txHash: tx.hash,
+        documentId,
       });
 
       setStep('success');

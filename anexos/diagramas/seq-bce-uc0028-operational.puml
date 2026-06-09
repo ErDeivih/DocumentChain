@@ -18,12 +18,12 @@ EV --> CV : version existente
 CV -> ED : 4. Verifica propiedad
 ED --> CV : propiedad confirmada
 
-' wallet: firma transaccion setOperationalVersion on-chain
-' wallet -> sc: setOperationalVersion(docId, versionId)
-' sc --> wallet: txHash
-' Confirmacion con receipt
-' srv -> sc: getTransactionReceipt(txHash)
-' sc --> srv: receipt + evento OperationalVersionChanged
+wallet: firma transaccion setOperationalVersion on-chain
+wallet -> sc: setOperationalVersion(docId, versionId)
+sc --> wallet: txHash
+Confirmacion con receipt
+srv -> sc: getTransactionReceipt(txHash)
+sc --> srv: receipt + evento OperationalVersionChanged
 
 CV -> EV : 5. Actualiza version operativa
 EV --> CV : version operativa actualizada
