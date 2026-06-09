@@ -25,6 +25,7 @@ describe('BlockchainReconciler', () => {
   let mockUpdate: jest.Mock;
   let mockCreate: jest.Mock;
   let mockFindFirst: jest.Mock;
+  let mockWalletFindMany: jest.Mock;
   let mockBatchGetDocumentStates: jest.Mock;
 
   beforeEach(() => {
@@ -35,6 +36,7 @@ describe('BlockchainReconciler', () => {
     mockUpdate = prisma.document.update as jest.Mock;
     mockCreate = prisma.event.create as jest.Mock;
     mockFindFirst = prisma.wallet.findFirst as jest.Mock;
+    mockWalletFindMany = prisma.wallet.findMany as jest.Mock;
     mockBatchGetDocumentStates = BlockchainCacheService.batchGetDocumentStates as jest.Mock;
   });
 
@@ -93,6 +95,7 @@ describe('BlockchainReconciler', () => {
       );
 
       mockFindFirst.mockResolvedValue({ userId: 'user-1' });
+      mockWalletFindMany.mockResolvedValue([{ walletAddress: '0xOwner1', userId: 'user-1' }]);
 
       await (BlockchainReconciler as any).reconcile();
 
@@ -113,6 +116,7 @@ describe('BlockchainReconciler', () => {
       );
 
       mockFindFirst.mockResolvedValue({ userId: 'user-new' });
+      mockWalletFindMany.mockResolvedValue([{ walletAddress: '0xNewOwner', userId: 'user-new' }]);
 
       await (BlockchainReconciler as any).reconcile();
 
@@ -134,6 +138,7 @@ describe('BlockchainReconciler', () => {
       );
 
       mockFindFirst.mockResolvedValue(null);
+      mockWalletFindMany.mockResolvedValue([]);
 
       await (BlockchainReconciler as any).reconcile();
 
@@ -190,6 +195,11 @@ describe('BlockchainReconciler', () => {
         .mockResolvedValueOnce({ userId: 'user-1' }) // doc-1: match
         .mockResolvedValueOnce({ userId: 'user-2' }) // doc-2: match
         .mockResolvedValueOnce({ userId: 'user-new' }); // doc-3: mismatch
+      mockWalletFindMany.mockResolvedValue([
+        { walletAddress: '0xOwner1', userId: 'user-1' },
+        { walletAddress: '0xOwner2', userId: 'user-2' },
+        { walletAddress: '0xOwner3', userId: 'user-new' },
+      ]);
 
       await (BlockchainReconciler as any).reconcile();
 
