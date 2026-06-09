@@ -300,6 +300,14 @@ export class TransferService {
         },
       });
 
+      const currentVersion = await BlockchainCacheService.getOperationalVersionNumber(document.blockchainId!);
+      if (currentVersion > 0) {
+        await tx.version.update({
+          where: { documentId_versionNumber: { documentId, versionNumber: currentVersion } },
+          data: { encryptedSymmetricKey: pendingEncryptedSymmetricKey },
+        });
+      }
+
       await tx.documentShareKey.deleteMany({
         where: { documentId },
       });

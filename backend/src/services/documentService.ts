@@ -832,7 +832,7 @@ export class DocumentService {
     // Determinar la clave simétrica cifrada correcta para este usuario
     let encryptedSymmetricKey: string;
     if (document.ownerId === userId) {
-      encryptedSymmetricKey = document.encryptedSymmetricKey || operationalVersion.encryptedSymmetricKey || 'UNENCRYPTED';
+      encryptedSymmetricKey = operationalVersion.encryptedSymmetricKey || document.encryptedSymmetricKey || 'UNENCRYPTED';
     } else {
       const shareKey = await prisma.documentShareKey.findUnique({
         where: {

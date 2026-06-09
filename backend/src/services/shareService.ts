@@ -287,13 +287,17 @@ export class ShareService {
       sharerWalletAddress?: unknown;
     } | null = null;
 
-    const preparedEvent = await prisma.event.findFirst({
+    const preparedEvents = await prisma.event.findMany({
       where: {
         eventType: 'SHARE_PREPARED',
         documentId: inputDocumentId,
-        metadata: { path: ['shareId'], equals: shareId },
       },
       orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    const preparedEvent = preparedEvents.find((event) => {
+      const metadata = event.metadata as { shareId?: unknown } | null;
+      return metadata?.shareId === shareId;
     });
 
     if (preparedEvent?.metadata) {
@@ -740,13 +744,17 @@ export class ShareService {
    */
   static async confirmRevokeShare(shareId: string, txHash: string): Promise<void> {
     const documentId = shareId.split(':')[0];
-    const preparedEvent = await prisma.event.findFirst({
+    const preparedEvents = await prisma.event.findMany({
       where: {
         eventType: 'SHARE_REVOKE_PREPARED',
         documentId,
-        metadata: { path: ['shareId'], equals: shareId },
       },
       orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+    const preparedEvent = preparedEvents.find((event) => {
+      const metadata = event.metadata as { shareId?: unknown } | null;
+      return metadata?.shareId === shareId;
     });
 
     if (!preparedEvent?.documentId) {

@@ -39,6 +39,8 @@ import {
   ArrowRightLeft,
   FileSignature,
 } from 'lucide-react';
+import { useSigner } from '../hooks/useSigner';
+import { useActiveWallet } from '../contexts/ActiveWalletContext';
 
 /**
  * Pestañas disponibles en la vista de detalle de un documento.
@@ -215,38 +217,46 @@ export const DocumentDetails: React.FC = () => {
   });
 
   const queryClient = useQueryClient();
+  const { getRegistryContract } = useSigner();
+  const { activeWallet } = useActiveWallet();
 
-  // TODO: Implement wallet signing for archive/unarchive/delete operations
   const archiveMutation = useMutation({
     mutationFn: async () => {
-      await documentsApi.archive(id!);
-      const txHash = '0x' + Array(64).fill('0').join(''); // TODO: Replace with real wallet signing
-      await documentsApi.archiveConfirm(id!, txHash);
+      const { blockchainId } = await documentsApi.archive(id!);
+      if (!activeWallet?.walletAddress) throw new Error('No hay wallet activa');
+      const registryContract = await getRegistryContract(activeWallet.walletAddress);
+      const tx = await registryContract.setArchiveStatus(blockchainId, true);
+      await tx.wait();
+      await documentsApi.archiveConfirm(id!, tx.hash);
     },
     onSuccess: () => { refetch(); queryClient.invalidateQueries({ queryKey: ['documents'] }); },
-    onError: (err: any) => setError(err.message || 'Error al archivar'),
+    onError: (err: any) => setError(err.message || 'Error al archivar el documento'),
   });
 
-  // TODO: Implement wallet signing for archive/unarchive/delete operations
   const unarchiveMutation = useMutation({
     mutationFn: async () => {
-      await documentsApi.unarchive(id!);
-      const txHash = '0x' + Array(64).fill('0').join(''); // TODO: Replace with real wallet signing
-      await documentsApi.unarchiveConfirm(id!, txHash);
+      const { blockchainId } = await documentsApi.unarchive(id!);
+      if (!activeWallet?.walletAddress) throw new Error('No hay wallet activa');
+      const registryContract = await getRegistryContract(activeWallet.walletAddress);
+      const tx = await registryContract.setArchiveStatus(blockchainId, false);
+      await tx.wait();
+      await documentsApi.unarchiveConfirm(id!, tx.hash);
     },
     onSuccess: () => { refetch(); queryClient.invalidateQueries({ queryKey: ['documents'] }); },
-    onError: (err: any) => setError(err.message || 'Error al desarchivar'),
+    onError: (err: any) => setError(err.message || 'Error al desarchivar el documento'),
   });
 
-  // TODO: Implement wallet signing for archive/unarchive/delete operations
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await documentsApi.delete(id!);
-      const txHash = '0x' + Array(64).fill('0').join(''); // TODO: Replace with real wallet signing
-      await documentsApi.deleteConfirm(id!, txHash);
+      const { blockchainId } = await documentsApi.delete(id!);
+      if (!activeWallet?.walletAddress) throw new Error('No hay wallet activa');
+      const registryContract = await getRegistryContract(activeWallet.walletAddress);
+      const tx = await registryContract.deleteDocument(blockchainId);
+      await tx.wait();
+      await documentsApi.deleteConfirm(id!, tx.hash);
     },
-    onSuccess: () => { navigate('/app/documents'); queryClient.invalidateQueries({ queryKey: ['documents'] }); },
-    onError: (err: any) => setError(err.message || 'Error al eliminar'),
+    onSuccess: () => navigate('/app/documents'),
+    onError: (err: any) => setError(err.message || 'Error al eliminar el documento'),
   });
 
   if (isLoading) {

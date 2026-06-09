@@ -262,7 +262,6 @@ describe('ShareService prepareShare', () => {
 describe('ShareService confirmShare', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPrisma.event.findFirst = mockPrisma.event.findMany;
   });
 
   it('confirms share and sends notification', async () => {
@@ -348,7 +347,6 @@ describe('ShareService confirmShare', () => {
 describe('ShareService revocation flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPrisma.event.findFirst = mockPrisma.event.findMany;
   });
 
   it('filters revoked shares out of the document share list fallback', async () => {

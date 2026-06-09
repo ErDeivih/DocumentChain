@@ -8,6 +8,8 @@ jest.mock('../../src/services/blockchainCacheService', () => ({
     batchGetDocumentStates: jest.fn().mockResolvedValue(new Map()),
     isDocumentArchived: jest.fn().mockResolvedValue(false),
     isDocumentDeleted: jest.fn().mockResolvedValue(false),
+    isDocumentArchived: jest.fn().mockResolvedValue(false),
+    getOperationalVersionNumber: jest.fn().mockResolvedValue(1),
     invalidate: jest.fn(),
     invalidateAll: jest.fn(),
   },
@@ -35,6 +37,9 @@ jest.mock('../../src/config/database', () => ({
     },
     documentShareKey: {
       deleteMany: jest.fn(),
+    },
+    version: {
+      update: jest.fn(),
     },
     $transaction: jest.fn(),
   },
