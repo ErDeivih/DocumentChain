@@ -284,7 +284,9 @@ export class VersionService {
         include: { user: { select: { publicKey: true } } },
       });
       for (const shareKey of shareKeys) {
-        const reEncryptedKey = Encryption.encryptSymmetricKey(encryptedSymmetricKey, shareKey.user.publicKey);
+        const reEncryptedKey = encryptionResult
+          ? Encryption.encryptSymmetricKey(encryptionResult.symmetricKey, shareKey.user.publicKey)
+          : 'UNENCRYPTED';
         await prisma.documentShareKey.update({
           where: { id: shareKey.id },
           data: { encryptedSymmetricKey: reEncryptedKey },

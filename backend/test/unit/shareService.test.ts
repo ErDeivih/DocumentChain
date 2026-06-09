@@ -32,6 +32,7 @@ jest.mock('../../src/config/database', () => ({
     event: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      create: jest.fn(),
     },
     documentShareKey: {
       upsert: jest.fn(),
@@ -262,6 +263,12 @@ describe('ShareService prepareShare', () => {
 describe('ShareService confirmShare', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrisma.event.findFirst.mockResolvedValue({
+      id: 'event-1',
+      documentId: 'doc-1',
+      eventType: 'SHARE_PREPARED',
+      metadata: { shareId: 'share-1', recipientId: 'user-2', role: 'SHARED_WRITE' },
+    });
   });
 
   it('confirms share and sends notification', async () => {
@@ -347,6 +354,12 @@ describe('ShareService confirmShare', () => {
 describe('ShareService revocation flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrisma.event.findFirst.mockResolvedValue({
+      id: 'event-rev-1',
+      documentId: 'doc-1',
+      eventType: 'SHARE_REVOKE_PREPARED',
+      metadata: { shareId: 'share-1' },
+    });
   });
 
   it('filters revoked shares out of the document share list fallback', async () => {
