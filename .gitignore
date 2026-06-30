@@ -47,14 +47,17 @@ smart-contracts/artifacts/build-info/
 smart-contracts/deployments/localhost.*
 smart-contracts/deployments/hardhat.*
 smart-contracts/coverage/
+smart-contracts/artifacts/**/*.dbg.json
 
 # Build context for Docker hardhat (override build/ exclusion)
 !build/hardhat/
 build/hardhat/node_modules/
+build/hardhat/artifacts/**/*.dbg.json
 
 # Documentation, diagrams (local only)
 anexos/
 *.md
+!README.md
 *.pdf
 *.png
 *.jpeg
@@ -120,6 +123,17 @@ backend/docs/
 # Root-level scripts
 scripts/
 seed.cjs
+
+# Dev tools (local only)
+jest.config.js
+nodemon.json
+tsconfig.test.json
+eslint.config.mjs
+typedoc.json
+tsconfig.typedoc.json
+vitest.config.ts
+prisma.config.ts
+.snapshot-doc.json
 
 # Windows reserved filename (accidental redirect)
 nul

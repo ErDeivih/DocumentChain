@@ -1,0 +1,32 @@
+FROM node:20-alpine
+
+ENV npm_config_fetch_retries=5 \
+  npm_config_fetch_retry_factor=2 \
+  npm_config_fetch_retry_mintimeout=20000 \
+  npm_config_fetch_retry_maxtimeout=120000 \
+  npm_config_fetch_timeout=300000 \
+  npm_config_prefer_offline=true \
+  npm_config_audit=false \
+  npm_config_fund=false
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci --no-audit --prefer-offline
+
+COPY . .
+
+RUN npm run compile
+
+EXPOSE 8545
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD ["node", "-e", "const http=require('http');const body='{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}';const req=http.request({hostname:'localhost',port:8545,method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},(res)=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{const r=JSON.parse(d);process.exit(r.result!==undefined?0:1)}catch{process.exit(1)}})});req.on('error',()=>process.exit(1));req.write(body);req.end()"]
+
+VOLUME ["/app/data"]
+
+COPY scripts/start-hardhat-with-deploy.sh ./scripts/start-hardhat-with-deploy.sh
+RUN chmod +x ./scripts/start-hardhat-with-deploy.sh
+
+CMD ["./scripts/start-hardhat-with-deploy.sh"]
