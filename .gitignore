@@ -83,8 +83,9 @@ frontend/playwright.e2e.local.config.ts
 # Dev scripts (local only)
 backend/scripts/
 
-# SSL and local-only configs
-ssl/
+# Duplicate ABI files (source is in _prebuilt/ and artifacts/)
+backend/src/config/DocumentRegistry.json
+backend/src/config/abis/
 docker-build-ctx/
 _backup/
 _local_no_entrega/
