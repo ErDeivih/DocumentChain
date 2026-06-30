@@ -1,0 +1,45 @@
+# Dockerfile para Hardhat Blockchain Node
+# Ejecuta un nodo local de Hardhat con soporte persistencia y RPC
+
+FROM node:20-alpine
+
+ENV npm_config_fetch_retries=5 \
+  npm_config_fetch_retry_factor=2 \
+  npm_config_fetch_retry_mintimeout=20000 \
+  npm_config_fetch_retry_maxtimeout=120000 \
+  npm_config_fetch_timeout=300000 \
+  npm_config_prefer_offline=true \
+  npm_config_audit=false \
+  npm_config_fund=false
+
+WORKDIR /app
+
+# Copiar dependencias primero para maximizar caché de build
+COPY smart-contracts/package*.json ./
+
+# Instalar dependencias de forma reproducible usando el lockfile sincronizado.
+RUN npm ci --no-audit --prefer-offline
+
+# Copiar smart contracts y resto del código
+COPY smart-contracts/ .
+
+# Pre-compilar contratos
+RUN npm run compile
+
+# Expose puertos
+# 8545: JSON-RPC HTTP
+# 8546: JSON-RPC WebSocket (si se habilita)
+EXPOSE 8545
+
+# Health check - verifica que el RPC esté respondiendo via JSON-RPC (exec form, sin shell)
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD ["node", "-e", "const http=require('http');const body='{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}';const req=http.request({hostname:'localhost',port:8545,method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},(res)=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{const r=JSON.parse(d);process.exit(r.result!==undefined?0:1)}catch{process.exit(1)}})});req.on('error',()=>process.exit(1));req.write(body);req.end()"]
+
+# Volumen para persistencia de blockchain
+VOLUME ["/app/data"]
+
+# Arranque del nodo con despliegue automático del contrato consolidado
+COPY smart-contracts/scripts/start-hardhat-with-deploy.sh ./scripts/start-hardhat-with-deploy.sh
+RUN chmod +x ./scripts/start-hardhat-with-deploy.sh
+
+CMD ["./scripts/start-hardhat-with-deploy.sh"]

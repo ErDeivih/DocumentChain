@@ -1,0 +1,128 @@
+﻿node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# SSL Certificates
+ssl/*.pem
+ssl/*.key
+ssl/*.crt
+
+# PostgreSQL
+*.sql
+postgres-data/
+
+# IPFS
+ipfs-data-*/
+.ipfs/
+ipfs/
+ipfs-cluster/cluster-config/identity.json
+ipfs-cluster/cluster-config/cluster.lock
+ipfs-cluster/cluster-config/peerstore
+ipfs-cluster/cluster-config/pebble/
+ipfs-cluster/tmp-default-config/
+
+# Hardhat
+cache/
+typechain/
+typechain-types/
+smart-contracts/artifacts/build-info/
+smart-contracts/deployments/localhost.*
+smart-contracts/deployments/hardhat.*
+smart-contracts/coverage/
+
+# Build context for Docker hardhat (override build/ exclusion)
+!build/hardhat/
+build/hardhat/node_modules/
+
+# Documentation, diagrams (local only)
+anexos/
+*.md
+*.pdf
+*.png
+*.jpeg
+*.jpg
+
+# Tests (backend — local only)
+backend/test/
+backend/src/__tests__/
+backend/src/**/__tests__/
+backend/test-output.txt
+
+# Tests (frontend — local only)
+frontend/src/test/
+frontend/src/components/**/__tests__/
+frontend/src/lib/**/__tests__/
+frontend/src/services/**/__tests__/
+frontend/src/api/__tests__/
+frontend/src/pages/__tests__/
+frontend/e2e/
+frontend/test-results/
+frontend/playwright.e2e.local.config.ts
+
+# Dev scripts (local only)
+backend/scripts/
+
+# SSL and local-only configs
+ssl/
+docker-build-ctx/
+_backup/
+_local_no_entrega/
+
+# Environment templates with stale vars
+backend/.env.production.example
+
+# Orphan mocks and test data
+**/__mocks__/
+
+# Temp and helper scripts (local only)
+*.zip
+tmp-*.js
+_add_*.py
+_fix_*.py
+_remove_*.py
+_replace_*.py
+*.bat
+*.ps1
+temp_*.ts
+class-design-models.puml
+compile-pdf.bat
+fix-encoding.ps1
+run-*.ps1
+run-*.bat
+
+# Local deployment and demo scripts
+deploy-production.ps1
+demos/
+
+# Generated docs (typedoc)
+docs/
+frontend/docs/
+backend/docs/
+
+# Root-level scripts
+scripts/
+seed.cjs
+
+# Windows reserved filename (accidental redirect)
+nul
+
+# Temp files
+tmp-*.py

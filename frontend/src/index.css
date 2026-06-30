@@ -1,0 +1,380 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   VARIABLES CSS SHADCN/UI
+   ======================================== */
+@layer base {
+  :root {
+    --background: 200 38% 96%;
+    --foreground: 217 42% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 217 42% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 42% 17%;
+    --primary: 172 73% 58%;
+    --primary-foreground: 210 52% 12%;
+    --secondary: 202 31% 91%;
+    --secondary-foreground: 217 32% 24%;
+    --muted: 204 24% 92%;
+    --muted-foreground: 215 18% 43%;
+    --accent: 190 38% 92%;
+    --accent-foreground: 217 32% 24%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 205 23% 80%;
+    --input: 205 23% 80%;
+    --ring: 198 89% 48%;
+    --radius: 0.875rem;
+  }
+}
+
+/* ========================================
+   VARIABLES CSS GLOBALES
+   ======================================== */
+:root {
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  /* Tipografía */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  
+  /* Transiciones */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-tooltip: 1050;
+}
+
+/* ========================================
+   ESTILOS BASE
+   ======================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.12), transparent 20%),
+    linear-gradient(180deg, #f4fbff 0%, #edf5fb 52%, #e7eff8 100%);
+  color: #17324a;
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 88%);
+  z-index: -1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+label,
+.font-display,
+.font-heading {
+  font-family: 'Space Grotesk', 'Manrope', system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(45, 212, 191, 0.32);
+  color: #eff7ff;
+}
+
+code {
+  font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+  font-size: 0.9em;
+}
+
+/* ========================================
+   COMPONENTES REUTILIZABLES
+   ======================================== */
+@layer components {
+  /* Contenedores */
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+  
+  /* Tarjetas */
+  .card {
+    @apply rounded-card border border-border/80 bg-white/90 backdrop-blur-md shadow-[0_18px_45px_-30px_rgba(15,23,42,0.22)]
+      transition-all duration-200 hover:border-primary/30 hover:shadow-[0_26px_55px_-34px_rgba(14,165,233,0.24)];
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-border/60;
+  }
+  
+  .card-body {
+    @apply px-6 py-5;
+  }
+  
+  .card-footer {
+    @apply px-6 py-4 bg-secondary/50 border-t border-border/60 rounded-b-card;
+  }
+  
+  /* Botones */
+  .btn {
+    @apply px-4 py-2 rounded-xl font-medium transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+      @apply btn bg-primary text-primary-foreground hover:bg-primary/90
+        focus:ring-primary shadow-medium hover:shadow-strong;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary/90
+           focus:ring-secondary-500;
+  }
+  
+  .btn-success {
+    @apply btn bg-success-500 text-white hover:bg-success-600
+           focus:ring-success-500;
+  }
+  
+  .btn-error {
+    @apply btn bg-error-500 text-white hover:bg-error-600
+           focus:ring-error-500;
+  }
+  
+  .btn-outline {
+    @apply btn border border-border/80 bg-white/80 text-foreground hover:border-primary/40 hover:bg-primary/5
+           focus:ring-primary-500;
+  }
+  
+  .btn-ghost {
+    @apply btn text-muted-foreground hover:bg-secondary/70 hover:text-foreground
+           focus:ring-secondary-500;
+  }
+  
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-2.5 border border-input rounded-xl bg-white/80 text-foreground
+         focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/40
+         transition-all duration-200 backdrop-blur-sm;
+  }
+  
+  .input-error {
+    @apply input border-error-500 focus:ring-error-500;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-foreground mb-2;
+  }
+  
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary/10 text-primary-400 border border-primary/20;
+  }
+  
+  .badge-success {
+    @apply badge border border-[#bbf7d0] bg-[#f0fdf4] text-[#166534];
+  }
+  
+  .badge-warning {
+    @apply badge border border-[#fcd34d] bg-[#fffbeb] text-[#92400e];
+  }
+  
+  .badge-error {
+    @apply badge border border-[#fecaca] bg-[#fff1f2] text-[#881337];
+  }
+  
+  .badge-blockchain {
+    @apply badge border border-[#bae6fd] bg-[#f0f9ff] text-[#0f4c81];
+  }
+  
+  .badge-secondary {
+    @apply badge border border-border bg-secondary/35 text-foreground;
+  }
+  
+  /* Estados de carga */
+  .skeleton {
+    @apply animate-pulse bg-secondary-200/70 rounded;
+  }
+  
+  .spinner {
+    @apply animate-spin rounded-full border-4 border-secondary-300 border-t-primary;
+  }
+  
+  /* Alertas */
+  .alert {
+    @apply p-4 rounded-lg border-l-4;
+  }
+  
+  .alert-info {
+    @apply alert bg-blockchain-50/60 border-primary text-foreground;
+  }
+  
+  .alert-success {
+    @apply alert border-[#bbf7d0] bg-[#f0fdf4] text-[#166534];
+  }
+  
+  .alert-warning {
+    @apply alert border-[#fcd34d] bg-[#fffbeb] text-[#92400e];
+  }
+  
+  .alert-error {
+    @apply alert border-[#fecaca] bg-[#fff1f2] text-[#881337];
+  }
+  
+  /* Tablas */
+  .table {
+    @apply w-full text-sm text-left;
+  }
+  
+  .table-header {
+    @apply bg-secondary-100/30 border-b border-white/5;
+  }
+  
+  .table-header-cell {
+    @apply px-6 py-3 text-xs font-medium text-secondary-500 uppercase tracking-wider;
+  }
+  
+  .table-row {
+    @apply border-b border-white/5 hover:bg-secondary-100/30 transition-colors;
+  }
+  
+  .table-cell {
+    @apply px-6 py-4 text-foreground;
+  }
+  
+  /* Títulos */
+  .heading-1 {
+    @apply text-3xl font-bold text-foreground mb-2;
+  }
+  
+  .heading-2 {
+    @apply text-2xl font-semibold text-foreground mb-2;
+  }
+  
+  .heading-3 {
+    @apply text-xl font-semibold text-foreground mb-2;
+  }
+  
+  .heading-4 {
+    @apply text-lg font-medium text-foreground mb-1;
+  }
+  
+  /* Divisores */
+  .divider {
+    @apply border-t border-secondary-200 my-6;
+  }
+  
+  /* Links */
+  .link {
+    @apply text-primary-600 hover:text-primary-700 underline transition-colors;
+  }
+  
+  /* Estados blockchain */
+  .status-pending {
+    @apply badge-warning;
+  }
+  
+  .status-synced {
+    @apply badge-success;
+  }
+  
+  .status-failed {
+    @apply badge-error;
+  }
+  
+  .status-blockchain {
+    @apply badge-blockchain;
+  }
+}
+
+/* ========================================
+   UTILIDADES PERSONALIZADAS
+   ======================================== */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #94a3b8;
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background-color: rgba(226, 232, 240, 0.45);
+  }
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .container-page {
+    @apply px-3 py-4;
+  }
+  
+  .card-body {
+    @apply px-4 py-4;
+  }
+}
+

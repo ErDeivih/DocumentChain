@@ -1,0 +1,33 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "tsconfig": "./tsconfig.typedoc.json",
+  "entryPoints": [
+    "./src/api",
+    "./src/lib",
+    "./src/services",
+    "./src/types",
+    "./src/contexts",
+    "./src/hooks",
+    "./src/pages",
+    "./src/components"
+  ],
+  "entryPointStrategy": "expand",
+  "out": "docs/frontend",
+  "readme": "README.md",
+  "name": "DocumentChain Frontend API",
+  "includeVersion": true,
+  "exclude": [
+    "**/node_modules/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/test/**",
+    "**/__tests__/**"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "sort": ["kind", "alphabetical"]
+}

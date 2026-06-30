@@ -1,0 +1,196 @@
+import { Request, Response, NextFunction } from 'express';
+import { WalletService } from '../services/walletService';
+import logger from '../utils/logger';
+import { NotFoundError, ValidationError } from '../utils/errors';
+
+
+/**
+ * Controlador de wallets.
+ * Gestiona la obtención, adición, eliminación, configuración principal
+ * y verificación de las direcciones de wallet de los usuarios.
+ */
+export class WalletController {
+  /**
+   * Obtiene todas las wallets asociadas al usuario autenticado.
+   * Endpoint: GET /api/wallets
+   *
+   * @param req - Objeto de solicitud HTTP autenticado.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la lista de wallets.
+   */
+  static async getWallets(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const wallets = await WalletService.getUserWallets(req.user.userId);
+
+      res.status(200).json({ wallets });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Añade una nueva wallet al usuario autenticado.
+   * Endpoint: POST /api/wallets
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { address, signature?, message?, label?, isPrimary? }.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet creada.
+   */
+  static async addWallet(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const { address, signature, message, label, isPrimary } = req.body;
+
+      logger.debug(`[wallets:add] user=${req.user.userId} address=${address} label=${label} isPrimary=${isPrimary} hasSig=${!!signature} hasMsg=${!!message}`);
+
+      if (!address) {
+        res.status(400).json({ error: 'Se requiere la dirección de la wallet' });
+        return;
+      }
+
+      if (!signature || !message) {
+        res.status(400).json({ error: 'Se requiere la firma del desafío de wallet' });
+        return;
+      }
+
+      const isValid = WalletService.verifyWalletSignature(address, message, signature);
+
+      if (!isValid) {
+        res.status(400).json({ error: 'Firma de wallet inválida' });
+        return;
+      }
+
+      const wallet = await WalletService.addWallet(
+        req.user.userId,
+        address,
+        label,
+        isPrimary
+      );
+
+      logger.debug(`[wallets:add] created walletId=${wallet.id}`);
+
+      res.status(201).json({ wallet });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Elimina una wallet del usuario autenticado.
+   * Endpoint: DELETE /api/wallets/:walletId
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la wallet.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la confirmación de eliminación.
+   */
+  static async removeWallet(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const walletId = req.params.walletId as string;
+
+      await WalletService.removeWallet(req.user.userId, walletId);
+
+      res.status(200).json({ message: 'Wallet eliminada correctamente' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Establece una wallet como principal para el usuario autenticado.
+   * Endpoint: PUT /api/wallets/:walletId/primary
+   *
+   * @param req - Objeto de solicitud HTTP autenticado. Los parámetros deben incluir el ID de la wallet.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet actualizada.
+   */
+  static async setPrimaryWallet(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const walletId = req.params.walletId as string;
+
+      const wallet = await WalletService.setPrimaryWallet(req.user.userId, walletId);
+
+      res.status(200).json({ wallet });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Actualiza la etiqueta (nombre descriptivo) de una wallet.
+   * Endpoint: PUT /api/wallets/:walletId/label
+   *
+   * @param req - Objeto de solicitud HTTP autenticado con { label } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con la wallet actualizada.
+   */
+  static async updateLabel(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ error: 'No autenticado' });
+        return;
+      }
+
+      const walletId = req.params.walletId as string;
+      const { label } = req.body;
+
+      if (!label) {
+        res.status(400).json({ error: 'Se requiere la etiqueta' });
+        return;
+      }
+
+      const wallet = await WalletService.updateWalletLabel(
+        req.user.userId,
+        walletId,
+        label
+      );
+
+      res.status(200).json({ wallet });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Genera un mensaje de desafío para la verificación de propiedad de una wallet.
+   * Endpoint: POST /api/wallets/challenge
+   *
+   * @param req - Objeto de solicitud HTTP con { address } en el cuerpo.
+   * @param res - Objeto de respuesta HTTP.
+   * @returns Promesa que resuelve con el mensaje de desafío.
+   */
+  static async getChallenge(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { address } = req.body;
+
+      if (!address) {
+        res.status(400).json({ error: 'Se requiere la dirección de la wallet' });
+        return;
+      }
+
+      const message = WalletService.generateChallengeMessage(address);
+
+      res.status(200).json({ message });
+    } catch (error) {
+      next(error);
+    }
+  }
+}

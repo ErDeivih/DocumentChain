@@ -1,0 +1,139 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: documentchain-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=documentchain
+      - POSTGRES_PASSWORD=documentchain
+      - POSTGRES_DB=documentchain
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U documentchain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - documentchain
+
+  hardhat:
+    build:
+      context: ./build/hardhat
+      dockerfile: Dockerfile.hardhat
+    container_name: documentchain-hardhat
+    restart: unless-stopped
+    ports:
+      - "8545:8545"
+    environment:
+      - HARDHAT_NETWORK=hardhat
+    volumes:
+      - hardhat-data:/app/data
+      - hardhat-deployments:/app/deployments
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http=require('http');const body=JSON.stringify({jsonrpc:'2.0',method:'eth_blockNumber',params:[],id:1});const req=http.request({hostname:'localhost',port:8545,method:'POST',headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}},(res)=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>{try{const r=JSON.parse(d);process.exit(r.result!==undefined?0:1)}catch{process.exit(1)}})});req.on('error',()=>process.exit(1));req.write(body);req.end()"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    networks:
+      - documentchain
+    depends_on:
+      - postgres
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.v2
+    container_name: documentchain-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SKIP_RATE_LIMIT=true
+      - DATABASE_URL=postgresql://documentchain:documentchain@postgres:5432/documentchain
+      - JWT_SECRET=${JWT_SECRET:-documentchain-local-docker-jwt-secret-2026-main-01}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-documentchain-local-docker-refresh-secret-2026-main-01}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - ADMIN_REGISTRATION_SECRET=${ADMIN_REGISTRATION_SECRET:-documentchain-local-docker-admin-bootstrap-secret-2026-main-01}
+      - BLOCKCHAIN_RPC_URL=http://hardhat:8545
+      - CONTRACT_DOCUMENT_REGISTRY=0x5FbDB2315678afecb367f032d93F642f64180aa3
+      - BLOCKCHAIN_PRIVATE_KEY=${BLOCKCHAIN_PRIVATE_KEY:-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80}
+      - ADMIN_ROLE=${ADMIN_ROLE:-}
+      - PORT=3000
+      - SKIP_EMAIL_VERIFICATION=${SKIP_EMAIL_VERIFICATION:-true}
+      - SMTP_HOST=${SMTP_HOST:-smtp-relay.brevo.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - EMAIL_FROM=${EMAIL_FROM:-davidpeve01@gmail.com}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-DocumentChain}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,https://localhost:5173}
+      - IPFS_PROVIDER=pinata
+      - IPFS_API_URL=${IPFS_API_URL:-http://ipfs-node:5001}
+      - IPFS_GATEWAY_URL=${IPFS_GATEWAY_URL:-http://ipfs-node:8080}
+      - UPLOAD_RATE_LIMIT_MAX=${UPLOAD_RATE_LIMIT_MAX:-500}
+      - GENERAL_RATE_LIMIT_MAX=${GENERAL_RATE_LIMIT_MAX:-2000}
+      - PREPARE_RATE_LIMIT_MAX=${PREPARE_RATE_LIMIT_MAX:-100}
+      - CONFIRM_RATE_LIMIT_MAX=${CONFIRM_RATE_LIMIT_MAX:-150}
+    ports:
+      - "3000:3000"
+    volumes:
+      - backend-logs:/app/logs
+      - backend-shared:/app/shared
+      - hardhat-deployments:/smart-contracts/deployments:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>process.exit(r.statusCode===200?0:1)); }).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 5
+    networks:
+      - documentchain
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: /api
+    container_name: documentchain-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - documentchain
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+    driver: local
+  hardhat-data:
+    driver: local
+  hardhat-deployments:
+    driver: local
+  backend-logs:
+    driver: local
+  backend-shared:
+    driver: local
+
+networks:
+  documentchain:
+    driver: bridge

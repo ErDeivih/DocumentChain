@@ -1,0 +1,96 @@
+# Dockerfile para backend de documentchain
+# Usa ABI pre-compilado en backend/_prebuilt/ (smart-contracts excluido del build context)
+
+FROM node:20-alpine AS contracts
+
+WORKDIR /contracts/artifacts/contracts/DocumentRegistry.sol
+
+# ABI pre-compilado copiado a backend/_prebuilt/ (smart-contracts excluido del build context por .dockerignore)
+COPY backend/_prebuilt/contracts/DocumentRegistry.sol/DocumentRegistry.json ./DocumentRegistry.json
+
+FROM node:20-alpine AS builder
+
+ENV npm_config_fetch_retries=5 \
+     npm_config_fetch_retry_factor=2 \
+     npm_config_fetch_retry_mintimeout=20000 \
+     npm_config_fetch_retry_maxtimeout=120000 \
+     npm_config_fetch_timeout=300000 \
+     npm_config_prefer_offline=true \
+     npm_config_audit=false \
+     npm_config_fund=false
+
+WORKDIR /app
+
+# Copiar package files
+COPY backend/package*.json ./
+
+# Instalar dependencias
+RUN npm ci --no-audit --prefer-offline --legacy-peer-deps
+
+# Copiar código fuente
+COPY backend/ .
+
+# Copiar ABI del contrato compilado
+COPY --from=contracts /contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json \
+     ../smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json
+
+# Copiar Prisma Client pre-generado del host (evita descarga de binary durante build)
+COPY backend/node_modules/.prisma ./node_modules/.prisma
+
+# Construir TypeScript
+RUN npm run build
+
+# Stage 2: Runtime
+FROM node:20-alpine
+
+ENV npm_config_fetch_retries=5 \
+     npm_config_fetch_retry_factor=2 \
+     npm_config_fetch_retry_mintimeout=20000 \
+     npm_config_fetch_retry_maxtimeout=120000 \
+     npm_config_fetch_timeout=300000 \
+     npm_config_prefer_offline=true \
+     npm_config_audit=false \
+     npm_config_fund=false
+
+WORKDIR /app
+
+# Instalar OpenSSL 3 (requerido por Prisma en Alpine Linux 3.17+) y postgresql-client para pg_isready
+RUN apk add --no-cache openssl postgresql-client
+
+COPY backend/package*.json ./
+
+# Instalar todas las dependencias (incluyendo swagger-ui-express que está en devDependencies)
+RUN npm ci --no-audit --prefer-offline --legacy-peer-deps
+
+# Copiar compiled code from builder
+COPY --from=builder /app/dist ./dist
+
+# Copiar plantillas de email requeridas en runtime
+COPY backend/src/templates ./dist/templates
+
+# Copiar archivos de configuración necesarios
+COPY backend/prisma ./prisma
+COPY backend/tsconfig.json ./
+COPY backend/src ./src
+COPY backend/scripts ./scripts
+
+# Copiar ABI del contrato (necesario en runtime para ethers)
+COPY --from=contracts /contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json \
+     /smart-contracts/artifacts/contracts/DocumentRegistry.sol/DocumentRegistry.json
+
+# Copiar Prisma Client pre-generado del host
+COPY backend/node_modules/.prisma ./node_modules/.prisma
+
+# Expose puerto
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+     CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => { let d=''; r.on('data',c=>d+=c); r.on('end',()=>process.exit(r.statusCode===200?0:1)); }).on('error',()=>process.exit(1))"
+
+# Copiar entrypoint script
+COPY backend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Ejecutar aplicación via entrypoint (migraciones + seed + start)
+ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -1,0 +1,44 @@
+import { Request, Response, NextFunction } from 'express';
+import prisma from '../config/database';
+import logger from '../utils/logger';
+
+/**
+ * Middleware que verifica si el usuario autenticado posee el rol de administrador.
+ *
+ * @param req - Objeto de solicitud de Express.
+ * @param res - Objeto de respuesta de Express.
+ * @param next - Función para pasar el control al siguiente middleware.
+ * @returns Promesa que se resuelve en void.
+ */
+export async function isAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      res.status(401).json({ error: 'No autenticado' });
+      return;
+    }
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+    
+    if (!user || user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Acceso denegado - Solo administradores' });
+      return;
+    }
+    
+    next();
+  } catch (error) {
+    logger.error('Error al verificar estado de administrador', {
+      userId: req.user?.userId,
+      error: error instanceof Error ? error.message : 'Error desconocido'
+    });
+    res.status(500).json({ error: 'Error al verificar estado de administrador' });
+  }
+}
